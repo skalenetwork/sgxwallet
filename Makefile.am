@@ -1,4 +1,4 @@
-## This must come first when building an application that uses Intel
+# This must come first when building an application that uses Intel
 ## SGX enclaves.
 
 include $(top_srcdir)/build-aux/sgx_app.am
@@ -45,7 +45,7 @@ EnclaveGmpTest.edl: EnclaveGmpTest/EnclaveGmpTest.edl
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
-AM_CPPFLAGS += -DSKALE_SGX=1 -IlibBLS -IlibBLS/libff -fno-builtin-memset $(GMP_CPPFLAGS)
+AM_CPPFLAGS += -DSKALE_SGX=1 -IlibBLS -Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -67,9 +67,8 @@ COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h \
                 libBLS/bls/BLSPrivateKey.cpp \
                 libBLS/bls/BLSSignature.cpp \
                 libBLS/bls/BLSutils.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp 
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
  
 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)

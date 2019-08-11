@@ -14,6 +14,8 @@
 
 @SET_MAKE@
 
+# This must come first when building an application that uses Intel
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -107,8 +109,7 @@ am__objects_1 = sgx_stub.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
 am_sgxgmpmath_OBJECTS = sgxgmpmath.$(OBJEXT) $(am__objects_1)
 am__objects_2 = EnclaveGmpTest_u.$(OBJEXT) BLSPrivateKey.$(OBJEXT) \
 	BLSSignature.$(OBJEXT) BLSutils.$(OBJEXT) \
-	alt_bn128_init.$(OBJEXT) alt_bn128_g1.$(OBJEXT) \
-	alt_bn128_g2.$(OBJEXT)
+	alt_bn128_init.$(OBJEXT) alt_bn128_g1.$(OBJEXT)
 nodist_sgxgmpmath_OBJECTS = $(am__objects_2)
 sgxgmpmath_OBJECTS = $(am_sgxgmpmath_OBJECTS) \
 	$(nodist_sgxgmpmath_OBJECTS)
@@ -371,10 +372,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
-@SGX_ENABLED_FALSE@AM_CPPFLAGS = -DSKALE_SGX=1 -IlibBLS -IlibBLS/libff \
+@SGX_ENABLED_FALSE@AM_CPPFLAGS = -DSKALE_SGX=1 -IlibBLS -Ilibff \
 @SGX_ENABLED_FALSE@	-fno-builtin-memset $(GMP_CPPFLAGS)
 @SGX_ENABLED_TRUE@AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -DSKALE_SGX=1 \
-@SGX_ENABLED_TRUE@	-IlibBLS -IlibBLS/libff -fno-builtin-memset \
+@SGX_ENABLED_TRUE@	-IlibBLS -Ilibff -fno-builtin-memset \
 @SGX_ENABLED_TRUE@	$(GMP_CPPFLAGS)
 @SGX_ENABLED_FALSE@AM_LDFLAGS = $(GMP_LDFLAGS)
 @SGX_ENABLED_TRUE@AM_LDFLAGS = -L$(SGXSDK_LIBDIR) $(GMP_LDFLAGS)
@@ -387,9 +388,8 @@ COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h \
                 libBLS/bls/BLSPrivateKey.cpp \
                 libBLS/bls/BLSSignature.cpp \
                 libBLS/bls/BLSutils.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp \
-                libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp 
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -501,7 +501,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSutils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveGmpTest_u.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/create_enclave.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oc_alloc.Po@am__quote@
@@ -580,47 +579,33 @@ BLSutils.obj: libBLS/bls/BLSutils.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSutils.obj `if test -f 'libBLS/bls/BLSutils.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSutils.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSutils.cpp'; fi`
 
-alt_bn128_init.o: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+alt_bn128_init.o: libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
 
-alt_bn128_init.obj: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
+alt_bn128_init.obj: libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
 
-alt_bn128_g1.o: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+alt_bn128_g1.o: libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 
-alt_bn128_g1.obj: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
+alt_bn128_g1.obj: libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
-
-alt_bn128_g2.o: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.o -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.o `test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-
-alt_bn128_g2.obj: libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.obj `if test -f 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) 'libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.
