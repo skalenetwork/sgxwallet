@@ -1,0 +1,36 @@
+enclave {
+
+	trusted {
+		include "sgx_tgmp.h"
+
+		public void tgmp_init();
+
+		public void e_mpz_add(
+			[user_check] mpz_t *c, [user_check] mpz_t *a, [user_check] mpz_t *b
+		);
+
+		public void e_mpz_mul(
+			[user_check] mpz_t *c, [user_check] mpz_t *a, [user_check] mpz_t *b
+		);
+
+		public void e_mpz_div(
+			[user_check] mpz_t *c, [user_check] mpz_t *a, [user_check] mpz_t *b
+		);
+
+		public void e_mpf_div(
+			[user_check] mpf_t *c, [user_check] mpf_t *a, [user_check] mpf_t *b
+		);
+
+		public void e_pi ([user_check] mpf_t *pi, uint64_t digits);
+	};
+
+
+	untrusted {
+		include "gmp.h"
+
+		uint64_t oc_realloc([user_check] void *optr, size_t osz, size_t nsz);
+
+		void oc_free([user_check] void *optr, size_t sz);
+	};
+};
+

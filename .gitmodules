@@ -1,0 +1,3 @@
+[submodule "libff"]
+	path = libff
+	url = https://github.com/skalenetwork/libff.git

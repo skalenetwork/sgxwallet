@@ -1,0 +1,62 @@
+EnclaveGmpTest_t.o: EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
+ /opt/intel/sgxsdk/include/tlibc/stdint.h \
+ /opt/intel/sgxsdk/include/tlibc/sys/stdint.h \
+ /opt/intel/sgxsdk/include/tlibc/sys/cdefs.h \
+ /opt/intel/sgxsdk/include/tlibc/sys/_types.h \
+ /opt/intel/sgxsdk/include/tlibc/wchar.h \
+ /opt/intel/sgxsdk/include/tlibc/stddef.h \
+ /opt/intel/sgxsdk/include/sgx_edger8r.h \
+ /opt/intel/sgxsdk/include/sgx_defs.h \
+ /opt/intel/sgxsdk/include/sgx_error.h \
+ /opt/intel/sgxsdk/include/sgx_eid.h /opt/gmp/6.1.2/include/sgx_tgmp.h \
+ /opt/intel/sgxsdk/include/tlibc/limits.h \
+ /opt/intel/sgxsdk/include/tlibc/sys/limits.h \
+ /opt/intel/sgxsdk/include/tlibc/stdlib.h \
+ /opt/intel/sgxsdk/include/sgx_trts.h \
+ /opt/intel/sgxsdk/include/sgx_lfence.h \
+ /opt/intel/sgxsdk/include/tlibc/errno.h \
+ /opt/intel/sgxsdk/include/tlibc/mbusafecrt.h \
+ /opt/intel/sgxsdk/include/tlibc/string.h \
+ /opt/intel/sgxsdk/include/tlibc/stdarg.h
+
+EnclaveGmpTest_t.h:
+
+/opt/intel/sgxsdk/include/tlibc/stdint.h:
+
+/opt/intel/sgxsdk/include/tlibc/sys/stdint.h:
+
+/opt/intel/sgxsdk/include/tlibc/sys/cdefs.h:
+
+/opt/intel/sgxsdk/include/tlibc/sys/_types.h:
+
+/opt/intel/sgxsdk/include/tlibc/wchar.h:
+
+/opt/intel/sgxsdk/include/tlibc/stddef.h:
+
+/opt/intel/sgxsdk/include/sgx_edger8r.h:
+
+/opt/intel/sgxsdk/include/sgx_defs.h:
+
+/opt/intel/sgxsdk/include/sgx_error.h:
+
+/opt/intel/sgxsdk/include/sgx_eid.h:
+
+/opt/gmp/6.1.2/include/sgx_tgmp.h:
+
+/opt/intel/sgxsdk/include/tlibc/limits.h:
+
+/opt/intel/sgxsdk/include/tlibc/sys/limits.h:
+
+/opt/intel/sgxsdk/include/tlibc/stdlib.h:
+
+/opt/intel/sgxsdk/include/sgx_trts.h:
+
+/opt/intel/sgxsdk/include/sgx_lfence.h:
+
+/opt/intel/sgxsdk/include/tlibc/errno.h:
+
+/opt/intel/sgxsdk/include/tlibc/mbusafecrt.h:
+
+/opt/intel/sgxsdk/include/tlibc/string.h:
+
+/opt/intel/sgxsdk/include/tlibc/stdarg.h:
