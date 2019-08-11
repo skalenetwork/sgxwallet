@@ -45,7 +45,7 @@ EnclaveGmpTest.edl: EnclaveGmpTest/EnclaveGmpTest.edl
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
-AM_CPPFLAGS += -DSKALE_SGX=1 -IlibBLS -Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
+AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -IlibBLS -Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.

@@ -372,11 +372,12 @@ top_builddir = .
 top_srcdir = .
 SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
-#AM_CPPFLAGS = -DSKALE_SGX=1 -IlibBLS -Ilibff \
-#	-fno-builtin-memset $(GMP_CPPFLAGS)
+#AM_CPPFLAGS = -DSKALE_SGX=1 -DBINARY_OUTPUT=1 \
+#	-IlibBLS -Ilibff -fno-builtin-memset \
+#	$(GMP_CPPFLAGS)
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -DSKALE_SGX=1 \
-	-IlibBLS -Ilibff -fno-builtin-memset \
-	$(GMP_CPPFLAGS)
+	-DBINARY_OUTPUT=1 -IlibBLS -Ilibff \
+	-fno-builtin-memset $(GMP_CPPFLAGS)
 #AM_LDFLAGS = $(GMP_LDFLAGS)
 AM_LDFLAGS = -L$(SGXSDK_LIBDIR) $(GMP_LDFLAGS)
 SUBDIRS = EnclaveGmpTest
