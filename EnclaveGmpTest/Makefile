@@ -200,8 +200,8 @@ ECHO_N = -n
 ECHO_T = 
 ENCLAVE_SIGN_TARGET = signed_enclave_dev
 EXEEXT = .so
-GMP_CPPFLAGS = 
-GMP_LDFLAGS = 
+GMP_CPPFLAGS = -I/d/gmp-build//include
+GMP_LDFLAGS = -L/d/gmp-build//lib
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -246,8 +246,8 @@ SGX_UAE_SERVICE_LIB = sgx_uae_service
 SGX_URTS_LIB = sgx_urts
 SHELL = /bin/bash
 STRIP = 
-TGMP_CPPFLAGS = 
-TGMP_LDFLAGS = 
+TGMP_CPPFLAGS = -I/opt/gmp/6.1.2/include
+TGMP_LDFLAGS = -L/opt/gmp/6.1.2/lib
 VERSION = 1.0
 abs_builddir = /d/sgxd/EnclaveGmpTest
 abs_srcdir = /d/sgxd/EnclaveGmpTest
@@ -282,7 +282,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /d/tsgx-build
+prefix = /usr/local
 program_transform_name = s,x,x,
 psdir = ${docdir}
 runstatedir = ${localstatedir}/run
@@ -312,7 +312,7 @@ EnclaveGmpTest_SOURCES = EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
 	EnclaveGmpTest.c $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 EnclaveGmpTest_LDADD = -Wl,--no-undefined -Wl,--whole-archive -l$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group $(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0
-SGX_EXTRA_TLIBS = -lsgx_tgmp
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
 all: all-am
 
 .SUFFIXES:

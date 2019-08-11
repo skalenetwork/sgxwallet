@@ -34,6 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EnclaveGmpTest_t.h"
 #include <sgx_tgmp.h>
 #include <sgx_trts.h>
+#include "sgx_tcrypto.h"
+#include "sgx_tseal.h"
+
 #include <math.h>
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
@@ -210,7 +213,20 @@ void e_calc_pi (mpf_t *pi, uint64_t digits)
 
 	mpf_set_prec(*pi, precision);
 
-	/*
+        char buf[32];
+        if (sgx_read_rand(buf, 32) != SGX_SUCCESS)
+             return;
+
+
+        uint32_t sealedLen = sgx_calc_sealed_data_size(0, 32);
+
+        uint8_t sealed_data[sealedLen];
+
+        if( sgx_seal_data(0, NULL, 32, buf, sealedLen, sealed_data) != SGX_SUCCESS)
+             return;
+
+          	
+        /*
 
 		426880 sqrt(10005)    inf (6k)! (13591409+545140134k)
 		------------------- = SUM ---------------------------

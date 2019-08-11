@@ -110,7 +110,8 @@ EnclaveGmpTest_LDADD = @SGX_ENCLAVE_LDADD@
 ## --startgroup and --endgroup flags. (This would be where you'd add
 ## SGXSSL libraries, and your trusted c++ library
 
-SGX_EXTRA_TLIBS=-lsgx_tgmp
+SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
+
 
 
 ## This line is OPTIONAL, and comes with a WARNING.

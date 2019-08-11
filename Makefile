@@ -276,8 +276,8 @@ ECHO_N = -n
 ECHO_T = 
 ENCLAVE_SIGN_TARGET = signed_enclave_dev
 EXEEXT = 
-GMP_CPPFLAGS = 
-GMP_LDFLAGS = 
+GMP_CPPFLAGS = -I/d/gmp-build//include
+GMP_LDFLAGS = -L/d/gmp-build//lib
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -322,8 +322,8 @@ SGX_UAE_SERVICE_LIB = sgx_uae_service
 SGX_URTS_LIB = sgx_urts
 SHELL = /bin/bash
 STRIP = 
-TGMP_CPPFLAGS = 
-TGMP_LDFLAGS = 
+TGMP_CPPFLAGS = -I/opt/gmp/6.1.2/include
+TGMP_LDFLAGS = -L/opt/gmp/6.1.2/lib
 VERSION = 1.0
 abs_builddir = /d/sgxd
 abs_srcdir = /d/sgxd
@@ -358,7 +358,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /d/tsgx-build
+prefix = /usr/local
 program_transform_name = s,x,x,
 psdir = ${docdir}
 runstatedir = ${localstatedir}/run
@@ -389,8 +389,8 @@ COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h \
                 libBLS/bls/BLSPrivateKey.cpp \
                 libBLS/bls/BLSSignature.cpp \
                 libBLS/bls/BLSutils.cpp \
-                /d/sgxd/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                /d/sgxd/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -399,8 +399,8 @@ sgxgmppi_SOURCES = sgxgmppi.c $(COMMON_SRC)
 nodist_sgxgmppi_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxgmppi_DEPENDENCIES = EnclaveGmpTest.signed.so
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
-sgxgmpmath_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -lpthread 
-sgxgmppi_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -lpthread 
+sgxgmpmath_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
+sgxgmppi_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

@@ -312,7 +312,7 @@ EnclaveGmpTest_SOURCES = EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
 	EnclaveGmpTest.c $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 EnclaveGmpTest_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
 all: all-am
 
 .SUFFIXES:
