@@ -6,3 +6,5 @@ tgmp-build
 install-sh
 /config.log
 /config.status
+/Makefile.in
+/Makefile
