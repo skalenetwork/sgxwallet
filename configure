@@ -4162,12 +4162,7 @@ fi
 
 
 
-# Check whether --with-sgxsdk was given.
-if test "${with_sgxsdk+set}" = set; then :
-  withval=$with_sgxsdk; SGXSDK=$withval
-else
-  SGXSDK="detect"
-fi
+
 
 
 	if test "x$sgxsim" = "yes"; then :
@@ -4258,27 +4253,6 @@ else
 
 fi
 	SGX_DEBUG_FLAGS=$_sgxdebug
-
-	if test "x$SGX_SDK" = "x"; then :
-  SGXSDK=detect
-else
-  SGXSDK=env
-fi
-
-	if test "x$SGXSDK" = "xenv"; then :
-  SGXSDK=$SGX_SDK
-elif test "x$SGXSDK" != "xdetect"; then :
-
-elif test -d /opt/intel/sgxsdk; then :
-  SGXSDK=/opt/intel/sgxsdk
-elif test -d ~/sgxsdk; then :
-  SGXSDK=~/sgxsdk
-elif test -d ./sgxsdk; then :
-  SGXSDK=./sgxsdk
-else
-  as_fn_error $? "Can't detect your Intel SGX SDK installation directory" "$LINENO" 5
-fi
-
 
 	SGXSDK_INCDIR=$SGXSDK/include
 
@@ -4384,25 +4358,10 @@ $as_echo "$as_me: enabling SGX... ${ac_cv_enable_sgx}" >&6;}
 	ac_cv_sgx_init=yes
 
 
-gmpdir=
-tgmpdir=
 
-
-# Check whether --with-gmpdir was given.
-if test "${with_gmpdir+set}" = set; then :
-  withval=$with_gmpdir; gmpdir=$withval
-
-fi
-
-
-
-# Check whether --with-trusted-gmpdir was given.
-if test "${with_trusted_gmpdir+set}" = set; then :
-  withval=$with_trusted_gmpdir; tgmpdir=$withval
-else
-  tgmpdir=$gmpdir
-
-fi
+gmpdir=gmp-build
+tgmpdir=tgmp-build
+SGXSDK=sgx-sdk-build/sgxsdk
 
 
 if test "$gmpdir" != ""; then :
