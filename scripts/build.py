@@ -66,14 +66,14 @@ GMP_BUILD_DIR = "gmp-build"
 TGMP_BUILD_DIR = "tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-INSTALL_SH = "/usr/share/automake-1.16/install-sh"
+AUTOMAKE_DIR = "/usr/share/automake-1.16"
 
 
 
-if not os.path.isfile(INSTALL_SH):
-    INSTALL_SH = "/usr/share/automake-1.15/install-sh"
-    if not os.path.isfile(INSTALL_SH):
-        raise Exception("Could not find " + INSTALL_SH)
+if not os.path.isdir(AUTOMAKE_DIR):
+    INSTALL_SH = "/usr/share/automake-1.15"
+    if not os.path.isdir(AUTOMAKE_DIR):
+        raise Exception("Could not find " + AUTOMAKE_DIR)
 
 
 
@@ -82,6 +82,10 @@ if not os.path.isfile(INSTALL_SH):
 
 
 subprocess.call(["rm", "-f",  "install-sh"]);
+subprocess.call(["rm", "-f",  "compile"]);
+subprocess.call(["rm", "-f",  "missing"]);
+subprocess.call(["rm", "-f",  "depcomp"]);
+
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR]);
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR]);
 subprocess.call(["rm", "-rf", SDK_DIR]);
@@ -92,7 +96,12 @@ subprocess.call(["mkdir", "-p", TGMP_BUILD_DIR]);
 subprocess.call(["mkdir", "-p", SDK_DIR]);
 
 
-subprocess.call(["ln", "-s", INSTALL_SH, "install-sh"])
+subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/install-sh", "install-sh"])
+subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
+subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
+subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
+
+
 subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + topDir + "/sgx-sdk-build"]);
 
 
