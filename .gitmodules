@@ -4,3 +4,6 @@
 [submodule "libBLS"]
 	path = libBLS
 	url = https://github.com/skalenetwork/libBLS.git
+[submodule "sgx-gmp"]
+	path = sgx-gmp
+	url = https://github.com/intel/sgx-gmp.git
