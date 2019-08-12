@@ -8,3 +8,7 @@ install-sh
 /config.status
 /Makefile.in
 /Makefile
+/EnclaveGmpTest_u.h
+/EnclaveGmpTest_u.c
+/EnclaveGmpTest.edl
+/am--include-marker
