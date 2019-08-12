@@ -4,3 +4,5 @@
 gmp-build
 tgmp-build
 install-sh
+/config.log
+/config.status

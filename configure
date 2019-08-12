@@ -4162,7 +4162,12 @@ fi
 
 
 
-
+# Check whether --with-sgxsdk was given.
+if test "${with_sgxsdk+set}" = set; then :
+  withval=$with_sgxsdk; SGXSDK=$withval
+else
+  SGXSDK="detect"
+fi
 
 
 	if test "x$sgxsim" = "yes"; then :
@@ -4252,12 +4257,14 @@ else
   as_fn_error $? "Unknown build mode $_sgxbuild" "$LINENO" 5
 
 fi
-
-
-
-SGXSDK=sgx-sdk-build/sgxsdk
-
 	SGX_DEBUG_FLAGS=$_sgxdebug
+
+if test -d ${PWD}/sgx-sdk-build/sgxsdk; then :
+  SGXSDK=${PWD}/sgx-sdk-build/sgxsdk
+else
+  as_fn_error $? "Can't detect your Intel SGX SDK installation directory" "$LINENO" 5
+fi
+
 
 	SGXSDK_INCDIR=$SGXSDK/include
 
@@ -4265,10 +4272,13 @@ SGXSDK=sgx-sdk-build/sgxsdk
 	ac_cv_sgx_sdk=$SGXSDK
 	ac_cv_sgx_sdk_incdir=$SGXSDK/include
 
+	if test -d $SGXSDK/lib; then :
 
+		SGXSDK_LIBDIR=$SGXSDK/lib
 
+		ac_cv_sgx_sdk_libdir=$SGXSDK/lib
 
-if test -d $SGXSDK/lib64; then :
+elif test -d $SGXSDK/lib64; then :
 
 		SGXSDK_LIBDIR=$SGXSDK/lib64
 
@@ -4276,15 +4286,17 @@ if test -d $SGXSDK/lib64; then :
 
 else
 
-		as_fn_error $? "Can't find Intel SGX SDK lib directory $SGXSDK" "$LINENO" 5
+		as_fn_error $? "Can't find Intel SGX SDK lib directory" "$LINENO" 5
 
 fi
 
+	if test -d $SGXSDK/bin/ia32; then :
+
+		ac_cv_sgx_sdk_bindir=$SGXSDK/bin
+		SGXSDK_BINDIR=$SGXSDK/bin/ia32
 
 
-
-
-if test -d $SGXSDK/bin/x64; then :
+elif test -d $SGXSDK/bin/x64; then :
 
 		ac_cv_sgx_sdk_bindir=$SGXSDK/bin/x64
 		SGXSDK_BINDIR=$SGXSDK/bin/x64
@@ -4292,7 +4304,7 @@ if test -d $SGXSDK/bin/x64; then :
 
 else
 
-		as_fn_error $? "Can't find Intel SGX SDK bin directory in $SGXSDK" "$LINENO" 5
+		as_fn_error $? "Can't find Intel SGX SDK bin directory" "$LINENO" 5
 
 fi
 
@@ -4358,10 +4370,12 @@ $as_echo "$as_me: enabling SGX... ${ac_cv_enable_sgx}" >&6;}
 	ac_cv_sgx_init=yes
 
 
+gmpdir=
+tgmpdir=
 
-gmpdir=gmp-build
-tgmpdir=tgmp-build
-SGXSDK=sgx-sdk-build/sgxsdk
+
+gmpdir=${PWD}/gmp-build
+tgmpdir=${PWD}/tgmp-build
 
 
 if test "$gmpdir" != ""; then :
@@ -5704,4 +5718,3 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
