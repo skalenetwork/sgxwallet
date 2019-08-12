@@ -64,10 +64,12 @@ makeExecutable = subprocess.check_output(["which", "make"])
 GMP_DIR = "sgx-gmp"
 GMP_BUILD_DIR = "gmp-build";
 TGMP_BUILD_DIR = "tgmp-build";
+SDK_DIR = topDir + "/sgx-sdk-build";
 
 
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR]);
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR]);
+subprocess.call(["rm", "-rf", SDK_DIR]);
 
 subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + topDir + "/sgx-sdk-build"]);
 
@@ -76,48 +78,18 @@ subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + to
 
 subprocess.call(["mkdir", "-p",  GMP_BUILD_DIR]);
 subprocess.call(["mkdir", "-p", TGMP_BUILD_DIR]);
+subprocess.call(["rm", "-rf", SDK_DIR]);
 
 os.chdir(GMP_DIR);
 subprocess.call(["./configure", "--prefix=" + topDir + "/" + TGMP_BUILD_DIR, "--disable-shared",
-                                 "--enable-static", "--with-pic", "--enable-sgx"]);
+                                 "--enable-static", "--with-pic", "--enable-sgx", "--with-sgxsdk=" + SDK_DIR]);
 subprocess.call(["make", "install"]);
 subprocess.call(["make", "clean"]);
 
 subprocess.call(["./configure", "--prefix=" + topDir + "/" + GMP_BUILD_DIR, "--disable-shared",
-                                                                    "--enable-static", "--with-pic"]);
+                                            "--enable-static", "--with-pic", "--with-sgxsdk=" + SDK_DIR]);
 subprocess.call(["make", "install"]);
 subprocess.call(["make", "clean"]);
-
-
-
-
-
-
-
-
-
-
-os.chdir("../" + TGMP_BUILD_DIR);
-
-
-print("Running make: " + makeExecutable)
-
-assert(subprocess.call(["cmake", ".",  "-DCMAKE_BUILD_TYPE=" +  sys.argv[1],
-                        "-DCOVERAGE=ON", "-DMICROPROFILE_ENABLED=0"]) == 0)
-
-assert(subprocess.call(["/usr/bin/make", "-j4"]) == 0)
-
-
-buildDirName = sys.argv[2] + '/cmake-build-' + sys.argv[1].lower()
-
-print("Build dir:" + buildDirName)
-
-
-os.system("ls " + buildDirName)
-
-
-assert  os.path.isfile(sys.argv[2] + '/consensust')
-assert  os.path.isfile(sys.argv[2] + '/consensusd')
 
 print("Build successfull.")
 
