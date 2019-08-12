@@ -13,3 +13,6 @@ install-sh
 /am--include-marker
 *.o
 /aclocal.m4
+/EnclaveGmpTest.signed.so
+/sgxgmpmath
+/sgxgmppi

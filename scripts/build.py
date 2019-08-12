@@ -62,8 +62,8 @@ makeExecutable = subprocess.check_output(["which", "make"])
 
 
 GMP_DIR = "sgx-gmp"
-GMP_BUILD_DIR = "gmp-build"
-TGMP_BUILD_DIR = "tgmp-build"
+GMP_BUILD_DIR = topDir + "/gmp-build"
+TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
 AUTOMAKE_DIR = "/usr/share/automake-1.16"
@@ -90,9 +90,6 @@ subprocess.call(["rm", "-rf",  GMP_BUILD_DIR]);
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR]);
 subprocess.call(["rm", "-rf", SDK_DIR]);
 
-
-subprocess.call(["mkdir", "-p",  GMP_BUILD_DIR]);
-subprocess.call(["mkdir", "-p", TGMP_BUILD_DIR]);
 subprocess.call(["mkdir", "-p", SDK_DIR]);
 
 
@@ -101,20 +98,32 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
+subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"])
 
-subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + topDir + "/sgx-sdk-build"]);
+subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + SDK_DIR]);
+
 
 
 os.chdir(GMP_DIR);
-subprocess.call(["./configure", "--prefix=" + topDir + "/" + TGMP_BUILD_DIR, "--disable-shared",
-                                 "--enable-static", "--with-pic", "--enable-sgx", "--with-sgxsdk=" + SDK_DIR]);
-subprocess.call(["make", "install"]);
-subprocess.call(["make", "clean"]);
 
-subprocess.call(["./configure", "--prefix=" + topDir + "/" + GMP_BUILD_DIR, "--disable-shared",
-                                            "--enable-static", "--with-pic", "--with-sgxsdk=" + SDK_DIR]);
-subprocess.call(["make", "install"]);
-subprocess.call(["make", "clean"]);
+
+assert subprocess.call(["bash", "-c", "./configure --prefix=" + TGMP_BUILD_DIR + " --disable-shared " +
+                        " --enable-static --with-pic --enable-sgx  --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0;
+
+
+assert subprocess.call(["make", "install"]) == 0;
+assert subprocess.call(["make", "clean"]) == 0;
+
+
+assert subprocess.call(["bash", "-c", "./configure --prefix=" + GMP_BUILD_DIR + " --disable-shared " +
+                        " --enable-static  --with-pic --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0;
+assert subprocess.call(["make", "install"]) == 0;
+assert subprocess.call(["make", "clean"]) == 0;
+
+
+
+
+
 
 os.chdir("..")
 
