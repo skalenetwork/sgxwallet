@@ -11,3 +11,5 @@ install-sh
 /EnclaveGmpTest_u.c
 /EnclaveGmpTest.edl
 /am--include-marker
+*.o
+/aclocal.m4
