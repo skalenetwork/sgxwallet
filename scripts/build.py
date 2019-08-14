@@ -71,7 +71,7 @@ AUTOMAKE_DIR = "/usr/share/automake-1.16"
 
 
 if not os.path.isdir(AUTOMAKE_DIR):
-    INSTALL_SH = "/usr/share/automake-1.15"
+    AUTOMAKE_DIR = "/usr/share/automake-1.15"
     if not os.path.isdir(AUTOMAKE_DIR):
         raise Exception("Could not find " + AUTOMAKE_DIR)
 
