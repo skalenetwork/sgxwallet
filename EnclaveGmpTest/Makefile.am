@@ -63,7 +63,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional Automake flags needed to build the enclave.
 ##
 
-AM_CPPFLAGS += $(TGMP_CPPFLAGS)
+AM_CPPFLAGS += $(TGMP_CPPFLAGS) -I../libff  -I../sgx-sdk-build/sgxsdk/include/libcxx 
 AM_CXXFLAGS += -fno-builtin
 
 
@@ -83,7 +83,9 @@ CLEANFILES+= EnclaveGmpTest_t.c EnclaveGmpTest_t.h
 ## target name (i.e., $(ENCLAVE)_SOURCES will not work).
 
 EnclaveGmpTest_SOURCES = EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
-	EnclaveGmpTest.c $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+	EnclaveGmpTest.c \
+        EnclaveGmpTest.c BLSUtils.cpp  ../libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                ../libff/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put 

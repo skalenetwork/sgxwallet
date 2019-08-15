@@ -1,62 +1,63 @@
 EnclaveGmpTest_t.o: EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
- /opt/intel/sgxsdk/include/tlibc/stdint.h \
- /opt/intel/sgxsdk/include/tlibc/sys/stdint.h \
- /opt/intel/sgxsdk/include/tlibc/sys/cdefs.h \
- /opt/intel/sgxsdk/include/tlibc/sys/_types.h \
- /opt/intel/sgxsdk/include/tlibc/wchar.h \
- /opt/intel/sgxsdk/include/tlibc/stddef.h \
- /opt/intel/sgxsdk/include/sgx_edger8r.h \
- /opt/intel/sgxsdk/include/sgx_defs.h \
- /opt/intel/sgxsdk/include/sgx_error.h \
- /opt/intel/sgxsdk/include/sgx_eid.h /opt/gmp/6.1.2/include/sgx_tgmp.h \
- /opt/intel/sgxsdk/include/tlibc/limits.h \
- /opt/intel/sgxsdk/include/tlibc/sys/limits.h \
- /opt/intel/sgxsdk/include/tlibc/stdlib.h \
- /opt/intel/sgxsdk/include/sgx_trts.h \
- /opt/intel/sgxsdk/include/sgx_lfence.h \
- /opt/intel/sgxsdk/include/tlibc/errno.h \
- /opt/intel/sgxsdk/include/tlibc/mbusafecrt.h \
- /opt/intel/sgxsdk/include/tlibc/string.h \
- /opt/intel/sgxsdk/include/tlibc/stdarg.h
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_edger8r.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_defs.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_error.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_eid.h \
+ /d/sgxd/tgmp-build/include/sgx_tgmp.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_trts.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_lfence.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/errno.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/mbusafecrt.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/string.h \
+ /d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h
 
 EnclaveGmpTest_t.h:
 
-/opt/intel/sgxsdk/include/tlibc/stdint.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h:
 
-/opt/intel/sgxsdk/include/tlibc/sys/stdint.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h:
 
-/opt/intel/sgxsdk/include/tlibc/sys/cdefs.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h:
 
-/opt/intel/sgxsdk/include/tlibc/sys/_types.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h:
 
-/opt/intel/sgxsdk/include/tlibc/wchar.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h:
 
-/opt/intel/sgxsdk/include/tlibc/stddef.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h:
 
-/opt/intel/sgxsdk/include/sgx_edger8r.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_edger8r.h:
 
-/opt/intel/sgxsdk/include/sgx_defs.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_defs.h:
 
-/opt/intel/sgxsdk/include/sgx_error.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_error.h:
 
-/opt/intel/sgxsdk/include/sgx_eid.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_eid.h:
 
-/opt/gmp/6.1.2/include/sgx_tgmp.h:
+/d/sgxd/tgmp-build/include/sgx_tgmp.h:
 
-/opt/intel/sgxsdk/include/tlibc/limits.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
 
-/opt/intel/sgxsdk/include/tlibc/sys/limits.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
 
-/opt/intel/sgxsdk/include/tlibc/stdlib.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
 
-/opt/intel/sgxsdk/include/sgx_trts.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_trts.h:
 
-/opt/intel/sgxsdk/include/sgx_lfence.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/sgx_lfence.h:
 
-/opt/intel/sgxsdk/include/tlibc/errno.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/errno.h:
 
-/opt/intel/sgxsdk/include/tlibc/mbusafecrt.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/mbusafecrt.h:
 
-/opt/intel/sgxsdk/include/tlibc/string.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/string.h:
 
-/opt/intel/sgxsdk/include/tlibc/stdarg.h:
+/d/sgxd/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:

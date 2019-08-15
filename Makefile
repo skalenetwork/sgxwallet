@@ -107,9 +107,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = sgx_stub.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
 	create_enclave.$(OBJEXT) oc_alloc.$(OBJEXT)
 am_sgxgmpmath_OBJECTS = sgxgmpmath.$(OBJEXT) $(am__objects_1)
-am__objects_2 = EnclaveGmpTest_u.$(OBJEXT) BLSPrivateKey.$(OBJEXT) \
-	BLSSignature.$(OBJEXT) BLSutils.$(OBJEXT) \
-	alt_bn128_init.$(OBJEXT) alt_bn128_g1.$(OBJEXT)
+am__objects_2 = EnclaveGmpTest_u.$(OBJEXT)
 nodist_sgxgmpmath_OBJECTS = $(am__objects_2)
 sgxgmpmath_OBJECTS = $(am_sgxgmpmath_OBJECTS) \
 	$(nodist_sgxgmpmath_OBJECTS)
@@ -146,23 +144,6 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-AM_V_lt = $(am__v_lt_$(V))
-am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
-am__v_lt_0 = --silent
-am__v_lt_1 = 
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-AM_V_CXX = $(am__v_CXX_$(V))
-am__v_CXX_ = $(am__v_CXX_$(AM_DEFAULT_VERBOSITY))
-am__v_CXX_0 = @echo "  CXX     " $@;
-am__v_CXX_1 = 
-CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	-o $@
-AM_V_CXXLD = $(am__v_CXXLD_$(V))
-am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
-am__v_CXXLD_0 = @echo "  CXXLD   " $@;
-am__v_CXXLD_1 = 
 SOURCES = $(sgxgmpmath_SOURCES) $(nodist_sgxgmpmath_SOURCES) \
 	$(sgxgmppi_SOURCES) $(nodist_sgxgmppi_SOURCES)
 DIST_SOURCES = $(sgxgmpmath_SOURCES) $(sgxgmppi_SOURCES)
@@ -276,8 +257,8 @@ ECHO_N = -n
 ECHO_T = 
 ENCLAVE_SIGN_TARGET = signed_enclave_dev
 EXEEXT = 
-GMP_CPPFLAGS = -Igmp-build/include
-GMP_LDFLAGS = -Lgmp-build/lib
+GMP_CPPFLAGS = -I/d/sgxd/gmp-build/include -I/d/sgxd/tgmp-build/include
+GMP_LDFLAGS = -L/d/sgxd/gmp-build/lib
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -300,10 +281,10 @@ PACKAGE_URL =
 PACKAGE_VERSION = 1.0
 PATH_SEPARATOR = :
 SET_MAKE = 
-SGXSDK = sgx-sdk-build/sgxsdk
-SGXSDK_BINDIR = sgx-sdk-build/sgxsdk/bin/x64
-SGXSDK_INCDIR = sgx-sdk-build/sgxsdk/include
-SGXSDK_LIBDIR = sgx-sdk-build/sgxsdk/lib64
+SGXSDK = /d/sgxd/sgx-sdk-build/sgxsdk
+SGXSDK_BINDIR = /d/sgxd/sgx-sdk-build/sgxsdk/bin/x64
+SGXSDK_INCDIR = /d/sgxd/sgx-sdk-build/sgxsdk/include
+SGXSDK_LIBDIR = /d/sgxd/sgx-sdk-build/sgxsdk/lib64
 SGXSSL = /opt/intel/sgxssl
 SGXSSL_INCDIR = /opt/intel/sgxssl/include
 SGXSSL_LIBDIR = /opt/intel/sgxssl/lib64
@@ -322,8 +303,8 @@ SGX_UAE_SERVICE_LIB = sgx_uae_service
 SGX_URTS_LIB = sgx_urts
 SHELL = /bin/bash
 STRIP = 
-TGMP_CPPFLAGS = -Itgmp-build/include
-TGMP_LDFLAGS = -Ltgmp-build/lib
+TGMP_CPPFLAGS = -I/d/sgxd/tgmp-build/include -I/d/sgxd/gmp-build/include
+TGMP_LDFLAGS = -L/d/sgxd/tgmp-build/lib
 VERSION = 1.0
 abs_builddir = /d/sgxd
 abs_srcdir = /d/sgxd
@@ -373,10 +354,9 @@ top_srcdir = .
 SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 #AM_CPPFLAGS = -DSKALE_SGX=1 -DBINARY_OUTPUT=1 \
-#	-IlibBLS -Ilibff -fno-builtin-memset \
-#	$(GMP_CPPFLAGS)
+#	-Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -DSKALE_SGX=1 \
-	-DBINARY_OUTPUT=1 -IlibBLS -Ilibff \
+	-DBINARY_OUTPUT=1 -Ilibff \
 	-fno-builtin-memset $(GMP_CPPFLAGS)
 #AM_LDFLAGS = $(GMP_LDFLAGS)
 AM_LDFLAGS = -L$(SGXSDK_LIBDIR) $(GMP_LDFLAGS)
@@ -385,13 +365,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) EnclaveGmpTest.edl \
 	EnclaveGmpTest.signed.so
 
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
-COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h \
-                libBLS/bls/BLSPrivateKey.cpp \
-                libBLS/bls/BLSSignature.cpp \
-                libBLS/bls/BLSutils.cpp \
-                libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
-
+COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxgmpmath_DEPENDENCIES = EnclaveGmpTest.signed.so
@@ -405,7 +379,7 @@ all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .o .obj
+.SUFFIXES: .c .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/build-aux/sgx_app.am $(am__configure_deps)
@@ -485,11 +459,11 @@ clean-binPROGRAMS:
 
 sgxgmpmath$(EXEEXT): $(sgxgmpmath_OBJECTS) $(sgxgmpmath_DEPENDENCIES) $(EXTRA_sgxgmpmath_DEPENDENCIES) 
 	@rm -f sgxgmpmath$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(sgxgmpmath_OBJECTS) $(sgxgmpmath_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(sgxgmpmath_OBJECTS) $(sgxgmpmath_LDADD) $(LIBS)
 
 sgxgmppi$(EXEEXT): $(sgxgmppi_OBJECTS) $(sgxgmppi_DEPENDENCIES) $(EXTRA_sgxgmppi_DEPENDENCIES) 
 	@rm -f sgxgmppi$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(sgxgmppi_OBJECTS) $(sgxgmppi_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(sgxgmppi_OBJECTS) $(sgxgmppi_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -497,12 +471,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/BLSPrivateKey.Po
-include ./$(DEPDIR)/BLSSignature.Po
-include ./$(DEPDIR)/BLSutils.Po
 include ./$(DEPDIR)/EnclaveGmpTest_u.Po
-include ./$(DEPDIR)/alt_bn128_g1.Po
-include ./$(DEPDIR)/alt_bn128_init.Po
 include ./$(DEPDIR)/create_enclave.Po
 include ./$(DEPDIR)/oc_alloc.Po
 include ./$(DEPDIR)/sgx_detect_linux.Po
@@ -523,90 +492,6 @@ include ./$(DEPDIR)/sgxgmppi.Po
 #	$(AM_V_CC)source='$<' object='$@' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cpp.o:
-	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	$(AM_V_CXX)source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ $<
-
-.cpp.obj:
-	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	$(AM_V_CXX)source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-BLSPrivateKey.o: libBLS/bls/BLSPrivateKey.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSPrivateKey.o -MD -MP -MF $(DEPDIR)/BLSPrivateKey.Tpo -c -o BLSPrivateKey.o `test -f 'libBLS/bls/BLSPrivateKey.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSPrivateKey.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSPrivateKey.Tpo $(DEPDIR)/BLSPrivateKey.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSPrivateKey.cpp' object='BLSPrivateKey.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSPrivateKey.o `test -f 'libBLS/bls/BLSPrivateKey.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSPrivateKey.cpp
-
-BLSPrivateKey.obj: libBLS/bls/BLSPrivateKey.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSPrivateKey.obj -MD -MP -MF $(DEPDIR)/BLSPrivateKey.Tpo -c -o BLSPrivateKey.obj `if test -f 'libBLS/bls/BLSPrivateKey.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSPrivateKey.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSPrivateKey.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSPrivateKey.Tpo $(DEPDIR)/BLSPrivateKey.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSPrivateKey.cpp' object='BLSPrivateKey.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSPrivateKey.obj `if test -f 'libBLS/bls/BLSPrivateKey.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSPrivateKey.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSPrivateKey.cpp'; fi`
-
-BLSSignature.o: libBLS/bls/BLSSignature.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSSignature.o -MD -MP -MF $(DEPDIR)/BLSSignature.Tpo -c -o BLSSignature.o `test -f 'libBLS/bls/BLSSignature.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSSignature.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSSignature.Tpo $(DEPDIR)/BLSSignature.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSSignature.cpp' object='BLSSignature.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSSignature.o `test -f 'libBLS/bls/BLSSignature.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSSignature.cpp
-
-BLSSignature.obj: libBLS/bls/BLSSignature.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSSignature.obj -MD -MP -MF $(DEPDIR)/BLSSignature.Tpo -c -o BLSSignature.obj `if test -f 'libBLS/bls/BLSSignature.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSSignature.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSSignature.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSSignature.Tpo $(DEPDIR)/BLSSignature.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSSignature.cpp' object='BLSSignature.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSSignature.obj `if test -f 'libBLS/bls/BLSSignature.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSSignature.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSSignature.cpp'; fi`
-
-BLSutils.o: libBLS/bls/BLSutils.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSutils.o -MD -MP -MF $(DEPDIR)/BLSutils.Tpo -c -o BLSutils.o `test -f 'libBLS/bls/BLSutils.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSutils.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSutils.Tpo $(DEPDIR)/BLSutils.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSutils.cpp' object='BLSutils.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSutils.o `test -f 'libBLS/bls/BLSutils.cpp' || echo '$(srcdir)/'`libBLS/bls/BLSutils.cpp
-
-BLSutils.obj: libBLS/bls/BLSutils.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BLSutils.obj -MD -MP -MF $(DEPDIR)/BLSutils.Tpo -c -o BLSutils.obj `if test -f 'libBLS/bls/BLSutils.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSutils.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSutils.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/BLSutils.Tpo $(DEPDIR)/BLSutils.Po
-#	$(AM_V_CXX)source='libBLS/bls/BLSutils.cpp' object='BLSutils.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BLSutils.obj `if test -f 'libBLS/bls/BLSutils.cpp'; then $(CYGPATH_W) 'libBLS/bls/BLSutils.cpp'; else $(CYGPATH_W) '$(srcdir)/libBLS/bls/BLSutils.cpp'; fi`
-
-alt_bn128_init.o: libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-#	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-
-alt_bn128_init.obj: libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-#	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
-
-alt_bn128_g1.o: libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-#	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-
-alt_bn128_g1.obj: libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-#	$(AM_V_CXX)source='libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) 'libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.

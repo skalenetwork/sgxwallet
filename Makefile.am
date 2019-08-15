@@ -45,7 +45,7 @@ EnclaveGmpTest.edl: EnclaveGmpTest/EnclaveGmpTest.edl
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
-AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -IlibBLS -Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
+AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1  -Ilibff -fno-builtin-memset $(GMP_CPPFLAGS)
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -63,13 +63,7 @@ bin_PROGRAMS = sgxgmpmath sgxgmppi
 ## have to be explicitly listed.
 
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
-COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h \
-                libBLS/bls/BLSPrivateKey.cpp \
-                libBLS/bls/BLSSignature.cpp \
-                libBLS/bls/BLSutils.cpp \
-                libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp 
- 
+COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h 
 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)

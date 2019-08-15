@@ -66,14 +66,10 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-AUTOMAKE_DIR = "/usr/share/automake-1.16"
-
-
+AUTOMAKE_DIR = "/usr/share/automake-1.15"
 
 if not os.path.isdir(AUTOMAKE_DIR):
-    AUTOMAKE_DIR = "/usr/share/automake-1.15"
-    if not os.path.isdir(AUTOMAKE_DIR):
-        raise Exception("Could not find " + AUTOMAKE_DIR)
+    raise Exception("Could not find " + AUTOMAKE_DIR)
 
 
 
