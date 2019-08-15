@@ -2230,9 +2230,6 @@ mpn_neg (mp_ptr __gmp_rp, mp_srcptr __gmp_up, mp_size_t __gmp_n)
 }
 #endif
 
-#if defined (__cplusplus)
-}
-#endif
 
 
 /* Allow faster testing for negative, zero, and positive.  */
