@@ -625,8 +625,11 @@ __GMP_DECLSPEC void mpz_abs (mpz_ptr, mpz_srcptr);
 __GMP_DECLSPEC void mpz_add (mpz_ptr, mpz_srcptr, mpz_srcptr);
 
 #define mpz_add_ui __gmpz_add_ui
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_add_ui (mpz_ptr, mpz_srcptr, unsigned long int);
-
+}
+#endif 
 #define mpz_addmul __gmpz_addmul
 __GMP_DECLSPEC void mpz_addmul (mpz_ptr, mpz_srcptr, mpz_srcptr);
 
@@ -673,8 +676,11 @@ __GMP_DECLSPEC unsigned long int mpz_cdiv_r_ui (mpz_ptr, mpz_srcptr, unsigned lo
 __GMP_DECLSPEC unsigned long int mpz_cdiv_ui (mpz_srcptr, unsigned long int) __GMP_ATTRIBUTE_PURE;
 
 #define mpz_clear __gmpz_clear
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_clear (mpz_ptr);
-
+}
+#endif 
 #define mpz_clears __gmpz_clears
 __GMP_DECLSPEC void mpz_clears (mpz_ptr, ...);
 
@@ -829,7 +835,11 @@ __GMP_DECLSPEC double mpz_get_d_2exp (signed long int *, mpz_srcptr);
 __GMP_DECLSPEC /* signed */ long int mpz_get_si (mpz_srcptr) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
 
 #define mpz_get_str __gmpz_get_str
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC char *mpz_get_str (char *, int, mpz_srcptr);
+}
+#endif 
 
 #define mpz_get_ui __gmpz_get_ui
 #if __GMP_INLINE_PROTOTYPES || defined (__GMP_FORCE_mpz_get_ui)
@@ -848,7 +858,11 @@ __GMP_DECLSPEC mp_bitcnt_t mpz_hamdist (mpz_srcptr, mpz_srcptr) __GMP_NOTHROW __
 __GMP_DECLSPEC void mpz_import (mpz_ptr, size_t, int, size_t, int, size_t, const void *);
 
 #define mpz_init __gmpz_init
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_init (mpz_ptr);
+}
+#endif 
 
 #define mpz_init2 __gmpz_init2
 __GMP_DECLSPEC void mpz_init2 (mpz_ptr, mp_bitcnt_t);
@@ -930,7 +944,11 @@ __GMP_DECLSPEC void mpz_mod (mpz_ptr, mpz_srcptr, mpz_srcptr);
 __GMP_DECLSPEC void mpz_mul (mpz_ptr, mpz_srcptr, mpz_srcptr);
 
 #define mpz_mul_2exp __gmpz_mul_2exp
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_mul_2exp (mpz_ptr, mpz_srcptr, mp_bitcnt_t);
+}
+#endif
 
 #define mpz_mul_si __gmpz_mul_si
 __GMP_DECLSPEC void mpz_mul_si (mpz_ptr, mpz_srcptr, long int);
@@ -1032,7 +1050,11 @@ __GMP_DECLSPEC void mpz_set_si (mpz_ptr, signed long int);
 __GMP_DECLSPEC int mpz_set_str (mpz_ptr, const char *, int);
 
 #define mpz_set_ui __gmpz_set_ui
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_set_ui (mpz_ptr, unsigned long int);
+}
+#endif 
 
 #define mpz_setbit __gmpz_setbit
 __GMP_DECLSPEC void mpz_setbit (mpz_ptr, mp_bitcnt_t);
@@ -1043,8 +1065,11 @@ __GMP_DECLSPEC size_t mpz_size (mpz_srcptr) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
 #endif
 
 #define mpz_sizeinbase __gmpz_sizeinbase
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC size_t mpz_sizeinbase (mpz_srcptr, int) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
-
+}
+#endif 
 #define mpz_sqrt __gmpz_sqrt
 __GMP_DECLSPEC void mpz_sqrt (mpz_ptr, mpz_srcptr);
 
