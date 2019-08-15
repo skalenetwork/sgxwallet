@@ -128,9 +128,8 @@ see https://www.gnu.org/licenses/.  */
 #endif
 #else
 /* all other cases */
-#define __GMP_DECLSPEC
+#define __GMP_DECLSPEC 
 #endif
-
 
 #ifdef __GMP_SHORT_LIMB
 typedef unsigned int		mp_limb_t;
@@ -815,8 +814,11 @@ __GMP_DECLSPEC void mpz_gcd (mpz_ptr, mpz_srcptr, mpz_srcptr);
 __GMP_DECLSPEC unsigned long int mpz_gcd_ui (mpz_ptr, mpz_srcptr, unsigned long int);
 
 #define mpz_gcdext __gmpz_gcdext
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_gcdext (mpz_ptr, mpz_ptr, mpz_ptr, mpz_srcptr, mpz_srcptr);
-
+}
+#endif
 #define mpz_get_d __gmpz_get_d
 __GMP_DECLSPEC double mpz_get_d (mpz_srcptr) __GMP_ATTRIBUTE_PURE;
 
@@ -1080,7 +1082,11 @@ __GMP_DECLSPEC void mpz_tdiv_q_2exp (mpz_ptr, mpz_srcptr, mp_bitcnt_t);
 __GMP_DECLSPEC unsigned long int mpz_tdiv_q_ui (mpz_ptr, mpz_srcptr, unsigned long int);
 
 #define mpz_tdiv_qr __gmpz_tdiv_qr
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpz_tdiv_qr (mpz_ptr, mpz_ptr, mpz_srcptr, mpz_srcptr);
+}
+#endif
 
 #define mpz_tdiv_qr_ui __gmpz_tdiv_qr_ui
 __GMP_DECLSPEC unsigned long int mpz_tdiv_qr_ui (mpz_ptr, mpz_ptr, mpz_srcptr, unsigned long int);
@@ -1468,10 +1474,17 @@ __GMP_DECLSPEC mp_limb_t mpn_add_1 (mp_ptr, mp_srcptr, mp_size_t, mp_limb_t) __G
 #endif
 
 #define mpn_add_n __MPN(add_n)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC mp_limb_t mpn_add_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
-
+}
+#endif
 #define mpn_addmul_1 __MPN(addmul_1)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC mp_limb_t mpn_addmul_1 (mp_ptr, mp_srcptr, mp_size_t, mp_limb_t);
+}
+#endif
 
 #define mpn_cmp __MPN(cmp)
 #if __GMP_INLINE_PROTOTYPES || defined (__GMP_FORCE_mpn_cmp)
@@ -1520,7 +1533,12 @@ __GMP_DECLSPEC mp_limb_t mpn_gcd_1 (mp_srcptr, mp_size_t, mp_limb_t) __GMP_ATTRI
 __GMP_DECLSPEC mp_limb_t mpn_gcdext_1 (mp_limb_signed_t *, mp_limb_signed_t *, mp_limb_t, mp_limb_t);
 
 #define mpn_gcdext __MPN(gcdext)
+
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC mp_size_t mpn_gcdext (mp_ptr, mp_ptr, mp_size_t *, mp_ptr, mp_size_t, mp_ptr, mp_size_t);
+}
+#endif
 
 #define mpn_get_str __MPN(get_str)
 __GMP_DECLSPEC size_t mpn_get_str (unsigned char *, int, mp_ptr, mp_size_t);
@@ -1541,7 +1559,11 @@ __GMP_DECLSPEC mp_limb_t mpn_mul (mp_ptr, mp_srcptr, mp_size_t, mp_srcptr, mp_si
 __GMP_DECLSPEC mp_limb_t mpn_mul_1 (mp_ptr, mp_srcptr, mp_size_t, mp_limb_t);
 
 #define mpn_mul_n __MPN(mul_n)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpn_mul_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
+}
+#endif
 
 #define mpn_sqr __MPN(sqr)
 __GMP_DECLSPEC void mpn_sqr (mp_ptr, mp_srcptr, mp_size_t);
@@ -1586,7 +1608,11 @@ __GMP_DECLSPEC mp_bitcnt_t mpn_scan0 (mp_srcptr, mp_bitcnt_t) __GMP_ATTRIBUTE_PU
 __GMP_DECLSPEC mp_bitcnt_t mpn_scan1 (mp_srcptr, mp_bitcnt_t) __GMP_ATTRIBUTE_PURE;
 
 #define mpn_set_str __MPN(set_str)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC mp_size_t mpn_set_str (mp_ptr, const unsigned char *, size_t, int);
+}
+#endif
 
 #define mpn_sizeinbase __MPN(sizeinbase)
 __GMP_DECLSPEC size_t mpn_sizeinbase (mp_srcptr, mp_size_t, int);
@@ -1605,14 +1631,21 @@ __GMP_DECLSPEC mp_limb_t mpn_sub_1 (mp_ptr, mp_srcptr, mp_size_t, mp_limb_t) __G
 #endif
 
 #define mpn_sub_n __MPN(sub_n)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC mp_limb_t mpn_sub_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
+}
+#endif
 
 #define mpn_submul_1 __MPN(submul_1)
 __GMP_DECLSPEC mp_limb_t mpn_submul_1 (mp_ptr, mp_srcptr, mp_size_t, mp_limb_t);
 
 #define mpn_tdiv_qr __MPN(tdiv_qr)
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpn_tdiv_qr (mp_ptr, mp_ptr, mp_size_t, mp_srcptr, mp_size_t, mp_srcptr, mp_size_t);
-
+}
+#endif
 #define mpn_and_n __MPN(and_n)
 __GMP_DECLSPEC void mpn_and_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
 #define mpn_andn_n __MPN(andn_n)
@@ -1630,12 +1663,25 @@ __GMP_DECLSPEC void mpn_xor_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
 #define mpn_xnor_n __MPN(xnor_n)
 __GMP_DECLSPEC void mpn_xnor_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
 
+
 #define mpn_copyi __MPN(copyi)
+
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpn_copyi (mp_ptr, mp_srcptr, mp_size_t);
+}
+#endif
+
 #define mpn_copyd __MPN(copyd)
 __GMP_DECLSPEC void mpn_copyd (mp_ptr, mp_srcptr, mp_size_t);
 #define mpn_zero __MPN(zero)
+
+#if defined (__cplusplus)
+extern "C" {
 __GMP_DECLSPEC void mpn_zero (mp_ptr, mp_size_t);
+}
+#endif
+
 
 #define mpn_cnd_add_n __MPN(cnd_add_n)
 __GMP_DECLSPEC mp_limb_t mpn_cnd_add_n (mp_limb_t, mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
