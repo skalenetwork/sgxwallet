@@ -204,6 +204,8 @@ void e_calc_pi (mpf_t *pi, uint64_t digits)
 	mpz_t kf, kf3, threekf, sixkf, z1, z2, c4k, c5_3k;
 	mpf_t C, sum, div, f2;
 
+        import_key();
+
 	n= (digits/DIGITS_PER_ITERATION)+1;
 	precision= (digits * bits)+1;
 
