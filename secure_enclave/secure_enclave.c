@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "EnclaveGmpTest_t.h"
+#include "secure_enclave_t.h"
 #include <sgx_tgmp.h>
 #include <sgx_trts.h>
 #include "sgx_tcrypto.h"

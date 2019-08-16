@@ -4384,7 +4384,7 @@ TGMP_CPPFLAGS="-I${tgmpdir}/include -I${gmpdir}/include"
 TGMP_LDFLAGS="-L$tgmpdir/lib"
 
 
-ac_config_files="$ac_config_files Makefile EnclaveGmpTest/Makefile"
+ac_config_files="$ac_config_files Makefile secure_enclave/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -5146,7 +5146,7 @@ do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "EnclaveGmpTest/Makefile") CONFIG_FILES="$CONFIG_FILES EnclaveGmpTest/Makefile" ;;
+    "secure_enclave/Makefile") CONFIG_FILES="$CONFIG_FILES secure_enclave/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

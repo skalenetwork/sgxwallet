@@ -35,11 +35,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gmp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include "sgx_detect.h"
 #include "secure_enclave_u.h"
 #include "create_enclave.h"
-#include "sgx_detect.h"
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
+
+void usage ();
+
+void usage () {
+	fprintf(stderr, "usage: sgxgmppi digits\n");
+	exit(1);
+}
 
 int main (int argc, char *argv[])
 {
@@ -48,21 +56,28 @@ int main (int argc, char *argv[])
 	sgx_status_t status;
 	int updated= 0;
 	unsigned long support;
-	mpz_t a, b, c;
-	mpf_t fa, fb, fc;
+	mpf_t pi;
+	uint64_t digits;
+	int opt;
 
-	if ( argc != 3 ) {
-		fprintf(stderr, "usage: sgxgmptest num1 num2\n");
-		return 1;
+	while ( (opt= getopt(argc, argv, "h")) != -1 ) {
+		switch (opt) {
+		case 'h':
+		default:
+			usage();
+		}
 	}
 
-	mpz_init_set_str(a, argv[1], 10);	/* Assume base 10 */
-	mpz_init_set_str(b, argv[2], 10);	/* Assume base 10 */
-	mpz_init(c);
+	argc-= optind;
+	argv+= optind;
 
-	mpf_inits(fa, fb, fc, NULL);
-	mpf_set_z(fa, a);
-	mpf_set_z(fb, b);
+	if ( argc != 1 ) usage();
+
+	digits= strtoull(argv[0], NULL, 10);
+	if ( digits == 0 ) {
+		fprintf(stderr, "invalid digit count\n");
+		return 1;
+	}
 
 #ifndef SGX_HW_SIM
 	support= get_sgx_support();
@@ -95,37 +110,15 @@ int main (int argc, char *argv[])
 
 	fprintf(stderr, "libtgmp initialized\n");
 
-	status= e_mpz_add(eid, &c, &a, &b);
+	mpf_init(pi);
+
+	status= encrypt_key(eid, &pi, digits);
 	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL test_mpz_add_ui: 0x%04x\n", status);
+		fprintf(stderr, "ECALL e_pi: 0x%04x\n", status);
 		return 1;
 	}
 
-	gmp_printf("iadd : %Zd + %Zd = %Zd\n\n", a, b, c);
-
-	status= e_mpz_mul(eid, &c, &a, &b);
-	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL test_mpz_mul: 0x%04x\n", status);
-		return 1;
-	}
-
-	gmp_printf("imul : %Zd * %Zd = %Zd\n\n", a, b, c);
-
-	status= e_mpz_div(eid, &c, &a, &b);
-	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL test_mpz_div: 0x%04x\n", status);
-		return 1;
-	}
-
-	gmp_printf("idiv : %Zd / %Zd = %Zd\n\n", a, b, c);
-
-	status= e_mpf_div(eid, &fc, &fa, &fb);
-	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL test_mpz_div: 0x%04x\n", status);
-		return 1;
-	}
-
-	gmp_printf("fdiv : %Zd / %Zd = %.12Ff\n\n", a, b, fc);
+	gmp_printf("pi : %.*Ff\n", digits, pi);
 
 	return 0;
 }

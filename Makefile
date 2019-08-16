@@ -107,7 +107,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = sgx_stub.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
 	create_enclave.$(OBJEXT) oc_alloc.$(OBJEXT)
 am_sgxd_OBJECTS = sgxd.$(OBJEXT) $(am__objects_1)
-am__objects_2 = EnclaveGmpTest_u.$(OBJEXT)
+am__objects_2 = secure_enclave_u.$(OBJEXT)
 nodist_sgxd_OBJECTS = $(am__objects_2)
 sgxd_OBJECTS = $(am_sgxd_OBJECTS) $(nodist_sgxd_OBJECTS)
 sgxd_DEPENDENCIES =
@@ -354,18 +354,18 @@ AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -DSKALE_SGX=1 \
 	-fno-builtin-memset $(GMP_CPPFLAGS)
 #AM_LDFLAGS = $(GMP_LDFLAGS)
 AM_LDFLAGS = -L$(SGXSDK_LIBDIR) $(GMP_LDFLAGS)
-SUBDIRS = EnclaveGmpTest
-CLEANFILES = $(COMMON_ENCLAVE_SRC) EnclaveGmpTest.edl \
-	EnclaveGmpTest.signed.so
+SUBDIRS = secure_enclave
+CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl \
+	secure_enclave.signed.so
 
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
-COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h 
+COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxgmpmath_DEPENDENCIES = EnclaveGmpTest.signed.so
+EXTRA_sgxgmpmath_DEPENDENCIES = secure_enclave.signed.so
 sgxd_SOURCES = sgxd.c $(COMMON_SRC)
 nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxd_DEPENDENCIES = EnclaveGmpTest.signed.so
+EXTRA_sgxd_DEPENDENCIES = secure_enclave.signed.so
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
 sgxgmpmath_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
 sgxd_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
@@ -461,9 +461,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/EnclaveGmpTest_u.Po
 include ./$(DEPDIR)/create_enclave.Po
 include ./$(DEPDIR)/oc_alloc.Po
+include ./$(DEPDIR)/secure_enclave_u.Po
 include ./$(DEPDIR)/sgx_detect_linux.Po
 include ./$(DEPDIR)/sgx_stub.Po
 include ./$(DEPDIR)/sgxd.Po
@@ -916,10 +916,10 @@ uninstall-am: uninstall-binPROGRAMS
 %_u.h %_u.c: %.edl
 	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $<
 
-EnclaveGmpTest.edl: EnclaveGmpTest/EnclaveGmpTest.edl
+secure_enclave.edl: secure_enclave/secure_enclave.edl
 	ln -s $?
 
-EnclaveGmpTest.signed.so: EnclaveGmpTest/EnclaveGmpTest.signed.so
+secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 	ln -s $?
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

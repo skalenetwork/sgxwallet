@@ -7,13 +7,13 @@ install-sh
 /config.status
 /Makefile.in
 /Makefile
-/EnclaveGmpTest_u.h
-/EnclaveGmpTest_u.c
-/EnclaveGmpTest.edl
+/secure_enclave_u.h
+/secure_enclave_u.c
+/secure_enclave.edl
 /am--include-marker
 *.o
 /aclocal.m4
-/EnclaveGmpTest.signed.so
+/secure_enclave.signed.so
 /sgxgmpmath
 /sgxgmppi
 /.deps/

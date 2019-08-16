@@ -393,7 +393,7 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 "
 
 # Files that config.status was made for.
-config_files=" Makefile EnclaveGmpTest/Makefile"
+config_files=" Makefile secure_enclave/Makefile"
 config_commands=" depfiles"
 
 ac_cs_usage="\
@@ -531,7 +531,7 @@ do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "EnclaveGmpTest/Makefile") CONFIG_FILES="$CONFIG_FILES EnclaveGmpTest/Makefile" ;;
+    "secure_enclave/Makefile") CONFIG_FILES="$CONFIG_FILES secure_enclave/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

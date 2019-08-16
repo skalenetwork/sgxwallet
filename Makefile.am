@@ -26,7 +26,7 @@ include $(top_srcdir)/build-aux/sgx_app.am
 ##   SGX_UAE_SERVICE_LIB
 ##   SGX_EDGER8R
 
-SUBDIRS=EnclaveGmpTest
+SUBDIRS=secure_enclave
 
 ## Supply additional flags to edger8r here. 
 ##
@@ -36,7 +36,7 @@ SUBDIRS=EnclaveGmpTest
 
 ## Needed to make our pattern rule work.
 
-EnclaveGmpTest.edl: EnclaveGmpTest/EnclaveGmpTest.edl
+secure_enclave.edl: secure_enclave/secure_enclave.edl
 	ln -s $?
 
 ## Additional automake variables
@@ -50,8 +50,8 @@ AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1  -Ilibff -fno-builtin-memset $(GM
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
 
-CLEANFILES = $(COMMON_ENCLAVE_SRC) EnclaveGmpTest.edl \
-	EnclaveGmpTest.signed.so
+CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl \
+	secure_enclave.signed.so
 
 
 ## The build target
@@ -63,20 +63,20 @@ bin_PROGRAMS =  sgxd
 ## have to be explicitly listed.
 
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
-COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h 
+COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxgmpmath_DEPENDENCIES = EnclaveGmpTest.signed.so
+EXTRA_sgxgmpmath_DEPENDENCIES = secure_enclave.signed.so
 
 sgxd_SOURCES = sgxd.c $(COMMON_SRC)
 nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxd_DEPENDENCIES = EnclaveGmpTest.signed.so
+EXTRA_sgxd_DEPENDENCIES = secure_enclave.signed.so
 
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
 AM_LDFLAGS += $(GMP_LDFLAGS)
 
-EnclaveGmpTest.signed.so: EnclaveGmpTest/EnclaveGmpTest.signed.so
+secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 	ln -s $?
 
 ## Library flags. At minimum, an Intel SGX application will need:

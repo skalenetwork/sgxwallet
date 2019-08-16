@@ -35,6 +35,6 @@ AS_IF([test "$tgmpdir" != ""], [
 	AC_SUBST([TGMP_LDFLAGS], [-L$tgmpdir/lib])
 ])
 
-AC_CONFIG_FILES([Makefile EnclaveGmpTest/Makefile])
+AC_CONFIG_FILES([Makefile secure_enclave/Makefile])
 
 AC_OUTPUT()

@@ -48,7 +48,7 @@ include $(top_srcdir)/build-aux/sgx_enclave.am
 ##
 ##    libexec_PROGRAMS=$(ENCLAVE)
 
-ENCLAVE=EnclaveGmpTest
+ENCLAVE=secure_enclave
 ENCLAVE_CONFIG=$(ENCLAVE).config.xml
 ENCLAVE_KEY=$(ENCLAVE)_private.pem
 
@@ -70,7 +70,7 @@ AM_CXXFLAGS += -fno-builtin
 ## Additional files to remove with 'make clean'. This list needs
 ## to include your edger8r genreated files.
 
-CLEANFILES+= EnclaveGmpTest_t.c EnclaveGmpTest_t.h 
+CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 
 ## Supply additional flags to edger8r here.
@@ -82,8 +82,8 @@ CLEANFILES+= EnclaveGmpTest_t.c EnclaveGmpTest_t.h
 ## files. You can't use the $(ENCLAVE) variable in the build
 ## target name (i.e., $(ENCLAVE)_SOURCES will not work).
 
-EnclaveGmpTest_SOURCES = EnclaveGmpTest_t.c EnclaveGmpTest_t.h \
-	EnclaveGmpTest.c \
+secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
+	secure_enclave.c \
         BLSUtils.cpp  ../libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
@@ -104,7 +104,7 @@ AM_LDFLAGS += $(TGMP_LDFLAGS)
 ## of the definition to make sure you pick up the right linker flags
 ## and SGX trusted libraries.
 
-EnclaveGmpTest_LDADD = @SGX_ENCLAVE_LDADD@
+secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 
 
 ## Place any additional trusted libraries that your enclave may need in
@@ -123,6 +123,6 @@ SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
 ## @SGX_ENCLAVE_LDFLAGS@ is included in the definition as this will 
 ## override AM_LDFLAGS.
 ##
-## EnclaveGmpTest_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
+## secure_enclave_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 ##
 

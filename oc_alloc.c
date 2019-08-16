@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "EnclaveGmpTest_u.h"
+#include "secure_enclave_u.h"
 
 uint64_t oc_realloc (void *optr, size_t osz, size_t nsz)
 {
