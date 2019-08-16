@@ -6,21 +6,46 @@
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 #include "BLSUtils.h"
 
-void import_key() {
 
-  auto private_key = new libff::alt_bn128_Fr("4160780231445160889237664391382223604184857153814275770598791864649971919844");
-
+std::string* stringFromKey(libff::alt_bn128_Fr* _key) {
 
     mpz_t t;
     mpz_init(t);
 
-    private_key->as_bigint().to_mpz(t);
+    _key->as_bigint().to_mpz(t);
 
     char arr[mpz_sizeinbase (t, 10) + 2];
 
     char * tmp = mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    std::string output = tmp;
+    return new std::string(tmp);
+
+}
+
+
+libff::alt_bn128_Fr* keyFromString(std::string* _keyString) {
+
+    return new libff::alt_bn128_Fr(_keyString->c_str());
+
+}
+
+
+
+
+void import_key() {
+
+    std::string  keyString = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
+
+    auto key1 = keyFromString(&keyString);
+
+    auto s1 = stringFromKey(key1);
+
+    auto key2 = keyFromString(s1);
+
+    auto s2 = stringFromKey(key2);
+
+    if (s1->compare(*s2) != 0)
+        throw std::exception();
 
 }
