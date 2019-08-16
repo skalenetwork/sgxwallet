@@ -177,8 +177,11 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un)
 mpz_t c3, c4, c5;
 int pi_init= 0;
 
-void e_pi (mpf_t *pi_un, uint64_t digits)
+void encrypt_key (mpf_t *pi_un, uint64_t digits)
 {
+
+       import_key();
+
 	mpf_t pi;
 
 	/*
@@ -204,7 +207,7 @@ void e_calc_pi (mpf_t *pi, uint64_t digits)
 	mpz_t kf, kf3, threekf, sixkf, z1, z2, c4k, c5_3k;
 	mpf_t C, sum, div, f2;
 
-        import_key();
+
 
 	n= (digits/DIGITS_PER_ITERATION)+1;
 	precision= (digits * bits)+1;

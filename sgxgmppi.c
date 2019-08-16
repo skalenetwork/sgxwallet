@@ -112,9 +112,9 @@ int main (int argc, char *argv[])
 
 	mpf_init(pi);
 
-	status= e_pi(eid, &pi, digits);
+	status= encrypt_key(eid, &pi, digits);
 	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL e_pi: 0x%04x\n", status);
+		fprintf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
 		return 1;
 	}
 
