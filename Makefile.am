@@ -56,7 +56,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) EnclaveGmpTest.edl \
 
 ## The build target
 
-bin_PROGRAMS = sgxgmpmath sgxgmppi 
+bin_PROGRAMS = sgxgmpmath sgxd 
 
 
 ## You can't use $(wildcard ...) with automake so all source files 
@@ -69,9 +69,9 @@ sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxgmpmath_DEPENDENCIES = EnclaveGmpTest.signed.so
 
-sgxgmppi_SOURCES = sgxgmppi.c $(COMMON_SRC)
-nodist_sgxgmppi_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxgmppi_DEPENDENCIES = EnclaveGmpTest.signed.so
+sgxd_SOURCES = sgxd.c $(COMMON_SRC)
+nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
+EXTRA_sgxd_DEPENDENCIES = EnclaveGmpTest.signed.so
 
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
 AM_LDFLAGS += $(GMP_LDFLAGS)
@@ -92,5 +92,5 @@ EnclaveGmpTest.signed.so: EnclaveGmpTest/EnclaveGmpTest.signed.so
 ## targets work on simulation builds.
 
 sgxgmpmath_LDADD=-l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
-sgxgmppi_LDADD=-l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
+sgxd_LDADD=-l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
 

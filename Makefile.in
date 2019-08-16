@@ -88,7 +88,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = sgxgmpmath$(EXEEXT) sgxgmppi$(EXEEXT)
+bin_PROGRAMS = sgxgmpmath$(EXEEXT) sgxd$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sgx_init.m4 \
@@ -106,16 +106,16 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = sgx_stub.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
 	create_enclave.$(OBJEXT) oc_alloc.$(OBJEXT)
-am_sgxgmpmath_OBJECTS = sgxgmpmath.$(OBJEXT) $(am__objects_1)
+am_sgxd_OBJECTS = sgxd.$(OBJEXT) $(am__objects_1)
 am__objects_2 = EnclaveGmpTest_u.$(OBJEXT)
+nodist_sgxd_OBJECTS = $(am__objects_2)
+sgxd_OBJECTS = $(am_sgxd_OBJECTS) $(nodist_sgxd_OBJECTS)
+sgxd_DEPENDENCIES =
+am_sgxgmpmath_OBJECTS = sgxgmpmath.$(OBJEXT) $(am__objects_1)
 nodist_sgxgmpmath_OBJECTS = $(am__objects_2)
 sgxgmpmath_OBJECTS = $(am_sgxgmpmath_OBJECTS) \
 	$(nodist_sgxgmpmath_OBJECTS)
 sgxgmpmath_DEPENDENCIES =
-am_sgxgmppi_OBJECTS = sgxgmppi.$(OBJEXT) $(am__objects_1)
-nodist_sgxgmppi_OBJECTS = $(am__objects_2)
-sgxgmppi_OBJECTS = $(am_sgxgmppi_OBJECTS) $(nodist_sgxgmppi_OBJECTS)
-sgxgmppi_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -144,9 +144,9 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(sgxgmpmath_SOURCES) $(nodist_sgxgmpmath_SOURCES) \
-	$(sgxgmppi_SOURCES) $(nodist_sgxgmppi_SOURCES)
-DIST_SOURCES = $(sgxgmpmath_SOURCES) $(sgxgmppi_SOURCES)
+SOURCES = $(sgxd_SOURCES) $(nodist_sgxd_SOURCES) $(sgxgmpmath_SOURCES) \
+	$(nodist_sgxgmpmath_SOURCES)
+DIST_SOURCES = $(sgxd_SOURCES) $(sgxgmpmath_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -369,12 +369,12 @@ COMMON_ENCLAVE_SRC = EnclaveGmpTest_u.c EnclaveGmpTest_u.h
 sgxgmpmath_SOURCES = sgxgmpmath.c $(COMMON_SRC)
 nodist_sgxgmpmath_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxgmpmath_DEPENDENCIES = EnclaveGmpTest.signed.so
-sgxgmppi_SOURCES = sgxgmppi.c $(COMMON_SRC)
-nodist_sgxgmppi_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxgmppi_DEPENDENCIES = EnclaveGmpTest.signed.so
+sgxd_SOURCES = sgxd.c $(COMMON_SRC)
+nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
+EXTRA_sgxd_DEPENDENCIES = EnclaveGmpTest.signed.so
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
 sgxgmpmath_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
-sgxgmppi_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
+sgxd_LDADD = -l$(SGX_URTS_LIB) -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -457,13 +457,13 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
+sgxd$(EXEEXT): $(sgxd_OBJECTS) $(sgxd_DEPENDENCIES) $(EXTRA_sgxd_DEPENDENCIES) 
+	@rm -f sgxd$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(sgxd_OBJECTS) $(sgxd_LDADD) $(LIBS)
+
 sgxgmpmath$(EXEEXT): $(sgxgmpmath_OBJECTS) $(sgxgmpmath_DEPENDENCIES) $(EXTRA_sgxgmpmath_DEPENDENCIES) 
 	@rm -f sgxgmpmath$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(sgxgmpmath_OBJECTS) $(sgxgmpmath_LDADD) $(LIBS)
-
-sgxgmppi$(EXEEXT): $(sgxgmppi_OBJECTS) $(sgxgmppi_DEPENDENCIES) $(EXTRA_sgxgmppi_DEPENDENCIES) 
-	@rm -f sgxgmppi$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(sgxgmppi_OBJECTS) $(sgxgmppi_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -476,8 +476,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oc_alloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgx_detect_linux.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgx_stub.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgxd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgxgmpmath.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgxgmppi.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
