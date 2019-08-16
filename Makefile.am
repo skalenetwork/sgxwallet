@@ -56,7 +56,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) EnclaveGmpTest.edl \
 
 ## The build target
 
-bin_PROGRAMS = sgxgmpmath sgxd 
+bin_PROGRAMS =  sgxd 
 
 
 ## You can't use $(wildcard ...) with automake so all source files 
