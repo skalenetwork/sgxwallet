@@ -89,6 +89,8 @@ int main (int argc, char *argv[])
 
 	status= sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG,
 		 &token, &updated, &eid, 0);
+
+
 	if ( status != SGX_SUCCESS ) {
 		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) {
 			fprintf(stderr, "sgx_create_enclave: %s: file not found\n",
@@ -104,7 +106,7 @@ int main (int argc, char *argv[])
 
 	status= tgmp_init(eid);
 	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL test_mpz_add: 0x%04x\n", status);
+		fprintf(stderr, "ECALL tgmp_init: 0x%04x\n", status);
 		return 1;
 	}
 
@@ -119,14 +121,18 @@ int main (int argc, char *argv[])
 
 	strncpy(keyArray, key, 100);
 
+        int err_status = -2;
 
-	status= encrypt_key(eid, &pi, digits, keyArray);
+	status= encrypt_key(eid, &pi, &err_status, keyArray);
+
+
 	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "ECALL e_pi: 0x%04x\n", status);
+		fprintf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
 		return 1;
 	}
 
-	gmp_printf("pi : %.*Ff\n", digits, pi);
+
+	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
 	return 0;
 }

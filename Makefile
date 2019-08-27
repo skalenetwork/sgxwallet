@@ -233,7 +233,7 @@ AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AUTOCONF = ${SHELL} /d/sgxd/missing autoconf
 AUTOHEADER = ${SHELL} /d/sgxd/missing autoheader
-AUTOMAKE = ${SHELL} /d/sgxd/missing automake-1.15
+AUTOMAKE = 
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3

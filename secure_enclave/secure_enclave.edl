@@ -21,7 +21,10 @@ enclave {
 			[user_check] mpf_t *c, [user_check] mpf_t *a, [user_check] mpf_t *b
 		);
 
-		public void encrypt_key ([user_check] mpf_t *pi, uint64_t digits, [in] char key[100]);
+		public void encrypt_key (
+		    [user_check] mpf_t *pi,
+		    [user_check] int *err_status,
+		    [in] char key[100]);
 	};
 
 

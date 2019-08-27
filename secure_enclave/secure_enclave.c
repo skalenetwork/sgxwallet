@@ -174,28 +174,16 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {
 mpz_t c3, c4, c5;
 int pi_init = 0;
 
-void encrypt_key(mpf_t *pi_un, uint64_t digits, char key[100]) {
+void encrypt_key(mpf_t *pi_un, int *err_status, char key[100]) {
+
+  *err_status = -1;
 
   if (strnlen(key) == 100)
     return;
 
   import_key(key);
 
-  mpf_t pi;
-
-  /*
-   * Perform our operations on a variable that's located in the enclave,
-   * then marshal the final value out of the enclave.
-   */
-
-  mpf_init(pi);
-
-  e_calc_pi(&pi, digits);
-
-  /* Marshal our result to untrusted memory */
-
-  mpf_set_prec(*pi_un, mpf_get_prec(pi));
-  mpf_set(*pi_un, pi);
+  *err_status = 0;
 }
 
 void e_calc_pi(mpf_t *pi, uint64_t digits) {
