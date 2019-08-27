@@ -112,7 +112,15 @@ int main (int argc, char *argv[])
 
 	mpf_init(pi);
 
-	status= encrypt_key(eid, &pi, digits);
+
+	const char* key = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
+
+	char keyArray[100];
+
+	strncpy(keyArray, key, 100);
+
+
+	status= encrypt_key(eid, &pi, digits, keyArray);
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL e_pi: 0x%04x\n", status);
 		return 1;

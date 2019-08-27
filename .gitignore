@@ -19,3 +19,7 @@ install-sh
 /.deps/
 /CMakeCache.txt
 /cmake_install.cmake
+/sgxd.cbp
+/sgx-gmp/
+!/sgx-sdk-build/
+/secure_enclave/Makefile

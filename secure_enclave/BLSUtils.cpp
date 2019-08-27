@@ -24,24 +24,30 @@ std::string* stringFromKey(libff::alt_bn128_Fr* _key) {
 }
 
 
-libff::alt_bn128_Fr* keyFromString(std::string* _keyString) {
+libff::alt_bn128_Fr* keyFromString(std::string& _keyString) {
 
-    return new libff::alt_bn128_Fr(_keyString->c_str());
+    return new libff::alt_bn128_Fr(_keyString.c_str());
 
 }
 
 
 
 
-void import_key() {
+void import_key(const char* _keyString) {
 
-    std::string  keyString = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 
-    auto key1 = keyFromString(&keyString);
+    if (_keyString == nullptr)
+        throw std::exception();
+
+    std::string ks(_keyString);
+
+    //std::string  keyString = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
+
+    auto key1 = keyFromString(ks);
 
     auto s1 = stringFromKey(key1);
 
-    auto key2 = keyFromString(s1);
+    auto key2 = keyFromString(*s1);
 
     auto s2 = stringFromKey(key2);
 

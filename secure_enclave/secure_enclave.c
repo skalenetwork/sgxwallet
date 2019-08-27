@@ -177,10 +177,12 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un)
 mpz_t c3, c4, c5;
 int pi_init= 0;
 
-void encrypt_key (mpf_t *pi_un, uint64_t digits)
+void encrypt_key (mpf_t *pi_un, uint64_t digits, char key[100])
 {
 
-       import_key();
+
+
+    import_key(key);
 
 	mpf_t pi;
 
