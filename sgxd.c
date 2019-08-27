@@ -128,8 +128,6 @@ int main (int argc, char *argv[])
 	status= encrypt_key(eid, &err_status, keyArray, encryptedKey);
 
 
-
-
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
 		return 1;
@@ -138,7 +136,7 @@ int main (int argc, char *argv[])
 
 	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
-        //gmp_printf("Result: %s \n", encryptedKey);
+        gmp_printf("Result: %s \n", encryptedKey);
 
 	return 0;
 }
