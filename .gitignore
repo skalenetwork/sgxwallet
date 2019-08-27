@@ -21,5 +21,10 @@ install-sh
 /cmake_install.cmake
 /sgxd.cbp
 /sgx-gmp/
-!/sgx-sdk-build/
+/sgx-sdk-build/
 /secure_enclave/Makefile
+/secure_enclave/secure_enclave.signed.so
+/secure_enclave/secure_enclave.so
+/secure_enclave/secure_enclave_t.c
+/secure_enclave/secure_enclave_t.h
+/sgxd
