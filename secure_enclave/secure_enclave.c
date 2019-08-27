@@ -109,12 +109,7 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {
 
 }
 
-/* Use the Chudnovsky equation to rapidly estimate pi */
 
-#define DIGITS_PER_ITERATION 14.1816 /* Roughly */
-
-mpz_t c3, c4, c5;
-int pi_init = 0;
 
 void encrypt_key(int *err_status, char* key, char* encrypted_key) {
 
@@ -123,7 +118,7 @@ void encrypt_key(int *err_status, char* key, char* encrypted_key) {
   if (strnlen(key) == 100)
     return;
 
-  import_key(key);
+  import_key(key, encrypted_key, 100);
 
   *err_status = 0;
 }

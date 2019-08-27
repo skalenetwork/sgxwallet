@@ -136,6 +136,8 @@ int main (int argc, char *argv[])
 
 	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
+        gmp_printf("Result: %s \n", encryptedKey);
+
 	return 0;
 }
 

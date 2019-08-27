@@ -13,7 +13,7 @@
 #define EXTERNC
 #endif
 
-EXTERNC void import_key(const char* _keyString);
+EXTERNC void import_key(const char* _keyString, char* encryptedKey, uint64_t bufLen);
 
 
 #endif //SGXD_BLSUTILS_H

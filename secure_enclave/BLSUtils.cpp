@@ -33,8 +33,10 @@ libff::alt_bn128_Fr* keyFromString(std::string& _keyString) {
 
 
 
-void import_key(const char* _keyString) {
+void import_key(const char* _keyString, char* encryptedKey, uint64_t bufLen) {
 
+    if (encryptedKey == nullptr && bufLen < 100)
+      throw std::exception();
 
     if (_keyString == nullptr)
         throw std::exception();
@@ -53,5 +55,14 @@ void import_key(const char* _keyString) {
 
     if (s1->compare(*s2) != 0)
         throw std::exception();
+
+
+  if (s2->size() == 0)
+    throw std::exception();
+
+    if (s2->size() >= 100)
+      throw std::exception();
+
+    strncpy(encryptedKey, s2->c_str(), 100);
 
 }
