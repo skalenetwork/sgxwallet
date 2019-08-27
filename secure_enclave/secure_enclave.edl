@@ -22,9 +22,9 @@ enclave {
 		);
 
 		public void encrypt_key (
-		    [user_check] mpf_t *pi,
 		    [user_check] int *err_status,
-		    [in, count = 100] char* key);
+		    [in, count = 100] char* key,
+		    [out, count = 100] char* encrypted_key);
 	};
 
 

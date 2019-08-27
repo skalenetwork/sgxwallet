@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void usage ();
 
 void usage () {
-	fprintf(stderr, "usage: sgxgmppi digits\n");
+	fprintf(stderr, "usage: sgxd\n");
 	exit(1);
 }
 
@@ -56,8 +56,6 @@ int main (int argc, char *argv[])
 	sgx_status_t status;
 	int updated= 0;
 	unsigned long support;
-	mpf_t pi;
-	uint64_t digits;
 	int opt;
 
 	while ( (opt= getopt(argc, argv, "h")) != -1 ) {
@@ -71,13 +69,17 @@ int main (int argc, char *argv[])
 	argc-= optind;
 	argv+= optind;
 
-	if ( argc != 1 ) usage();
+	if ( argc != 0 ) usage();
 
+
+	/*
 	digits= strtoull(argv[0], NULL, 10);
 	if ( digits == 0 ) {
 		fprintf(stderr, "invalid digit count\n");
 		return 1;
 	}
+
+	 */
 
 #ifndef SGX_HW_SIM
 	support= get_sgx_support();
@@ -112,18 +114,18 @@ int main (int argc, char *argv[])
 
 	fprintf(stderr, "libtgmp initialized\n");
 
-	mpf_init(pi);
-
 
 	const char* key = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 
 	char keyArray[100];
 
+	char encryptedKey[100];
+
 	strncpy(keyArray, key, 100);
 
         int err_status = -2;
 
-	status= encrypt_key(eid, &pi, &err_status, keyArray);
+	status= encrypt_key(eid, &err_status, keyArray, encryptedKey);
 
 
 	if ( status != SGX_SUCCESS ) {
