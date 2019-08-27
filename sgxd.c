@@ -42,7 +42,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
-void usage ();
+
+
+unsigned char* carray2Hex(const uint8_t *d, int _len) {
+  unsigned char* hex = malloc(2 * _len);
+
+  static char hexval[16] = {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+  for (int j = 0; j < _len; j++) {
+    hex[j * 2] = hexval[((d[j] >> 4) & 0xF)];
+    hex[j * 2 + 1] = hexval[(d[j]) & 0x0F];
+  }
+
+  return hex;
+}
+
+
+int char2int( char _input ) {
+  if ( _input >= '0' && _input <= '9' )
+    return _input - '0';
+  if
+      ( _input >= 'A' && _input <= 'F' )
+    return _input - 'A' + 10;
+  if ( _input >= 'a' && _input <= 'f' )
+    return _input - 'a' + 10;
+  return -1;
+}
+
+
 
 void usage () {
 	fprintf(stderr, "usage: sgxd\n");
@@ -139,14 +167,15 @@ int main (int argc, char *argv[])
 
 	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
-        gmp_printf("Result:");
+	unsigned char* result = carray2Hex(encryptedKey, enc_len);
 
-        for (int i = 0; i < enc_len; i++) {
-          gmp_printf("%d", encryptedKey[i]);
-        }
+        gmp_printf("Result: %s", result);
 
         gmp_printf("\n Length: %d \n", enc_len);
 
+
+
 	return 0;
 }
+
 
