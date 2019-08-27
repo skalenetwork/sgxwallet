@@ -17,3 +17,5 @@ install-sh
 /sgxgmpmath
 /sgxgmppi
 /.deps/
+/CMakeCache.txt
+/cmake_install.cmake
