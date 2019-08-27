@@ -119,16 +119,19 @@ int main (int argc, char *argv[])
 
 	char keyArray[128];
 
-	char encryptedKey[1024];
+	unsigned char encryptedKey[1024];
 
 	strncpy(keyArray, key, 128);
 
         int err_status = -2;
 
-	status= encrypt_key(eid, &err_status, keyArray, encryptedKey);
+        int enc_len = -1;
 
 
-	if ( status != SGX_SUCCESS ) {
+	status= encrypt_key(eid, &err_status, keyArray, encryptedKey, &enc_len);
+
+
+	if ( status != SGX_SUCCESS || enc_len < 10 ) {
 		fprintf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
 		return 1;
 	}
@@ -136,7 +139,13 @@ int main (int argc, char *argv[])
 
 	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
-        gmp_printf("Result: %s \n", encryptedKey);
+        gmp_printf("Result:");
+
+        for (int i = 0; i < enc_len; i++) {
+          gmp_printf("%d", encryptedKey[i]);
+        }
+
+        gmp_printf("\n Length: %d \n", enc_len);
 
 	return 0;
 }

@@ -111,7 +111,7 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {
 
 
 
-void encrypt_key(int *err_status, char* key, char* encrypted_key) {
+void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;
 
@@ -134,6 +134,8 @@ void encrypt_key(int *err_status, char* key, char* encrypted_key) {
 
   if (sgx_seal_data(0, NULL, strlen(key) + 1, key,  sealedLen, encrypted_key) != SGX_SUCCESS)
     return;
+
+  *enc_len = sealedLen;
 
   *err_status = 0;
 }
