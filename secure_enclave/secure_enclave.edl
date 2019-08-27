@@ -24,7 +24,7 @@ enclave {
 		public void encrypt_key (
 		    [user_check] mpf_t *pi,
 		    [user_check] int *err_status,
-		    [in] char key[100]);
+		    [in, count = 100] char* key);
 	};
 
 

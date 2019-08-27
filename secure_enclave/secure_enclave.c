@@ -174,7 +174,7 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {
 mpz_t c3, c4, c5;
 int pi_init = 0;
 
-void encrypt_key(mpf_t *pi_un, int *err_status, char key[100]) {
+void encrypt_key(mpf_t *pi_un, int *err_status, char* key) {
 
   *err_status = -1;
 
