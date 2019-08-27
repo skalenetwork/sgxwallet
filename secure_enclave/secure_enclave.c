@@ -115,10 +115,25 @@ void encrypt_key(int *err_status, char* key, char* encrypted_key) {
 
   *err_status = -1;
 
-  if (strnlen(key) == 100)
+  if (strnlen(key) >=128)
     return;
 
-  import_key(key, encrypted_key, 100);
+  *err_status = -3;
+
+  check_key(key);
+
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(key) + 1);
+
+  *err_status = -3;
+
+  if (sealedLen > 1024) {
+    return;
+  }
+
+  *err_status = -4;
+
+  if (sgx_seal_data(0, NULL, strlen(key) + 1, key,  sealedLen, encrypted_key) != SGX_SUCCESS)
+    return;
 
   *err_status = 0;
 }

@@ -3,65 +3,54 @@
 //
 
 #define GMP_WITH_SGX
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include "BLSUtils.h"
+#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
+std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
 
-std::string* stringFromKey(libff::alt_bn128_Fr* _key) {
+  mpz_t t;
+  mpz_init(t);
 
-    mpz_t t;
-    mpz_init(t);
+  _key->as_bigint().to_mpz(t);
 
-    _key->as_bigint().to_mpz(t);
+  char arr[mpz_sizeinbase(t, 10) + 2];
 
-    char arr[mpz_sizeinbase (t, 10) + 2];
+  char *tmp = mpz_get_str(arr, 10, t);
+  mpz_clear(t);
 
-    char * tmp = mpz_get_str(arr, 10, t);
-    mpz_clear(t);
-
-    return new std::string(tmp);
-
+  return new std::string(tmp);
 }
 
+libff::alt_bn128_Fr *keyFromString(std::string &_keyString) {
 
-libff::alt_bn128_Fr* keyFromString(std::string& _keyString) {
-
-    return new libff::alt_bn128_Fr(_keyString.c_str());
-
+  return new libff::alt_bn128_Fr(_keyString.c_str());
 }
 
+bool check_key(const char *_keyString) {
 
+  libff::init_alt_bn128_params();
 
+  if (_keyString == nullptr)
+    return false;
 
-void import_key(const char* _keyString, char* encryptedKey, uint64_t bufLen) {
+  std::string ks(_keyString);
 
-    libff::init_alt_bn128_params();
+  // std::string  keyString =
+  // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 
-    if (encryptedKey == nullptr && bufLen < 100)
-      throw std::exception();
+  auto key = keyFromString(ks);
 
-    if (_keyString == nullptr)
-        throw std::exception();
+  auto s1 = stringFromKey(key);
 
-    std::string ks(_keyString);
-
-    // std::string  keyString = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
-
-    auto key = keyFromString(ks);
-
-    auto s1 = stringFromKey(key);
-
-   if (s1->compare(ks) != 0)
-    throw std::exception();
+  if (s1->compare(ks) != 0)
+    return false;
 
   if (s1->size() < 10)
-      throw  std::exception();
-
+    return false;
 
   if (s1->size() >= 100)
-    throw  std::exception();
+    return false;
 
-  strncpy(encryptedKey, s1->c_str(), 100);
-
+  return true;
 }

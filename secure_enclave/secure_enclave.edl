@@ -23,8 +23,8 @@ enclave {
 
 		public void encrypt_key (
 		    [user_check] int *err_status,
-		    [in, count = 100] char* key,
-		    [out, count = 100] char* encrypted_key);
+		    [in, count = 128] char* key,
+		    [out, count = 1024] char* encrypted_key);
 	};
 
 

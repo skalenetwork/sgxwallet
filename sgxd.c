@@ -117,15 +117,17 @@ int main (int argc, char *argv[])
 
 	const char* key = "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 
-	char keyArray[100];
+	char keyArray[128];
 
-	char encryptedKey[100];
+	char encryptedKey[1024];
 
-	strncpy(keyArray, key, 100);
+	strncpy(keyArray, key, 128);
 
         int err_status = -2;
 
 	status= encrypt_key(eid, &err_status, keyArray, encryptedKey);
+
+
 
 
 	if ( status != SGX_SUCCESS ) {
@@ -136,7 +138,7 @@ int main (int argc, char *argv[])
 
 	gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
-        gmp_printf("Result: %s \n", encryptedKey);
+        //gmp_printf("Result: %s \n", encryptedKey);
 
 	return 0;
 }
