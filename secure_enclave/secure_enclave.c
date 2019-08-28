@@ -139,11 +139,10 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -7;
 
-  if (strcmp(key, key) != 0)
+  if (strcmp(key, key2) != 0)
     return;
 
   *err_status = 0;
-
 }
 
 void decrypt_key(int *err_status, unsigned char *encrypted_key,
@@ -153,7 +152,8 @@ void decrypt_key(int *err_status, unsigned char *encrypted_key,
 
   *err_status = -6;
 
-  sgx_status_t status = sgx_unseal_data((const sgx_sealed_data_t *) encrypted_key, NULL, 0, key, &decLen);
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, key, &decLen);
 
   if (status != SGX_SUCCESS) {
     *err_status = status;
@@ -164,3 +164,6 @@ void decrypt_key(int *err_status, unsigned char *encrypted_key,
   }
 }
 
+void sign_message(int *err_status, unsigned char *encrypted_key,
+                  uint32_t enc_len, unsigned char *message,
+                  unsigned char *signature) {}
