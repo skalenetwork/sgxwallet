@@ -174,7 +174,6 @@ int main (int argc, char *argv[])
         gmp_printf("\n Length: %d \n", enc_len);
 
 
-
 	return 0;
 }
 
