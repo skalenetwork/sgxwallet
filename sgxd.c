@@ -56,6 +56,28 @@ unsigned char *carray2Hex(const uint8_t *d, int _len) {
   return hex;
 }
 
+
+uint8_t* hex2carray(unsigned char * _hex, uint64_t _len) {
+
+  if (_len == 0 && _len  % 2 == 1)
+    return  NULL;
+
+  uint8_t* bin = malloc(_len / 2);
+
+  for (int i = 0; i < _len / 2; i++) {
+    int high = char2int((char)_hex[i * 2]);
+    int low = char2int((char)_hex[i * 2 + 1]);
+
+    if (high < 0 || low < 0) {
+      return NULL;
+    }
+
+    bin[i] = (uint8_t) (high * 16 + low);
+  }
+
+  return bin;
+}
+
 int char2int(char _input) {
   if (_input >= '0' && _input <= '9')
     return _input - '0';
@@ -65,6 +87,9 @@ int char2int(char _input) {
     return _input - 'a' + 10;
   return -1;
 }
+
+
+
 
 void usage() {
   fprintf(stderr, "usage: sgxd\n");
