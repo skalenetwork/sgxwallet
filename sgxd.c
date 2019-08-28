@@ -191,6 +191,20 @@ int main(int argc, char *argv[]) {
 
   unsigned char *result = carray2Hex(encryptedKey, enc_len);
 
+  uint64_t dec_len;
+
+  uint8_t* bin = hex2carray(result, &dec_len);
+
+  if (dec_len != enc_len) {
+    return 1;
+  }
+
+  for (int i=0; i < dec_len; i++) {
+    if (bin[i] != encryptedKey[i])
+      return 1;
+
+  }
+
 
 
   gmp_printf("Result: %s", result);
