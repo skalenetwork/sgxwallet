@@ -42,6 +42,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
+int char2int(char _input) {
+  if (_input >= '0' && _input <= '9')
+    return _input - '0';
+  if (_input >= 'A' && _input <= 'F')
+    return _input - 'A' + 10;
+  if (_input >= 'a' && _input <= 'f')
+    return _input - 'a' + 10;
+  return -1;
+}
+
+
+
 unsigned char *carray2Hex(const uint8_t *d, int _len) {
   unsigned char *hex = malloc(2 * _len);
 
@@ -57,14 +69,19 @@ unsigned char *carray2Hex(const uint8_t *d, int _len) {
 }
 
 
-uint8_t* hex2carray(unsigned char * _hex, uint64_t _len) {
+uint8_t* hex2carray(unsigned char * _hex, uint64_t *_bin_len) {
 
-  if (_len == 0 && _len  % 2 == 1)
+  uint64_t len = strlen(_hex);
+
+
+  if (len == 0 && len % 2 == 1)
     return  NULL;
 
-  uint8_t* bin = malloc(_len / 2);
+  *_bin_len = len / 2;
 
-  for (int i = 0; i < _len / 2; i++) {
+  uint8_t* bin = malloc(len / 2);
+
+  for (int i = 0; i < len / 2; i++) {
     int high = char2int((char)_hex[i * 2]);
     int low = char2int((char)_hex[i * 2 + 1]);
 
@@ -76,16 +93,6 @@ uint8_t* hex2carray(unsigned char * _hex, uint64_t _len) {
   }
 
   return bin;
-}
-
-int char2int(char _input) {
-  if (_input >= '0' && _input <= '9')
-    return _input - '0';
-  if (_input >= 'A' && _input <= 'F')
-    return _input - 'A' + 10;
-  if (_input >= 'a' && _input <= 'f')
-    return _input - 'a' + 10;
-  return -1;
 }
 
 
@@ -183,6 +190,8 @@ int main(int argc, char *argv[]) {
   gmp_printf("Encrypt key completed with status: %d \n", err_status);
 
   unsigned char *result = carray2Hex(encryptedKey, enc_len);
+
+
 
   gmp_printf("Result: %s", result);
 
