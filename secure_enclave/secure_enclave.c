@@ -93,29 +93,20 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
   return (void *)nptr;
 }
 
-void e_mpz_add(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {
+void e_mpz_add(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-}
+void e_mpz_mul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpz_mul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {
+void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-}
+void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
-void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {
-
-}
-
-void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {
-
-}
-
-
-
-void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_key, uint32_t *enc_len) {
+void encrypt_key(int *err_status, unsigned char *key,
+                 unsigned char *encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;
 
-  if (strnlen(key) >=128)
+  if (strnlen(key) >= 128)
     return;
 
   *err_status = -3;
@@ -134,7 +125,8 @@ void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_k
 
   memset(encrypted_key, 0, sealedLen);
 
-  if (sgx_seal_data(0, NULL, strlen(key) + 1, key,  sealedLen, encrypted_key) != SGX_SUCCESS)
+  if (sgx_seal_data(0, NULL, strlen(key) + 1, key, sealedLen, encrypted_key) !=
+      SGX_SUCCESS)
     return;
 
   *enc_len = sealedLen;
@@ -142,11 +134,8 @@ void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_k
   *err_status = 0;
 }
 
-
-void decrypt_key(int *err_status, unsigned char* encrypted_key, unsigned char* key, uint32_t *dec_len) {
+void decrypt_key(int *err_status, unsigned char *encrypted_key,
+                 uint32_t enc_len, unsigned char *key) {
 
   *err_status = -1;
-
 }
-
-

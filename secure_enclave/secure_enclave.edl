@@ -26,10 +26,12 @@ enclave {
 		    [in, count = 128] unsigned char* key,
 		    [out, count = 1024] unsigned char* encrypted_key, [user_check] uint32_t *enc_len);
 
-		public void decrypt_key (
-        		    [user_check] int *err_status,
-        		    [in, count = 1024] unsigned char* encrypted_key,
-        		    [out, count = 128] unsigned char* key, [user_check] uint32_t *dec_len);
+        public void decrypt_key (
+		    [user_check] int *err_status,
+		    [in, count = 1024] unsigned char* encrypted_key,
+		    uint32_t enc_len,
+		    [out, count = 128] unsigned char* key );
+
 
 
 	};
