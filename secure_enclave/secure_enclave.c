@@ -132,6 +132,8 @@ void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_k
 
   *err_status = -4;
 
+  memset(encrypted_key, 0, sealedLen);
+
   if (sgx_seal_data(0, NULL, strlen(key) + 1, key,  sealedLen, encrypted_key) != SGX_SUCCESS)
     return;
 
@@ -139,4 +141,12 @@ void encrypt_key(int *err_status, unsigned char* key, unsigned char* encrypted_k
 
   *err_status = 0;
 }
+
+
+void decrypt_key(int *err_status, unsigned char* encrypted_key, unsigned char* key, uint32_t *dec_len) {
+
+  *err_status = -1;
+
+}
+
 
