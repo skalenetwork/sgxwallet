@@ -115,13 +115,13 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(key) + 1);
 
-  *err_status = -3;
+  *err_status = -4;
 
   if (sealedLen > 1024) {
     return;
   }
 
-  *err_status = -4;
+  *err_status = -5;
 
   memset(encrypted_key, 0, sealedLen);
 
@@ -131,11 +131,36 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *enc_len = sealedLen;
 
+  *err_status = -6;
+
+  char key2[128];
+
+  decrypt_key(err_status, encrypted_key, sealedLen, key2);
+
+  *err_status = -7;
+
+  if (strcmp(key, key) != 0)
+    return;
+
   *err_status = 0;
+
 }
 
 void decrypt_key(int *err_status, unsigned char *encrypted_key,
                  uint32_t enc_len, unsigned char *key) {
 
-  *err_status = -1;
+  uint32_t decLen;
+
+  *err_status = -6;
+
+  sgx_status_t status = sgx_unseal_data((const sgx_sealed_data_t *) encrypted_key, NULL, 0, key, &decLen);
+
+  if (status != SGX_SUCCESS) {
+    *err_status = status;
+    return;
+  } else {
+    *err_status = 0;
+    return;
+  }
 }
+
