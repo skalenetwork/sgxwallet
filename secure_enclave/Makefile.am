@@ -63,7 +63,8 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional Automake flags needed to build the enclave.
 ##
 
-AM_CPPFLAGS += $(TGMP_CPPFLAGS) -I../libff  -I../sgx-sdk-build/sgxsdk/include/libcxx 
+AM_CPPFLAGS += $(TGMP_CPPFLAGS) -I../libff  -I../sgx-sdk-build/sgxsdk/include/libcxx \
+              -I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS += -fno-builtin
 
 

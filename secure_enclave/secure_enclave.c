@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 #include <string.h>
-
+#include <openssl/crypto.h>
 
 #define  MAX_KEY_LENGTH 128
 
