@@ -45,7 +45,7 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
   auto sZ = stringFromFq(&_g1->Z);
 
 
-  auto sG1 = new std::string(*sX + *sY + *sZ);
+  auto sG1 = new std::string(*sX + ":" +  *sY + ":" + *sZ);
 
   delete(sX);
   delete(sY);
