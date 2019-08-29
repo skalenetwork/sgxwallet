@@ -22,6 +22,43 @@ std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
   return new std::string(tmp);
 }
 
+std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
+
+  mpz_t t;
+  mpz_init(t);
+
+  _fq->as_bigint().to_mpz(t);
+
+  char arr[mpz_sizeinbase(t, 10) + 2];
+
+  char *tmp = mpz_get_str(arr, 10, t);
+  mpz_clear(t);
+
+  return new std::string(tmp);
+}
+
+std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
+
+
+  auto sX = stringFromFq(&_g1->X);
+  auto sY = stringFromFq(&_g1->Y);
+  auto sZ = stringFromFq(&_g1->Z);
+
+
+  auto sG1 = new std::string(*sX + *sY + *sZ);
+
+  delete(sX);
+  delete(sY);
+  delete(sZ);
+
+  return sG1;
+
+}
+
+
+
+
+
 libff::alt_bn128_Fr *keyFromString(const char* _keyString) {
 
   return new libff::alt_bn128_Fr(_keyString);
@@ -68,11 +105,6 @@ char* sign(const char *_keyString, const char* _hashXString, const char* _hashYS
 
 
          libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
-
-
-
-
-
 
 
          libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
