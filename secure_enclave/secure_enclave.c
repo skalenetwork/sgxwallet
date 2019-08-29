@@ -39,6 +39,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 
+
+#define  MAX_KEY_LENGTH 128
+
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 void *(*oc_realloc_func)(void *, size_t, size_t);
 void (*gmp_free_func)(void *, size_t);
@@ -106,7 +109,7 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -1;
 
-  if (strnlen(key) >= 128)
+  if (strnlen(key) >= MAX_KEY_LENGTH)
     return;
 
   *err_status = -3;
@@ -133,7 +136,7 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -6;
 
-  char key2[128];
+  char key2[MAX_KEY_LENGTH];
 
   decrypt_key(err_status, encrypted_key, sealedLen, key2);
 
@@ -166,4 +169,17 @@ void decrypt_key(int *err_status, unsigned char *encrypted_key,
 
 void sign_message(int *err_status, unsigned char *encrypted_key,
                   uint32_t enc_len, unsigned char *message,
-                  unsigned char *signature) {}
+                  unsigned char *signature) {
+  
+  uint8_t key[MAX_KEY_LENGTH];
+  
+  decrypt_key(err_status, encrypted_key, enc_len, key);
+
+  if (err_status != 0) {
+    return;
+  }
+
+
+  
+  
+}

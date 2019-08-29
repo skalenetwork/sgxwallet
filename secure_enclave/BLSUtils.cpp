@@ -22,9 +22,9 @@ std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
   return new std::string(tmp);
 }
 
-libff::alt_bn128_Fr *keyFromString(std::string &_keyString) {
+libff::alt_bn128_Fr *keyFromString(const char* _keyString) {
 
-  return new libff::alt_bn128_Fr(_keyString.c_str());
+  return new libff::alt_bn128_Fr(_keyString);
 }
 
 bool check_key(const char *_keyString) {
@@ -39,7 +39,7 @@ bool check_key(const char *_keyString) {
   // std::string  keyString =
   // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 
-  auto key = keyFromString(ks);
+  auto key = keyFromString(ks.c_str());
 
   auto s1 = stringFromKey(key);
 
@@ -53,4 +53,30 @@ bool check_key(const char *_keyString) {
     return false;
 
   return true;
+}
+
+
+
+char* sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
+           const char* _hashZString) {
+
+         auto key = keyFromString(_keyString);
+
+         libff::alt_bn128_Fq hashX(_hashXString);
+         libff::alt_bn128_Fq hashY(_hashYString);
+         libff::alt_bn128_Fq hashZ(_hashZString);
+
+
+         libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
+
+
+
+
+
+
+
+         libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
+
+         return nullptr;
+
 }
