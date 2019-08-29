@@ -7,3 +7,6 @@
 [submodule "sgx-gmp"]
 	path = sgx-gmp
 	url = https://github.com/intel/sgx-gmp.git
+[submodule "intel-sgx-ssl"]
+	path = intel-sgx-ssl
+	url = https://github.com/intel/intel-sgx-ssl

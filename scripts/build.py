@@ -62,6 +62,13 @@ makeExecutable = subprocess.check_output(["which", "make"])
 
 
 GMP_DIR = "sgx-gmp"
+SSL_DIR =  topDir + "/intel-sgx-ssl"
+SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
+SSL_MAKE_DIR = SSL_DIR + "/Linux"
+SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
+
+
+
 GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
@@ -92,11 +99,29 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
-subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"])
-
-subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + SDK_DIR])
 
 
+os.chdir(SSL_DIR);
+
+
+print "===>>> Downloading vanilla openssl source package"
+
+os.chdir(SSL_SOURCE_DIR);
+
+
+assert subprocess.call(["wget", "https://www.openssl.org/source/openssl-1.1.1b.tar.gz"]) == 0
+
+print "===>>> Making SSL  project"
+
+os.chdir(SSL_MAKE_DIR);
+
+assert subprocess.call("make",  "SGX_SDK=" + SGX_SDK_DIR_SSL, "all",  "test") == 0
+
+os.chdir(topDir)
+
+assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
+
+assert subprocess.call(["scripts/sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + SDK_DIR]) == 0
 
 os.chdir(GMP_DIR);
 
