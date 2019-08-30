@@ -39,9 +39,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 #include <string.h>
-#include <openssl/crypto.h>
+
+#include <openssl/ec.h>
+#include <openssl/bn.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
+#include "tSgxSSL_api.h"
+
+
 
 #define  MAX_KEY_LENGTH 128
+#define ADD_ENTROPY_SIZE 32
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 void *(*oc_realloc_func)(void *, size_t, size_t);
@@ -168,6 +177,9 @@ void decrypt_key(int *err_status, unsigned char *encrypted_key,
   }
 }
 
+
+
+
 void sign_message(int *err_status, unsigned char *encrypted_key,
                   uint32_t enc_len, unsigned char *message,
                   unsigned char *signature) {
@@ -183,14 +195,65 @@ void sign_message(int *err_status, unsigned char *encrypted_key,
     return;
   }
 
-  char* sig = sign(key, "", "", "");
+  char* ecdsaSig = sign(key, "", "", "");
 
-  if (sig == NULL) {
+  if (ecdsaSig == NULL) {
     return;
   }
 
-  strcpy(signature, sig);
+  strcpy(signature, ecdsaSig);
 
   *err_status = 0;
+
+
+  unsigned char entropy_buf[ADD_ENTROPY_SIZE] = {0};
+
+  RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
+  RAND_seed(entropy_buf, sizeof(entropy_buf));
+
+  // Initialize SGXSSL crypto
+  OPENSSL_init_crypto(0, NULL);
+
+  RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
+  RAND_seed(entropy_buf, sizeof(entropy_buf));
+
+  EC_KEY * ec = NULL;
+  int eccgroup;
+  eccgroup = OBJ_txt2nid("secp384r1");
+  ec = EC_KEY_new_by_curve_name(eccgroup);
+  if (ec == NULL) {
+    return;
+  }
+
+  EC_KEY_set_asn1_flag(ec, OPENSSL_EC_NAMED_CURVE);
+
+  int ret = EC_KEY_generate_key(ec);
+  if (!ret) {
+    return;
+  }
+
+  EVP_PKEY *ec_pkey = EVP_PKEY_new();
+  if (ec_pkey == NULL) {
+    return;
+  }
+  EVP_PKEY_assign_EC_KEY(ec_pkey, ec);
+  // DONE
+
+
+  char buffer[100];
+  unsigned char sig;
+  unsigned int siglen;
+  int i;
+  for (i = 0; i < 1000; i++) {
+
+    // Add context
+    EVP_MD_CTX* context = EVP_MD_CTX_new();
+    // Init, update, final
+    EVP_SignInit_ex(context, EVP_sha1(), NULL);
+    EVP_SignUpdate(context, &buffer, 100);
+    EVP_SignFinal(context, &sig, &siglen, ec_pkey);
+  }
+
+
 
 }
