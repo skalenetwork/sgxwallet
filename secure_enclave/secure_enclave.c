@@ -150,7 +150,15 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   decrypt_key(err_status, encrypted_key, sealedLen, key2);
 
+  if (strnlen(key2, MAX_KEY_LENGTH) == MAX_KEY_LENGTH)
+    return;
+
   *err_status = -7;
+
+  if (strcmp(key, key2) != 0)
+    return;
+
+  *err_status = -8;
 
   if (strcmp(key, key2) != 0)
     return;
@@ -203,7 +211,7 @@ void sign_message(int *err_status, unsigned char *encrypted_key,
 
   strcpy(signature, ecdsaSig);
 
-  *err_status = 0;
+
 
 
   unsigned char entropy_buf[ADD_ENTROPY_SIZE] = {0};
@@ -254,6 +262,6 @@ void sign_message(int *err_status, unsigned char *encrypted_key,
     EVP_SignFinal(context, &sig, &siglen, ec_pkey);
   }
 
-
+  *err_status = 0;
 
 }
