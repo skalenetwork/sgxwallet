@@ -201,8 +201,8 @@ AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AUTOCONF = ${SHELL} /d/sgxd/missing autoconf
 AUTOHEADER = ${SHELL} /d/sgxd/missing autoheader
-AUTOMAKE = 
-AWK = gawk
+AUTOMAKE = ${SHELL} /d/sgxd/missing automake-1.15
+AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
@@ -219,8 +219,8 @@ ECHO_N = -n
 ECHO_T = 
 ENCLAVE_SIGN_TARGET = signed_enclave_dev
 EXEEXT = .so
-GMP_CPPFLAGS = -I/d/sgxd/gmp-build/include -I/d/sgxd/tgmp-build/include
-GMP_LDFLAGS = -L/d/sgxd/gmp-build/lib
+GMP_CPPFLAGS = 
+GMP_LDFLAGS = 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -265,8 +265,8 @@ SGX_UAE_SERVICE_LIB = sgx_uae_service
 SGX_URTS_LIB = sgx_urts
 SHELL = /bin/bash
 STRIP = 
-TGMP_CPPFLAGS = -I/d/sgxd/tgmp-build/include -I/d/sgxd/gmp-build/include
-TGMP_LDFLAGS = -L/d/sgxd/tgmp-build/lib
+TGMP_CPPFLAGS = 
+TGMP_LDFLAGS = 
 VERSION = 1.0
 abs_builddir = /d/sgxd/secure_enclave
 abs_srcdir = /d/sgxd/secure_enclave
@@ -318,7 +318,8 @@ SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc $(TGMP_CPPFLAGS) -I../libff \
-	-I../sgx-sdk-build/sgxsdk/include/libcxx
+	-I../sgx-sdk-build/sgxsdk/include/libcxx \
+	-I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS = -nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector -fno-builtin
 AM_LDFLAGS = -nostdlib -nodefaultlibs -nostartfiles -L$(SGXSDK_LIBDIR) $(TGMP_LDFLAGS)
 CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
@@ -334,7 +335,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
                 ../libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = -Wl,--no-undefined -Wl,--whole-archive -l$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group $(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
 all: all-am
 
 .SUFFIXES:

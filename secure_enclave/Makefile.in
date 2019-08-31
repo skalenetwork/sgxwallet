@@ -318,7 +318,8 @@ SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
 AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ $(TGMP_CPPFLAGS) -I../libff \
-	-I../sgx-sdk-build/sgxsdk/include/libcxx
+	-I../sgx-sdk-build/sgxsdk/include/libcxx \
+	-I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@ $(TGMP_LDFLAGS)
 CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
@@ -334,7 +335,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
                 ../libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
 all: all-am
 
 .SUFFIXES:

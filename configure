@@ -2485,6 +2485,7 @@ ACLOCAL=${ACLOCAL-"${am_missing_run}aclocal-${am__api_version}"}
 AUTOCONF=${AUTOCONF-"${am_missing_run}autoconf"}
 
 
+AUTOMAKE=${AUTOMAKE-"${am_missing_run}automake-${am__api_version}"}
 
 
 AUTOHEADER=${AUTOHEADER-"${am_missing_run}autoheader"}
@@ -2494,6 +2495,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
 # For better backward compatibility.  To be removed once Automake 1.9.x
 # dies out for good.  For more background, see:
+# <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
+# <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
 # We need awk for the "check" target (and possibly the TAP driver).  The
@@ -2517,6 +2520,7 @@ am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
 # is OK; and we want to be able to make that assumption in our Makefile
 # recipes.  So use an aggressive probe to check that the usage we want is
 # actually supported "in the wild" to an acceptable degree.
+# See automake bug#10828.
 # To make any issue more visible, cause the running configure to be aborted
 # by default if the 'rm' program in use doesn't match our expectations; the
 # user can still override this though.
@@ -2529,7 +2533,9 @@ on the command line, even when the '-f' option is present.  This is contrary
 to the behaviour of most rm programs out there, and not conforming with
 the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
 
+Please tell bug-automake@gnu.org about your system, including the value
 of your $PATH and any error possibly output before this message.  This
+can help us improve future automake versions.
 
 END
   if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
@@ -4156,12 +4162,7 @@ fi
 
 
 
-# Check whether --with-sgxsdk was given.
-if test "${with_sgxsdk+set}" = set; then :
-  withval=$with_sgxsdk; SGXSDK=$withval
-else
-  SGXSDK="detect"
-fi
+SGXSDK="${PWD}/sgx-sdk-build/sgxsdk"
 
 
 	if test "x$sgxsim" = "yes"; then :
@@ -4253,8 +4254,9 @@ else
 fi
 	SGX_DEBUG_FLAGS=$_sgxdebug
 
-if test -d ${PWD}/sgx-sdk-build/sgxsdk; then :
-  SGXSDK=${PWD}/sgx-sdk-build/sgxsdk
+
+
+if test -d ${SGXSDK}; then :
 else
   as_fn_error $? "Can't detect your Intel SGX SDK installation directory" "$LINENO" 5
 fi
@@ -4364,19 +4366,44 @@ $as_echo "$as_me: enabling SGX... ${ac_cv_enable_sgx}" >&6;}
 	ac_cv_sgx_init=yes
 
 
+gmpdir=
+tgmpdir=
 
-export gmpdir="${PWD}/gmp-build"
-export tgmpdir="${PWD}/tgmp-build"
+
+# Check whether --with-gmpdir was given.
+if test "${with_gmpdir+set}" = set; then :
+  withval=$with_gmpdir; gmpdir=$withval
+
+fi
 
 
-GMP_CPPFLAGS="-I${gmpdir}/include -I${tgmpdir}/include"
 
-GMP_LDFLAGS="-L$gmpdir/lib"
+# Check whether --with-trusted-gmpdir was given.
+if test "${with_trusted_gmpdir+set}" = set; then :
+  withval=$with_trusted_gmpdir; tgmpdir=$withval
+else
+  tgmpdir=$gmpdir
 
-TGMP_CPPFLAGS="-I${tgmpdir}/include -I${gmpdir}/include"
+fi
 
-TGMP_LDFLAGS="-L$tgmpdir/lib"
 
+if test "$gmpdir" != ""; then :
+
+	GMP_CPPFLAGS=-I$gmpdir/include
+
+	GMP_LDFLAGS=-L$gmpdir/lib
+
+
+fi
+
+if test "$tgmpdir" != ""; then :
+
+	TGMP_CPPFLAGS=-I$tgmpdir/include
+
+	TGMP_LDFLAGS=-L$tgmpdir/lib
+
+
+fi
 
 ac_config_files="$ac_config_files Makefile secure_enclave/Makefile"
 
@@ -5700,3 +5727,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
