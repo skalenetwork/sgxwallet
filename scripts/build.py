@@ -99,7 +99,7 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
-
+subprocess.call(["bash","-c", "sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + topDir + "/sgx-sdk-build"]);
 
 
 os.chdir(GMP_DIR);
