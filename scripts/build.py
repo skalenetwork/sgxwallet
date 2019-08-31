@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 
 #------------------------------------------------------------------------------
 # Bash script to build cpp-ethereum within TravisCI.
