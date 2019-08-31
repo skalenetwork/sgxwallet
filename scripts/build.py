@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 
 #------------------------------------------------------------------------------
 # Bash script to build cpp-ethereum within TravisCI.
@@ -50,7 +50,7 @@ import sys
 import os
 import subprocess
 
-os.chdir("..")
+os.chdir("..");
 
 topDir = os.getcwd();
 
@@ -60,8 +60,8 @@ print("Top directory is:" + topDir )
 
 makeExecutable = subprocess.check_output(["which", "make"])
 
-
-GMP_DIR = "sgx-gmp"
+SCRIPTS_DIR = topDir + "/scripts" 
+GMP_DIR = topDir +  "/sgx-gmp"
 SSL_DIR =  topDir + "/intel-sgx-ssl"
 SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
 SSL_MAKE_DIR = SSL_DIR + "/Linux"
@@ -99,7 +99,10 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
-subprocess.call(["bash","-c", "sgx_linux_x64_sdk_2.5.100.49891.bin", "--prefix=" + topDir + "/sgx-sdk-build"]);
+os.chdir(SCRIPTS_DIR)
+
+
+assert subprocess.call(["bash","-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0 
 
 
 os.chdir(GMP_DIR);
