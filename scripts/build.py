@@ -109,7 +109,7 @@ os.chdir(GMP_DIR);
 
 
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + TGMP_BUILD_DIR + " --disable-shared " +
-                        " --enable-static --with-pic --enable-sgx  --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0
+                        " --enable-static --with-pic --enable-sgx  --with-sgxsdk=" + SDK_DIR + "/sgxsdk ]) == 0
 
 
 assert subprocess.call(["make", "install"]) == 0
