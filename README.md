@@ -1,17 +1,15 @@
-# SKALE Key Managemenet SGX daemon sgxd for Intel&reg; Software Guard Extensions
+# sgxd: SKALE SGX-protected crypto daemon.
 
 ## Prerequisites
 
 To build and run sgxd, you'll need Intel SGX capable hardware.
 
-Check that SGX is set in BIOS as `enabled` or `software-controlled`.
+* Check that SGX is set in BIOS as `enabled` or `software-controlled`.
 
 
-Install SGX driver located in scripts directory.
+* Install SGX driver located in scripts directory.
 
-Sgxd has been tested on:
-
-* Ubuntu\* Linux\* 18.04
+Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
 ## Building dependencies
 
