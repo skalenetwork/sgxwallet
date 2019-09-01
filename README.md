@@ -11,17 +11,16 @@ To build and run sgxd, you'll need Intel SGX capable hardware.
 
 Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
-## Building dependencies
+## Build dependencies
 
-Dependencies only need to be once.
+Dependencies only need to be built once.
 
 ```
-cd scripts;
-./build.py
+cd scripts; ./build.py
 ```
 ## Configure
 
-Cd to the project top dir, then
+Cd to the project top dir, then run
 
 ```
 autoconf
@@ -31,12 +30,8 @@ configure
 
 ## Build
 
-To build sgxd, run `make`
-
-
+To build sgxd, cd to project top dir and run `make` 
 
 ## Running sgxd
 
 Type `./sgxd`.
-
-# sgxd
