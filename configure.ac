@@ -11,19 +11,9 @@ AM_PROG_CC_C_O
 
 SGX_INIT()
 
-gmpdir=${PWD}/gmp_build
-tgmpdir=${PWD}/tgmp_build
+gmpdir=${PWD}/gmp-build
+tgmpdir=${PWD}/tgmp-build
 
-AC_ARG_WITH([gmpdir],
-	AC_HELP_STRING([--with-gmpdir=PATH], [specify the libgmp directory]),
-	gmpdir=$withval
-)
-
-AC_ARG_WITH([trusted-gmpdir],
-	AC_HELP_STRING([--with-trusted-gmpdir=PATH], [the trusted libgmp directory (default: gmp directory)]),
-	tgmpdir=$withval,
-	tgmpdir=$gmpdir
-)
 
 AS_IF([test "$gmpdir" != ""], [
 	AC_SUBST([GMP_CPPFLAGS], [-I$gmpdir/include])
