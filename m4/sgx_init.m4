@@ -79,7 +79,7 @@ AC_DEFUN([SGX_INIT],[
 		[test "x$SGXSDK" != "xdetect"], [],
 		[test -d /opt/intel/sgxsdk], [SGXSDK=/opt/intel/sgxsdk],
 		[test -d ~/sgxsdk], [SGXSDK=~/sgxsdk],
-		[test -d ./sgx-sdk-build/sgxsdk], [SGXSDK=./sgx-sdk-build/sgxsdk],
+		[test -d ${PWD}/sgx-sdk-build/sgxsdk], [SGXSDK=${PWD}/sgx-sdk-build/sgxsdk],
 		[AC_MSG_ERROR([Can't detect your Intel SGX SDK installation directory])])
 
 	AC_SUBST(SGXSDK)

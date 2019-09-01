@@ -4273,8 +4273,8 @@ elif test -d /opt/intel/sgxsdk; then :
   SGXSDK=/opt/intel/sgxsdk
 elif test -d ~/sgxsdk; then :
   SGXSDK=~/sgxsdk
-elif test -d ./sgx-sdk-build/sgxsdk; then :
-  SGXSDK=./sgx-sdk-build/sgxsdk
+elif test -d ${PWD}/sgx-sdk-build/sgxsdk; then :
+  SGXSDK=${PWD}/sgx-sdk-build/sgxsdk
 else
   as_fn_error $? "Can't detect your Intel SGX SDK installation directory" "$LINENO" 5
 fi
