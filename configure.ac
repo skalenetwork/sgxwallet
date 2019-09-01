@@ -11,8 +11,8 @@ AM_PROG_CC_C_O
 
 SGX_INIT()
 
-gmpdir=
-tgmpdir=
+gmpdir=${PWD}/gmp_build
+tgmpdir=${PWD}/tgmp_build
 
 AC_ARG_WITH([gmpdir],
 	AC_HELP_STRING([--with-gmpdir=PATH], [specify the libgmp directory]),

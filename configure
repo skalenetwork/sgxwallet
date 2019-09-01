@@ -4162,7 +4162,12 @@ fi
 
 
 
-SGXSDK="${PWD}/sgx-sdk-build/sgxsdk"
+# Check whether --with-sgxsdk was given.
+if test "${with_sgxsdk+set}" = set; then :
+  withval=$with_sgxsdk; SGXSDK=$withval
+else
+  SGXSDK="detect"
+fi
 
 
 	if test "x$sgxsim" = "yes"; then :
@@ -4254,9 +4259,22 @@ else
 fi
 	SGX_DEBUG_FLAGS=$_sgxdebug
 
+	if test "x$SGX_SDK" = "x"; then :
+  SGXSDK=detect
+else
+  SGXSDK=env
+fi
 
+	if test "x$SGXSDK" = "xenv"; then :
+  SGXSDK=$SGX_SDK
+elif test "x$SGXSDK" != "xdetect"; then :
 
-if test -d ${SGXSDK}; then :
+elif test -d /opt/intel/sgxsdk; then :
+  SGXSDK=/opt/intel/sgxsdk
+elif test -d ~/sgxsdk; then :
+  SGXSDK=~/sgxsdk
+elif test -d ./sgx-sdk-build/sgxsdk; then :
+  SGXSDK=./sgx-sdk-build/sgxsdk
 else
   as_fn_error $? "Can't detect your Intel SGX SDK installation directory" "$LINENO" 5
 fi
@@ -4366,8 +4384,8 @@ $as_echo "$as_me: enabling SGX... ${ac_cv_enable_sgx}" >&6;}
 	ac_cv_sgx_init=yes
 
 
-gmpdir=
-tgmpdir=
+gmpdir=${PWD}/gmp_build
+tgmpdir=${PWD}/tgmp_build
 
 
 # Check whether --with-gmpdir was given.
