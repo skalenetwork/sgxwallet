@@ -1,4 +1,4 @@
-# sgxd: SKALE SGX-protected crypto daemon
+# sgxd: SKALE SGX-based hardware security module
 
 ## Prerequisites
 
