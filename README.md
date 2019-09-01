@@ -2,11 +2,10 @@
 
 ## Prerequisites
 
-To build and run sgxd, you'll need Intel SGX capable hardware.
+To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips that were produced after 2015 support SGX.
 
+* Enter BIOS of you machine and check that it includes SGX options.
 * Check that SGX is set in BIOS as `enabled` or `software-controlled`.
-
-
 * Install SGX driver located in scripts directory.
 
 Sgxd has been tested on Ubuntu\* Linux\* 18.04
