@@ -118,7 +118,7 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
 
-void encrypt_key(int *err_status, unsigned char *key,
+void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
                  unsigned char *encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;

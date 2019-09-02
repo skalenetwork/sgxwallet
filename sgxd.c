@@ -170,9 +170,11 @@ int main(int argc, char *argv[]) {
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
 
-  char keyArray[128];
+  unsigned char* keyArray = calloc(128, 1);
 
-  unsigned char encryptedKey[1024];
+  unsigned char* encryptedKey = calloc(1024, 1);
+
+  unsigned char* errMsg = calloc(1024,1);
 
   strncpy(keyArray, key, 128);
 
@@ -180,14 +182,15 @@ int main(int argc, char *argv[]) {
 
   int enc_len = 0;
 
-  status = encrypt_key(eid, &err_status, keyArray, encryptedKey, &enc_len);
+  status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
 
   if (status != SGX_SUCCESS) {
-    gmp_printf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
+    gmp_printf("ECALL encrypt_key: 0x%04x\n", status);
     return 1;
   }
 
-  gmp_printf("Encrypt key completed with status: %d \n", err_status);
+
+  gmp_printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
 
   unsigned char *result = carray2Hex(encryptedKey, enc_len);
 

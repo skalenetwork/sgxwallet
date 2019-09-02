@@ -23,6 +23,7 @@ enclave {
 
 		public void encrypt_key (
 		    [user_check] int *err_status,
+		    [out, count = 1024] unsigned char* err_string,
 		    [in, count = 128] unsigned char* key,
 		    [out, count = 1024] unsigned char* encrypted_key, [user_check] uint32_t *enc_len);
 
