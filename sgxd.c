@@ -182,8 +182,8 @@ int main(int argc, char *argv[]) {
 
   status = encrypt_key(eid, &err_status, keyArray, encryptedKey, &enc_len);
 
-  if (status != SGX_SUCCESS || enc_len < 10) {
-    fprintf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
+  if (status != SGX_SUCCESS) {
+    gmp_printf(stderr, "ECALL encrypt_key: 0x%04x\n", status);
     return 1;
   }
 

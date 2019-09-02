@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #define  MAX_KEY_LENGTH 128
-#define  MAX_ENCRYPTED_KEY_LENGTH 128
+#define  MAX_ENCRYPTED_KEY_LENGTH 1024
 
 #define ADD_ENTROPY_SIZE 32
 
@@ -116,13 +116,29 @@ void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
 void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
+
+
 void encrypt_key(int *err_status, unsigned char *key,
                  unsigned char *encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;
 
-  if (strnlen(key, MAX_KEY_LENGTH - 1) == MAX_KEY_LENGTH -1)
+  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+  // check that key is zero terminated string
+
+  if (keyLen == MAX_KEY_LENGTH)
     return;
+
+  *err_status = -2;
+
+  // check that key is padded with 0s
+
+  for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
+    if (key[i] != 0) {
+      return;
+    }
+  }
 
   *err_status = -3;
 
@@ -130,11 +146,11 @@ void encrypt_key(int *err_status, unsigned char *key,
     return;
   }
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(key) + 1);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
 
   *err_status = -4;
 
-  if (sealedLen > 1024) {
+  if (sealedLen > MAX_ENCRYPTED_KEY_LENGTH) {
     return;
   }
 
@@ -142,15 +158,13 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   memset(encrypted_key, 0, MAX_ENCRYPTED_KEY_LENGTH);
 
-
-
-  if (sgx_seal_data(0, NULL, strlen(key) + 1, key, sealedLen, encrypted_key) !=
+  if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, key, sealedLen, encrypted_key) !=
       SGX_SUCCESS)
     return;
 
   *enc_len = sealedLen;
 
-  *err_status = -6;
+
 
   char key2[MAX_KEY_LENGTH];
 
@@ -158,17 +172,22 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   decrypt_key(err_status, encrypted_key, sealedLen, key2);
 
-  if (strnlen(key2, MAX_KEY_LENGTH -1) == MAX_KEY_LENGTH -1)
+
+  if (*err_status != 0) {
+    return *err_status - 100;
+  }
+
+
+
+  uint64_t key2Len = strnlen(key2, MAX_KEY_LENGTH);
+
+  if (key2Len == MAX_KEY_LENGTH)
     return;
 
-  *err_status = -7;
-
-  if (strcmp(key, key2) != 0)
-    return;
 
   *err_status = -8;
 
-  if (strcmp(key, key2) != 0)
+  if (strncmp(key, key2, MAX_KEY_LENGTH) != 0)
     return;
 
   *err_status = 0;
