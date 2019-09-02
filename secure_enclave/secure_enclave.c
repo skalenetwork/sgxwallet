@@ -119,7 +119,7 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -1;
 
-  if (strnlen(key, MAX_KEY_LENGTH) == MAX_KEY_LENGTH)
+  if (strnlen(key, MAX_KEY_LENGTH - 1) == MAX_KEY_LENGTH -1)
     return;
 
   *err_status = -3;
