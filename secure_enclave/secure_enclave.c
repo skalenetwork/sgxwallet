@@ -210,7 +210,7 @@ void decrypt_key(int *err_status, unsigned char *err_string, unsigned char *encr
 
   uint32_t decLen;
 
-  *err_status = -6;
+  *err_status = -9;
 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, key, &decLen);
@@ -220,6 +220,32 @@ void decrypt_key(int *err_status, unsigned char *err_string, unsigned char *encr
     return;
   }
 
+
+  if (decLen != MAX_KEY_LENGTH) {
+    snprintf(err_string, MAX_ERR_LEN, "decLen != MAX_KEY_LENGTH");
+    return;
+  }
+
+  *err_status = -10;
+
+
+  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+
+  if (keyLen == MAX_KEY_LENGTH) {
+    snprintf(err_string, MAX_ERR_LEN, "Key is not null terminated");
+    return;
+  }
+
+  // check that key is padded with 0s
+
+  for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
+    if (key[i] != 0) {
+      snprintf(err_string, MAX_ERR_LEN,"Unpadded key");
+      return;
+    }
+  }
+  
   *err_status = 0;
   return;
 
