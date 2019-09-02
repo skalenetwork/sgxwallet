@@ -73,6 +73,11 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
+
+BLS_DIR = topDir +  "/libBLS"
+BLS_BUILD_DIR = BLS_DIR + "/build"
+
+
 AUTOMAKE_DIR = "/usr/share/automake-1.15"
 
 if not os.path.isdir(AUTOMAKE_DIR):
@@ -100,6 +105,14 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
+
+os.chdir(BLS_DIR);
+
+assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
+
+os.chdir(BLS_BUILD_DIR);
+
+assert subprocess.call(["bash","-c", "make"]) == 0
 
 
 os.chdir(SCRIPTS_DIR)
