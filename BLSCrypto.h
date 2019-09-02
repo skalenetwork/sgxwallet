@@ -11,7 +11,7 @@
 #define EXTERNC
 #endif
 
-EXTERNC void init_bls();
+EXTERNC void init_daemon();
 
 
 

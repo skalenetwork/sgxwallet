@@ -45,7 +45,7 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
-AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1  -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)
+AM_CPPFLAGS += -DSKALE_SGX=1 -DBINARY_OUTPUT=1  -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -87,5 +87,5 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxd_LDADD=-l$(SGX_URTS_LIB)  -LlibBLS/build/libff/libff  -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread
+sgxd_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build/libff/libff  -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread
 

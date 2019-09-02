@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
   if (argc != 0)
     usage();
 
-  init_bls();
+  init_daemon();
 
   init_enclave();
 
