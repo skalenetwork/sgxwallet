@@ -11,6 +11,7 @@
 
 
 #include "leveldb/db.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
 
 
 extern "C" void init_daemon() {
