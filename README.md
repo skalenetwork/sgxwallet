@@ -21,7 +21,7 @@ Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
 # Install autoconf
 
-`sudo apt-get install autoconf
+sudo apt-get install autoconf
 
 
 ## Build dependencies
