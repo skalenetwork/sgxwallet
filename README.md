@@ -8,7 +8,7 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 * Check that SGX is set in BIOS as `enabled` or `software-controlled`.
 * Install SGX driver located in scripts directory.
 
-Sgxd has been tested on Ubuntu\* Linux\* 18.04
+Sgxd has been tested on Ubuntu Linux 18.04
 
 
 ## Clone directory and its submodules
