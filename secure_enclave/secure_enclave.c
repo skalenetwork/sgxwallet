@@ -124,7 +124,9 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -3;
 
-  check_key(key);
+  if (!check_key(key)) {
+    return;
+  }
 
   uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(key) + 1);
 
