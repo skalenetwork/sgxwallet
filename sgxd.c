@@ -40,6 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "BLSCrypto.h"
+
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 int char2int(char _input) {
@@ -165,7 +167,11 @@ int main(int argc, char *argv[]) {
   if (argc != 0)
     usage();
 
+  init_bls();
+
   init_enclave();
+
+
 
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
