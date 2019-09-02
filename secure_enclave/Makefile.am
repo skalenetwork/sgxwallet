@@ -63,7 +63,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional Automake flags needed to build the enclave.
 ##
 
-AM_CPPFLAGS += $(TGMP_CPPFLAGS) -I../libff  -I../sgx-sdk-build/sgxsdk/include/libcxx \
+AM_CPPFLAGS += $(TGMP_CPPFLAGS) -I../trusted_libff  -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS += -fno-builtin
 
@@ -85,8 +85,8 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-        BLSUtils.cpp  ../libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                ../libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+        BLSUtils.cpp  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put 
