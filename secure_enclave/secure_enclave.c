@@ -50,6 +50,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #define  MAX_KEY_LENGTH 128
+#define  MAX_ENCRYPTED_KEY_LENGTH 128
+
 #define ADD_ENTROPY_SIZE 32
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
@@ -138,7 +140,9 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   *err_status = -5;
 
-  memset(encrypted_key, 0, sealedLen);
+  memset(encrypted_key, 0, MAX_ENCRYPTED_KEY_LENGTH);
+
+
 
   if (sgx_seal_data(0, NULL, strlen(key) + 1, key, sealedLen, encrypted_key) !=
       SGX_SUCCESS)
@@ -150,9 +154,11 @@ void encrypt_key(int *err_status, unsigned char *key,
 
   char key2[MAX_KEY_LENGTH];
 
+  memset(key2, 0, MAX_KEY_LENGTH);
+
   decrypt_key(err_status, encrypted_key, sealedLen, key2);
 
-  if (strnlen(key2, MAX_KEY_LENGTH) == MAX_KEY_LENGTH)
+  if (strnlen(key2, MAX_KEY_LENGTH -1) == MAX_KEY_LENGTH -1)
     return;
 
   *err_status = -7;
