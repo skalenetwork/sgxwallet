@@ -10,6 +10,11 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 
 Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
+
+## Clone directory and its submodules
+
+``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxd.git ```
+
 ## Build dependencies
 
 Dependencies only need to be built once.
