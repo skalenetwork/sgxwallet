@@ -1,6 +1,3 @@
-[submodule "libff"]
-	path = libff
-	url = https://github.com/skalenetwork/libff.git
 [submodule "libBLS"]
 	path = libBLS
 	url = https://github.com/skalenetwork/libBLS.git
