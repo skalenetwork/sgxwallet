@@ -10,6 +10,20 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 
 Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
+
+## Clone directory and its submodules
+
+``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxd.git ```
+
+# Install automake 1.15
+
+```cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb ```
+
+# Install autoconf
+
+sudo apt-get install autoconf
+
+
 ## Build dependencies
 
 Dependencies only need to be built once.
