@@ -15,9 +15,13 @@ Sgxd has been tested on Ubuntu\* Linux\* 18.04
 
 ``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxd.git ```
 
-# Install automake and autoconf
+# Install automake 1.15
 
-`sudo apt-get install automake autoconf`
+```cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb ```
+
+# Install autoconf
+
+`sudo apt-get install autoconf
 
 
 ## Build dependencies
