@@ -29,12 +29,14 @@ enclave {
 
         public void decrypt_key (
 		    [user_check] int *err_status,
+		    [out, count = 1024] unsigned char* err_string,
 		    [in, count = 1024] unsigned char* encrypted_key,
 		    uint32_t enc_len,
 		    [out, count = 128] unsigned char* key );
 
 		public void sign_message (
             		    [user_check] int *err_status,
+            		    [out, count = 1024] unsigned char* err_string,
             		    [in, count = 1024] unsigned char* encrypted_key,
             		    uint32_t enc_len,
             		    [in, count = 1024] unsigned char* message,

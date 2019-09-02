@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <openssl/ec.h>
 #include <openssl/bn.h>
@@ -51,6 +52,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define  MAX_KEY_LENGTH 128
 #define  MAX_ENCRYPTED_KEY_LENGTH 1024
+#define  MAX_SIG_LEN 1024
+#define  MAX_ERR_LEN 1024
 
 #define ADD_ENTROPY_SIZE 32
 
@@ -123,12 +126,14 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
 
   *err_status = -1;
 
-  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH); 
 
   // check that key is zero terminated string
 
-  if (keyLen == MAX_KEY_LENGTH)
+  if (keyLen == MAX_KEY_LENGTH) {
+    snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
     return;
+  }
 
   *err_status = -2;
 
@@ -136,6 +141,7 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
 
   for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
     if (key[i] != 0) {
+      snprintf(err_string, MAX_ERR_LEN,"Unpadded key");
       return;
     }
   }
@@ -143,6 +149,7 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
   *err_status = -3;
 
   if (!check_key(key)) {
+    snprintf(err_string, MAX_ERR_LEN,"check_key failed");
     return;
   }
 
@@ -151,6 +158,7 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
   *err_status = -4;
 
   if (sealedLen > MAX_ENCRYPTED_KEY_LENGTH) {
+    snprintf(err_string, MAX_ERR_LEN,"sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
     return;
   }
 
@@ -159,8 +167,10 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
   memset(encrypted_key, 0, MAX_ENCRYPTED_KEY_LENGTH);
 
   if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, key, sealedLen, encrypted_key) !=
-      SGX_SUCCESS)
+      SGX_SUCCESS) {
+    snprintf(err_string, MAX_ERR_LEN,"SGX seal data failed");
     return;
+  }
 
   *enc_len = sealedLen;
 
@@ -170,19 +180,21 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
 
   memset(key2, 0, MAX_KEY_LENGTH);
 
-  decrypt_key(err_status, encrypted_key, sealedLen, key2);
-
+  decrypt_key(err_status, err_string, encrypted_key, sealedLen, key2);
 
   if (*err_status != 0) {
-    return *err_status - 100;
+    snprintf(err_string + strlen(err_string), MAX_ERR_LEN , ":decrypt_key failed");
+    return;
   }
 
 
 
   uint64_t key2Len = strnlen(key2, MAX_KEY_LENGTH);
 
-  if (key2Len == MAX_KEY_LENGTH)
+  if (key2Len == MAX_KEY_LENGTH) {
+    snprintf(err_string, MAX_ERR_LEN,"Key2 is not null terminated");
     return;
+  }
 
 
   *err_status = -8;
@@ -193,7 +205,7 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
   *err_status = 0;
 }
 
-void decrypt_key(int *err_status, unsigned char *encrypted_key,
+void decrypt_key(int *err_status, unsigned char *err_string, unsigned char *encrypted_key,
                  uint32_t enc_len, unsigned char *key) {
 
   uint32_t decLen;
@@ -204,18 +216,19 @@ void decrypt_key(int *err_status, unsigned char *encrypted_key,
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, key, &decLen);
 
   if (status != SGX_SUCCESS) {
-    *err_status = status;
-    return;
-  } else {
-    *err_status = 0;
+    snprintf(err_string, MAX_ERR_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
+
+  *err_status = 0;
+  return;
+
 }
 
 
 
 
-void sign_message(int *err_status, unsigned char *encrypted_key,
+void sign_message(int *err_status, unsigned char *err_string,  unsigned char *encrypted_key,
                   uint32_t enc_len, unsigned char *message,
                   unsigned char *signature) {
 
@@ -224,7 +237,7 @@ void sign_message(int *err_status, unsigned char *encrypted_key,
   
   uint8_t key[MAX_KEY_LENGTH];
   
-  decrypt_key(err_status, encrypted_key, enc_len, key);
+  decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
   if (err_status != 0) {
     return;
@@ -236,7 +249,7 @@ void sign_message(int *err_status, unsigned char *encrypted_key,
     return;
   }
 
-  strcpy(signature, ecdsaSig);
+  strncpy(signature, ecdsaSig, MAX_SIG_LEN);
 
 
 
