@@ -7,3 +7,6 @@
 [submodule "intel-sgx-ssl"]
 	path = intel-sgx-ssl
 	url = https://github.com/intel/intel-sgx-ssl
+[submodule "leveldb"]
+	path = leveldb
+	url = https://github.com/google/leveldb.git

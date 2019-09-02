@@ -66,6 +66,9 @@ SSL_DIR =  topDir + "/intel-sgx-ssl"
 SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
 SSL_MAKE_DIR = SSL_DIR + "/Linux"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
+LEVELDB_DIR = topDir + "/leveldb"
+
+LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 
 
 
@@ -105,6 +108,14 @@ subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
 subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
+
+os.chdir(LEVELDB_DIR);
+assert subprocess.call(["bash","-c", "mkdir -p build"]) == 0
+
+os.chdir(LEVELDB_BUILD_DIR);
+
+assert subprocess.call(["bash","-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+
 
 os.chdir(BLS_DIR);
 
