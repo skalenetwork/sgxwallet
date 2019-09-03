@@ -3,8 +3,6 @@
 //
 #include <memory>
 
-#include "BLSCrypto.h"
-
 
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 
@@ -14,6 +12,10 @@
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include "BLSPrivateKeyShareSGX.h"
+
+#include "sgxd_common.h"
+
+#include "BLSCrypto.h"
 
 
 extern "C" void init_daemon() {
@@ -32,13 +34,23 @@ extern "C" void init_daemon() {
 
 
 
-bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig) {
+bool sign(char* _encryptedKeyHex, char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
+    char* _sig) {
 
 
-  auto keyStr = std::make_shared<std::string>(encryptedKeyHex);
+  auto keyStr = std::make_shared<std::string>(_encryptedKeyHex);
+
+  auto hash = std::make_shared<std::array<uint8_t, 32>>();
+
+  uint64_t binLen;
+
+  hex2carray(_hashHex, &binLen, hash->data());
 
 
-  auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, t, n);
+
+  auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
+
+  auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
 
   return true;
 

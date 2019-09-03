@@ -31,7 +31,7 @@ inline int char2int(char _input) {
 
 
 
-void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
+inline void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 
     static char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -46,7 +46,7 @@ void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 }
 
 
-bool hex2carray(const char * _hex, uint64_t  *_bin_len,
+inline bool hex2carray(const char * _hex, uint64_t  *_bin_len,
     uint8_t* _bin ) {
 
     int len = strnlen(_hex, 2 * BUF_LEN);
