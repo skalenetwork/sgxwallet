@@ -23,24 +23,24 @@ enclave {
 
 		public void encrypt_key (
 		    [user_check] int *err_status,
-		    [out, count = 1024] unsigned char* err_string,
-		    [in, count = 128] unsigned char* key,
-		    [out, count = 1024] unsigned char* encrypted_key, [user_check] uint32_t *enc_len);
+		    [out, count = 1024] char* err_string,
+		    [in, count = 128] char* key,
+		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
 
         public void decrypt_key (
 		    [user_check] int *err_status,
-		    [out, count = 1024] unsigned char* err_string,
-		    [in, count = 1024] unsigned char* encrypted_key,
+		    [out, count = 1024] char* err_string,
+		    [in, count = 1024] uint8_t* encrypted_key,
 		    uint32_t enc_len,
-		    [out, count = 128] unsigned char* key );
+		    [out, count = 128] char* key );
 
 		public void sign_message (
             		    [user_check] int *err_status,
-            		    [out, count = 1024] unsigned char* err_string,
+            		    [out, count = 1024] char* err_string,
             		    [in, count = 1024] unsigned char* encrypted_key,
             		    uint32_t enc_len,
-            		    [in, count = 1024] unsigned char* message,
-            		    [out, count = 1024] unsigned char* signature);
+            		    [in, count = 16] uint8_t* hash,
+            		    [out, count = 1024] char* signature);
 
 
 

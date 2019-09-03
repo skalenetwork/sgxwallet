@@ -65,7 +65,6 @@ void (*oc_free_func)(void *, size_t);
 void *reallocate_function(void *, size_t, size_t);
 void free_function(void *, size_t);
 
-void e_calc_pi(mpf_t *pi, uint64_t digits);
 
 void tgmp_init() {
   oc_realloc_func = &reallocate_function;
@@ -121,8 +120,8 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
 
-void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
-                 unsigned char *encrypted_key, uint32_t *enc_len) {
+void encrypt_key(int *err_status, char *err_string, char *key,
+                 uint8_t *encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;
 
@@ -166,7 +165,7 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
 
   memset(encrypted_key, 0, MAX_ENCRYPTED_KEY_LENGTH);
 
-  if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, key, sealedLen, encrypted_key) !=
+  if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t*) key, sealedLen,  (sgx_sealed_data_t*) encrypted_key) !=
       SGX_SUCCESS) {
     snprintf(err_string, MAX_ERR_LEN,"SGX seal data failed");
     return;
@@ -205,15 +204,15 @@ void encrypt_key(int *err_status, unsigned char *err_string, unsigned char *key,
   *err_status = 0;
 }
 
-void decrypt_key(int *err_status, unsigned char *err_string, unsigned char *encrypted_key,
-                 uint32_t enc_len, unsigned char *key) {
+void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
+                 uint32_t enc_len, char* key) {
 
   uint32_t decLen;
 
   *err_status = -9;
 
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, key, &decLen);
+      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*) key, &decLen);
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, MAX_ERR_LEN,"sgx_unseal_data failed with status %d", status);
@@ -254,14 +253,12 @@ void decrypt_key(int *err_status, unsigned char *err_string, unsigned char *encr
 
 
 
-void sign_message(int *err_status, unsigned char *err_string,  unsigned char *encrypted_key,
-                  uint32_t enc_len, unsigned char *message,
-                  unsigned char *signature) {
-
+void sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
+                  uint32_t enc_len, uint8_t *message, char *signature) {
   *err_status = -1;
 
   
-  uint8_t key[MAX_KEY_LENGTH];
+  char key[MAX_KEY_LENGTH];
   
   decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
@@ -269,13 +266,9 @@ void sign_message(int *err_status, unsigned char *err_string,  unsigned char *en
     return;
   }
 
-  char* ecdsaSig = sign(key, "", "", "");
 
-  if (ecdsaSig == NULL) {
-    return;
-  }
 
-  strncpy(signature, ecdsaSig, MAX_SIG_LEN);
+  //strncpy(signature, ecdsaSig, MAX_SIG_LEN);
 
 
 

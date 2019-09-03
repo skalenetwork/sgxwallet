@@ -176,11 +176,11 @@ int main(int argc, char *argv[]) {
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
 
-  unsigned char* keyArray = calloc(128, 1);
+  char* keyArray = calloc(128, 1);
 
-  unsigned char* encryptedKey = calloc(1024, 1);
+  uint8_t* encryptedKey = calloc(1024, 1);
 
-  unsigned char* errMsg = calloc(1024,1);
+  char* errMsg = calloc(1024,1);
 
   strncpy((char *)keyArray, (char*)key, 128);
 

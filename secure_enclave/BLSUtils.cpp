@@ -3,6 +3,9 @@
 //
 
 #define GMP_WITH_SGX
+
+#define  MAX_SIG_LEN 1024
+
 #include "BLSUtils.h"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
@@ -109,6 +112,15 @@ char* sign(const char *_keyString, const char* _hashXString, const char* _hashYS
 
          libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
 
-         return nullptr;
+         auto r = stringFromG1(&sign);
+
+         char* result = (char*) calloc(r->size() + 1, 1);
+
+
+         strncpy(result, r->c_str(), MAX_SIG_LEN);
+
+         delete r;
+
+         return result;
 
 }
