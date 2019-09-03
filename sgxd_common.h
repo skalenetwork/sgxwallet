@@ -44,7 +44,7 @@ char *carray2Hex(const uint8_t *d, int _len) {
 }
 
 
-inline uint8_t* hex2carray(char * _hex, uint64_t *_bin_len) {
+uint8_t* hex2carray(const char * _hex, uint64_t *_bin_len) {
 
     uint64_t len = strlen(_hex);
 
