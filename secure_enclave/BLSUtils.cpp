@@ -3,8 +3,9 @@
 //
 
 #define GMP_WITH_SGX
+#include <string.h>
+#include "../sgxd_common.h"
 
-#define  MAX_SIG_LEN 1024
 
 #include "BLSUtils.h"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
@@ -43,16 +44,15 @@ std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
 std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
 
+  _g1->to_affine_coordinates();
+
   auto sX = stringFromFq(&_g1->X);
   auto sY = stringFromFq(&_g1->Y);
-  auto sZ = stringFromFq(&_g1->Z);
 
-
-  auto sG1 = new std::string(*sX + ":" +  *sY + ":" + *sZ);
+  auto sG1 = new std::string(*sX + ":" +  *sY);
 
   delete(sX);
   delete(sY);
-  delete(sZ);
 
   return sG1;
 
@@ -97,14 +97,14 @@ bool check_key(const char *_keyString) {
 
 
 
-char* sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
-           const char* _hashZString) {
+bool sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
+       char sig[BUF_LEN]) {
 
          auto key = keyFromString(_keyString);
 
          libff::alt_bn128_Fq hashX(_hashXString);
          libff::alt_bn128_Fq hashY(_hashYString);
-         libff::alt_bn128_Fq hashZ(_hashZString);
+         libff::alt_bn128_Fq hashZ = 1;
 
 
          libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
@@ -112,15 +112,18 @@ char* sign(const char *_keyString, const char* _hashXString, const char* _hashYS
 
          libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
 
+         sign.to_affine_coordinates();
+
          auto r = stringFromG1(&sign);
 
-         char* result = (char*) calloc(r->size() + 1, 1);
+         memset(sig, 0, BUF_LEN);
 
-
-         strncpy(result, r->c_str(), MAX_SIG_LEN);
+         strncpy(sig, r->c_str(), BUF_LEN);
 
          delete r;
 
-         return result;
+         return true;
+
+
 
 }

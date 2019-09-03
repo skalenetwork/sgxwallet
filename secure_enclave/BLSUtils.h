@@ -15,8 +15,8 @@
 
 EXTERNC bool check_key(const char* _keyString);
 
-EXTERNC char * sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
-           const char* _hashZString);
+EXTERNC bool sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
+           char* _sig);
 
 
 #endif //SGXD_BLSUTILS_H

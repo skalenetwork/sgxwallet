@@ -251,8 +251,23 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 
 void bls_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
-                        uint32_t enc_len, char *messageX,
-                        char* messageY, char *signature) {
+                        uint32_t enc_len, char *_hashX,
+                        char* _hashY, char *signature) {
+
+
+  char key[BUF_LEN];
+  char sig[BUF_LEN];
+
+  decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
+
+  if (err_status != 0) {
+    return;
+  }
+
+  sign(key, _hashX, _hashY, sig );
+
+  strncpy(signature, sig, BUF_LEN);
+
 
 }
 

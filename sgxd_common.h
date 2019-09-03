@@ -29,45 +29,42 @@ inline int char2int(char _input) {
 
 
 
-char *carray2Hex(const uint8_t *d, int _len) {
-    char *hex = (char*) calloc(2 * _len, 1);
+void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 
     static char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     for (int j = 0; j < _len; j++) {
-        hex[j * 2] = hexval[((d[j] >> 4) & 0xF)];
-        hex[j * 2 + 1] = hexval[(d[j]) & 0x0F];
+        _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
+        _hexArray[j * 2 + 1] = hexval[(d[j]) & 0x0F];
     }
 
-    return hex;
 }
 
 
-uint8_t* hex2carray(const char * _hex, uint64_t *_bin_len) {
+int hex2carray(const char * _hex, unsigned long long  *_bin_len,
+    unsigned char* _bin ) {
 
-    uint64_t len = strlen(_hex);
+    int len = strnlen(_hex, BUF_LEN);
 
 
     if (len == 0 && len % 2 == 1)
-        return  NULL;
+        return -1;
 
     *_bin_len = len / 2;
 
-    uint8_t* bin = (uint8_t*) calloc(len / 2, 1);
-
-    for (uint64_t i = 0; i < len / 2; i++) {
+    for (int i = 0; i < len / 2; i++) {
         int high = char2int((char)_hex[i * 2]);
         int low = char2int((char)_hex[i * 2 + 1]);
 
         if (high < 0 || low < 0) {
-            return NULL;
+            return -1;
         }
 
-        bin[i] = (uint8_t) (high * 16 + low);
+        _bin[i] = (unsigned char) (high * 16 + low);
     }
 
-    return bin;
+
 }
 
 

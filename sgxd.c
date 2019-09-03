@@ -144,11 +144,15 @@ int main(int argc, char *argv[]) {
 
   gmp_printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
 
-  char *result = carray2Hex(encryptedKey, enc_len);
+  char result[BUF_LEN];
+
+  carray2Hex(encryptedKey, enc_len, result);
 
   uint64_t dec_len;
 
-  uint8_t* bin = hex2carray(result, &dec_len);
+  uint8_t bin[BUF_LEN];
+
+  hex2carray(result, &dec_len, bin);
 
   if (dec_len != enc_len) {
     return 1;
