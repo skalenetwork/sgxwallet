@@ -73,7 +73,7 @@ unsigned char *carray2Hex(const uint8_t *d, int _len) {
 
 uint8_t* hex2carray(unsigned char * _hex, uint64_t *_bin_len) {
 
-  uint64_t len = strlen(_hex);
+  uint64_t len = strlen((char*)_hex);
 
 
   if (len == 0 && len % 2 == 1)
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
   unsigned char* errMsg = calloc(1024,1);
 
-  strncpy(keyArray, key, 128);
+  strncpy((char)*keyArray, (char*)key, 128);
 
   int err_status = 0;
 
