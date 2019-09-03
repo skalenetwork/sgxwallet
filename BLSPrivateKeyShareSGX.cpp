@@ -31,6 +31,8 @@ using namespace std;
 #include "sgxd_common.h"
 #include "sgxd.h"
 
+#include "BLSCrypto.h"
+
 #include "BLSPrivateKeyShareSGX.h"
 
 

@@ -15,7 +15,11 @@ EXTERNC void init_daemon();
 
 EXTERNC bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig);
 
+EXTERNC int char2int(char _input);
 
+EXTERNC void  carray2Hex(const unsigned char *d, int _len, char* _hexArray);
+EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
+                        uint8_t* _bin );
 
 
 
