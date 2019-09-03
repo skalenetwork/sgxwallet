@@ -48,14 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openssl/rand.h>
 #include "tSgxSSL_api.h"
 
-
-
-#define  MAX_KEY_LENGTH 128
-#define  MAX_ENCRYPTED_KEY_LENGTH 1024
-#define  MAX_SIG_LEN 1024
-#define  MAX_ERR_LEN 1024
-
-#define ADD_ENTROPY_SIZE 32
+#include "../sgxd_common.h"
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 void *(*oc_realloc_func)(void *, size_t, size_t);
@@ -258,7 +251,8 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 
 void bls_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
-                        uint32_t enc_len, uint8_t *message, char *signature) {
+                        uint32_t enc_len, char *messageX,
+                        char* messageY, char *signature) {
 
 }
 

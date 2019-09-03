@@ -115,4 +115,4 @@ add_custom_target(sgxd COMMAND make all
         sgx_stub.h
         sgx_tgmp.h
         sgxd.c
-        sgxgmpmath.c)
+        )
