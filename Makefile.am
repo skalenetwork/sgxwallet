@@ -87,5 +87,5 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxd_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build/libff/libff  -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsonrpccpp-stub
+sgxd_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsonrpccpp-stub -lprocps 
 
