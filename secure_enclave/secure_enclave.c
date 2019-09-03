@@ -119,6 +119,10 @@ void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
+void generate_ecdsa_key(int *err_status, char *err_string,
+    uint8_t *encrypted_key, uint32_t *enc_len) {
+}
+
 
 void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
@@ -253,7 +257,13 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 
 
-void sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
+void bls_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
+                        uint32_t enc_len, uint8_t *message, char *signature) {
+
+}
+
+
+void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
                   uint32_t enc_len, uint8_t *message, char *signature) {
   *err_status = -1;
 

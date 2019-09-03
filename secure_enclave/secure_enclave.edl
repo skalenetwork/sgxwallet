@@ -21,6 +21,12 @@ enclave {
 			[user_check] mpf_t *c, [user_check] mpf_t *a, [user_check] mpf_t *b
 		);
 
+		public void generate_ecdsa_key (
+		    [user_check] int *err_status,
+		    [out, count = 1024] char* err_string,
+		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
+
+
 		public void encrypt_key (
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
@@ -34,13 +40,23 @@ enclave {
 		    uint32_t enc_len,
 		    [out, count = 128] char* key );
 
-		public void sign_message (
+		public void bls_sign_message (
             		    [user_check] int *err_status,
             		    [out, count = 1024] char* err_string,
             		    [in, count = 1024] unsigned char* encrypted_key,
             		    uint32_t enc_len,
             		    [in, count = 16] uint8_t* hash,
             		    [out, count = 1024] char* signature);
+
+		public void ecdsa_sign_message (
+            		    [user_check] int *err_status,
+            		    [out, count = 1024] char* err_string,
+            		    [in, count = 1024] unsigned char* encrypted_key,
+            		    uint32_t enc_len,
+            		    [in, count = 16] uint8_t* hash,
+            		    [out, count = 1024] char* signature);
+
+
 
 
 
