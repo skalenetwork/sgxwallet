@@ -182,11 +182,11 @@ int main(int argc, char *argv[]) {
 
   unsigned char* errMsg = calloc(1024,1);
 
-  strncpy((char)*keyArray, (char*)key, 128);
+  strncpy((char *)keyArray, (char*)key, 128);
 
   int err_status = 0;
 
-  int enc_len = 0;
+  unsigned  int enc_len = 0;
 
   status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
 
