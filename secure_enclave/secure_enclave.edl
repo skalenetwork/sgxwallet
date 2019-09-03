@@ -30,7 +30,7 @@ enclave {
 		public void encrypt_key (
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
-		    [in, count = 128] char* key,
+		    [in, count = 1024] char* key,
 		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
 
         public void decrypt_key (
@@ -38,15 +38,15 @@ enclave {
 		    [out, count = 1024] char* err_string,
 		    [in, count = 1024] uint8_t* encrypted_key,
 		    uint32_t enc_len,
-		    [out, count = 128] char* key );
+		    [out, count = 1024] char* key );
 
 		public void bls_sign_message (
             		    [user_check] int *err_status,
             		    [out, count = 1024] char* err_string,
             		    [in, count = 1024] uint8_t* encrypted_key,
             		    uint32_t enc_len,
-            		    [in, count = 128] char* hashX ,
-            		    [in, count = 128] char* hashY ,
+            		    [in, count = 1024] char* hashX ,
+            		    [in, count = 1024] char* hashY ,
             		    [out, count = 1024] char* signature);
 
 		public void ecdsa_sign_message (
@@ -54,15 +54,8 @@ enclave {
             		    [out, count = 1024] char* err_string,
             		    [in, count = 1024] unsigned char* encrypted_key,
             		    uint32_t enc_len,
-            		    [in, count = 16] uint8_t* hash,
+            		    [in, count = 1024] uint8_t* hash,
             		    [out, count = 1024] char* signature);
-
-
-
-
-
-
-
 	};
 
 

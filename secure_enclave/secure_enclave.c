@@ -122,7 +122,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
   *err_status = -1;
 
-  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH); 
+  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
 
   // check that key is zero terminated string
 
@@ -137,7 +137,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
   for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
     if (key[i] != 0) {
-      snprintf(err_string, MAX_ERR_LEN,"Unpadded key");
+      snprintf(err_string, BUF_LEN,"Unpadded key");
       return;
     }
   }
@@ -145,7 +145,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
   *err_status = -3;
 
   if (!check_key(key)) {
-    snprintf(err_string, MAX_ERR_LEN,"check_key failed");
+    snprintf(err_string, BUF_LEN,"check_key failed");
     return;
   }
 
@@ -153,18 +153,18 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
   *err_status = -4;
 
-  if (sealedLen > MAX_ENCRYPTED_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN,"sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
+  if (sealedLen > BUF_LEN) {
+    snprintf(err_string, BUF_LEN,"sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
     return;
   }
 
   *err_status = -5;
 
-  memset(encrypted_key, 0, MAX_ENCRYPTED_KEY_LENGTH);
+  memset(encrypted_key, 0, BUF_LEN);
 
   if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t*) key, sealedLen,  (sgx_sealed_data_t*) encrypted_key) !=
       SGX_SUCCESS) {
-    snprintf(err_string, MAX_ERR_LEN,"SGX seal data failed");
+    snprintf(err_string, BUF_LEN,"SGX seal data failed");
     return;
   }
 
@@ -172,14 +172,14 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
 
 
-  char key2[MAX_KEY_LENGTH];
+  char key2[BUF_LEN];
 
-  memset(key2, 0, MAX_KEY_LENGTH);
+  memset(key2, 0, BUF_LEN);
 
   decrypt_key(err_status, err_string, encrypted_key, sealedLen, key2);
 
   if (*err_status != 0) {
-    snprintf(err_string + strlen(err_string), MAX_ERR_LEN , ":decrypt_key failed");
+    snprintf(err_string + strlen(err_string), BUF_LEN , ":decrypt_key failed");
     return;
   }
 
@@ -212,13 +212,13 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*) key, &decLen);
 
   if (status != SGX_SUCCESS) {
-    snprintf(err_string, MAX_ERR_LEN,"sgx_unseal_data failed with status %d", status);
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
 
 
   if (decLen != MAX_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN, "decLen != MAX_KEY_LENGTH");
+    snprintf(err_string, BUF_LEN, "decLen != MAX_KEY_LENGTH");
     return;
   }
 
@@ -229,7 +229,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 
   if (keyLen == MAX_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN, "Key is not null terminated");
+    snprintf(err_string, BUF_LEN, "Key is not null terminated");
     return;
   }
 
@@ -237,7 +237,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 
   for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
     if (key[i] != 0) {
-      snprintf(err_string, MAX_ERR_LEN,"Unpadded key");
+      snprintf(err_string, BUF_LEN,"Unpadded key");
       return;
     }
   }
@@ -262,7 +262,7 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
   *err_status = -1;
 
   
-  char key[MAX_KEY_LENGTH];
+  char key[BUF_LEN];
   
   decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
