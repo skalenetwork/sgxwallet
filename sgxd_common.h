@@ -5,6 +5,8 @@
 #ifndef SGXD_SGXD_COMMON_H
 #define SGXD_SGXD_COMMON_H
 
+#include <stdbool.h>
+
 #define BUF_LEN 1024
 
 #define  MAX_KEY_LENGTH 128
@@ -42,14 +44,14 @@ void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 }
 
 
-int hex2carray(const char * _hex, unsigned long long  *_bin_len,
-    unsigned char* _bin ) {
+bool hex2carray(const char * _hex, uint64_t  *_bin_len,
+    uint8_t* _bin ) {
 
     int len = strnlen(_hex, BUF_LEN);
 
 
     if (len == 0 && len % 2 == 1)
-        return -1;
+        return false;
 
     *_bin_len = len / 2;
 
@@ -58,12 +60,13 @@ int hex2carray(const char * _hex, unsigned long long  *_bin_len,
         int low = char2int((char)_hex[i * 2 + 1]);
 
         if (high < 0 || low < 0) {
-            return -1;
+            return false;
         }
 
         _bin[i] = (unsigned char) (high * 16 + low);
     }
 
+    return true;
 
 }
 

@@ -147,9 +147,12 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
   size_t sz = 0;
 
-  auto encryptedKey = hex2carray(encryptedKeyHex->c_str(), &sz);
 
-  if (encryptedKey == nullptr) {
+  uint8_t encryptedKey[BUF_LEN];
+
+  bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
+
+  if (!result) {
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
