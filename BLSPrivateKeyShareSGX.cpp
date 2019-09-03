@@ -181,6 +181,6 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
   auto s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
                                     totalSigners);
-
+  
   return s;
 }

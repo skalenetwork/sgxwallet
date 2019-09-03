@@ -1,6 +1,7 @@
 //
 // Created by kladko on 9/2/19.
 //
+#include <memory>
 
 #include "BLSCrypto.h"
 
@@ -12,6 +13,7 @@
 
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include "BLSPrivateKeyShareSGX.h"
 
 
 extern "C" void init_daemon() {
@@ -28,8 +30,18 @@ extern "C" void init_daemon() {
 
 }
 
-class BLSCrypto {
 
 
+bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig) {
 
-};
+
+  auto keyStr = std::make_shared<std::string>(encryptedKeyHex);
+
+
+  auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, t, n);
+
+  return true;
+
+}
+
+

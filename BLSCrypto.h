@@ -13,6 +13,10 @@
 
 EXTERNC void init_daemon();
 
+EXTERNC bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig);
+
+
+
 
 
 #endif //SGXD_BLSCRYPTO_H

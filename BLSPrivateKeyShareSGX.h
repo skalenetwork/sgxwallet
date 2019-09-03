@@ -23,23 +23,25 @@
 
 #ifndef SGXD_BLSPRIVATEKEYSHARESGX_H
 #define SGXD_BLSPRIVATEKEYSHARESGX_H
+#define SGXD_BLSPRIVATEKEYSHARESGX_H
 
 #include "BLSPrivateKeyShare.h"
 
-class BLSPrivateKeyShareSGX  {
+class BLSPrivateKeyShareSGX {
 
-    size_t requiredSigners;
+  size_t requiredSigners;
 
-    size_t totalSigners;
+  size_t totalSigners;
 
+  std::shared_ptr<std::string> encryptedKeyHex;
 
-    shared_ptr<string> encryptedKeyHex;
+public:
+  std::shared_ptr<BLSSigShare>
+      signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash,
+                        size_t _signerIndex);
 
-    std::shared_ptr<BLSSigShare> signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash, size_t _signerIndex);
-
-    BLSPrivateKeyShareSGX(shared_ptr<std::string> _encryptedKeyHex, size_t _requiredSigners, size_t _totalSigners);
-
+  BLSPrivateKeyShareSGX(std::shared_ptr<std::string> _encryptedKeyHex,
+                        size_t _requiredSigners, size_t _totalSigners);
 };
 
-
-#endif  // LIBBLS_BLSPRIVATEKEYSHARE_H
+#endif // LIBBLS_BLSPRIVATEKEYSHARE_H
