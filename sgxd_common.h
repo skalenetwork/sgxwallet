@@ -41,13 +41,15 @@ void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
         _hexArray[j * 2 + 1] = hexval[(d[j]) & 0x0F];
     }
 
+    _hexArray[_len * 2] = 0;
+
 }
 
 
 bool hex2carray(const char * _hex, uint64_t  *_bin_len,
     uint8_t* _bin ) {
 
-    int len = strnlen(_hex, BUF_LEN);
+    int len = strnlen(_hex, 2 * BUF_LEN);
 
 
     if (len == 0 && len % 2 == 1)

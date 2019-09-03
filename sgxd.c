@@ -137,32 +137,49 @@ int main(int argc, char *argv[]) {
   status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
 
   if (status != SGX_SUCCESS) {
-    gmp_printf("ECALL encrypt_key: 0x%04x\n", status);
+    printf("ECALL encrypt_key: 0x%04x\n", status);
     return 1;
   }
 
 
-  gmp_printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
 
-  char result[BUF_LEN];
+
+  printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
+  printf(" Encrypted key len %d\n", enc_len);
+
+
+
+  char result[2* BUF_LEN];
 
   carray2Hex(encryptedKey, enc_len, result);
 
-  uint64_t dec_len;
+  uint64_t dec_len = 0;
 
   uint8_t bin[BUF_LEN];
 
-  hex2carray(result, &dec_len, bin);
+  if (!hex2carray(result, &dec_len, bin)) {
+    printf("hex2carray returned false");
+  }
+
+
+  printf("Hex key len %d\n", dec_len);
+
+
+
+
+  for (int i=0; i < dec_len; i++) {
+    if (bin[i] != encryptedKey[i]) {
+      printf("Hex does not match");
+      return 1;
+    }
+  }
+
 
   if (dec_len != enc_len) {
+    printf("Dec_len != enc_len %d %d \n", (uint32_t) dec_len, (uint32_t) enc_len);
     return 1;
   }
 
-  for (int i=0; i < dec_len; i++) {
-    if (bin[i] != encryptedKey[i])
-      return 1;
-
-  }
 
 
 
