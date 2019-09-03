@@ -65,7 +65,7 @@ bin_PROGRAMS =  sgxd
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxd_SOURCES = sgxd.c BLSCrypto.cpp $(COMMON_SRC)
+sgxd_SOURCES = sgxd.c BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp $(COMMON_SRC)
 nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxd_DEPENDENCIES = secure_enclave.signed.so
 
