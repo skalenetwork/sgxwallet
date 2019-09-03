@@ -46,13 +46,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 
-
-
-
-
-
-
-
 void usage() {
   fprintf(stderr, "usage: sgxd\n");
   exit(1);
@@ -151,7 +144,7 @@ int main(int argc, char *argv[]) {
 
   gmp_printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
 
-  unsigned char *result = carray2Hex(encryptedKey, enc_len);
+  char *result = carray2Hex(encryptedKey, enc_len);
 
   uint64_t dec_len;
 

@@ -27,8 +27,8 @@ inline int char2int(char _input) {
 
 
 
-inline unsigned char *carray2Hex(const uint8_t *d, int _len) {
-    unsigned char *hex = malloc(2 * _len);
+char *carray2Hex(const uint8_t *d, int _len) {
+    char *hex = (char*) calloc(2 * _len, 1);
 
     static char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -42,9 +42,9 @@ inline unsigned char *carray2Hex(const uint8_t *d, int _len) {
 }
 
 
-inline uint8_t* hex2carray(unsigned char * _hex, uint64_t *_bin_len) {
+inline uint8_t* hex2carray(char * _hex, uint64_t *_bin_len) {
 
-    uint64_t len = strlen((char*)_hex);
+    uint64_t len = strlen(_hex);
 
 
     if (len == 0 && len % 2 == 1)
@@ -52,9 +52,9 @@ inline uint8_t* hex2carray(unsigned char * _hex, uint64_t *_bin_len) {
 
     *_bin_len = len / 2;
 
-    uint8_t* bin = malloc(len / 2);
+    uint8_t* bin = (uint8_t*) calloc(len / 2, 1);
 
-    for (int i = 0; i < len / 2; i++) {
+    for (uint64_t i = 0; i < len / 2; i++) {
         int high = char2int((char)_hex[i * 2]);
         int low = char2int((char)_hex[i * 2 + 1]);
 
@@ -67,6 +67,7 @@ inline uint8_t* hex2carray(unsigned char * _hex, uint64_t *_bin_len) {
 
     return bin;
 }
+
 
 
 #endif //SGXD_SGXD_COMMON_H
