@@ -31,19 +31,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include "sgxd_common.h"
 #include "create_enclave.h"
 #include "secure_enclave_u.h"
 #include "sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-#include "sgxd_common.h"
 #include "BLSCrypto.h"
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
+
 
 
 void usage() {
@@ -160,10 +158,6 @@ int main(int argc, char *argv[]) {
   if (!hex2carray(result, &dec_len, bin)) {
     printf("hex2carray returned false");
   }
-
-
-  printf("Hex key len %d\n", dec_len);
-
 
 
 

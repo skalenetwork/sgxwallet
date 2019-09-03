@@ -5,6 +5,13 @@
 #ifndef SGXD_SGXD_COMMON_H
 #define SGXD_SGXD_COMMON_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
+
+
 #include <stdbool.h>
 
 #define BUF_LEN 1024
@@ -33,7 +40,7 @@ inline int char2int(char _input) {
 
 inline void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 
-    static char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+    char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     for (int j = 0; j < _len; j++) {
