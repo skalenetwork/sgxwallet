@@ -53,7 +53,7 @@ Cd to the project top dir, then run
 ```
 autoconf
 automake
-configure
+./configure
 ```
 
 ## Build
