@@ -5,7 +5,7 @@
 #define GMP_WITH_SGX
 #include <string.h>
 #include <cstdint>
-#include "../sgxd_common.h"
+#include "../sgxwallet_common.h"
 
 
 #include "BLSUtils.h"

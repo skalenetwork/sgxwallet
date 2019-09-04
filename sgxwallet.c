@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "sgxd_common.h"
+#include "sgxwallet_common.h"
 #include "create_enclave.h"
 #include "secure_enclave_u.h"
 #include "sgx_detect.h"
@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 void usage() {
-  fprintf(stderr, "usage: sgxd\n");
+  fprintf(stderr, "usage: sgxwallet\n");
   exit(1);
 }
 

@@ -56,7 +56,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl \
 
 ## The build target
 
-bin_PROGRAMS =  sgxd 
+bin_PROGRAMS =  sgxwallet 
 
 
 ## You can't use $(wildcard ...) with automake so all source files 
@@ -65,9 +65,9 @@ bin_PROGRAMS =  sgxd
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxd_SOURCES = sgxd.c BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp $(COMMON_SRC)
-nodist_sgxd_SOURCES = $(COMMON_ENCLAVE_SRC)
-EXTRA_sgxd_DEPENDENCIES = secure_enclave.signed.so
+sgxwallet_SOURCES = sgxwallet.c BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp $(COMMON_SRC)
+nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
+EXTRA_sgxwallet_DEPENDENCIES = secure_enclave.signed.so
 
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
 AM_LDFLAGS += $(GMP_LDFLAGS)
@@ -87,5 +87,5 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxd_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsonrpccpp-stub -lprocps
+sgxwallet_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsonrpccpp-stub -lprocps
 

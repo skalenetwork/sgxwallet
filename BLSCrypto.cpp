@@ -13,7 +13,7 @@
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include "BLSPrivateKeyShareSGX.h"
 
-#include "sgxd_common.h"
+#include "sgxwallet_common.h"
 
 #include "BLSCrypto.h"
 

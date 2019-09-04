@@ -28,8 +28,8 @@ using namespace std;
 #include "BLSutils.h"
 
 #include "secure_enclave_u.h"
-#include "sgxd_common.h"
-#include "sgxd.h"
+#include "sgxwallet_common.h"
+#include "sgxwallet.h"
 
 #include "BLSCrypto.h"
 
