@@ -12,7 +12,7 @@ sgxwallet has been tested on Ubuntu Linux 18.04.
 
 ## Install SGX driver
 
-``` cd scripts; ./sgx_linux_x64_driver_2.5.0_2605efa.bin```
+``` cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin```
 
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
@@ -52,6 +52,6 @@ configure
 
 To build sgxd, cd to project top dir and run `make` 
 
-## Running sgxd
+## Running sgxwallet
 
-Type `./sgxd`.
+Type `./sgxwallet`
