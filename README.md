@@ -22,6 +22,9 @@ sgxwallet has been tested on Ubuntu Linux 18.04.
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
+## Install required debian packages
+
+```cd scripts; sudo install_packages.sh```
 
 ## Clone directory and its submodules
 
