@@ -1,4 +1,8 @@
-# sgxwallet: SKALE SGX-based hardware security module
+# sgxwallet: SKALE SGX-based hardware crypto wallet
+
+## Intro
+
+sgxwallet is a next generation hardware secure crypto wallet that  is based on Intel SGX technology. It currently supports Ethereum and SKALE, and will support Bitcoin in the future.
 
 ## Prerequisites
 
