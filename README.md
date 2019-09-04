@@ -8,7 +8,8 @@ sgxwallet is a next generation hardware secure crypto wallet that  is based on I
 
 To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips that were produced after 2015 support SGX.
 
-* Enter BIOS of you machine and verify that it includes SGX options.
+* Enter BIOS of you machine by pressing and holding Del or F2 on bootup and verify that BIOS includes SGX options.
+  If not, your machine cant run SGX.
 * Check that SGX is set in BIOS as `enabled` or `software-controlled`.
 
 
@@ -21,6 +22,9 @@ sgxwallet has been tested on Ubuntu Linux 18.04.
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
+## Install required debian packages
+
+```cd scripts; sudo install_packages.sh```
 
 ## Clone directory and its submodules
 
@@ -28,11 +32,13 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 
 # Install automake 1.15
 
+Currently the build builds with automake 1.15. You need to install it since Ubuntu 18 comes with automake 1.16 by default.
+
 ```cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb ```
 
 # Install autoconf
 
-sudo apt-get install autoconf
+```sudo apt-get install autoconf```
 
 
 ## Build dependencies
@@ -49,7 +55,7 @@ Cd to the project top dir, then run
 ```
 autoconf
 automake
-configure
+./configure
 ```
 
 ## Build
@@ -59,3 +65,9 @@ To build sgxd, cd to project top dir and run `make`
 ## Running sgxwallet
 
 Type `./sgxwallet`
+
+## Development
+
+Note that `configure, Makefile` and `Makefile.in` files are created by `automake` tools on the fly.  
+Please do not add these files to the source tree!
+
