@@ -1,1 +1,1 @@
-sudo apt install  libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
+sudo apt install  libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
