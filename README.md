@@ -36,7 +36,7 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 
 # Install autoconf
 
-sudo apt-get install autoconf
+```sudo apt-get install autoconf```
 
 
 ## Build dependencies
