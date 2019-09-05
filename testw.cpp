@@ -57,6 +57,7 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
+
 void init_enclave() {
 
   eid = 0;
@@ -96,10 +97,14 @@ void init_enclave() {
   fprintf(stderr, "libtgmp initialized\n");
 }
 
-TEST_CASE( "BLS test", "[blssign]" ) {
+void init_all() {
+    init_enclave();
+    init_daemon();
+}
 
-  init_daemon();
-  init_enclave();
+TEST_CASE( "BLS sign test", "[bls-sign]" ) {
+
+  init_all();
 
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
@@ -145,3 +150,13 @@ TEST_CASE( "BLS test", "[blssign]" ) {
 
   gmp_printf("\n Length: %d \n", enc_len);
 }
+
+
+
+TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
+
+    init_all();
+
+    // put your test here
+}
+
