@@ -45,7 +45,7 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
-AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1  -ICatch2/include -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)
+AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
