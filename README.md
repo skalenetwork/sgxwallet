@@ -10,7 +10,16 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 
 * Enter BIOS of you machine by pressing and holding Del or F2 on bootup and verify that BIOS includes SGX options.
   If not, your machine cant run SGX.
-* Check that SGX is set in BIOS as `enabled` or `software-controlled`.
+* Set SGX in BIOS as `enabled` or `software-controlled`.
+* If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section 
+* If not, set SGX in BIOS to `software-controlled` and enable SGX as described below.
+
+## Enabling "software-controlled" SGX
+
+To enable SGX using a software utility:
+
+* `cd   sgx-software-enable; make`. This will build `sgx-enable` utility
+*  Run `./sgx-enable`.  Verify that it says that SGX is successfully enabled.
 
 
 sgxwallet has been tested on Ubuntu Linux 18.04. 
