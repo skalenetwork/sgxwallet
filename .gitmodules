@@ -10,3 +10,9 @@
 [submodule "leveldb"]
 	path = leveldb
 	url = https://github.com/google/leveldb.git
+[submodule "linux-sgx-driver"]
+	path = linux-sgx-driver
+	url = https://github.com/intel/linux-sgx-driver.git
+[submodule "sgx-software-enable"]
+	path = sgx-software-enable
+	url = https://github.com/intel/sgx-software-enable
