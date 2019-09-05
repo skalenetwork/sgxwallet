@@ -88,7 +88,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB)  -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsonrpccpp-stub -lprocps
+sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a   -ljsonrpccpp-stub -lpthread -ljsonrpccpp-common -ljsonrpccpp-server -ljsoncpp -lprocps
 
 testw_SOURCES=testw.cpp BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
