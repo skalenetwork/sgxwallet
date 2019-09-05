@@ -24,4 +24,5 @@ EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 
 
+
 #endif //SGXD_BLSCRYPTO_H
