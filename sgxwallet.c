@@ -31,17 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "sgxwallet_common.h"
-#include "create_enclave.h"
-#include "secure_enclave_u.h"
-#include "sgx_detect.h"
-#include <gmp.h>
-#include <sgx_urts.h>
 
-
+#include "sgxwallet.h"
 #include "BLSCrypto.h"
-
-#define ENCLAVE_NAME "secure_enclave.signed.so"
 
 
 
@@ -51,48 +43,10 @@ void usage() {
 }
 
 sgx_launch_token_t token = {0};
+
 sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
-
-void init_enclave() {
-
-  eid = 0;
-  updated = 0;
-
-  unsigned long support;
-
-#ifndef SGX_HW_SIM
-  support = get_sgx_support();
-  if (!SGX_OK(support)) {
-    sgx_support_perror(support);
-    exit(1);
-  }
-#endif
-
-  status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
-                                     &updated, &eid, 0);
-
-  if (status != SGX_SUCCESS) {
-    if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
-      fprintf(stderr, "sgx_create_enclave: %s: file not found\n", ENCLAVE_NAME);
-      fprintf(stderr, "Did you forget to set LD_LIBRARY_PATH?\n");
-    } else {
-      fprintf(stderr, "%s: 0x%04x\n", ENCLAVE_NAME, status);
-    }
-    exit(1);
-  }
-
-  fprintf(stderr, "Enclave launched\n");
-
-  status = tgmp_init(eid);
-  if (status != SGX_SUCCESS) {
-    fprintf(stderr, "ECALL tgmp_init: 0x%04x\n", status);
-    exit(1);
-  }
-
-  fprintf(stderr, "libtgmp initialized\n");
-}
 
 int main(int argc, char *argv[]) {
 
@@ -112,10 +66,7 @@ int main(int argc, char *argv[]) {
   if (argc != 0)
     usage();
 
-  init_daemon();
-
-  init_enclave();
-
+  init_all();
 
 
   const char *key = "4160780231445160889237664391382223604184857153814275770598"

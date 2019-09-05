@@ -12,6 +12,8 @@
 #define EXTERNC
 #endif
 
+EXTERNC void init_all();
+
 EXTERNC void init_daemon();
 
 EXTERNC bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig);
@@ -22,6 +24,9 @@ EXTERNC void  carray2Hex(const unsigned char *d, int _len, char* _hexArray);
 EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                         uint8_t* _bin );
 
+
+
+EXTERNC  void init_enclave();
 
 
 
