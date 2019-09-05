@@ -39,16 +39,11 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 
 ``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
 
-# Install automake 1.15
+## Install automake 1.15
 
 Currently the build builds with automake 1.15. You need to install it since Ubuntu 18 comes with automake 1.16 by default.
 
 ```cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb ```
-
-# Install autoconf
-
-```sudo apt-get install autoconf```
-
 
 ## Build dependencies
 
