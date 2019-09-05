@@ -15,6 +15,8 @@
 
 #include "sgxwallet_common.h"
 
+
+
 #include "BLSCrypto.h"
 
 int char2int(char _input) {

@@ -44,6 +44,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 
+#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+#include "catch.hpp"
 
 void usage() {
   fprintf(stderr, "usage: sgxwallet\n");
@@ -94,38 +96,19 @@ void init_enclave() {
   fprintf(stderr, "libtgmp initialized\n");
 }
 
-int main(int argc, char *argv[]) {
-
-  int opt;
-
-  while ((opt = getopt(argc, argv, "h")) != -1) {
-    switch (opt) {
-    case 'h':
-    default:
-      usage();
-    }
-  }
-
-  argc -= optind;
-  argv += optind;
-
-  if (argc != 0)
-    usage();
+TEST_CASE( "BLS test", "[blssign]" ) {
 
   init_daemon();
-
   init_enclave();
-
-
 
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
 
-  char* keyArray = calloc(128, 1);
+  char* keyArray = (char*) calloc(128, 1);
 
-  uint8_t* encryptedKey = calloc(1024, 1);
+  uint8_t* encryptedKey = (uint8_t*) calloc(1024, 1);
 
-  char* errMsg = calloc(1024,1);
+  char* errMsg = (char*) calloc(1024,1);
 
   strncpy((char *)keyArray, (char*)key, 128);
 
@@ -135,13 +118,7 @@ int main(int argc, char *argv[]) {
 
   status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
 
-  if (status != SGX_SUCCESS) {
-    printf("ECALL encrypt_key: 0x%04x\n", status);
-    return 1;
-  }
-
-
-
+  REQUIRE(status == SGX_SUCCESS);
 
   printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
   printf(" Encrypted key len %d\n", enc_len);
@@ -156,31 +133,15 @@ int main(int argc, char *argv[]) {
 
   uint8_t bin[BUF_LEN];
 
-  if (!hex2carray(result, &dec_len, bin)) {
-    printf("hex2carray returned false");
+  REQUIRE(hex2carray(result, &dec_len, bin));
+
+  for (uint64_t i=0; i < dec_len; i++) {
+    REQUIRE(bin[i] == encryptedKey[i]);
   }
 
-
-
-  for (int i=0; i < dec_len; i++) {
-    if (bin[i] != encryptedKey[i]) {
-      printf("Hex does not match");
-      return 1;
-    }
-  }
-
-
-  if (dec_len != enc_len) {
-    printf("Dec_len != enc_len %d %d \n", (uint32_t) dec_len, (uint32_t) enc_len);
-    return 1;
-  }
-
-
-
+  REQUIRE(dec_len == enc_len);
 
   gmp_printf("Result: %s", result);
 
   gmp_printf("\n Length: %d \n", enc_len);
-
-  return 0;
 }

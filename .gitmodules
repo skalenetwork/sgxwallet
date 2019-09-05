@@ -16,3 +16,6 @@
 [submodule "sgx-software-enable"]
 	path = sgx-software-enable
 	url = https://github.com/intel/sgx-software-enable
+[submodule "Catch2"]
+	path = Catch2
+	url = https://github.com/catchorg/Catch2
