@@ -23,6 +23,8 @@
 
 #include "sgxwallet.h"
 
+#include "SGXWalletServer.h"
+
 #include "BLSCrypto.h"
 
 
@@ -132,7 +134,6 @@ void init_daemon() {
 
   leveldb::Status status = leveldb::DB::Open(options, "./keysdb", &db);
 
-
 }
 
 
@@ -161,6 +162,7 @@ bool sign(char* _encryptedKeyHex, char* _hashHex, size_t _t, size_t _n, size_t _
 
 
 void init_all() {
+    init_server();
     init_enclave();
     init_daemon();
 }

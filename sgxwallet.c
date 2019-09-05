@@ -68,70 +68,9 @@ int main(int argc, char *argv[]) {
 
   init_all();
 
-
-  const char *key = "4160780231445160889237664391382223604184857153814275770598"
-                    "791864649971919844";
-
-  char* keyArray = calloc(128, 1);
-
-  uint8_t* encryptedKey = calloc(1024, 1);
-
-  char* errMsg = calloc(1024,1);
-
-  strncpy((char *)keyArray, (char*)key, 128);
-
-  int err_status = 0;
-
-  unsigned  int enc_len = 0;
-
-  status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
-
-  if (status != SGX_SUCCESS) {
-    printf("ECALL encrypt_key: 0x%04x\n", status);
-    return 1;
+  while (true) {
+      sleep(10);
   }
-
-
-
-
-  printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
-  printf(" Encrypted key len %d\n", enc_len);
-
-
-
-  char result[2* BUF_LEN];
-
-  carray2Hex(encryptedKey, enc_len, result);
-
-  uint64_t dec_len = 0;
-
-  uint8_t bin[BUF_LEN];
-
-  if (!hex2carray(result, &dec_len, bin)) {
-    printf("hex2carray returned false");
-  }
-
-
-
-  for (int i=0; i < dec_len; i++) {
-    if (bin[i] != encryptedKey[i]) {
-      printf("Hex does not match");
-      return 1;
-    }
-  }
-
-
-  if (dec_len != enc_len) {
-    printf("Dec_len != enc_len %d %d \n", (uint32_t) dec_len, (uint32_t) enc_len);
-    return 1;
-  }
-
-
-
-
-  gmp_printf("Result: %s", result);
-
-  gmp_printf("\n Length: %d \n", enc_len);
 
   return 0;
 }

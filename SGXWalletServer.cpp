@@ -68,14 +68,9 @@ Json::Value SGXWalletServer::buildObject(const string &name, int age) {
 string SGXWalletServer::methodWithoutParameters() { return "Test"; }
 
 int init_server() {
-    HttpServer httpserver(8383);
+    HttpServer httpserver(1025);
     SGXWalletServer s(httpserver,
                    JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
     s.StartListening();
-    cout << "Hit enter to stop the server" << endl;
-    getchar();
-
-    s.StopListening();
-
     return 0;
 }
