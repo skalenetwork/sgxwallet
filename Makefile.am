@@ -38,12 +38,12 @@ SUBDIRS=secure_enclave
 
 secure_enclave.edl: secure_enclave/secure_enclave.edl
 	ln -s $?
-cd /s
+
 ## Additional automake variables
 ##
-## AM_CPPFLAGS += 
-## AM_CFLAGS = 
-## AM_CXXFLAGS = 
+## AM_CPPFLAGS +=
+## AM_CFLAGS =
+## AM_CXXFLAGS =
 
 AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.
 
@@ -59,7 +59,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl \
 bin_PROGRAMS =  sgxwallet testw
 
 
-## You can't use $(wildcard ...) with automake so all source files 
+## You can't use $(wildcard ...) with automake so all source files
 ## have to be explicitly listed.
 
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
@@ -81,7 +81,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ##   -l$(SGX_URTS_LIB)
 ##
 ## Applications that use platform services or perform attestation
-## will also need:
+## will also need:./
 ##
 ##  -l$(SGX_UA_SERVICE_LIB)
 ##
