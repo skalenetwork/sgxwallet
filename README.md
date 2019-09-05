@@ -70,7 +70,6 @@ automake
 ## Build
 
 To build sgxd, cd to project top dir and run `make` 
-
 ## Running sgxwallet
 
 Type `./sgxwallet`
@@ -80,3 +79,6 @@ Type `./sgxwallet`
 Note that `configure, Makefile` and `Makefile.in` files are created by `automake` tools on the fly.  
 Please do not add these files to the source tree!
 
+To add new source and include files to app and enclave, edit the corresponding "Makefile.am" file and then re-run configure. 
+
+If you change .edl file, you need to re-run configure too.
