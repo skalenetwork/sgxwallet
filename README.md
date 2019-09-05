@@ -18,7 +18,7 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 
 To enable SGX using a software utility:
 
-*  Build `sgx-enable` utility by running `cd   sgx-software-enable; make`
+*  Build `sgx-enable` utility by typing `cd   sgx-software-enable; make`
 *  Run `./sgx-enable`.  Verify that it says that SGX is successfully enabled
 
 
