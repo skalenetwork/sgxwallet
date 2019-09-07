@@ -22,7 +22,13 @@ To enable SGX using a software utility:
 *  Run `./sgx-enable`.  Verify that it says that SGX is successfully enabled
 
 
-sgxwallet has been tested on Ubuntu Linux 18.04. 
+sgxwallet has been tested on Ubuntu Linux 18.04.
+
+## Clone directory and its submodules
+
+``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
+
+
 
 ## Install SGX driver
 
@@ -34,10 +40,6 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 ## Install required debian packages
 
 ```cd scripts; sudo install_packages.sh```
-
-## Clone directory and its submodules
-
-``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
 
 ## Install automake 1.15
 
