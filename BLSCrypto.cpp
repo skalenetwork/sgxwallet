@@ -138,7 +138,7 @@ void init_daemon() {
 
 
 
-bool sign(char* _encryptedKeyHex, char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
+bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
     char* _sig) {
 
 

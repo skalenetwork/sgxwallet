@@ -66,6 +66,10 @@ TEST_CASE( "BLS sign test", "[bls-sign]" ) {
   const char *key = "4160780231445160889237664391382223604184857153814275770598"
                     "791864649971919844";
 
+
+  const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+
+
   char* keyArray = (char*) calloc(128, 1);
 
   uint8_t* encryptedKey = (uint8_t*) calloc(1024, 1);
@@ -106,6 +110,12 @@ TEST_CASE( "BLS sign test", "[bls-sign]" ) {
   gmp_printf("Result: %s", result);
 
   gmp_printf("\n Length: %d \n", enc_len);
+
+
+  char sig[BUF_LEN];
+
+  REQUIRE(sign(result, hexHash, 2, 2, 1, sig));
+
 }
 
 
