@@ -170,10 +170,17 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
 
   if (errStatus != 0) {
-    gmp_printf("Enclave bls_sign_message failed %d\n", errStatus);
+    gmp_printf("Enclave bls_sign_message failed %d %s \n", errStatus, errMsg);
     BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed"));
     return nullptr;
   }
+
+  int sigLen;
+
+  if ((sigLen = strnlen(signature, 10)) < 10) {
+      BOOST_THROW_EXCEPTION(runtime_error("Signature too short:" + sigLen));
+  }
+
 
 
   std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
