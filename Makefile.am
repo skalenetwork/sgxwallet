@@ -65,7 +65,7 @@ bin_PROGRAMS =  sgxwallet testw
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp BLSCrypto.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp $(COMMON_SRC)
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxwallet_DEPENDENCIES = secure_enclave.signed.so
