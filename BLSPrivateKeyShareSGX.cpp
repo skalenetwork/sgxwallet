@@ -170,8 +170,7 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
 
   if (errStatus != 0) {
-    gmp_printf("Enclave bls_sign_message failed %d %s \n", errStatus, errMsg);
-    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed"));
+    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed:" + to_string(errStatus) + ":" + errMsg ));
     return nullptr;
   }
 
