@@ -23,6 +23,8 @@
 
 #include "sgxwallet.h"
 
+#include "LevelDB.h"
+
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
@@ -30,16 +32,18 @@
 
 
 
+LevelDB* levelDb = nullptr;
+
+
+
+
 void init_daemon() {
 
     libff::init_alt_bn128_params();
 
-    // Set up database connection information and open database
-    leveldb::DB* db;
-    leveldb::Options options;
-    options.create_if_missing = true;
+    static std::string dbName("./sgxwalletdb");
 
-    leveldb::Status status = leveldb::DB::Open(options, "./keysdb", &db);
+    levelDb = new LevelDB(dbName);
 
 }
 

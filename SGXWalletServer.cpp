@@ -20,10 +20,16 @@
 
 #include "SGXWalletServer.h"
 
+#include "LevelDB.h"
+
+
+
 using namespace jsonrpc;
 using namespace std;
 
 class SGXWalletServer : public AbstractStubServer {
+
+
 public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
 

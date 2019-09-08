@@ -22,8 +22,11 @@
 */
 
 
-#ifndef TESTW_LEVELDB_H
-#define TESTW_LEVELDB_H
+#ifndef SGXWALLET_LEVELDB_H
+#define SGXWALLET_LEVELDB_H
+
+#include <memory>
+#include <string>
 
 namespace leveldb {
     class DB;
