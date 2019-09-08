@@ -18,9 +18,9 @@
 
 #include <stdio.h>
 
-#include "SGXWalletServer.h"
-
+#include "RPCException.h"
 #include "LevelDB.h"
+#include "SGXWalletServer.h"
 
 
 
@@ -46,6 +46,17 @@ public:
     virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName);
     virtual Json::Value generateECDSAKey(const std::string& keyName);
     virtual Json::Value ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
+
+
+
+
+    void checkKeyShareDoesExist(const string& _keyShare);
+
+    void checkKeyShareDoesNotExist(const string& _keyShare);
+
+    void checkECDSAKeyDoesExist(const string& _keyShare);
+
+    void checkECDSAKeyDoesNotExist(const string& _keyShare);
 
 
 
@@ -102,9 +113,21 @@ int init_server() {
 
 Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) {
     Json::Value result;
+
+
+
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
+
+
+    try {
+        checkKeyShareDoesNotExist(keyShare);
+    } catch (RPCException& _e) {
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
     return result;
 }
 Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) {
@@ -112,6 +135,17 @@ Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName,
     result["status"] = 0;
     result["errorMessage"] = "";
     result["signatureShare"] = "";
+
+
+
+    try {
+        checkKeyShareDoesExist(keyShareName);
+    } catch (RPCException& _e) {
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
+
     return result;
 }
 
@@ -123,20 +157,53 @@ Json::Value SGXWalletServer::importECDSAKey(const std::string& key, const std::s
     return result;
 }
 
-Json::Value SGXWalletServer::generateECDSAKey(const std::string& keyName)  {
-
-
+Json::Value SGXWalletServer::generateECDSAKey(const std::string& _keyName)  {
 
 
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
+
+    try {
+        checkECDSAKeyDoesNotExist(_keyName);
+    } catch (RPCException& _e) {
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
 }
-Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash)  {
+Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyShareName, const std::string& messageHash)  {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     result["signature"] = "";
+
+
+    try {
+        checkECDSAKeyDoesExist(_keyShareName);
+    } catch (RPCException& _e) {
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
     return result;
+}
+
+
+
+
+void SGXWalletServer::checkKeyShareDoesExist(const string& _keyShare) {
+
+}
+
+void SGXWalletServer::checkKeyShareDoesNotExist(const string& _keyShare) {
+
+}
+
+void SGXWalletServer::checkECDSAKeyDoesExist(const string& _keyShare) {
+
+}
+
+void SGXWalletServer::checkECDSAKeyDoesNotExist(const string& _keyShare) {
+
 }

@@ -10,6 +10,9 @@
 #include <exception>
 
 class RPCException : public std::exception {
+
+public:
+
     int32_t status;
     std::string errString;
 
