@@ -8,7 +8,11 @@
       "index" : 2,
       "keyShare": "1122334455"
     },
-    "returns": "encryptedKeyShare"
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKeyShare": "12345"
+    }
   },
 
   {
@@ -17,7 +21,12 @@
       "keyShareName": "key1",
       "messageHash": "1122334455"
     },
-    "returns": "blsSignatureShare"
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "blsSignatureShare": "12345"
+    }
+
   },
 
   {
@@ -26,7 +35,11 @@
       "keyName": "key1",
       "key": "1122334455"
     },
-    "returns": "encryptedKey"
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKey": "12345"
+    }
   },
 
 
@@ -35,7 +48,11 @@
     "params": {
       "keyName": "key1"
     },
-    "returns": "encryptedKey"
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKey": "12345"
+    }
   },
 
 
@@ -46,7 +63,11 @@
       "keyShareName": "key1",
       "messageHash": "1122334455"
     },
-    "returns": "ecdsaSignature"
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "ecdsaSignature": "12345"
+    }
   },
 
 

@@ -12,11 +12,11 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
     public:
         AbstractStubServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractStubServer>(conn, type)
         {
-            this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "index",jsonrpc::JSON_INTEGER,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING,"n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::importBLSKeyShareI);
-            this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::blsSignMessageHashI);
-            this->bindAndAddMethod(jsonrpc::Procedure("importECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "key",jsonrpc::JSON_STRING,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importECDSAKeyI);
-            this->bindAndAddMethod(jsonrpc::Procedure("generateECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::generateECDSAKeyI);
-            this->bindAndAddMethod(jsonrpc::Procedure("ecdsaSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::ecdsaSignMessageHashI);
+            this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "index",jsonrpc::JSON_INTEGER,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING,"n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::importBLSKeyShareI);
+            this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::blsSignMessageHashI);
+            this->bindAndAddMethod(jsonrpc::Procedure("importECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "key",jsonrpc::JSON_STRING,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importECDSAKeyI);
+            this->bindAndAddMethod(jsonrpc::Procedure("generateECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::generateECDSAKeyI);
+            this->bindAndAddMethod(jsonrpc::Procedure("ecdsaSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::ecdsaSignMessageHashI);
             this->bindAndAddMethod(jsonrpc::Procedure("sayHello", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "name",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::sayHelloI);
             this->bindAndAddNotification(jsonrpc::Procedure("notifyServer", jsonrpc::PARAMS_BY_NAME,  NULL), &AbstractStubServer::notifyServerI);
             this->bindAndAddMethod(jsonrpc::Procedure("addNumbers", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_INTEGER, "param1",jsonrpc::JSON_INTEGER,"param2",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::addNumbersI);
@@ -76,11 +76,11 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             (void)request;
             response = this->methodWithoutParameters();
         }
-        virtual std::string importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
-        virtual std::string blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
-        virtual std::string importECDSAKey(const std::string& key, const std::string& keyName) = 0;
-        virtual std::string generateECDSAKey(const std::string& keyName) = 0;
-        virtual std::string ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
+        virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
+        virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
+        virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
+        virtual Json::Value generateECDSAKey(const std::string& keyName) = 0;
+        virtual Json::Value ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
         virtual std::string sayHello(const std::string& name) = 0;
         virtual void notifyServer() = 0;
         virtual int addNumbers(int param1, int param2) = 0;

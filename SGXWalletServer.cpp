@@ -41,11 +41,11 @@ public:
     virtual Json::Value buildObject(const std::string &name, int age);
     virtual std::string methodWithoutParameters();
 
-    virtual std::string importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
-    virtual std::string blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
-    virtual std::string importECDSAKey(const std::string& key, const std::string& keyName);
-    virtual std::string generateECDSAKey(const std::string& keyName);
-    virtual std::string ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
+    virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
+    virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
+    virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName);
+    virtual Json::Value generateECDSAKey(const std::string& keyName);
+    virtual Json::Value ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
 
 
 
@@ -100,18 +100,35 @@ int init_server() {
 
 
 
-std::string SGXWalletServer::importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) {
-    return "";
+Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) {
+    Json::Value result;
+    result["name"] = 1;
+    result["year"] = 1;
+    return result;
 }
-std::string SGXWalletServer::blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) {
-    return "";
+Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) {
+    Json::Value result;
+    result["name"] = 1;
+    result["year"] = 1;
+    return result;
 }
-std::string SGXWalletServer::importECDSAKey(const std::string& key, const std::string& keyName)  {
-    return "";
+
+Json::Value SGXWalletServer::importECDSAKey(const std::string& key, const std::string& keyName)  {
+    Json::Value result;
+    result["name"] = 1;
+    result["year"] = 1;
+    return result;
 }
-std::string SGXWalletServer::generateECDSAKey(const std::string& keyName)  {
-    return "";
+
+Json::Value SGXWalletServer::generateECDSAKey(const std::string& keyName)  {
+    Json::Value result;
+    result["name"] = 1;
+    result["year"] = 1;
+    return result;
 }
-std::string SGXWalletServer::ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash)  {
-    return "";
+Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash)  {
+    Json::Value result;
+    result["name"] = 1;
+    result["year"] = 1;
+    return result;
 }
