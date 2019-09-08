@@ -124,6 +124,10 @@ Json::Value SGXWalletServer::importECDSAKey(const std::string& key, const std::s
 }
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string& keyName)  {
+
+
+
+
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
