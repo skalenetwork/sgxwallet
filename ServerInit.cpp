@@ -34,3 +34,17 @@ void init_all() {
     init_enclave();
     init_daemon();
 }
+
+
+void init_daemon() {
+
+    libff::init_alt_bn128_params();
+
+    // Set up database connection information and open database
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::Status status = leveldb::DB::Open(options, "./keysdb", &db);
+
+}
