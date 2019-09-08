@@ -160,9 +160,3 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
 }
 
-
-void init_all() {
-    init_server();
-    init_enclave();
-    init_daemon();
-}
