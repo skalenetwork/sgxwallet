@@ -29,12 +29,6 @@
 #include "ServerInit.h"
 
 
-void init_all() {
-    init_server();
-    init_enclave();
-    init_daemon();
-}
-
 
 void init_daemon() {
 
@@ -88,4 +82,12 @@ void init_enclave() {
     }
 
     fprintf(stderr, "libtgmp initialized\n");
+}
+
+
+
+void init_all() {
+    init_server();
+    init_enclave();
+    init_daemon();
 }
