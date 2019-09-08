@@ -24,7 +24,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "blsSignatureShare": "12345"
+      "signatureShare": "12345"
     }
 
   },
@@ -66,7 +66,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "ecdsaSignature": "12345"
+      "signature": "12345"
     }
   },
 

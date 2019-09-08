@@ -102,33 +102,37 @@ int init_server() {
 
 Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) {
     Json::Value result;
-    result["name"] = 1;
-    result["year"] = 1;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["encryptedKeyShare"] = "";
     return result;
 }
 Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) {
     Json::Value result;
-    result["name"] = 1;
-    result["year"] = 1;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["signatureShare"] = "";
     return result;
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const std::string& key, const std::string& keyName)  {
     Json::Value result;
-    result["name"] = 1;
-    result["year"] = 1;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["encryptedKey"] = "";
     return result;
 }
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string& keyName)  {
     Json::Value result;
-    result["name"] = 1;
-    result["year"] = 1;
-    return result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["encryptedKey"] = "";
 }
 Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash)  {
     Json::Value result;
-    result["name"] = 1;
-    result["year"] = 1;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["signature"] = "";
     return result;
 }
