@@ -2,8 +2,8 @@
 // Created by kladko on 9/3/19.
 //
 
-#ifndef SGXD_SGXD_COMMON_H
-#define SGXD_SGXD_COMMON_H
+#ifndef SGXWALLET_SGXWALLET_COMMON_H
+#define SGXWALLET_SGXWALLET_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,4 +28,4 @@
 
 
 
-#endif //SGXD_SGXD_COMMON_H
+#endif //SGXWALLET_SGXWALLET_COMMON_H

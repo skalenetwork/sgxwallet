@@ -3,8 +3,8 @@
 //
 
 
-#ifndef SGXD_BLSCRYPTO_H
-#define SGXD_BLSCRYPTO_H
+#ifndef SGXWALLET_BLSCRYPTO_H
+#define SGXWALLET_BLSCRYPTO_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -31,4 +31,4 @@ EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 
 
-#endif //SGXD_BLSCRYPTO_H
+#endif //SGXWALLET_BLSCRYPTO_H

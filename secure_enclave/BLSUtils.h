@@ -2,8 +2,8 @@
 // Created by kladko on 8/14/19.
 //
 
-#ifndef SGXD_BLSUTILS_H
-#define SGXD_BLSUTILS_H
+#ifndef SGXWALLET_BLSUTILS_H
+#define SGXWALLET_BLSUTILS_H
 
 
 
@@ -27,4 +27,4 @@ EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                        uint8_t* _bin );
 
 
-#endif //SGXD_BLSUTILS_H
+#endif //SGXWALLET_BLSUTILS_H
