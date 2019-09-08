@@ -2,13 +2,51 @@
   {
     "name": "importBLSKeyShare",
     "params": {
-      "name": "Peter",
+      "keyShareName": "key1",
       "n": 2,
       "t": 2,
       "index" : 2,
-      "hexKeyShare": "1122334455"
+      "keyShare": "1122334455"
     },
-    "returns": false
+    "returns": "encryptedKeyShare"
+  },
+
+  {
+    "name": "blsSignMessageHash",
+    "params": {
+      "keyShareName": "key1",
+      "messageHash": "1122334455"
+    },
+    "returns": "blsSignatureShare"
+  },
+
+  {
+    "name": "importECDSAKey",
+    "params": {
+      "keyName": "key1",
+      "key": "1122334455"
+    },
+    "returns": "encryptedKey"
+  },
+
+
+  {
+    "name": "generateECDSAKey",
+    "params": {
+      "keyName": "key1"
+    },
+    "returns": "encryptedKey"
+  },
+
+
+
+  {
+    "name": "ecdsaSignMessageHash",
+    "params": {
+      "keyShareName": "key1",
+      "messageHash": "1122334455"
+    },
+    "returns": "ecdsaSignature"
   },
 
 
