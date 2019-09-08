@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 

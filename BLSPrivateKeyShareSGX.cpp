@@ -32,6 +32,7 @@ using namespace std;
 #include "sgxwallet.h"
 
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
 #include "BLSPrivateKeyShareSGX.h"
 

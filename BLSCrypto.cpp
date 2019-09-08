@@ -26,7 +26,7 @@
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
-
+#include "ServerInit.h"
 
 
 void init_enclave() {
