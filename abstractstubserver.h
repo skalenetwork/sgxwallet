@@ -12,6 +12,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
     public:
         AbstractStubServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractStubServer>(conn, type)
         {
+            this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_BOOLEAN, "hexKeyShare",jsonrpc::JSON_STRING,"index",jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER,"name",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::importBLSKeyShareI);
             this->bindAndAddMethod(jsonrpc::Procedure("sayHello", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING, "name",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::sayHelloI);
             this->bindAndAddNotification(jsonrpc::Procedure("notifyServer", jsonrpc::PARAMS_BY_NAME,  NULL), &AbstractStubServer::notifyServerI);
             this->bindAndAddMethod(jsonrpc::Procedure("addNumbers", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_INTEGER, "param1",jsonrpc::JSON_INTEGER,"param2",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::addNumbersI);
@@ -21,6 +22,10 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             this->bindAndAddMethod(jsonrpc::Procedure("methodWithoutParameters", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_STRING,  NULL), &AbstractStubServer::methodWithoutParametersI);
         }
 
+        inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->importBLSKeyShare(request["hexKeyShare"].asString(), request["index"].asInt(), request["n"].asInt(), request["name"].asString(), request["t"].asInt());
+        }
         inline virtual void sayHelloI(const Json::Value &request, Json::Value &response)
         {
             response = this->sayHello(request["name"].asString());
@@ -51,6 +56,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             (void)request;
             response = this->methodWithoutParameters();
         }
+        virtual bool importBLSKeyShare(const std::string& hexKeyShare, int index, int n, const std::string& name, int t) = 0;
         virtual std::string sayHello(const std::string& name) = 0;
         virtual void notifyServer() = 0;
         virtual int addNumbers(int param1, int param2) = 0;

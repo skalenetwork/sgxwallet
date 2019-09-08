@@ -12,6 +12,20 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
+        bool importBLSKeyShare(const std::string& hexKeyShare, int index, int n, const std::string& name, int t) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["hexKeyShare"] = hexKeyShare;
+            p["index"] = index;
+            p["n"] = n;
+            p["name"] = name;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("importBLSKeyShare",p);
+            if (result.isBool())
+                return result.asBool();
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
         std::string sayHello(const std::string& name) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;

@@ -34,6 +34,7 @@ public:
     virtual bool isEqual(const std::string &str1, const std::string &str2);
     virtual Json::Value buildObject(const std::string &name, int age);
     virtual std::string methodWithoutParameters();
+    virtual bool importBLSKeyShare(const std::string& hexKeyShare, int index, int n, const std::string& name, int t);
 };
 
 SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
@@ -58,12 +59,20 @@ bool SGXWalletServer::isEqual(const string &str1, const string &str2) {
     return str1 == str2;
 }
 
+bool SGXWalletServer::importBLSKeyShare(const std::string& hexKeyShare, int index, int n, const std::string& name, int t) {
+    return false;
+}
+
+
 Json::Value SGXWalletServer::buildObject(const string &name, int age) {
     Json::Value result;
     result["name"] = name;
     result["year"] = age;
     return result;
 }
+
+
+
 
 string SGXWalletServer::methodWithoutParameters() { return "Test"; }
 

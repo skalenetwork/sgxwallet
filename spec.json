@@ -1,5 +1,18 @@
 [
   {
+    "name": "importBLSKeyShare",
+    "params": {
+      "name": "Peter",
+      "n": 2,
+      "t": 2,
+      "index" : 2,
+      "hexKeyShare": "1122334455"
+    },
+    "returns": false
+  },
+
+
+  {
     "name": "sayHello",
     "params": {
       "name": "Peter"
@@ -45,7 +58,7 @@
     }
   },
   {
-    "name" : "methodWithoutParameters",
+    "name": "methodWithoutParameters",
     "returns": "String"
   }
 ]
