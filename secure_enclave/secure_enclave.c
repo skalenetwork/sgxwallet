@@ -127,6 +127,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
     init();
 
     *err_status = -1;
+
     memset(err_string, 0, BUF_LEN);
 
 
