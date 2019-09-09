@@ -287,6 +287,8 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
 
 
 
+
+
   //strncpy(signature, ecdsaSig, MAX_SIG_LEN);
 
 
@@ -342,4 +344,32 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
 
   *err_status = 0;
 
+}
+
+void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, size_t _t){
+
+  size_t len = 0;
+  char dkg_secret[BUF_LEN];
+
+  gen_dkg_poly( dkg_secret, len, _t);
+
+  char poly[BUF_LEN];
+  memset(poly, 0, BUF_LEN);
+
+  strncpy(poly, dkg_secret, len);
+
+  memset(encrypted_dkg_secret, 0, BUF_LEN);
+
+
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, sizeof(poly));
+
+  sgx_status_t status = sgx_seal_data(0, NULL, BUF_LEN, (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
+
+  if ( poly[0] != '1'){
+    snprintf(err_string, BUF_LEN,"wrong poly");
+  }
+
+  if(  status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"SGX seal data failed");
+  }
 }

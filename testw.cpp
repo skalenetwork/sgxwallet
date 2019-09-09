@@ -114,6 +114,24 @@ TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
 
     init_all();
 
-    // put your test here
+    uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(1024, 1);
+
+    //char* Array = (char*) calloc(128, 1);
+
+  char* errMsg = (char*) calloc(1024,1);
+
+  int err_status = 0;
+
+ // unsigned  int enc_len = 0;
+  //(int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, size_t _t)
+
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, 1);
+
+  REQUIRE(status == SGX_SUCCESS);
+
+  printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
+  printf(" Encrypted key len %d\n", sizeof(encrypted_dkg_secret));
+
+
 }
 

@@ -56,6 +56,12 @@ enclave {
             		    uint32_t enc_len,
             		    [in, count = 1024] uint8_t* hash,
             		    [out, count = 1024] char* signature);
+
+        public void gen_dkg_secret (
+                    	[user_check] int *err_status,
+                    	[out, count = 1024] char* err_string,
+                    	[out, count = 1024] uint8_t* encrypted_dkg_secret,
+                    	size_t _t);
 	};
 
 
