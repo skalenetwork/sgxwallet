@@ -88,6 +88,35 @@ char *encryptKey2Hex(int *errStatus, char *err_string, const char *_key) {
     return result;
 }
 
+char *decryptKeyFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
+
+
+        *errStatus = -1;
+
+        uint64_t decodedLen = 0;
+
+        uint8_t decoded[BUF_LEN];
+
+        if (!(hex2carray(_encryptedKey, &decodedLen, decoded))) {
+            return nullptr;
+        }
+
+        char *plaintextKey = (char *) calloc(BUF_LEN, 1);
+
+        status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+
+        if (status != SGX_SUCCESS) {
+            return nullptr;
+        }
+
+        if (*errStatus != 0) {
+            return nullptr;
+        }
+
+    return plaintextKey;
+
+}
+
 
 #define  TEST_KEY "4160780231445160889237664391382223604184857153814275770598791864649971919844"
 
@@ -130,29 +159,18 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         init_all();
 
         int errStatus =  -1;
-
         char* errMsg = (char*) calloc(BUF_LEN, 1);
 
-        const char *key = TEST_KEY;
+
 
         char* encryptedKey = encryptTestKey();
         REQUIRE(encryptedKey != nullptr);
 
-        uint64_t decodedLen = 0;
+        char* plaintextKey = decryptKeyFromHex(&errStatus, errMsg, encryptedKey);
 
-        uint8_t decoded[BUF_LEN];
-
-        REQUIRE(hex2carray(encryptedKey, &decodedLen, decoded));
-
-        char *plaintextKey = (char *) calloc(BUF_LEN, 1);
-
-        status = decrypt_key(eid, &errStatus, errMsg, decoded, decodedLen, plaintextKey);
-
-        REQUIRE(status == SGX_SUCCESS);
         REQUIRE(errStatus == 0);
 
-
-        REQUIRE(strcmp(plaintextKey, key) == 0);
+        REQUIRE(strcmp(plaintextKey, TEST_KEY) == 0);
 
         printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
         printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
