@@ -60,7 +60,7 @@ sgx_status_t status;
 int updated;
 
 
-TEST_CASE("BLS key encrypt", "[bls-key-encrypt-decrypt]") {
+TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     {
 
 
@@ -109,6 +109,76 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt-decrypt]") {
         gmp_printf("Result: %s", result);
 
         gmp_printf("\n Length: %d \n", encryptedLen);
+
+    }
+}
+
+
+TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
+    {
+
+
+        init_all();
+
+        const char *key = "4160780231445160889237664391382223604184857153814275770598"
+                          "791864649971919844";
+
+        char *keyArray = (char *) calloc(BUF_LEN, 1);
+        uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
+        char *errMsg = (char *) calloc(BUF_LEN, 1);
+
+        strncpy((char *) keyArray, (char *) key, BUF_LEN);
+
+        int errStatus = 0;
+
+        unsigned int encryptedLen = 0;
+
+        status = encrypt_key(eid, &errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+
+        REQUIRE(status == SGX_SUCCESS);
+        REQUIRE(errStatus == 0);
+
+        printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
+        printf(" Encrypted key len %d\n", encryptedLen);
+
+        char result[2 * BUF_LEN];
+
+        carray2Hex(encryptedKey, encryptedLen, result);
+
+        uint64_t decodedLen = 0;
+
+        uint8_t decoded[BUF_LEN];
+
+        REQUIRE(hex2carray(result, &decodedLen, decoded));
+
+        for (uint64_t i = 0; i < decodedLen; i++) {
+            REQUIRE(decoded[i] == encryptedKey[i]);
+        }
+
+        REQUIRE(decodedLen == encryptedLen);
+
+        gmp_printf("Result: %s", result);
+
+        gmp_printf("\n Encrypted length: %d \n", encryptedLen);
+
+        char *plaintextKey = (char*) calloc(BUF_LEN, 1);
+
+        status = decrypt_key(eid, &errStatus, errMsg, decoded, decodedLen, plaintextKey);
+
+        REQUIRE(status == SGX_SUCCESS);
+        REQUIRE(errStatus == 0);
+
+
+        REQUIRE(strcmp(plaintextKey, key) == 0);
+
+        for (int i = 0 ; i < BUF_LEN; i++) {
+            REQUIRE(plaintextKey[i] == keyArray[i]);
+        }
+
+        printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
+        printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
+        printf("Decrypted key: %s\n", plaintextKey);
+
 
     }
 }
