@@ -121,6 +121,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
   *err_status = -1;
+  memset(err_string, 0, BUF_LEN);
 
   uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
 
@@ -144,8 +145,11 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
   *err_status = -3;
 
-  if (!check_key(key)) {
-    snprintf(err_string, BUF_LEN,"check_key failed");
+
+  check_key(err_status, err_string, key);
+
+  if (*err_status != 0) {
+    snprintf(err_string + strlen(err_string), BUF_LEN,"check_key failed");
     return;
   }
 

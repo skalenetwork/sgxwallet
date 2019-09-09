@@ -68,9 +68,12 @@ libff::alt_bn128_Fr *keyFromString(const char* _keyString) {
   return new libff::alt_bn128_Fr(_keyString);
 }
 
-bool check_key(const char *_keyString) {
+bool check_key(int *err_status, char *err_string, const char *_keyString) {
 
   libff::init_alt_bn128_params();
+
+  *err_status = -1;
+
 
   if (_keyString == nullptr)
     return false;
@@ -84,14 +87,17 @@ bool check_key(const char *_keyString) {
 
   auto s1 = stringFromKey(key);
 
-  if (s1->compare(ks) != 0)
-    return false;
+  if (s1->compare(ks) != 0) {
+      throw std::exception();
+  }
 
   if (s1->size() < 10)
     return false;
 
   if (s1->size() >= 100)
     return false;
+
+  *err_status = 0;
 
   return true;
 }

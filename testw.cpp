@@ -86,6 +86,7 @@ TEST_CASE( "BLS sign test", "[bls-sign]" ) {
   status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
 
   REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(err_status == 0);
 
   printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
   printf(" Encrypted key len %d\n", enc_len);
