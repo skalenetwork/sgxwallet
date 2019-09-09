@@ -120,28 +120,10 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
+
   *err_status = -1;
   memset(err_string, 0, BUF_LEN);
 
-  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
-
-  // check that key is zero terminated string
-
-  if (keyLen == MAX_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
-    return;
-  }
-
-  *err_status = -2;
-
-  // check that key is padded with 0s
-
-  for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
-    if (key[i] != 0) {
-      snprintf(err_string, BUF_LEN,"Unpadded key");
-      return;
-    }
-  }
 
   *err_status = -3;
 
@@ -208,6 +190,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
                  uint32_t enc_len, char* key) {
 
+
   uint32_t decLen;
 
   *err_status = -9;
@@ -245,7 +228,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
       return;
     }
   }
-  
+
   *err_status = 0;
   return;
 
@@ -261,6 +244,8 @@ void bls_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key
 
   char key[BUF_LEN];
   char sig[BUF_LEN];
+
+
 
   decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
@@ -280,9 +265,9 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
                   uint32_t enc_len, uint8_t *message, char *signature) {
   *err_status = -1;
 
-  
+
   char key[BUF_LEN];
-  
+
   decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
   if (err_status != 0) {

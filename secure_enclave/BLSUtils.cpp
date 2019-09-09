@@ -70,7 +70,32 @@ libff::alt_bn128_Fr *keyFromString(const char* _keyString) {
 
 bool check_key(int *err_status, char *err_string, const char *_keyString) {
 
-  libff::init_alt_bn128_params();
+
+    libff::init_alt_bn128_params();
+
+
+
+    uint64_t keyLen = strnlen(_keyString, MAX_KEY_LENGTH);
+
+    // check that key is zero terminated string
+
+    if (keyLen == MAX_KEY_LENGTH) {
+        snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
+        return false;
+    }
+
+    *err_status = -2;
+
+    // check that key is padded with 0s
+
+    for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
+        if (_keyString[i] != 0) {
+            snprintf(err_string, BUF_LEN,"Unpadded key");
+            return false;
+        }
+    }
+
+
 
   *err_status = -1;
 
@@ -107,7 +132,11 @@ bool check_key(int *err_status, char *err_string, const char *_keyString) {
 bool sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
        char sig[BUF_LEN]) {
 
-         auto key = keyFromString(_keyString);
+
+    libff::init_alt_bn128_params();
+
+
+    auto key = keyFromString(_keyString);
 
          libff::alt_bn128_Fq hashX(_hashXString);
          libff::alt_bn128_Fq hashY(_hashYString);
