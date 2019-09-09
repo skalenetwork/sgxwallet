@@ -46,11 +46,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+
 #include "catch.hpp"
 
 void usage() {
-  fprintf(stderr, "usage: sgxwallet\n");
-  exit(1);
+    fprintf(stderr, "usage: sgxwallet\n");
+    exit(1);
 }
 
 sgx_launch_token_t token = {0};
@@ -59,74 +60,128 @@ sgx_status_t status;
 int updated;
 
 
-
-TEST_CASE( "BLS sign test", "[bls-sign]" ) {
-
-  init_all();
-
-  const char *key = "4160780231445160889237664391382223604184857153814275770598"
-                    "791864649971919844";
+TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
+    {
 
 
-  const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+        init_all();
+
+        const char *key = "4160780231445160889237664391382223604184857153814275770598"
+                          "791864649971919844";
+
+        char *keyArray = (char *) calloc(128, 1);
+
+        uint8_t *encryptedKey = (uint8_t *) calloc(1024, 1);
+
+        char *errMsg = (char *) calloc(1024, 1);
+
+        strncpy((char *) keyArray, (char *) key, 128);
+
+        int err_status = 0;
+
+        unsigned int enc_len = 0;
+
+        status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
+
+        REQUIRE(status == SGX_SUCCESS);
+        REQUIRE(err_status == 0);
 
 
-  char* keyArray = (char*) calloc(128, 1);
-
-  uint8_t* encryptedKey = (uint8_t*) calloc(1024, 1);
-
-  char* errMsg = (char*) calloc(1024,1);
-
-  strncpy((char *)keyArray, (char*)key, 128);
-
-  int err_status = 0;
-
-  unsigned  int enc_len = 0;
-
-  status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
-
-  REQUIRE(status == SGX_SUCCESS);
-  REQUIRE(err_status == 0);
+        printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
+        printf(" Encrypted key len %d\n", enc_len);
 
 
-  printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
-  printf(" Encrypted key len %d\n", enc_len);
+        char result[2 * BUF_LEN];
+
+        carray2Hex(encryptedKey, enc_len, result);
+
+        uint64_t dec_len = 0;
+
+        uint8_t bin[BUF_LEN];
+
+        REQUIRE(hex2carray(result, &dec_len, bin));
+
+        for (uint64_t i = 0; i < dec_len; i++) {
+            REQUIRE(bin[i] == encryptedKey[i]);
+        }
+
+        REQUIRE(dec_len == enc_len);
+
+        gmp_printf("Result: %s", result);
+
+        gmp_printf("\n Length: %d \n", enc_len);
+
+    }
+}
 
 
+TEST_CASE("BLS sign test", "[bls-sign]") {
 
-  char result[2* BUF_LEN];
+    init_all();
 
-  carray2Hex(encryptedKey, enc_len, result);
-
-  uint64_t dec_len = 0;
-
-  uint8_t bin[BUF_LEN];
-
-  REQUIRE(hex2carray(result, &dec_len, bin));
-
-  for (uint64_t i=0; i < dec_len; i++) {
-    REQUIRE(bin[i] == encryptedKey[i]);
-  }
-
-  REQUIRE(dec_len == enc_len);
-
-  gmp_printf("Result: %s", result);
-
-  gmp_printf("\n Length: %d \n", enc_len);
+    const char *key = "4160780231445160889237664391382223604184857153814275770598"
+                      "791864649971919844";
 
 
-  char sig[BUF_LEN];
+    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
 
-  REQUIRE(sign(result, hexHash, 2, 2, 1, sig));
+
+    char *keyArray = (char *) calloc(128, 1);
+
+    uint8_t *encryptedKey = (uint8_t *) calloc(1024, 1);
+
+    char *errMsg = (char *) calloc(1024, 1);
+
+    strncpy((char *) keyArray, (char *) key, 128);
+
+    int err_status = 0;
+
+    unsigned int enc_len = 0;
+
+    status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
+
+    REQUIRE(status == SGX_SUCCESS);
+    REQUIRE(err_status == 0);
+
+
+    printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
+    printf(" Encrypted key len %d\n", enc_len);
+
+
+    char result[2 * BUF_LEN];
+
+    carray2Hex(encryptedKey, enc_len, result
+    );
+
+    uint64_t dec_len = 0;
+
+    uint8_t bin[BUF_LEN];
+
+    REQUIRE(hex2carray(result, &dec_len, bin)
+    );
+
+    for (uint64_t i = 0; i < dec_len; i++) {
+        REQUIRE(bin[i] == encryptedKey[i]);
+    }
+
+    REQUIRE(dec_len == enc_len);
+
+    gmp_printf("Result: %s", result);
+
+    gmp_printf("\n Length: %d \n", enc_len);
+
+
+    char sig[BUF_LEN];
+
+    REQUIRE(sign(result, hexHash, 2, 2, 1, sig));
 
 }
 
 
-
-TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
+TEST_CASE("DKG gen test", "[dkg-gen]") {
 
     init_all();
 
-    // put your test here
+// put your test here
 }
 
