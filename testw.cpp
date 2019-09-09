@@ -89,10 +89,11 @@ char *encryptKey2Hex(int *errStatus, char *err_string, const char *_key) {
 }
 
 
+#define  TEST_KEY "4160780231445160889237664391382223604184857153814275770598791864649971919844"
+
 char* encryptTestKey() {
 
-    const char *key = "4160780231445160889237664391382223604184857153814275770598"
-                      "791864649971919844";
+    const char *key = TEST_KEY;
 
 
     int errStatus = -1;
@@ -128,46 +129,20 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
         init_all();
 
-        const char *key = "4160780231445160889237664391382223604184857153814275770598"
-                          "791864649971919844";
+        int errStatus =  -1;
 
-        char *keyArray = (char *) calloc(BUF_LEN, 1);
-        uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
-        char *errMsg = (char *) calloc(BUF_LEN, 1);
+        char* errMsg = (char*) calloc(BUF_LEN, 1);
 
-        strncpy((char *) keyArray, (char *) key, BUF_LEN);
+        const char *key = TEST_KEY;
 
-        int errStatus = 0;
-
-        unsigned int encryptedLen = 0;
-
-        status = encrypt_key(eid, &errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
-
-        REQUIRE(status == SGX_SUCCESS);
-        REQUIRE(errStatus == 0);
-
-        printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
-        printf(" Encrypted key len %d\n", encryptedLen);
-
-        char result[2 * BUF_LEN];
-
-        carray2Hex(encryptedKey, encryptedLen, result);
+        char* encryptedKey = encryptTestKey();
+        REQUIRE(encryptedKey != nullptr);
 
         uint64_t decodedLen = 0;
 
         uint8_t decoded[BUF_LEN];
 
-        REQUIRE(hex2carray(result, &decodedLen, decoded));
-
-        for (uint64_t i = 0; i < decodedLen; i++) {
-            REQUIRE(decoded[i] == encryptedKey[i]);
-        }
-
-        REQUIRE(decodedLen == encryptedLen);
-
-        gmp_printf("Result: %s", result);
-
-        gmp_printf("\n Encrypted length: %d \n", encryptedLen);
+        REQUIRE(hex2carray(encryptedKey, &decodedLen, decoded));
 
         char *plaintextKey = (char *) calloc(BUF_LEN, 1);
 
@@ -178,10 +153,6 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 
         REQUIRE(strcmp(plaintextKey, key) == 0);
-
-        for (int i = 0; i < BUF_LEN; i++) {
-            REQUIRE(plaintextKey[i] == keyArray[i]);
-        }
 
         printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
         printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
