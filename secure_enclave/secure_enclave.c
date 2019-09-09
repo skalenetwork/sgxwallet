@@ -50,6 +50,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../sgxwallet_common.h"
 
+
+
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 void *(*oc_realloc_func)(void *, size_t, size_t);
 void (*gmp_free_func)(void *, size_t);
@@ -120,32 +122,12 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
-  *err_status = -1;
+  *err_status = UNKNOWN_ERROR;
 
-  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+  check_key(err_status, err_string, key);
 
-  // check that key is zero terminated string
-
-  if (keyLen == MAX_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
-    return;
-  }
-
-  *err_status = -2;
-
-  // check that key is padded with 0s
-
-  for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
-    if (key[i] != 0) {
-      snprintf(err_string, BUF_LEN,"Unpadded key");
-      return;
-    }
-  }
-
-  *err_status = -3;
-
-  if (!check_key(key)) {
-    snprintf(err_string, BUF_LEN,"check_key failed");
+  if (*err_status != 0) {
+    snprintf(err_string + strlen(err_string), BUF_LEN,":check_key failed");
     return;
   }
 
