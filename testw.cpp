@@ -69,13 +69,13 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
         const char *key = "4160780231445160889237664391382223604184857153814275770598"
                           "791864649971919844";
 
-        char *keyArray = (char *) calloc(128, 1);
-        uint8_t *encryptedKey = (uint8_t *) calloc(1024, 1);
+        char *keyArray = (char *) calloc(BUF_LEN, 1);
+        uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
 
 
-        char *errMsg = (char *) calloc(1024, 1);
+        char *errMsg = (char *) calloc(BUF_LEN, 1);
 
-        strncpy((char *) keyArray, (char *) key, 128);
+        strncpy((char *) keyArray, (char *) key, BUF_LEN);
 
         int errStatus = 0;
 
