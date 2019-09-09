@@ -9,7 +9,7 @@
 #include "../sgxwallet_common.h"
 
 
-#include "BLSUtils.h"
+#include "BLSEnclave.h"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
