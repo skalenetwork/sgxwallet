@@ -126,13 +126,9 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
     init();
 
-    *err_status = -1;
+    *err_status = UNKNOWN_ERROR;
 
     memset(err_string, 0, BUF_LEN);
-
-
-    *err_status = -3;
-
 
     check_key(err_status, err_string, key);
 
@@ -143,50 +139,50 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
 
-    *err_status = -4;
+
 
     if (sealedLen > BUF_LEN) {
+        *err_status = ENCRYPTED_KEY_TOO_LONG;
         snprintf(err_string, BUF_LEN, "sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
         return;
     }
 
-    *err_status = -5;
 
     memset(encrypted_key, 0, BUF_LEN);
 
     if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t *) key, sealedLen, (sgx_sealed_data_t *) encrypted_key) !=
         SGX_SUCCESS) {
+        *err_status = SEAL_KEY_FAILED;
         snprintf(err_string, BUF_LEN, "SGX seal data failed");
         return;
     }
 
     *enc_len = sealedLen;
 
+    char decryptedKey[BUF_LEN];
+    memset(decryptedKey, 0, BUF_LEN);
 
-    char key2[BUF_LEN];
-
-    memset(key2, 0, BUF_LEN);
-
-    decrypt_key(err_status, err_string, encrypted_key, sealedLen, key2);
+    decrypt_key(err_status, err_string, encrypted_key, sealedLen, decryptedKey);
 
     if (*err_status != 0) {
         snprintf(err_string + strlen(err_string), BUF_LEN, ":decrypt_key failed");
         return;
     }
 
+    uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
 
-    uint64_t key2Len = strnlen(key2, MAX_KEY_LENGTH);
-
-    if (key2Len == MAX_KEY_LENGTH) {
-        snprintf(err_string, MAX_ERR_LEN, "Key2 is not null terminated");
+    if (decryptedKeyLen == MAX_KEY_LENGTH) {
+        snprintf(err_string, BUF_LEN, "Decrypted key is not null terminated");
         return;
     }
 
 
     *err_status = -8;
 
-    if (strncmp(key, key2, MAX_KEY_LENGTH) != 0)
+    if (strncmp(key, decryptedKey, MAX_KEY_LENGTH) != 0) {
+        snprintf(err_string, BUF_LEN, "Decrypted key does not match original key");
         return;
+    }
 
     *err_status = 0;
 }
