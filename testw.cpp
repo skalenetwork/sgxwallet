@@ -89,10 +89,7 @@ char *encryptKey2Hex(int *errStatus, char *err_string, const char *_key) {
 }
 
 
-TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
-
-
-    init_all();
+char* encryptTestKey() {
 
     const char *key = "4160780231445160889237664391382223604184857153814275770598"
                       "791864649971919844";
@@ -110,6 +107,17 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
     printf("Encrypted key len %d\n", (int) strlen(encryptedKeyHex));
     printf("Encrypted key %s \n", encryptedKeyHex);
+
+    return encryptedKeyHex;
+}
+
+
+TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
+
+
+    init_all();
+    char* key = encryptTestKey();
+    REQUIRE(key != nullptr);
 
 }
 
