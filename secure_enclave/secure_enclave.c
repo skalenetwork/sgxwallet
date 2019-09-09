@@ -242,8 +242,9 @@ void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
                       char *_hashY, char *signature) {
 
 
+
     char key[BUF_LEN];
-    char sig[BUF_LEN];
+    char* sig = (char*) calloc(BUF_LEN, 1);
 
     init();
 
@@ -254,7 +255,7 @@ void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
         return;
     }
 
-    sign(key, _hashX, _hashY, sig);
+   // enclave_sign(key, _hashX, _hashY, sig);
 
     strncpy(signature, sig, BUF_LEN);
 

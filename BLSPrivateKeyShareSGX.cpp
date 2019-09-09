@@ -159,6 +159,8 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
+  cerr << "Key is " + *encryptedKeyHex << endl;
+
   sgx_status_t status =
       bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);

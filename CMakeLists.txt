@@ -99,8 +99,8 @@ add_custom_target(sgxd COMMAND make all
         libff/libff/common/utils.cpp
         libff/libff/common/utils.hpp
         libff/libff/common/utils.tcc
-        secure_enclave/BLSUtils.cpp
-        secure_enclave/BLSUtils.h
+        secure_enclave/BLSEnclave.cpp
+        secure_enclave/BLSEnclave.h
         secure_enclave/secure_enclave.c
         secure_enclave/secure_enclave_t.c
         secure_enclave/secure_enclave_t.h

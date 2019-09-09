@@ -125,7 +125,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
 }
 
 
-bool sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
+bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
           char sig[BUF_LEN]) {
 
 

@@ -98,8 +98,6 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
   hex2carray(_hashHex, &binLen, hash->data());
 
-
-
   auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
   auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
