@@ -251,13 +251,18 @@ void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
 
     decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
-    if (err_status != 0) {
+    if (*err_status != 0) {
         return;
     }
 
     enclave_sign(key, _hashX, _hashY, sig);
 
     strncpy(signature, sig, BUF_LEN);
+
+    if (strnlen(signature, BUF_LEN) < 10) {
+        *err_status = -1;
+        return;
+    }
 
 
 }
