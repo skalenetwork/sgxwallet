@@ -60,7 +60,7 @@ sgx_status_t status;
 int updated;
 
 
-TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
+TEST_CASE("BLS key encrypt", "[bls-key-encrypt-decrypt]") {
     {
 
 
@@ -70,46 +70,45 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
                           "791864649971919844";
 
         char *keyArray = (char *) calloc(128, 1);
-
         uint8_t *encryptedKey = (uint8_t *) calloc(1024, 1);
+
 
         char *errMsg = (char *) calloc(1024, 1);
 
         strncpy((char *) keyArray, (char *) key, 128);
 
-        int err_status = 0;
+        int errStatus = 0;
 
-        unsigned int enc_len = 0;
+        unsigned int encryptedLen = 0;
 
-        status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
+        status = encrypt_key(eid, &errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
 
         REQUIRE(status == SGX_SUCCESS);
-        REQUIRE(err_status == 0);
+        REQUIRE(errStatus == 0);
 
-
-        printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
-        printf(" Encrypted key len %d\n", enc_len);
+        printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
+        printf(" Encrypted key len %d\n", encryptedLen);
 
 
         char result[2 * BUF_LEN];
 
-        carray2Hex(encryptedKey, enc_len, result);
+        carray2Hex(encryptedKey, encryptedLen, result);
 
-        uint64_t dec_len = 0;
+        uint64_t decodedLen = 0;
 
-        uint8_t bin[BUF_LEN];
+        uint8_t decoded[BUF_LEN];
 
-        REQUIRE(hex2carray(result, &dec_len, bin));
+        REQUIRE(hex2carray(result, &decodedLen, decoded));
 
-        for (uint64_t i = 0; i < dec_len; i++) {
-            REQUIRE(bin[i] == encryptedKey[i]);
+        for (uint64_t i = 0; i < decodedLen; i++) {
+            REQUIRE(decoded[i] == encryptedKey[i]);
         }
 
-        REQUIRE(dec_len == enc_len);
+        REQUIRE(decodedLen == encryptedLen);
 
         gmp_printf("Result: %s", result);
 
-        gmp_printf("\n Length: %d \n", enc_len);
+        gmp_printf("\n Length: %d \n", encryptedLen);
 
     }
 }
@@ -134,23 +133,23 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
 
     strncpy((char *) keyArray, (char *) key, 128);
 
-    int err_status = 0;
+    int errStatus = 0;
 
-    unsigned int enc_len = 0;
+    unsigned int encryptedLen = 0;
 
-    status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
+    status = encrypt_key(eid, &errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
 
     REQUIRE(status == SGX_SUCCESS);
-    REQUIRE(err_status == 0);
+    REQUIRE(errStatus == 0);
 
 
-    printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
-    printf(" Encrypted key len %d\n", enc_len);
+    printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
+    printf(" Encrypted key len %d\n", encryptedLen);
 
 
     char result[2 * BUF_LEN];
 
-    carray2Hex(encryptedKey, enc_len, result
+    carray2Hex(encryptedKey, encryptedLen, result
     );
 
     uint64_t dec_len = 0;
@@ -164,11 +163,11 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
         REQUIRE(bin[i] == encryptedKey[i]);
     }
 
-    REQUIRE(dec_len == enc_len);
+    REQUIRE(dec_len == encryptedLen);
 
     gmp_printf("Result: %s", result);
 
-    gmp_printf("\n Length: %d \n", enc_len);
+    gmp_printf("\n Length: %d \n", encryptedLen);
 
 
     char sig[BUF_LEN];
