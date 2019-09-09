@@ -123,7 +123,7 @@ assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
 
 os.chdir(BLS_BUILD_DIR);
 
-assert subprocess.call(["bash","-c", "make -j8"]) == 0
+assert subprocess.call(["bash","-c", "make"]) == 0
 
 
 os.chdir(SCRIPTS_DIR)
@@ -166,7 +166,7 @@ print "===>>> Making SSL  project"
 
 os.chdir(SSL_MAKE_DIR);
 
-assert subprocess.call(["make",  "-j8", "SGX_SDK=" + SGX_SDK_DIR_SSL, "all",  "test"]) == 0
+assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all",  "test"]) == 0
 
 os.chdir(topDir)
 
