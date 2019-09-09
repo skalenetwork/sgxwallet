@@ -130,7 +130,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
     memset(err_string, 0, BUF_LEN);
 
-    check_key(err_status, err_string, key);
+    checkKey(err_status, err_string, key);
 
     if (*err_status != 0) {
         snprintf(err_string + strlen(err_string), BUF_LEN, "check_key failed");

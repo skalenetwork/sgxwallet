@@ -76,7 +76,7 @@ void init() {
     libff::init_alt_bn128_params();
 }
 
-void check_key(int *err_status, char *err_string, const char *_keyString) {
+void checkKey(int *err_status, char *err_string, const char *_keyString) {
 
     uint64_t keyLen = strnlen(_keyString, MAX_KEY_LENGTH);
 
