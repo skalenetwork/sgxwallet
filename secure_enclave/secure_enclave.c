@@ -51,56 +51,60 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../sgxwallet_common.h"
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
+
 void *(*oc_realloc_func)(void *, size_t, size_t);
+
 void (*gmp_free_func)(void *, size_t);
+
 void (*oc_free_func)(void *, size_t);
 
 void *reallocate_function(void *, size_t, size_t);
+
 void free_function(void *, size_t);
 
 
 void tgmp_init() {
-  oc_realloc_func = &reallocate_function;
-  oc_free_func = &free_function;
+    oc_realloc_func = &reallocate_function;
+    oc_free_func = &free_function;
 
-  mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
-  mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
+    mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
+    mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
 }
 
 void free_function(void *ptr, size_t sz) {
-  if (sgx_is_within_enclave(ptr, sz))
-    gmp_free_func(ptr, sz);
-  else {
-    sgx_status_t status;
+    if (sgx_is_within_enclave(ptr, sz))
+        gmp_free_func(ptr, sz);
+    else {
+        sgx_status_t status;
 
-    status = oc_free(ptr, sz);
-    if (status != SGX_SUCCESS)
-      abort();
-  }
+        status = oc_free(ptr, sz);
+        if (status != SGX_SUCCESS)
+            abort();
+    }
 }
 
 void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
-  uint64_t nptr;
-  sgx_status_t status;
+    uint64_t nptr;
+    sgx_status_t status;
 
-  if (sgx_is_within_enclave(ptr, osize)) {
-    return gmp_realloc_func(ptr, osize, nsize);
-  }
+    if (sgx_is_within_enclave(ptr, osize)) {
+        return gmp_realloc_func(ptr, osize, nsize);
+    }
 
-  status = oc_realloc(&nptr, ptr, osize, nsize);
-  if (status != SGX_SUCCESS)
-    abort();
+    status = oc_realloc(&nptr, ptr, osize, nsize);
+    if (status != SGX_SUCCESS)
+        abort();
 
-  /*
-   * If the entire range of allocated memory is not outside the enclave
-   * then something truly terrible has happened. In theory, we could
-   * free() and try again, but would you trust the OS at this point?
-   */
+    /*
+     * If the entire range of allocated memory is not outside the enclave
+     * then something truly terrible has happened. In theory, we could
+     * free() and try again, but would you trust the OS at this point?
+     */
 
-  if (!sgx_is_outside_enclave((void *)ptr, nsize))
-    abort();
+    if (!sgx_is_outside_enclave((void *) ptr, nsize))
+        abort();
 
-  return (void *)nptr;
+    return (void *) nptr;
 }
 
 void e_mpz_add(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
@@ -113,222 +117,222 @@ void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
 void generate_ecdsa_key(int *err_status, char *err_string,
-    uint8_t *encrypted_key, uint32_t *enc_len) {
+                        uint8_t *encrypted_key, uint32_t *enc_len) {
 }
 
 
 void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
+    init();
 
-  *err_status = -1;
-  memset(err_string, 0, BUF_LEN);
-
-
-  *err_status = -3;
+    *err_status = -1;
+    memset(err_string, 0, BUF_LEN);
 
 
-  check_key(err_status, err_string, key);
-
-  if (*err_status != 0) {
-    snprintf(err_string + strlen(err_string), BUF_LEN,"check_key failed");
-    return;
-  }
-
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
-
-  *err_status = -4;
-
-  if (sealedLen > BUF_LEN) {
-    snprintf(err_string, BUF_LEN,"sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
-    return;
-  }
-
-  *err_status = -5;
-
-  memset(encrypted_key, 0, BUF_LEN);
-
-  if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t*) key, sealedLen,  (sgx_sealed_data_t*) encrypted_key) !=
-      SGX_SUCCESS) {
-    snprintf(err_string, BUF_LEN,"SGX seal data failed");
-    return;
-  }
-
-  *enc_len = sealedLen;
+    *err_status = -3;
 
 
+    check_key(err_status, err_string, key);
 
-  char key2[BUF_LEN];
+    if (*err_status != 0) {
+        snprintf(err_string + strlen(err_string), BUF_LEN, "check_key failed");
+        return;
+    }
 
-  memset(key2, 0, BUF_LEN);
+    uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
 
-  decrypt_key(err_status, err_string, encrypted_key, sealedLen, key2);
+    *err_status = -4;
 
-  if (*err_status != 0) {
-    snprintf(err_string + strlen(err_string), BUF_LEN , ":decrypt_key failed");
-    return;
-  }
+    if (sealedLen > BUF_LEN) {
+        snprintf(err_string, BUF_LEN, "sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
+        return;
+    }
+
+    *err_status = -5;
+
+    memset(encrypted_key, 0, BUF_LEN);
+
+    if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t *) key, sealedLen, (sgx_sealed_data_t *) encrypted_key) !=
+        SGX_SUCCESS) {
+        snprintf(err_string, BUF_LEN, "SGX seal data failed");
+        return;
+    }
+
+    *enc_len = sealedLen;
 
 
+    char key2[BUF_LEN];
 
-  uint64_t key2Len = strnlen(key2, MAX_KEY_LENGTH);
+    memset(key2, 0, BUF_LEN);
 
-  if (key2Len == MAX_KEY_LENGTH) {
-    snprintf(err_string, MAX_ERR_LEN,"Key2 is not null terminated");
-    return;
-  }
+    decrypt_key(err_status, err_string, encrypted_key, sealedLen, key2);
+
+    if (*err_status != 0) {
+        snprintf(err_string + strlen(err_string), BUF_LEN, ":decrypt_key failed");
+        return;
+    }
 
 
-  *err_status = -8;
+    uint64_t key2Len = strnlen(key2, MAX_KEY_LENGTH);
 
-  if (strncmp(key, key2, MAX_KEY_LENGTH) != 0)
-    return;
+    if (key2Len == MAX_KEY_LENGTH) {
+        snprintf(err_string, MAX_ERR_LEN, "Key2 is not null terminated");
+        return;
+    }
 
-  *err_status = 0;
+
+    *err_status = -8;
+
+    if (strncmp(key, key2, MAX_KEY_LENGTH) != 0)
+        return;
+
+    *err_status = 0;
 }
 
 void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
-                 uint32_t enc_len, char* key) {
+                 uint32_t enc_len, char *key) {
+
+    init();
 
 
-  uint32_t decLen;
+    uint32_t decLen;
 
-  *err_status = -9;
+    *err_status = -9;
 
-  sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*) key, &decLen);
+    sgx_status_t status = sgx_unseal_data(
+            (const sgx_sealed_data_t *) encrypted_key, NULL, 0, (uint8_t *) key, &decLen);
 
-  if (status != SGX_SUCCESS) {
-    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
-    return;
-  }
-
-
-  if (decLen != MAX_KEY_LENGTH) {
-    snprintf(err_string, BUF_LEN, "decLen != MAX_KEY_LENGTH");
-    return;
-  }
-
-  *err_status = -10;
-
-
-  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
-
-
-  if (keyLen == MAX_KEY_LENGTH) {
-    snprintf(err_string, BUF_LEN, "Key is not null terminated");
-    return;
-  }
-
-  // check that key is padded with 0s
-
-  for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
-    if (key[i] != 0) {
-      snprintf(err_string, BUF_LEN,"Unpadded key");
-      return;
+    if (status != SGX_SUCCESS) {
+        snprintf(err_string, BUF_LEN, "sgx_unseal_data failed with status %d", status);
+        return;
     }
-  }
 
-  *err_status = 0;
-  return;
+
+    if (decLen != MAX_KEY_LENGTH) {
+        snprintf(err_string, BUF_LEN, "decLen != MAX_KEY_LENGTH");
+        return;
+    }
+
+    *err_status = -10;
+
+
+    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+
+    if (keyLen == MAX_KEY_LENGTH) {
+        snprintf(err_string, BUF_LEN, "Key is not null terminated");
+        return;
+    }
+
+    // check that key is padded with 0s
+
+    for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
+        if (key[i] != 0) {
+            snprintf(err_string, BUF_LEN, "Unpadded key");
+            return;
+        }
+    }
+
+    *err_status = 0;
+    return;
 
 }
 
 
+void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
+                      uint32_t enc_len, char *_hashX,
+                      char *_hashY, char *signature) {
 
 
-void bls_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
-                        uint32_t enc_len, char *_hashX,
-                        char* _hashY, char *signature) {
+    char key[BUF_LEN];
+    char sig[BUF_LEN];
+
+    init();
 
 
-  char key[BUF_LEN];
-  char sig[BUF_LEN];
+    decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
+    if (err_status != 0) {
+        return;
+    }
 
+    sign(key, _hashX, _hashY, sig);
 
-  decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
-
-  if (err_status != 0) {
-    return;
-  }
-
-  sign(key, _hashX, _hashY, sig );
-
-  strncpy(signature, sig, BUF_LEN);
+    strncpy(signature, sig, BUF_LEN);
 
 
 }
 
 
-void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_key,
-                  uint32_t enc_len, uint8_t *message, char *signature) {
-  *err_status = -1;
+void ecdsa_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
+                        uint32_t enc_len, uint8_t *message, char *signature) {
+    *err_status = -1;
 
 
-  char key[BUF_LEN];
+    char key[BUF_LEN];
 
-  decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
+    decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
-  if (err_status != 0) {
-    return;
-  }
-
-
-
-  //strncpy(signature, ecdsaSig, MAX_SIG_LEN);
+    if (err_status != 0) {
+        return;
+    }
 
 
 
-
-  unsigned char entropy_buf[ADD_ENTROPY_SIZE] = {0};
-
-  RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
-  RAND_seed(entropy_buf, sizeof(entropy_buf));
-
-  // Initialize SGXSSL crypto
-  OPENSSL_init_crypto(0, NULL);
-
-  RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
-  RAND_seed(entropy_buf, sizeof(entropy_buf));
-
-  EC_KEY * ec = NULL;
-  int eccgroup;
-  eccgroup = OBJ_txt2nid("secp384r1");
-  ec = EC_KEY_new_by_curve_name(eccgroup);
-  if (ec == NULL) {
-    return;
-  }
-
-  EC_KEY_set_asn1_flag(ec, OPENSSL_EC_NAMED_CURVE);
-
-  int ret = EC_KEY_generate_key(ec);
-  if (!ret) {
-    return;
-  }
-
-  EVP_PKEY *ec_pkey = EVP_PKEY_new();
-  if (ec_pkey == NULL) {
-    return;
-  }
-  EVP_PKEY_assign_EC_KEY(ec_pkey, ec);
-  // DONE
+    //strncpy(signature, ecdsaSig, MAX_SIG_LEN);
 
 
-  char buffer[100];
-  unsigned char sig;
-  unsigned int siglen;
-  int i;
-  for (i = 0; i < 1000; i++) {
 
-    // Add context
-    EVP_MD_CTX* context = EVP_MD_CTX_new();
-    // Init, update, final
-    EVP_SignInit_ex(context, EVP_sha1(), NULL);
-    EVP_SignUpdate(context, &buffer, 100);
-    EVP_SignFinal(context, &sig, &siglen, ec_pkey);
-  }
 
-  *err_status = 0;
+    unsigned char entropy_buf[ADD_ENTROPY_SIZE] = {0};
+
+    RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
+    RAND_seed(entropy_buf, sizeof(entropy_buf));
+
+    // Initialize SGXSSL crypto
+    OPENSSL_init_crypto(0, NULL);
+
+    RAND_add(entropy_buf, sizeof(entropy_buf), ADD_ENTROPY_SIZE);
+    RAND_seed(entropy_buf, sizeof(entropy_buf));
+
+    EC_KEY *ec = NULL;
+    int eccgroup;
+    eccgroup = OBJ_txt2nid("secp384r1");
+    ec = EC_KEY_new_by_curve_name(eccgroup);
+    if (ec == NULL) {
+        return;
+    }
+
+    EC_KEY_set_asn1_flag(ec, OPENSSL_EC_NAMED_CURVE);
+
+    int ret = EC_KEY_generate_key(ec);
+    if (!ret) {
+        return;
+    }
+
+    EVP_PKEY *ec_pkey = EVP_PKEY_new();
+    if (ec_pkey == NULL) {
+        return;
+    }
+    EVP_PKEY_assign_EC_KEY(ec_pkey, ec);
+    // DONE
+
+
+    char buffer[100];
+    unsigned char sig;
+    unsigned int siglen;
+    int i;
+    for (i = 0; i < 1000; i++) {
+
+        // Add context
+        EVP_MD_CTX *context = EVP_MD_CTX_new();
+        // Init, update, final
+        EVP_SignInit_ex(context, EVP_sha1(), NULL);
+        EVP_SignUpdate(context, &buffer, 100);
+        EVP_SignFinal(context, &sig, &siglen, ec_pkey);
+    }
+
+    *err_status = 0;
 
 }

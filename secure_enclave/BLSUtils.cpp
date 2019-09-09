@@ -68,10 +68,18 @@ libff::alt_bn128_Fr *keyFromString(const char* _keyString) {
   return new libff::alt_bn128_Fr(_keyString);
 }
 
+
+int inited = 0;
+
+void init() {
+    if (inited == 1)
+        return;
+    inited = 1;
+    libff::init_alt_bn128_params();
+}
+
 bool check_key(int *err_status, char *err_string, const char *_keyString) {
 
-
-    libff::init_alt_bn128_params();
 
 
 

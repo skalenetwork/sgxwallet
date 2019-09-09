@@ -26,5 +26,7 @@ EXTERNC void  carray2Hex(const unsigned char *d, int _len, char* _hexArray);
 EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                        uint8_t* _bin );
 
+EXTERNC void init();
+
 
 #endif //SGXWALLET_BLSUTILS_H
