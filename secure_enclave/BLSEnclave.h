@@ -19,8 +19,7 @@ EXTERNC void check_key(int *err_status, char *err_string, const char* _keyString
 
 
 
-EXTERNC bool enclave_sign(const char *_keyString, const char* _hashXString, const char* _hashYString,
-           char* _sig);
+EXTERNC bool enclave_sign(const char *_keyString, const char* _hashXString, const char* _hashYString, char* _sig);
 
 
 

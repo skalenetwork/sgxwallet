@@ -126,13 +126,17 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
 
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
-          char sig[BUF_LEN]) {
+          char* sig) {
 
 
     libff::init_alt_bn128_params();
 
 
     auto key = keyFromString(_keyString);
+
+    if (key == nullptr) {
+        throw std::exception();
+    }
 
     libff::alt_bn128_Fq hashX(_hashXString);
     libff::alt_bn128_Fq hashY(_hashYString);
@@ -142,17 +146,25 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
     libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
 
 
+
+
     libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
 
     sign.to_affine_coordinates();
+
+
 
     auto r = stringFromG1(&sign);
 
     memset(sig, 0, BUF_LEN);
 
+
+
     strncpy(sig, r->c_str(), BUF_LEN);
 
     delete r;
+
+
 
     return true;
 
