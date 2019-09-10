@@ -194,6 +194,7 @@ Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyShareN
 
 void SGXWalletServer::checkKeyShareDoesExist(const string& _keyShare) {
 
+
 }
 
 void SGXWalletServer::checkKeyShareDoesNotExist(const string& _keyShare) {

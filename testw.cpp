@@ -180,6 +180,10 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     }
 }
 
+TEST_CASE("BLS key import", "[bls-key-import]") {
+
+}
+
 
 TEST_CASE("BLS sign test", "[bls-sign]") {
 

@@ -32,7 +32,6 @@
 
 
 
-LevelDB* levelDb = nullptr;
 
 
 

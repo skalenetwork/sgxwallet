@@ -79,4 +79,6 @@ public:
 };
 
 
+extern LevelDB* levelDb;
+
 #endif

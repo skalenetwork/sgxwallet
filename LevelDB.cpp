@@ -39,6 +39,8 @@ static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
 
+LevelDB* levelDb = nullptr;
+
 std::shared_ptr<std::string> LevelDB::readString(std::string &_key) {
 
     auto result = std::make_shared<std::string>();
@@ -129,4 +131,6 @@ LevelDB::~LevelDB() {
     if (db != nullptr)
         delete db;
 }
+
+
 
