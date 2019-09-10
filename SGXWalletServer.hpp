@@ -25,17 +25,28 @@ public:
     virtual Json::Value ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
 
 
-    void writeKeyShare(const string& _keyShare, const string& value);
-
-    shared_ptr<std::string> readKeyShare(const string& _keyShare);
-
-    void writeECDSAKey(const string& _key, const string& value);
-
-    shared_ptr<std::string> readECDSAKey(const string& _key);
 
 
 
 };
+
+
+
+void writeKeyShare(const string& _keyShare, const string& value);
+
+shared_ptr<std::string> readKeyShare(const string& _keyShare);
+
+void writeECDSAKey(const string& _key, const string& value);
+
+shared_ptr<std::string> readECDSAKey(const string& _key);
+
+
+Json::Value importBLSKeyShareImpl(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
+Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash);
+Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName);
+Json::Value generateECDSAKeyImpl(const std::string& keyName);
+Json::Value ecdsaSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash);
+
 
 
 
