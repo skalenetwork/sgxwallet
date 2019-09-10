@@ -16,7 +16,7 @@ public:
     int32_t status;
     std::string errString;
 
-    RPCException(int32_t _status, std::string& _errString) : status(_status), errString(_errString) {}
+    RPCException(int32_t _status, const char* _errString) : status(_status), errString(_errString) {}
 
 };
 

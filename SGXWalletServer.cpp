@@ -22,6 +22,7 @@
 
 #include "RPCException.h"
 #include "LevelDB.h"
+#include "BLSCrypto.h"
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
@@ -83,6 +84,9 @@ int init_server() {
 Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, const std::string& _keyShareName, int n, int t) {
     Json::Value result;
 
+    int errStatus = UNKNOWN_ERROR;
+    char *errMsg = (char *) calloc(BUF_LEN, 1);
+
 
 
     result["status"] = 0;
@@ -90,8 +94,22 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
     result["encryptedKeyShare"] = "";
 
 
+
     try {
-        writeKeyShare(_keyShareName, _keyShare);
+
+
+        char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
+
+        if (encryptedKeyShareHex == nullptr) {
+            throw RPCException(UNKNOWN_ERROR, "");
+        }
+
+        if (errStatus != 0) {
+            throw RPCException(errStatus, errMsg);
+        }
+
+        writeKeyShare(_keyShareName, encryptedKeyShareHex);
+
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -144,6 +162,8 @@ Json::Value generateECDSAKeyImpl(const std::string& _keyName)  {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+
+    return result;
 }
 
 
@@ -171,7 +191,7 @@ Json::Value SGXWalletServer::generateECDSAKey(const std::string& _keyName)  {
 }
 
 Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyName, const std::string& messageHash)  {
-    ecdsaSignMessageHashImpl(_keyName, messageHash);
+    return ecdsaSignMessageHashImpl(_keyName, messageHash);
 }
 
 Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& _keyShare, const std::string& _keyShareName, int n, int t) {
@@ -195,8 +215,7 @@ shared_ptr<string> readKeyShare(const string& _keyShareName) {
     auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
 
     if (keyShareStr == nullptr) {
-        string error("Key share with this name does not exists");
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, error);
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
     }
 
     return keyShareStr;
@@ -208,14 +227,14 @@ void writeKeyShare(const string& _keyShareName, const string& value) {
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
     if (levelDb->readString(_keyShareName) != nullptr) {
-        string error("Key share with this name already exists");
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, error);
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name already exists");
     }
 
     levelDb->writeString(key, value);
 }
 
 shared_ptr<std::string> readECDSAKey(const string& _keyShare) {
+    return nullptr;
 
 }
 
