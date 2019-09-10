@@ -43,6 +43,8 @@ LevelDB* levelDb = nullptr;
 
 std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
     auto result = std::make_shared<std::string>();
 
     if (db == nullptr) {
@@ -61,6 +63,8 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
 void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
     auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
 
     throwExceptionOnError(status);
@@ -68,6 +72,8 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
                              size_t _valueLen) {
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     auto status = db->Put(writeOptions, Slice(_key, _keyLen), Slice(value, _valueLen));
 
@@ -77,6 +83,8 @@ void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value
 
 void LevelDB::writeByteArray(std::string &_key, const char *value,
                              size_t _valueLen) {
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     auto status = db->Put(writeOptions, Slice(_key), Slice(value, _valueLen));
 
@@ -94,6 +102,8 @@ void LevelDB::throwExceptionOnError(Status _status) {
 }
 
 uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVisit) {
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     uint64_t readCounter = 0;
 

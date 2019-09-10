@@ -27,6 +27,7 @@
 
 #include <memory>
 #include <string>
+#include <mutex>
 
 namespace leveldb {
     class DB;
@@ -35,6 +36,8 @@ namespace leveldb {
 }
 
 class LevelDB {
+
+    std::recursive_mutex mutex;
 
     leveldb::DB* db;
 
