@@ -120,6 +120,10 @@ char *decryptKeyFromHex(int *errStatus, char *errMsg, const char *_encryptedKey)
 
 #define  TEST_KEY "4160780231445160889237664391382223604184857153814275770598791864649971919844"
 
+void reset_db() {
+    REQUIRE(system("rm -rf " WALLETDB_NAME) == 0);
+}
+
 char* encryptTestKey() {
 
     const char *key = TEST_KEY;
@@ -212,6 +216,18 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
 
 
 }
+
+
+
+TEST_CASE("KeysDB test", "[dkg-gen]") {
+
+    reset_db();
+    init_all();
+
+// put your test here
+}
+
+
 
 
 TEST_CASE("DKG gen test", "[dkg-gen]") {

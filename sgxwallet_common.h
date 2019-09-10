@@ -37,6 +37,8 @@
 #define KEY_SHARE_DOES_NOT_EXIST -7
 #define KEY_SHARE_ALREADY_EXISTS -8
 
+#define WALLETDB_NAME "sgxwallet.db"
+
 
 
 

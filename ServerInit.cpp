@@ -40,7 +40,7 @@ void init_daemon() {
 
     libff::init_alt_bn128_params();
 
-    static std::string dbName("./sgxwalletdb");
+    static std::string dbName("./" WALLETDB_NAME);
 
     levelDb = new LevelDB(dbName);
 
