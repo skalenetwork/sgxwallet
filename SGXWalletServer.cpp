@@ -35,41 +35,6 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                            serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
-void SGXWalletServer::notifyServer() { cout << "Server got notified" << endl; }
-
-string SGXWalletServer::sayHello(const string &name) {
-    if (name == "")
-        throw JsonRpcException(-32100, "Name was empty");
-    return "Hello " + name;
-}
-
-int SGXWalletServer::addNumbers(int param1, int param2) { return param1 + param2; }
-
-double SGXWalletServer::addNumbers2(double param1, double param2) {
-    return param1 + param2;
-}
-
-bool SGXWalletServer::isEqual(const string &str1, const string &str2) {
-    return str1 == str2;
-}
-
-
-
-
-
-
-Json::Value SGXWalletServer::buildObject(const string &name, int age) {
-    Json::Value result;
-    result["name"] = name;
-    result["year"] = age;
-    return result;
-}
-
-
-
-
-string SGXWalletServer::methodWithoutParameters() { return "Test"; }
-
 int init_server() {
     HttpServer httpserver(1025);
     SGXWalletServer s(httpserver,
