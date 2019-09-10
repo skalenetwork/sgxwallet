@@ -177,7 +177,34 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
 
 }
 
+TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
+    reset_db();
+
+    init_all();
+
+    char* encryptedKeyHex = encryptTestKey();
+
+    REQUIRE(encryptedKeyHex != nullptr);
+
+
+    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+
+    Json::Value result;
+
+    REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash));
+
+    if (result["status"] != 0) {
+        printf("Error message: %s", result["errorMessage"].asString().c_str());
+    }
+
+
+    REQUIRE(result["status"] == 0);
+    REQUIRE(result["signatureShare"] != "");
+
+    printf("Signature is: %s \n",  result["signatureShare"].asString().c_str());
+
+}
 
 TEST_CASE("KeysDB test", "[keys-db]") {
 

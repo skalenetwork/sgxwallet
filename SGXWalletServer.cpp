@@ -126,6 +126,7 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
     result["signatureShare"] = "";
 
 
+
     //int errStatus = UNKNOWN_ERROR;
     //char *errMsg = (char *) calloc(BUF_LEN, 1);
     char *signature = (char *) calloc(BUF_LEN, 1);
@@ -140,13 +141,24 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         return result;
+    } catch (...) {
+        result["status"] = -1;
+        result["errorMessage"] = "Read key share has thrown exception";
+        return result;
     }
 
+    try {
     if(!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
         result["status"] = -1;
         result["errorMessage"] = "Could not sign";
         return result;
     }
+    } catch (...) {
+        result["status"] = -1;
+        result["errorMessage"] = "Sign has thrown exception";
+        return result;
+    }
+
 
     result["status"] = 0;
     result["errorMessage"] = "";
