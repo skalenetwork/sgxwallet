@@ -65,8 +65,6 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
-
-
 #define  TEST_BLS_KEY_SHARE "4160780231445160889237664391382223604184857153814275770598791864649971919844"
 #define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
 
@@ -183,14 +181,15 @@ TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
     init_all();
 
-    char* encryptedKeyHex = encryptTestKey();
+    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
 
-    REQUIRE(encryptedKeyHex != nullptr);
+    REQUIRE(result["status"] == 0);
+
+    REQUIRE(result["encryptedKeyShare"] != "");
 
 
     const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
 
-    Json::Value result;
 
     REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash));
 

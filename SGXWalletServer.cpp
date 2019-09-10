@@ -137,13 +137,15 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
 
     try {
         value = readKeyShare(keyShareName);
-    } catch (RPCException& _e) {
+    } catch (RPCException _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         return result;
     } catch (...) {
+        std::exception_ptr p = std::current_exception();
+        printf("Exception %s \n", p.__cxa_exception_type()->name());
         result["status"] = -1;
-        result["errorMessage"] = "Read key share has thrown exception";
+        result["errorMessage"] = "Read key share has thrown exception:";
         return result;
     }
 
@@ -244,7 +246,7 @@ shared_ptr<string> readKeyShare(const string& _keyShareName) {
     auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
 
     if (keyShareStr == nullptr) {
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
+        throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
     }
 
     return keyShareStr;

@@ -95,7 +95,7 @@ void LevelDB::writeByteArray(std::string &_key, const char *value,
 void LevelDB::throwExceptionOnError(Status _status) {
     if (_status.IsNotFound())
         return;
-git 
+
     if (!_status.ok()) {
         throw RPCException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
     }
