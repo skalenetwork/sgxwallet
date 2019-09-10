@@ -15,4 +15,10 @@
 EXTERNC int init_server();
 
 
+
+
+
+
+
+
 #endif //SGXWALLET_SGXWALLETSERVER_H
