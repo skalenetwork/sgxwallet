@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 
+#include "sgxwallet_common.h"
+
 #include "RPCException.h"
 #include "LevelDB.h"
 #include "SGXWalletServer.h"
@@ -50,13 +52,13 @@ public:
 
 
 
-    void checkKeyShareDoesExist(const string& _keyShare);
+    void writeKeyShare(const string& _keyShare, const string& value);
 
-    void checkKeyShareDoesNotExist(const string& _keyShare);
+    shared_ptr<std::string> readKeyShare(const string& _keyShare);
 
-    void checkECDSAKeyDoesExist(const string& _keyShare);
+    void writeECDSAKey(const string& _key, const string& value);
 
-    void checkECDSAKeyDoesNotExist(const string& _keyShare);
+    shared_ptr<std::string> readECDSAKey(const string& _key);
 
 
 
@@ -111,7 +113,7 @@ int init_server() {
 
 
 
-Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) {
+Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& _keyShare, const std::string& _keyShareName, int n, int t) {
     Json::Value result;
 
 
@@ -122,7 +124,7 @@ Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& ke
 
 
     try {
-        checkKeyShareDoesNotExist(keyShare);
+        writeKeyShare(_keyShareName, _keyShare);
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -139,7 +141,7 @@ Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName,
 
 
     try {
-        checkKeyShareDoesExist(keyShareName);
+        readKeyShare(keyShareName);
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -166,13 +168,13 @@ Json::Value SGXWalletServer::generateECDSAKey(const std::string& _keyName)  {
     result["encryptedKey"] = "";
 
     try {
-        checkECDSAKeyDoesNotExist(_keyName);
+        writeECDSAKey(_keyName, "");
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
 }
-Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyShareName, const std::string& messageHash)  {
+Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyName, const std::string& messageHash)  {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -180,7 +182,7 @@ Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyShareN
 
 
     try {
-        checkECDSAKeyDoesExist(_keyShareName);
+        readECDSAKey(_keyName);
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -192,19 +194,30 @@ Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyShareN
 
 
 
-void SGXWalletServer::checkKeyShareDoesExist(const string& _keyShare) {
+shared_ptr<string> SGXWalletServer::readKeyShare(const string& _keyShareName) {
 
+    auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
+
+    if (keyShareStr == nullptr) {
+        string error("Key share with this name does not exists");
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, error);
+    }
+
+    return keyShareStr;
 
 }
 
-void SGXWalletServer::checkKeyShareDoesNotExist(const string& _keyShare) {
+void SGXWalletServer::writeKeyShare(const string& _keyShareName, const string& value) {
+    if (levelDb->readString("BLSKEYSHARE:" + _keyShareName) != nullptr) {
+        string error("Key share with this name already exists");
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, error);
+    }
+}
+
+shared_ptr<std::string> SGXWalletServer::readECDSAKey(const string& _keyShare) {
 
 }
 
-void SGXWalletServer::checkECDSAKeyDoesExist(const string& _keyShare) {
-
-}
-
-void SGXWalletServer::checkECDSAKeyDoesNotExist(const string& _keyShare) {
+void SGXWalletServer::writeECDSAKey(const string& _keyShare, const string& value) {
 
 }

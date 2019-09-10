@@ -38,10 +38,10 @@ class LevelDB {
 
     leveldb::DB* db;
 
-protected:
+public:
 
 
-    std::shared_ptr<std::string> readString(std::string& _key);
+    std::shared_ptr<std::string> readString(const std::string& _key);
 
 
     void writeString(const std::string &key1, const std::string &value1);
