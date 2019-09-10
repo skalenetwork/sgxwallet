@@ -184,14 +184,15 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
   }
 
 
-  cerr << "Signature is:" << signature << endl;
-
 
 
   std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
                      hash_with_hint.second;
 
   auto sig = make_shared<string>(signature);
+
+  sig->append(":");
+  sig->append(hint);
 
   auto s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
                                     totalSigners);

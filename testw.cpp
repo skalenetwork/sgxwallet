@@ -197,9 +197,15 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
     strncpy(hexHashBuf,  hexHash, BUF_LEN);
 
 
+
     char sig[BUF_LEN];
 
     REQUIRE(sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig));
+
+
+    printf("Signature is: %s \n",  sig );
+
+
 
 }
 

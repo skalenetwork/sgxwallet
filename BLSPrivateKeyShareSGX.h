@@ -25,6 +25,7 @@
 #define SGXWALLET_BLSPRIVATEKEYSHARESGX_H
 #define SGXWALLET_BLSPRIVATEKEYSHARESGX_H
 
+#include "BLSSigShare.h"
 #include "BLSPrivateKeyShare.h"
 
 class BLSPrivateKeyShareSGX {

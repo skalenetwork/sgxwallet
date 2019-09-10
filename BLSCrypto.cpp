@@ -102,6 +102,10 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
   auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
 
+  auto sigShareStr = sigShare->toString();
+
+  strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
+
   return true;
 
 }
