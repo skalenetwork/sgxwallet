@@ -65,63 +65,6 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
-char *encryptKey2Hex(int *errStatus, char *err_string, const char *_key) {
-    char *keyArray = (char *) calloc(BUF_LEN, 1);
-    uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
-    char *errMsg = (char *) calloc(BUF_LEN, 1);
-    strncpy((char *) keyArray, (char *) _key, BUF_LEN);
-
-    *errStatus = -1;
-
-    unsigned int encryptedLen = 0;
-
-    status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
-
-    if (status != SGX_SUCCESS) {
-        *errStatus = -1;
-        return nullptr;
-    }
-
-    if (*errStatus != 0) {
-        return nullptr;
-    }
-
-
-    char *result = (char *) calloc(2 * BUF_LEN, 1);
-
-    carray2Hex(encryptedKey, encryptedLen, result);
-
-    return result;
-}
-
-char *decryptKeyFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
-
-
-        *errStatus = -1;
-
-        uint64_t decodedLen = 0;
-
-        uint8_t decoded[BUF_LEN];
-
-        if (!(hex2carray(_encryptedKey, &decodedLen, decoded))) {
-            return nullptr;
-        }
-
-        char *plaintextKey = (char *) calloc(BUF_LEN, 1);
-
-        status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
-
-        if (status != SGX_SUCCESS) {
-            return nullptr;
-        }
-
-        if (*errStatus != 0) {
-            return nullptr;
-        }
-
-    return plaintextKey;
-
-}
 
 
 #define  TEST_KEY "4160780231445160889237664391382223604184857153814275770598791864649971919844"
@@ -139,7 +82,7 @@ char* encryptTestKey() {
 
     char *errMsg = (char *) calloc(BUF_LEN, 1);
 
-    char *encryptedKeyHex = encryptKey2Hex(&errStatus, errMsg, key);
+    char *encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, key);
 
     REQUIRE(encryptedKeyHex != nullptr);
     REQUIRE(errStatus == 0);
@@ -176,7 +119,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         char* encryptedKey = encryptTestKey();
         REQUIRE(encryptedKey != nullptr);
 
-        char* plaintextKey = decryptKeyFromHex(&errStatus, errMsg, encryptedKey);
+        char* plaintextKey = decryptBLSKeyShareFromHex(&errStatus, errMsg, encryptedKey);
 
         REQUIRE(errStatus == 0);
 

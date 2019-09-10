@@ -110,3 +110,61 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
 }
 
+
+char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+    char *keyArray = (char *) calloc(BUF_LEN, 1);
+    uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
+    char *errMsg = (char *) calloc(BUF_LEN, 1);
+    strncpy((char *) keyArray, (char *) _key, BUF_LEN);
+
+    *errStatus = -1;
+
+    unsigned int encryptedLen = 0;
+
+    status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+
+    if (status != SGX_SUCCESS) {
+        *errStatus = -1;
+        return nullptr;
+    }
+
+    if (*errStatus != 0) {
+        return nullptr;
+    }
+
+
+    char *result = (char *) calloc(2 * BUF_LEN, 1);
+
+    carray2Hex(encryptedKey, encryptedLen, result);
+
+    return result;
+}
+
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
+
+
+    *errStatus = -1;
+
+    uint64_t decodedLen = 0;
+
+    uint8_t decoded[BUF_LEN];
+
+    if (!(hex2carray(_encryptedKey, &decodedLen, decoded))) {
+        return nullptr;
+    }
+
+    char *plaintextKey = (char *) calloc(BUF_LEN, 1);
+
+    status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+
+    if (status != SGX_SUCCESS) {
+        return nullptr;
+    }
+
+    if (*errStatus != 0) {
+        return nullptr;
+    }
+
+    return plaintextKey;
+
+}
