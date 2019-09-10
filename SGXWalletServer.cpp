@@ -121,19 +121,36 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
 
 Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash) {
     Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    result["status"] = -1;
+    result["errorMessage"] = "Unknown server error";
     result["signatureShare"] = "";
 
 
+    //int errStatus = UNKNOWN_ERROR;
+    //char *errMsg = (char *) calloc(BUF_LEN, 1);
+    char *signature = (char *) calloc(BUF_LEN, 1);
+
+
+    shared_ptr<std::string> value = nullptr;
+
+
     try {
-        readKeyShare(keyShareName);
+        value = readKeyShare(keyShareName);
     } catch (RPCException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
+        return result;
     }
 
+    if(!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
+        result["status"] = -1;
+        result["errorMessage"] = "Could not sign";
+        return result;
+    }
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["signatureShare"] = signature;
     return result;
 }
 
