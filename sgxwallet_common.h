@@ -36,6 +36,8 @@
 #define SEAL_KEY_FAILED -7
 #define KEY_SHARE_DOES_NOT_EXIST -7
 #define KEY_SHARE_ALREADY_EXISTS -8
+#define COULD_NOT_ACCESS_DATABASE -9
+#define NULL_DATABASE -10
 
 #define WALLETDB_NAME "sgxwallet.db"
 

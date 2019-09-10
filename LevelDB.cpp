@@ -29,7 +29,8 @@
 
 #include "leveldb/db.h"
 
-
+#include "sgxwallet_common.h"
+#include "RPCException.h"
 #include "LevelDB.h"
 
 using namespace leveldb;
@@ -48,7 +49,7 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
     auto result = std::make_shared<std::string>();
 
     if (db == nullptr) {
-        throw std::runtime_error("Null db");
+        throw RPCException(NULL_DATABASE, "Null db");
     }
 
     auto status = db->Get(readOptions, _key, &*result);
@@ -94,9 +95,9 @@ void LevelDB::writeByteArray(std::string &_key, const char *value,
 void LevelDB::throwExceptionOnError(Status _status) {
     if (_status.IsNotFound())
         return;
-
+git 
     if (!_status.ok()) {
-        throw std::runtime_error("Could not write to database:" + _status.ToString());
+        throw RPCException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
     }
 
 }
