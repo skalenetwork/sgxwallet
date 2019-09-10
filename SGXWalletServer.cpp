@@ -93,8 +93,6 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
-
-
     try {
 
 
@@ -107,6 +105,8 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
         if (errStatus != 0) {
             throw RPCException(errStatus, errMsg);
         }
+
+        result["encryptedKeyShare"]  = encryptedKeyShareHex;
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex);
 

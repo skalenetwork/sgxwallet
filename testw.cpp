@@ -67,7 +67,8 @@ int updated;
 
 
 
-#define  TEST_KEY "4160780231445160889237664391382223604184857153814275770598791864649971919844"
+#define  TEST_BLS_KEY_SHARE "4160780231445160889237664391382223604184857153814275770598791864649971919844"
+#define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
 
 void reset_db() {
     REQUIRE(system("rm -rf " WALLETDB_NAME) == 0);
@@ -75,7 +76,7 @@ void reset_db() {
 
 char* encryptTestKey() {
 
-    const char *key = TEST_KEY;
+    const char *key = TEST_BLS_KEY_SHARE;
 
 
     int errStatus = -1;
@@ -123,7 +124,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
         REQUIRE(errStatus == 0);
 
-        REQUIRE(strcmp(plaintextKey, TEST_KEY) == 0);
+        REQUIRE(strcmp(plaintextKey, TEST_BLS_KEY_SHARE) == 0);
 
         printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
         printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
@@ -134,6 +135,16 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 }
 
 TEST_CASE("BLS key import", "[bls-key-import]") {
+    reset_db();
+    init_all();
+
+
+
+    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
+
+    REQUIRE(result["status"] == 0);
+
+    REQUIRE(result["encryptedKeyShare"] != "");
 
 }
 
@@ -176,8 +187,8 @@ TEST_CASE("KeysDB test", "[keys-db]") {
     init_all();
 
 
-    string key = "SCHAIN:17:INDEX:5:KEY:1";
-    string value = TEST_KEY;
+    string key = TEST_BLS_KEY_SHARE;
+    string value = TEST_BLS_KEY_SHARE;
 
 
 
