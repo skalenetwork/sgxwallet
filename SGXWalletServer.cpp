@@ -208,10 +208,15 @@ shared_ptr<string> SGXWalletServer::readKeyShare(const string& _keyShareName) {
 }
 
 void SGXWalletServer::writeKeyShare(const string& _keyShareName, const string& value) {
-    if (levelDb->readString("BLSKEYSHARE:" + _keyShareName) != nullptr) {
+
+    auto key = "BLSKEYSHARE:" + _keyShareName;
+
+    if (levelDb->readString(_keyShareName) != nullptr) {
         string error("Key share with this name already exists");
         throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, error);
     }
+
+    levelDb->writeString(key, value);
 }
 
 shared_ptr<std::string> SGXWalletServer::readECDSAKey(const string& _keyShare) {
