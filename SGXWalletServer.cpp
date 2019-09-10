@@ -64,7 +64,7 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex, index, n , t);
 
     } catch (RPCException &_e) {
         result["status"] = _e.status;
@@ -195,7 +195,7 @@ Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::s
 }
 
 
-shared_ptr <string> readKeyShare(const string &_keyShareName) {
+shared_ptr<string> readKeyShare(const string &_keyShareName) {
 
     auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
 
@@ -207,7 +207,17 @@ shared_ptr <string> readKeyShare(const string &_keyShareName) {
 
 }
 
-void writeKeyShare(const string &_keyShareName, const string &value) {
+void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t) {
+
+    Json::Value val;
+    Json::FastWriter writer;
+
+    val["value"] = value;
+    val["t"] = t;
+    val["index"] = index;
+    val["n'"] = n;
+
+    std::string json = writer.write(val);
 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 

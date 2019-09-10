@@ -29,7 +29,7 @@ public:
 
 
 
-void writeKeyShare(const string& _keyShare, const string& value);
+void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
 
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
 

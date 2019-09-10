@@ -221,7 +221,7 @@ TEST_CASE("KeysDB test", "[keys-db]") {
     REQUIRE_THROWS(readKeyShare(key));
 
 
-    writeKeyShare(key, value);
+    writeKeyShare(key, value, 1, 2, 1);
 
     REQUIRE(readKeyShare(key) != nullptr);
 
