@@ -39,6 +39,8 @@
 
 #define WALLETDB_NAME "sgxwallet.db"
 
+#define ENCLAVE_NAME "secure_enclave.signed.so"
+
 
 
 

@@ -31,19 +31,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
 #include "sgxwallet_common.h"
 #include "create_enclave.h"
 #include "secure_enclave_u.h"
 #include "sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
-
+#include <stdio.h>
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#define ENCLAVE_NAME "secure_enclave.signed.so"
 
+#include "RPCException.h"
+#include "LevelDB.h"
+
+#include "SGXWalletServer.hpp"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
@@ -219,10 +225,26 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
 
 
 
-TEST_CASE("KeysDB test", "[dkg-gen]") {
+TEST_CASE("KeysDB test", "[keys-db]") {
+
+
 
     reset_db();
     init_all();
+
+
+    string key = "SCHAIN:17:INDEX:5:KEY:1";
+    string value = TEST_KEY;
+
+
+
+    REQUIRE_THROWS(readKeyShare(key));
+
+
+    writeKeyShare(key, value);
+
+    REQUIRE(readKeyShare(key) != nullptr);
+
 
 // put your test here
 }
