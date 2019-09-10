@@ -26,32 +26,24 @@
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
-
-
-
-
-
 SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
-                           serverVersion_t type)
+                                 serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
 int init_server() {
     HttpServer httpserver(1025);
     SGXWalletServer s(httpserver,
-                   JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
+                      JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
     s.StartListening();
     return 0;
 }
 
-
-
-
-Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, const std::string& _keyShareName, int n, int t) {
+Json::Value
+importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string &_keyShareName, int n, int t) {
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
     char *errMsg = (char *) calloc(BUF_LEN, 1);
-
 
 
     result["status"] = 0;
@@ -59,7 +51,6 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
     result["encryptedKeyShare"] = "";
 
     try {
-
 
         char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
@@ -71,11 +62,11 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
             throw RPCException(errStatus, errMsg);
         }
 
-        result["encryptedKeyShare"]  = encryptedKeyShareHex;
+        result["encryptedKeyShare"] = encryptedKeyShareHex;
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex);
 
-    } catch (RPCException& _e) {
+    } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -84,7 +75,7 @@ Json::Value  importBLSKeyShareImpl(int index, const std::string& _keyShare, cons
 }
 
 
-Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash) {
+Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash) {
     Json::Value result;
     result["status"] = -1;
     result["errorMessage"] = "Unknown server error";
@@ -97,7 +88,7 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
     char *signature = (char *) calloc(BUF_LEN, 1);
 
 
-    shared_ptr<std::string> value = nullptr;
+    shared_ptr <std::string> value = nullptr;
 
 
     try {
@@ -115,11 +106,11 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
     }
 
     try {
-    if(!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
-        result["status"] = -1;
-        result["errorMessage"] = "Could not sign";
-        return result;
-    }
+        if (!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
+            result["status"] = -1;
+            result["errorMessage"] = "Could not sign";
+            return result;
+        }
     } catch (...) {
         result["status"] = -1;
         result["errorMessage"] = "Sign has thrown exception";
@@ -134,7 +125,7 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
 }
 
 
-Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName)  {
+Json::Value importECDSAKeyImpl(const std::string &key, const std::string &keyName) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -143,8 +134,7 @@ Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyNam
 }
 
 
-
-Json::Value generateECDSAKeyImpl(const std::string& _keyName)  {
+Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
 
 
     Json::Value result;
@@ -154,7 +144,7 @@ Json::Value generateECDSAKeyImpl(const std::string& _keyName)  {
 
     try {
         writeECDSAKey(_keyName, "");
-    } catch (RPCException& _e) {
+    } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -163,9 +153,7 @@ Json::Value generateECDSAKeyImpl(const std::string& _keyName)  {
 }
 
 
-
-
-Json::Value  ecdsaSignMessageHashImpl(const std::string& _keyName, const std::string& messageHash)  {
+Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::string &messageHash) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -174,7 +162,7 @@ Json::Value  ecdsaSignMessageHashImpl(const std::string& _keyName, const std::st
 
     try {
         readECDSAKey(_keyName);
-    } catch (RPCException& _e) {
+    } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -182,31 +170,32 @@ Json::Value  ecdsaSignMessageHashImpl(const std::string& _keyName, const std::st
     return result;
 }
 
-Json::Value SGXWalletServer::generateECDSAKey(const std::string& _keyName)  {
+Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
     return generateECDSAKeyImpl(_keyName);
 }
 
-Json::Value  SGXWalletServer::ecdsaSignMessageHash(const std::string& _keyName, const std::string& messageHash)  {
+Json::Value SGXWalletServer::ecdsaSignMessageHash(const std::string &_keyName, const std::string &messageHash) {
     return ecdsaSignMessageHashImpl(_keyName, messageHash);
 }
 
-Json::Value  SGXWalletServer::importBLSKeyShare(int index, const std::string& _keyShare, const std::string& _keyShareName, int n, int t) {
+Json::Value
+SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, const std::string &_keyShareName, int n,
+                                   int t) {
     return importBLSKeyShareImpl(index, _keyShare, _keyShareName, n, t);
 
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) {
+Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash) {
     return blsSignMessageHashImpl(keyShareName, messageHash);
 }
 
 
-Json::Value SGXWalletServer::importECDSAKey(const std::string& key, const std::string& keyName)  {
-    return  importECDSAKeyImpl(key, keyName);
+Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
+    return importECDSAKeyImpl(key, keyName);
 }
 
 
-
-shared_ptr<string> readKeyShare(const string& _keyShareName) {
+shared_ptr <string> readKeyShare(const string &_keyShareName) {
 
     auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
 
@@ -218,7 +207,7 @@ shared_ptr<string> readKeyShare(const string& _keyShareName) {
 
 }
 
-void writeKeyShare(const string& _keyShareName, const string& value) {
+void writeKeyShare(const string &_keyShareName, const string &value) {
 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
@@ -229,11 +218,11 @@ void writeKeyShare(const string& _keyShareName, const string& value) {
     levelDb->writeString(key, value);
 }
 
-shared_ptr<std::string> readECDSAKey(const string& _keyShare) {
+shared_ptr <std::string> readECDSAKey(const string &_keyShare) {
     return nullptr;
 
 }
 
-void writeECDSAKey(const string& _keyShare, const string& value) {
+void writeECDSAKey(const string &_keyShare, const string &value) {
 
 }
