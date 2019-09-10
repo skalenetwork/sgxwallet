@@ -89,8 +89,17 @@ void init_enclave() {
 }
 
 
+int sgxServerInited = 0;
 
 void init_all() {
+
+
+
+    if (sgxServerInited == 1)
+        return;
+
+    sgxServerInited = 1;
+
     init_server();
     init_enclave();
     init_daemon();
