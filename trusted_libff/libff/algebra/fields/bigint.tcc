@@ -13,6 +13,8 @@
 #include <cstring>
 #include <random>
 
+#include <sgx_trts.h>
+
 namespace libff {
 
 template<mp_size_t n>
@@ -162,6 +164,30 @@ bool bigint<n>::test_bit(const std::size_t bitno) const
         return (this->data[part] & (one<<bit)) != 0;
     }
 }
+
+    template<mp_size_t n>
+    bigint<n>& bigint<n>::randomize()
+    {
+        const size_t size = 1;
+
+        static_assert(GMP_NUMB_BITS == sizeof(mp_limb_t) * 8, "Wrong GMP_NUMB_BITS value");
+        //std::random_device rd;
+        constexpr size_t num_random_words = sizeof(mp_limb_t) * n / size;//sizeof(std::random_device::result_type);
+        //auto random_words = reinterpret_cast<std::random_device::result_type*>(this->data);
+       auto random_words = reinterpret_cast<unsigned char*>(this->data);
+
+       sgx_read_rand(random_words, num_random_words);
+      /*  auto random_words = reinterpret_cast<unsigned int*>(this->data);
+      for (size_t i = 0; i < num_random_words; ++i)
+       {
+           unsigned char rand[size];
+           sgx_read_rand(rand, size);
+           memcpy(&random_words[i], rand, size);
+           //random_words[i] = rd();
+       }*/
+
+        return (*this);
+    }
 
 
 } // libff

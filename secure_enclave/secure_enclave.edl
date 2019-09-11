@@ -62,6 +62,12 @@ enclave {
                     	[out, count = 1024] char* err_string,
                     	[out, count = 1024] uint8_t* encrypted_dkg_secret,
                     	size_t _t);
+
+        public void decrypt_dkg_secret (
+                            	[user_check] int *err_status,
+                            	[out, count = 1024] char* err_string,
+                            	[in, count = 1024] uint8_t* encrypted_dkg_secret,
+                            	[out, count = 1024] uint8_t* decrypted_dkg_secret);
 	};
 
 

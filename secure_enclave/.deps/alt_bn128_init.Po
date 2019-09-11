@@ -73,6 +73,8 @@ alt_bn128_init.o: \
  /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
  ../trusted_libff/libff/algebra/fields/bigint.tcc \
  ../sgx-sdk-build/sgxsdk/include/libcxx/random \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_trts.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_error.h \
  ../trusted_libff/libff/algebra/exponentiation/exponentiation.tcc \
  ../trusted_libff/libff/algebra/fields/fp.tcc \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cmath \
@@ -231,6 +233,10 @@ alt_bn128_init.o: \
 ../trusted_libff/libff/algebra/fields/bigint.tcc:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/random:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_trts.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_error.h:
 
 ../trusted_libff/libff/algebra/exponentiation/exponentiation.tcc:
 

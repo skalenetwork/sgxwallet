@@ -31,6 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include "sgx_tcrypto.h"
+#include "sgx_tseal.h"
+#include <sgx_tgmp.h>
+#include <sgx_trts.h>
+
 #include "sgxwallet_common.h"
 #include "create_enclave.h"
 #include "secure_enclave_u.h"
@@ -40,6 +45,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "BLSCrypto.h"
+
+
+
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/exponentiation/exponentiation.hpp>
+
+
+#include <libff/algebra/fields/fp.hpp>
+
+
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
@@ -57,6 +72,21 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
+
+std::string stringFromFr(libff::alt_bn128_Fr& el) {
+
+    mpz_t t;
+    mpz_init(t);
+
+    el.as_bigint().to_mpz(t);
+
+    char arr[mpz_sizeinbase(t, 10) + 2];
+
+    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_clear(t);
+
+    return std::string(tmp);
+}
 
 
 TEST_CASE( "BLS sign test", "[bls-sign]" ) {
@@ -103,35 +133,46 @@ TEST_CASE( "BLS sign test", "[bls-sign]" ) {
 
   REQUIRE(dec_len == enc_len);
 
-  gmp_printf("Result: %s", result);
+  printf("Result: %s", result);
 
-  gmp_printf("\n Length: %d \n", enc_len);
+  printf("\n Length: %d \n", enc_len);
 }
 
 
 
 TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
 
-    init_all();
+  init_all();
 
-    uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(1024, 1);
-
-    //char* Array = (char*) calloc(128, 1);
+  uint8_t* encrypted_dkg_secret = (uint8_t*) malloc(1024);//(uint8_t*) calloc(1024, 1);
+  memset(encrypted_dkg_secret, 0, 1024);
 
   char* errMsg = (char*) calloc(1024,1);
-
   int err_status = 0;
 
- // unsigned  int enc_len = 0;
-  //(int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, size_t _t)
-
   status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, 1);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
+  printf("encrypted secret length %ld \n", sizeof(encrypted_dkg_secret));
 
+  uint8_t* secret = (uint8_t*)calloc(1024, sizeof(uint8_t));
+
+  char* errMsg1 = (char*) calloc(1024,1);
+
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1,  (uint8_t*)encrypted_dkg_secret, secret);
   REQUIRE(status == SGX_SUCCESS);
 
-  printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
-  printf(" Encrypted key len %d\n", sizeof(encrypted_dkg_secret));
+  printf("decrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+  printf("decrypted secret length %ld \n", sizeof(secret));
+  printf("decrypted secret %s \n", secret);
 
+
+
+
+  /*libff::alt_bn128_Fr cur_coef = libff::alt_bn128_Fr::random_element();
+  std::string rand_el_str = stringFromFr(cur_coef);
+  printf("rand element is: %s", rand_el_str.c_str());
+  printf("rand element length: %d", (int)rand_el_str.length());*/
 
 }
 

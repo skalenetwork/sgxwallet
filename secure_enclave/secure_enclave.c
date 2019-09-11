@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../sgxwallet_common.h"
 
+
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 void *(*oc_realloc_func)(void *, size_t, size_t);
 void (*gmp_free_func)(void *, size_t);
@@ -349,27 +350,36 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
 void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, size_t _t){
 
   size_t len = 0;
-  char dkg_secret[BUF_LEN];
-
+ //char dkg_secret[BUF_LEN];
+ //char dkg_secret[10];
+ //memset(dkg_secret, 5, 10);
+  char* dkg_secret = (char*)malloc(1024);
+  memset(dkg_secret, 0, 1024);
   gen_dkg_poly( dkg_secret, len, _t);
 
-  char poly[BUF_LEN];
-  memset(poly, 0, BUF_LEN);
 
-  strncpy(poly, dkg_secret, len);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, sizeof((uint8_t*)dkg_secret));//sizeof(sgx_sealed_data_t) +  sizeof(dkg_secret); //
 
-  memset(encrypted_dkg_secret, 0, BUF_LEN);
-
-
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, sizeof(poly));
-
-  sgx_status_t status = sgx_seal_data(0, NULL, BUF_LEN, (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
-
-  if ( poly[0] != '1'){
-    snprintf(err_string, BUF_LEN,"wrong poly");
-  }
+  sgx_status_t status = sgx_seal_data(0, NULL, sizeof(dkg_secret), (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
 
   if(  status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"SGX seal data failed");
   }
+}
+
+void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret){
+
+  uint32_t dec_size = 1024;//sgx_get_encrypt_txt_len( (const sgx_sealed_data_t *)encrypted_dkg_secret);
+ // sgx_sealed_data_t *tmp = (sgx_sealed_data_t*)malloc(dec_size);
+  //memcpy(tmp, encrypted_dkg_secret, dec_size);
+
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &dec_size);
+      //tmp, NULL, 0, decrypted_dkg_secret, &dec_size);
+
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
+    return;
+  }
+
 }

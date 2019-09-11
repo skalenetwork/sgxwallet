@@ -73,6 +73,8 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
  ../trusted_libff/libff/algebra/fields/bigint.tcc \
  ../sgx-sdk-build/sgxsdk/include/libcxx/random \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_trts.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_error.h \
  ../trusted_libff/libff/algebra/exponentiation/exponentiation.tcc \
  ../trusted_libff/libff/algebra/fields/fp.tcc \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cmath \
@@ -88,7 +90,8 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../trusted_libff/libff/algebra/fields/fp.hpp ../sgxwallet_common.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/mbusafecrt.h
 
 DKGUtils.h:
 
@@ -240,6 +243,10 @@ DKGUtils.h:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/random:
 
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_trts.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_error.h:
+
 ../trusted_libff/libff/algebra/exponentiation/exponentiation.tcc:
 
 ../trusted_libff/libff/algebra/fields/fp.tcc:
@@ -273,3 +280,5 @@ DKGUtils.h:
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/mbusafecrt.h:
