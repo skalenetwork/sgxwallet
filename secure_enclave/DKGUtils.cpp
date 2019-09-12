@@ -12,8 +12,6 @@
 #include <cstdio>
 #include <stdio.h>
 
-#include <mbusafecrt.h>
-
 
 std::string stringFromFr(libff::alt_bn128_Fr& _el) {
 
@@ -30,7 +28,26 @@ std::string stringFromFr(libff::alt_bn128_Fr& _el) {
     return std::string(tmp);
 }
 
-void gen_dkg_poly( char* secret/*[BUF_LEN]*/, unsigned len, unsigned _t ){
+std::vector<libff::alt_bn128_Fr> SplitString(const std::string& str, const std::string& delim){
+    std::vector<libff::alt_bn128_Fr> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) pos = str.length();
+        std::string token = str.substr(prev, pos-prev);
+        if (!token.empty()) {
+            libff::alt_bn128_Fr koef(token.c_str());
+            tokens.push_back(koef);
+        }
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+
+    return tokens;
+}
+
+void gen_dkg_poly( char* secret/*[BUF_LEN]*/, unsigned _t ){
     libff::init_alt_bn128_params();
     std::string result;
     for (size_t i = 0; i < _t; ++i) {
@@ -39,10 +56,9 @@ void gen_dkg_poly( char* secret/*[BUF_LEN]*/, unsigned len, unsigned _t ){
         while (i == _t - 1 && cur_coef == libff::alt_bn128_Fr::zero()) {
             cur_coef = libff::alt_bn128_Fr::random_element();
         }
-       result = stringFromFr(cur_coef);
+       result += stringFromFr(cur_coef);
        result += ":";
     }
-
     strncpy(secret, result.c_str(), result.length());
-    len = _t*33;//result.length();
 }
+

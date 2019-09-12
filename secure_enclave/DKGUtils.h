@@ -11,7 +11,8 @@
 #define EXTERNC
 #endif
 
-EXTERNC void gen_dkg_poly( char* secret, unsigned  len, unsigned _t);
+EXTERNC void gen_dkg_poly( char* secret, unsigned _t);
+
 
 #endif //SGXD_DKGUTILS_H
 

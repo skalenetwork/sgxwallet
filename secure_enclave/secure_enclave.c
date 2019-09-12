@@ -347,39 +347,40 @@ void ecdsa_sign_message(int *err_status, char *err_string,  uint8_t *encrypted_k
 
 }
 
-void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, size_t _t){
+void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
 
-  size_t len = 0;
- //char dkg_secret[BUF_LEN];
- //char dkg_secret[10];
- //memset(dkg_secret, 5, 10);
-  char* dkg_secret = (char*)malloc(1024);
-  memset(dkg_secret, 0, 1024);
-  gen_dkg_poly( dkg_secret, len, _t);
+  char* dkg_secret = (char*)malloc(DKG_BUFER_LENGTH);
 
+  gen_dkg_poly(dkg_secret, _t);
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, sizeof((uint8_t*)dkg_secret));//sizeof(sgx_sealed_data_t) +  sizeof(dkg_secret); //
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, DKG_BUFER_LENGTH);//sizeof(sgx_sealed_data_t) +  sizeof(dkg_secret);
 
-  sgx_status_t status = sgx_seal_data(0, NULL, sizeof(dkg_secret), (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
+  sgx_status_t status = sgx_seal_data(0, NULL, DKG_BUFER_LENGTH, (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
 
   if(  status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"SGX seal data failed");
   }
+
+  *enc_len = sealedLen;
 }
 
-void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret){
+void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len){
 
-  uint32_t dec_size = 1024;//sgx_get_encrypt_txt_len( (const sgx_sealed_data_t *)encrypted_dkg_secret);
- // sgx_sealed_data_t *tmp = (sgx_sealed_data_t*)malloc(dec_size);
-  //memcpy(tmp, encrypted_dkg_secret, dec_size);
+  //uint32_t dec_size = DKG_BUFER_LENGTH;//sgx_get_encrypt_txt_len( ( sgx_sealed_data_t *)encrypted_dkg_secret);
 
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &dec_size);
-      //tmp, NULL, 0, decrypted_dkg_secret, &dec_size);
+      (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &enc_len);
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
+}
+
+void get_dkg_verif_vector(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, char* verif_array, uint32_t enc_len){
+  char* decrypted_dkg_secret = (char*)malloc(DKG_MAX_SEALED_LEN);
+  decrypt_dkg_secret(err_status, err_string, encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
+
+
 
 }

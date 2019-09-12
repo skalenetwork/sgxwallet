@@ -26,6 +26,7 @@
 
 #define ADD_ENTROPY_SIZE 32
 
-
+#define  DKG_BUFER_LENGTH 1250
+#define  DKG_MAX_SEALED_LEN 2000
 
 #endif //SGXD_SGXD_COMMON_H

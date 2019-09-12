@@ -139,40 +139,35 @@ TEST_CASE( "BLS sign test", "[bls-sign]" ) {
 }
 
 
-
 TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
 
   init_all();
 
-  uint8_t* encrypted_dkg_secret = (uint8_t*) malloc(1024);//(uint8_t*) calloc(1024, 1);
-  memset(encrypted_dkg_secret, 0, 1024);
+  uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
   char* errMsg = (char*) calloc(1024,1);
   int err_status = 0;
+  uint32_t enc_len = 0;
 
-  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, 1);
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 16);
   REQUIRE(status == SGX_SUCCESS);
   printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
-  printf("encrypted secret length %ld \n", sizeof(encrypted_dkg_secret));
+  printf("\n Length: %d \n", enc_len);
 
-  uint8_t* secret = (uint8_t*)calloc(1024, sizeof(uint8_t));
+  char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
 
   char* errMsg1 = (char*) calloc(1024,1);
 
-  status = decrypt_dkg_secret(eid, &err_status, errMsg1,  (uint8_t*)encrypted_dkg_secret, secret);
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
   REQUIRE(status == SGX_SUCCESS);
 
-  printf("decrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
-  printf("decrypted secret length %ld \n", sizeof(secret));
-  printf("decrypted secret %s \n", secret);
+  printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+  printf("decrypted secret %s \n\n", secret);
 
-
-
-
-  /*libff::alt_bn128_Fr cur_coef = libff::alt_bn128_Fr::random_element();
-  std::string rand_el_str = stringFromFr(cur_coef);
-  printf("rand element is: %s", rand_el_str.c_str());
-  printf("rand element length: %d", (int)rand_el_str.length());*/
+  free(errMsg);
+  free(errMsg1);
+  free(encrypted_dkg_secret);
+  free(secret);
 
 }
 
