@@ -104,6 +104,8 @@ add_custom_target(sgxd COMMAND make all
         secure_enclave/secure_enclave.c
         secure_enclave/secure_enclave_t.c
         secure_enclave/secure_enclave_t.h
+        secure_enclave/DKGUtils.h
+        secure_enclave/DKGUtils.cpp
         create_enclave.c
         create_enclave.h
         oc_alloc.c

@@ -684,6 +684,35 @@ Fp_model<n,modulus>& Fp_model<n,modulus>::invert()
     return *this;
 }
 
+        template<mp_size_t n, const bigint<n>& modulus>
+        Fp_model<n, modulus> Fp_model<n,modulus>::random_element() /// returns random element of Fp_model
+        {
+            /* note that as Montgomery representation is a bijection then
+               selecting a random element of {xR} is the same as selecting a
+               random element of {x} */
+            Fp_model<n, modulus> r;
+            do
+            {
+                r.mont_repr.randomize();
+
+                /* clear all bits higher than MSB of modulus */
+                size_t bitno = GMP_NUMB_BITS * n - 1;
+                while (modulus.test_bit(bitno) == false)
+                {
+                    const std::size_t part = bitno/GMP_NUMB_BITS;
+                    const std::size_t bit = bitno - (GMP_NUMB_BITS*part);
+
+                    r.mont_repr.data[part] &= ~(1ul<<bit);
+
+                    bitno--;
+                }
+            }
+                /* if r.data is still >= modulus -- repeat (rejection sampling) */
+            while (mpn_cmp(r.mont_repr.data, modulus.data, n) >= 0);
+
+            return r;
+        }
+
 template<mp_size_t n, const bigint<n>& modulus>
 Fp_model<n,modulus> Fp_model<n,modulus>::inverse() const
 {
