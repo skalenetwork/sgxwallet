@@ -32,6 +32,7 @@ using namespace std;
 #include "sgxwallet.h"
 
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
 #include "BLSPrivateKeyShareSGX.h"
 
@@ -158,6 +159,8 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
+  cerr << "Key is " + *encryptedKeyHex << endl;
+
   sgx_status_t status =
       bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
@@ -170,16 +173,26 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
 
   if (errStatus != 0) {
-    gmp_printf("Enclave bls_sign_message failed %d\n", errStatus);
-    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed"));
+    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed:" + to_string(errStatus) + ":" + errMsg ));
     return nullptr;
   }
+
+  int sigLen;
+
+  if ((sigLen = strnlen(signature, 10)) < 10) {
+      BOOST_THROW_EXCEPTION(runtime_error("Signature too short:" + to_string(sigLen)));
+  }
+
+
 
 
   std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
                      hash_with_hint.second;
 
   auto sig = make_shared<string>(signature);
+
+  sig->append(":");
+  sig->append(hint);
 
   auto s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
                                     totalSigners);

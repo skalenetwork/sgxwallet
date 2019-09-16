@@ -1,51 +1,72 @@
 [
   {
-    "name": "sayHello",
+    "name": "importBLSKeyShare",
     "params": {
-      "name": "Peter"
+      "keyShareName": "key1",
+      "n": 2,
+      "t": 2,
+      "index" : 2,
+      "keyShare": "1122334455"
     },
-    "returns": "Hello Peter"
-  },
-  {
-    "name": "notifyServer"
-  },
-  {
-    "name": "addNumbers",
-    "params": [
-      3,
-      4
-    ],
-    "returns": 7
-  },
-  {
-    "name": "addNumbers2",
-    "params": [
-      3.2,
-      4.1
-    ],
-    "returns": 7.5
-  },
-  {
-    "name": "isEqual",
-    "params": [
-      "string1",
-      "string2"
-    ],
-    "returns": false
-  },
-  {
-    "name": "buildObject",
-    "params": [
-      "peter",
-      1990
-    ],
     "returns": {
-      "name": "peter",
-      "year": 1990
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKeyShare": "12345"
     }
   },
+
   {
-    "name" : "methodWithoutParameters",
-    "returns": "String"
+    "name": "blsSignMessageHash",
+    "params": {
+      "keyShareName": "key1",
+      "messageHash": "1122334455"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "signatureShare": "12345"
+    }
+
+  },
+
+  {
+    "name": "importECDSAKey",
+    "params": {
+      "keyName": "key1",
+      "key": "1122334455"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKey": "12345"
+    }
+  },
+
+
+  {
+    "name": "generateECDSAKey",
+    "params": {
+      "keyName": "key1"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "encryptedKey": "12345"
+    }
+  },
+
+
+
+  {
+    "name": "ecdsaSignMessageHash",
+    "params": {
+      "keyShareName": "key1",
+      "messageHash": "1122334455"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "signature": "12345"
+    }
   }
 ]

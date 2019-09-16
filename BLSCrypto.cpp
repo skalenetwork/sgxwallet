@@ -26,47 +26,8 @@
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
-
-
-void init_enclave() {
-
-    eid = 0;
-    updated = 0;
-
-    unsigned long support;
-
-#ifndef SGX_HW_SIM
-    support = get_sgx_support();
-    if (!SGX_OK(support)) {
-        sgx_support_perror(support);
-        exit(1);
-    }
-#endif
-
-    status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
-                                       &updated, &eid, 0);
-
-    if (status != SGX_SUCCESS) {
-        if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
-            fprintf(stderr, "sgx_create_enclave: %s: file not found\n", ENCLAVE_NAME);
-            fprintf(stderr, "Did you forget to set LD_LIBRARY_PATH?\n");
-        } else {
-            fprintf(stderr, "%s: 0x%04x\n", ENCLAVE_NAME, status);
-        }
-        exit(1);
-    }
-
-    fprintf(stderr, "Enclave launched\n");
-
-    status = tgmp_init(eid);
-    if (status != SGX_SUCCESS) {
-        fprintf(stderr, "ECALL tgmp_init: 0x%04x\n", status);
-        exit(1);
-    }
-
-    fprintf(stderr, "libtgmp initialized\n");
-}
 
 
 int char2int(char _input) {
@@ -123,22 +84,9 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 }
 
 
-void init_daemon() {
-
-  libff::init_alt_bn128_params();
-
-  // Set up database connection information and open database
-  leveldb::DB* db;
-  leveldb::Options options;
-  options.create_if_missing = true;
-
-  leveldb::Status status = leveldb::DB::Open(options, "./keysdb", &db);
-
-}
 
 
-
-bool sign(char* _encryptedKeyHex, char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
+bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
     char* _sig) {
 
 
@@ -150,19 +98,73 @@ bool sign(char* _encryptedKeyHex, char* _hashHex, size_t _t, size_t _n, size_t _
 
   hex2carray(_hashHex, &binLen, hash->data());
 
-
-
   auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
   auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
+
+  auto sigShareStr = sigShare->toString();
+
+  strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
 
   return true;
 
 }
 
 
-void init_all() {
-    init_server();
-    init_enclave();
-    init_daemon();
+char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+    char *keyArray = (char *) calloc(BUF_LEN, 1);
+    uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
+    char *errMsg = (char *) calloc(BUF_LEN, 1);
+    strncpy((char *) keyArray, (char *) _key, BUF_LEN);
+
+    *errStatus = -1;
+
+    unsigned int encryptedLen = 0;
+
+    status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+
+    if (status != SGX_SUCCESS) {
+        *errStatus = -1;
+        return nullptr;
+    }
+
+    if (*errStatus != 0) {
+        return nullptr;
+    }
+
+
+    char *result = (char *) calloc(2 * BUF_LEN, 1);
+
+    carray2Hex(encryptedKey, encryptedLen, result);
+
+    return result;
+}
+
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
+
+
+    *errStatus = -1;
+
+    uint64_t decodedLen = 0;
+
+    uint8_t decoded[BUF_LEN];
+
+    if (!(hex2carray(_encryptedKey, &decodedLen, decoded))) {
+        return nullptr;
+    }
+
+    char *plaintextKey = (char *) calloc(BUF_LEN, 1);
+
+    status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+
+    if (status != SGX_SUCCESS) {
+        return nullptr;
+    }
+
+    if (*errStatus != 0) {
+        return nullptr;
+    }
+
+    return plaintextKey;
+
 }

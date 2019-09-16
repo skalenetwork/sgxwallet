@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "sgxwallet.h"
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
 
 

@@ -3,8 +3,8 @@
 //
 
 
-#ifndef SGXD_BLSCRYPTO_H
-#define SGXD_BLSCRYPTO_H
+#ifndef SGXWALLET_BLSCRYPTO_H
+#define SGXWALLET_BLSCRYPTO_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -18,7 +18,7 @@ EXTERNC void init_daemon();
 
 EXTERNC  void init_enclave();
 
-EXTERNC bool sign(char* encryptedKeyHex, char* hashHex, size_t t, size_t n, char* _sig);
+EXTERNC bool sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n, size_t signerIndex, char* _sig);
 
 EXTERNC int char2int(char _input);
 
@@ -28,6 +28,8 @@ EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 
 
+EXTERNC  char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
 
+EXTERNC char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
 
-#endif //SGXD_BLSCRYPTO_H
+#endif //SGXWALLET_BLSCRYPTO_H

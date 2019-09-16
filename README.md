@@ -4,7 +4,11 @@
 
 sgxwallet is a next generation hardware secure crypto wallet that  is based on Intel SGX technology. It currently supports Ethereum and SKALE, and will support Bitcoin in the future.
 
-## Prerequisites
+## Clone directory and its submodules
+
+``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
+
+## Enable SGX on your machine
 
 To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips that were produced after 2015 support SGX.
 
@@ -22,7 +26,9 @@ To enable SGX using a software utility:
 *  Run `./sgx-enable`.  Verify that it says that SGX is successfully enabled
 
 
-sgxwallet has been tested on Ubuntu Linux 18.04. 
+sgxwallet has been tested on Ubuntu Linux 18.04.
+
+
 
 ## Install SGX driver
 
@@ -34,10 +40,6 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 ## Install required debian packages
 
 ```cd scripts; sudo install_packages.sh```
-
-## Clone directory and its submodules
-
-``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
 
 ## Install automake 1.15
 

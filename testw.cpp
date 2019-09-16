@@ -31,10 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "sgx_tcrypto.h"
-#include "sgx_tseal.h"
-#include <sgx_tgmp.h>
-#include <sgx_trts.h>
+
+#include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include "sgxwallet_common.h"
 #include "create_enclave.h"
@@ -42,36 +40,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
-
+#include <stdio.h>
 
 #include "BLSCrypto.h"
+#include "ServerInit.h"
 
 
+#include "RPCException.h"
+#include "LevelDB.h"
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/exponentiation/exponentiation.hpp>
-
-
-#include <libff/algebra/fields/fp.hpp>
-
-#include <dkg/dkg.h>
-
-#define ENCLAVE_NAME "secure_enclave.signed.so"
-
+#include "SGXWalletServer.hpp"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+
 #include "catch.hpp"
-
-void usage() {
-  fprintf(stderr, "usage: sgxwallet\n");
-  exit(1);
-}
-
-sgx_launch_token_t token = {0};
-sgx_enclave_id_t eid;
-sgx_status_t status;
-int updated;
-
 
 std::string stringFromFr(libff::alt_bn128_Fr& el) {
 
@@ -89,54 +71,181 @@ std::string stringFromFr(libff::alt_bn128_Fr& el) {
 }
 
 
-TEST_CASE( "BLS sign test", "[bls-sign]" ) {
-
-  init_all();
-
-  const char *key = "4160780231445160889237664391382223604184857153814275770598"
-                    "791864649971919844";
-
-  char* keyArray = (char*) calloc(128, 1);
-
-  uint8_t* encryptedKey = (uint8_t*) calloc(1024, 1);
-
-  char* errMsg = (char*) calloc(1024,1);
-
-  strncpy((char *)keyArray, (char*)key, 128);
-
-  int err_status = 0;
-
-  unsigned  int enc_len = 0;
-
-  status = encrypt_key(eid, &err_status, errMsg, keyArray, encryptedKey, &enc_len);
-
-  REQUIRE(status == SGX_SUCCESS);
-
-  printf("Encrypt key completed with status: %d %s \n", err_status, errMsg);
-  printf(" Encrypted key len %d\n", enc_len);
-
-
-
-  char result[2* BUF_LEN];
-
-  carray2Hex(encryptedKey, enc_len, result);
-
-  uint64_t dec_len = 0;
-
-  uint8_t bin[BUF_LEN];
-
-  REQUIRE(hex2carray(result, &dec_len, bin));
-
-  for (uint64_t i=0; i < dec_len; i++) {
-    REQUIRE(bin[i] == encryptedKey[i]);
-  }
-
-  REQUIRE(dec_len == enc_len);
-
-  printf("Result: %s", result);
-
-  printf("\n Length: %d \n", enc_len);
+void usage() {
+    fprintf(stderr, "usage: sgxwallet\n");
+    exit(1);
 }
+
+sgx_launch_token_t token = {0};
+sgx_enclave_id_t eid;
+sgx_status_t status;
+int updated;
+
+#define  TEST_BLS_KEY_SHARE "4160780231445160889237664391382223604184857153814275770598791864649971919844"
+#define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
+
+void reset_db() {
+    REQUIRE(system("rm -rf " WALLETDB_NAME) == 0);
+}
+
+char* encryptTestKey() {
+
+    const char *key = TEST_BLS_KEY_SHARE;
+
+
+    int errStatus = -1;
+
+    char *errMsg = (char *) calloc(BUF_LEN, 1);
+
+    char *encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, key);
+
+    REQUIRE(encryptedKeyHex != nullptr);
+    REQUIRE(errStatus == 0);
+
+    printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg);
+    printf("Encrypted key len %d\n", (int) strlen(encryptedKeyHex));
+    printf("Encrypted key %s \n", encryptedKeyHex);
+
+    return encryptedKeyHex;
+}
+
+
+TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
+
+
+    init_all();
+    char* key = encryptTestKey();
+    REQUIRE(key != nullptr);
+
+}
+
+
+TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
+    {
+
+
+        init_all();
+
+        int errStatus =  -1;
+        char* errMsg = (char*) calloc(BUF_LEN, 1);
+
+
+
+        char* encryptedKey = encryptTestKey();
+        REQUIRE(encryptedKey != nullptr);
+
+        char* plaintextKey = decryptBLSKeyShareFromHex(&errStatus, errMsg, encryptedKey);
+
+        REQUIRE(errStatus == 0);
+
+        REQUIRE(strcmp(plaintextKey, TEST_BLS_KEY_SHARE) == 0);
+
+        printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
+        printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
+        printf("Decrypted key: %s\n", plaintextKey);
+
+
+    }
+}
+
+TEST_CASE("BLS key import", "[bls-key-import]") {
+    reset_db();
+    init_all();
+
+
+
+    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
+
+    REQUIRE(result["status"] == 0);
+
+    REQUIRE(result["encryptedKeyShare"] != "");
+
+}
+
+
+TEST_CASE("BLS sign test", "[bls-sign]") {
+
+    init_all();
+
+    char* encryptedKeyHex = encryptTestKey();
+
+    REQUIRE(encryptedKeyHex != nullptr);
+
+
+    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+
+    char* hexHashBuf = (char*) calloc(BUF_LEN, 1);
+
+    strncpy(hexHashBuf,  hexHash, BUF_LEN);
+
+
+
+    char sig[BUF_LEN];
+
+    REQUIRE(sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig));
+
+
+    printf("Signature is: %s \n",  sig );
+
+
+
+}
+
+TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
+
+    reset_db();
+
+    init_all();
+
+    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
+
+    REQUIRE(result["status"] == 0);
+
+    REQUIRE(result["encryptedKeyShare"] != "");
+
+
+    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+
+
+    REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash));
+
+    if (result["status"] != 0) {
+        printf("Error message: %s", result["errorMessage"].asString().c_str());
+    }
+
+
+    REQUIRE(result["status"] == 0);
+    REQUIRE(result["signatureShare"] != "");
+
+    printf("Signature is: %s \n",  result["signatureShare"].asString().c_str());
+
+}
+
+TEST_CASE("KeysDB test", "[keys-db]") {
+
+
+
+    reset_db();
+    init_all();
+
+
+    string key = TEST_BLS_KEY_SHARE;
+    string value = TEST_BLS_KEY_SHARE;
+
+
+
+    REQUIRE_THROWS(readKeyShare(key));
+
+
+    writeKeyShare(key, value, 1, 2, 1);
+
+    REQUIRE(readKeyShare(key) != nullptr);
+
+
+// put your test here
+}
+
+
 
 
 TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
@@ -239,4 +348,3 @@ TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
   free(secret_shares);
 
 }
-

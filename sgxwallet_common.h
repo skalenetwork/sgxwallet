@@ -29,4 +29,25 @@
 #define  DKG_BUFER_LENGTH 1250
 #define  DKG_MAX_SEALED_LEN 2000
 
-#endif //SGXD_SGXD_COMMON_H
+#define UNKNOWN_ERROR -1
+#define PLAINTEXT_KEY_TOO_LONG -2
+#define UNPADDED_KEY -3
+#define NULL_KEY -4
+#define INCORRECT_STRING_CONVERSION -5
+#define ENCRYPTED_KEY_TOO_LONG -6
+#define SEAL_KEY_FAILED -7
+#define KEY_SHARE_DOES_NOT_EXIST -7
+#define KEY_SHARE_ALREADY_EXISTS -8
+#define COULD_NOT_ACCESS_DATABASE -9
+#define NULL_DATABASE -10
+
+#define WALLETDB_NAME "sgxwallet.db"
+
+#define ENCLAVE_NAME "secure_enclave.signed.so"
+
+
+
+
+
+
+#endif //SGXWALLET_SGXWALLET_COMMON_H

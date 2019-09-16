@@ -2,8 +2,8 @@
 // Created by kladko on 9/3/19.
 //
 
-#ifndef SGXD_SGXD_H
-#define SGXD_SGXD_H
+#ifndef SGXWALLET_SGXWALLET_H
+#define SGXWALLET_SGXWALLET_H
 
 
 #include "sgxwallet_common.h"
@@ -22,4 +22,4 @@ extern sgx_status_t status;
 
 
 
-#endif //SGXD_SGXD_H
+#endif //SGXWALLET_SGXWALLET_H
