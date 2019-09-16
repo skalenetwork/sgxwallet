@@ -108,8 +108,8 @@ PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) DKGUtils.$(OBJEXT) BLSUtils.$(OBJEXT) \
-	alt_bn128_init.$(OBJEXT) alt_bn128_g1.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_1)
+	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
+	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
 secure_enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -136,8 +136,9 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/BLSUtils.Po ./$(DEPDIR)/DKGUtils.Po \
-	./$(DEPDIR)/alt_bn128_g1.Po ./$(DEPDIR)/alt_bn128_init.Po \
-	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
+	./$(DEPDIR)/alt_bn128_g1.Po ./$(DEPDIR)/alt_bn128_g2.Po \
+	./$(DEPDIR)/alt_bn128_init.Po ./$(DEPDIR)/secure_enclave.Po \
+	./$(DEPDIR)/secure_enclave_t.Po \
 	./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
@@ -338,6 +339,7 @@ ENCLAVE_KEY = $(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
     DKGUtils.cpp   BLSUtils.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
@@ -432,6 +434,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DKGUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave_t.Po@am__quote@ # am--include-marker
@@ -485,6 +488,20 @@ alt_bn128_init.obj: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_in
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
+
+alt_bn128_g2.o: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.o -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+
+alt_bn128_g2.obj: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
 
 alt_bn128_g1.o: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
@@ -631,6 +648,7 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/BLSUtils.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
+	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po
@@ -684,6 +702,7 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/BLSUtils.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
+	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po

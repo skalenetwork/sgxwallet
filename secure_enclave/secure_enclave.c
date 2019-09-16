@@ -377,10 +377,17 @@ void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_d
   }
 }
 
-void get_dkg_verif_vector(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, char* verif_array, uint32_t enc_len){
+void get_secret_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* secret_shares,
+    unsigned _t, unsigned _n){
   char* decrypted_dkg_secret = (char*)malloc(DKG_MAX_SEALED_LEN);
-  decrypt_dkg_secret(err_status, err_string, encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
-
-
-
+  decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
+  calc_secret_shares(decrypted_dkg_secret, secret_shares, _t, _n);
 }
+
+void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* public_shares,
+                       unsigned _t, unsigned _n){
+    char* decrypted_dkg_secret = (char*)malloc(DKG_MAX_SEALED_LEN);
+    decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
+    calc_public_shares(decrypted_dkg_secret, public_shares, _t);
+}
+

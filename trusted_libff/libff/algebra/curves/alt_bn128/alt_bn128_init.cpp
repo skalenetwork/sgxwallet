@@ -13,9 +13,13 @@ namespace libff {
 bigint<alt_bn128_r_limbs> alt_bn128_modulus_r;
 bigint<alt_bn128_q_limbs> alt_bn128_modulus_q;
 
-alt_bn128_Fq alt_bn128_coeff_b;
-alt_bn128_Fq alt_bn128_twist_mul_by_b_c0;
-alt_bn128_Fq alt_bn128_twist_mul_by_b_c1;
+    alt_bn128_Fq alt_bn128_coeff_b;
+    alt_bn128_Fq2 alt_bn128_twist;
+    alt_bn128_Fq2 alt_bn128_twist_coeff_b;
+    alt_bn128_Fq alt_bn128_twist_mul_by_b_c0;
+    alt_bn128_Fq alt_bn128_twist_mul_by_b_c1;
+    alt_bn128_Fq2 alt_bn128_twist_mul_by_q_X;
+    alt_bn128_Fq2 alt_bn128_twist_mul_by_q_Y;
 
 bigint<alt_bn128_q_limbs> alt_bn128_ate_loop_count;
 bool alt_bn128_ate_is_loop_count_neg;
@@ -82,10 +86,26 @@ void init_alt_bn128_params()
     alt_bn128_Fq::nqr = alt_bn128_Fq("3");
     alt_bn128_Fq::nqr_to_t = alt_bn128_Fq("21888242871839275222246405745257275088696311157297823662689037894645226208582");
 
+    /* parameters for twist field Fq2 */
+    alt_bn128_Fq2::euler = bigint<2*alt_bn128_q_limbs>("239547588008311421220994022608339370399626158265550411218223901127035046843189118723920525909718935985594116157406550130918127817069793474323196511433944");
+    alt_bn128_Fq2::s = 4;
+    alt_bn128_Fq2::t = bigint<2*alt_bn128_q_limbs>("29943448501038927652624252826042421299953269783193801402277987640879380855398639840490065738714866998199264519675818766364765977133724184290399563929243");
+    alt_bn128_Fq2::t_minus_1_over_2 = bigint<2*alt_bn128_q_limbs>("14971724250519463826312126413021210649976634891596900701138993820439690427699319920245032869357433499099632259837909383182382988566862092145199781964621");
+    alt_bn128_Fq2::non_residue = alt_bn128_Fq("21888242871839275222246405745257275088696311157297823662689037894645226208582");
+    alt_bn128_Fq2::nqr = alt_bn128_Fq2(alt_bn128_Fq("2"),alt_bn128_Fq("1"));
+    alt_bn128_Fq2::nqr_to_t = alt_bn128_Fq2(alt_bn128_Fq("5033503716262624267312492558379982687175200734934877598599011485707452665730"),alt_bn128_Fq("314498342015008975724433667930697407966947188435857772134235984660852259084"));
+    alt_bn128_Fq2::Frobenius_coeffs_c1[0] = alt_bn128_Fq("1");
+    alt_bn128_Fq2::Frobenius_coeffs_c1[1] = alt_bn128_Fq("21888242871839275222246405745257275088696311157297823662689037894645226208582");
+
 
     /* choice of short Weierstrass curve and its twist */
 
     alt_bn128_coeff_b = alt_bn128_Fq("3");
+    alt_bn128_coeff_b = alt_bn128_Fq("3");
+    alt_bn128_twist = alt_bn128_Fq2(alt_bn128_Fq("9"), alt_bn128_Fq("1"));
+    alt_bn128_twist_coeff_b = alt_bn128_coeff_b * alt_bn128_twist.inverse();
+    alt_bn128_twist_mul_by_b_c0 = alt_bn128_coeff_b * alt_bn128_Fq2::non_residue;
+    alt_bn128_twist_mul_by_b_c1 = alt_bn128_coeff_b * alt_bn128_Fq2::non_residue;
 
     /* choice of group G1 */
     alt_bn128_G1::G1_zero = alt_bn128_G1(alt_bn128_Fq::zero(),

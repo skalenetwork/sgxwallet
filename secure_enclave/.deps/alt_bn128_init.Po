@@ -85,6 +85,8 @@ alt_bn128_init.o: \
  ../sgx-sdk-build/sgxsdk/include/libcxx/complex \
  ../trusted_libff/libff/algebra/fields/field_utils.tcc \
  ../trusted_libff/libff/algebra/fields/fp_aux.tcc \
+ ../trusted_libff/libff/algebra/fields/fp2.hpp \
+ ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
  ../trusted_libff/libff/algebra/curves/curve_utils.tcc
 
@@ -257,6 +259,10 @@ alt_bn128_init.o: \
 ../trusted_libff/libff/algebra/fields/field_utils.tcc:
 
 ../trusted_libff/libff/algebra/fields/fp_aux.tcc:
+
+../trusted_libff/libff/algebra/fields/fp2.hpp:
+
+../trusted_libff/libff/algebra/fields/fp2.tcc:
 
 ../trusted_libff/libff/algebra/curves/curve_utils.hpp:
 

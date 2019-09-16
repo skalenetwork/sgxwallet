@@ -1,6 +1,6 @@
-DKGUtils.o: DKGUtils.cpp DKGUtils.h \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp \
+alt_bn128_g2.o: \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp \
  ../sgx-sdk-build/sgxsdk/include/libcxx/vector \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__config \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__sgx \
@@ -51,6 +51,9 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__split_buffer \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp \
+ ../trusted_libff/libff/algebra/curves/public_params.hpp \
+ ../trusted_libff/libff/algebra/fields/fp.hpp \
  ../trusted_libff/libff/common/utils.hpp \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cassert \
  ../sgx-sdk-build/sgxsdk/include/libcxx/iostream \
@@ -65,9 +68,6 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/ctype.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wctype.h \
  ../trusted_libff/libff/common/utils.tcc \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp \
- ../trusted_libff/libff/algebra/curves/public_params.hpp \
- ../trusted_libff/libff/algebra/fields/fp.hpp \
  ../trusted_libff/libff/algebra/exponentiation/exponentiation.hpp \
  ../trusted_libff/libff/algebra/fields/bigint.hpp \
  /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
@@ -88,19 +88,9 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../trusted_libff/libff/algebra/fields/fp2.hpp \
  ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
- ../trusted_libff/libff/algebra/curves/curve_utils.tcc \
- ../trusted_libff/libff/algebra/fields/fp.hpp \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp \
- ../sgxwallet_common.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h
+ ../trusted_libff/libff/algebra/curves/curve_utils.tcc
 
-DKGUtils.h:
-
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp:
-
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp:
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/vector:
 
@@ -202,6 +192,12 @@ DKGUtils.h:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/__split_buffer:
 
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp:
+
+../trusted_libff/libff/algebra/curves/public_params.hpp:
+
+../trusted_libff/libff/algebra/fields/fp.hpp:
+
 ../trusted_libff/libff/common/utils.hpp:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/cassert:
@@ -229,12 +225,6 @@ DKGUtils.h:
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wctype.h:
 
 ../trusted_libff/libff/common/utils.tcc:
-
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp:
-
-../trusted_libff/libff/algebra/curves/public_params.hpp:
-
-../trusted_libff/libff/algebra/fields/fp.hpp:
 
 ../trusted_libff/libff/algebra/exponentiation/exponentiation.hpp:
 
@@ -277,15 +267,3 @@ DKGUtils.h:
 ../trusted_libff/libff/algebra/curves/curve_utils.hpp:
 
 ../trusted_libff/libff/algebra/curves/curve_utils.tcc:
-
-../trusted_libff/libff/algebra/fields/fp.hpp:
-
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp:
-
-../sgxwallet_common.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h:

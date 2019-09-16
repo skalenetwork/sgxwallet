@@ -88,6 +88,8 @@ BLSUtils.o: BLSUtils.cpp \
  ../sgx-sdk-build/sgxsdk/include/libcxx/complex \
  ../trusted_libff/libff/algebra/fields/field_utils.tcc \
  ../trusted_libff/libff/algebra/fields/fp_aux.tcc \
+ ../trusted_libff/libff/algebra/fields/fp2.hpp \
+ ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp \
  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
@@ -270,6 +272,10 @@ BLSUtils.h:
 ../trusted_libff/libff/algebra/fields/field_utils.tcc:
 
 ../trusted_libff/libff/algebra/fields/fp_aux.tcc:
+
+../trusted_libff/libff/algebra/fields/fp2.hpp:
+
+../trusted_libff/libff/algebra/fields/fp2.tcc:
 
 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp:
 
