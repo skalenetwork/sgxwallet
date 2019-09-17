@@ -2,8 +2,8 @@
 // Created by kladko on 9/3/19.
 //
 
-#ifndef SGXWALLET_SGXWALLET_COMMON_H
-#define SGXWALLET_SGXWALLET_COMMON_H
+#ifndef SGXD_SGXD_COMMON_H
+#define SGXD_SGXD_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +26,8 @@
 
 #define ADD_ENTROPY_SIZE 32
 
+#define  DKG_BUFER_LENGTH 1250
+#define  DKG_MAX_SEALED_LEN 2000
 
 #define UNKNOWN_ERROR -1
 #define PLAINTEXT_KEY_TOO_LONG -2

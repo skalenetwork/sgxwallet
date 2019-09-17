@@ -55,6 +55,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "catch.hpp"
 
+std::string stringFromFr(libff::alt_bn128_Fr& el) {
+
+    mpz_t t;
+    mpz_init(t);
+
+    el.as_bigint().to_mpz(t);
+
+    char arr[mpz_sizeinbase(t, 10) + 2];
+
+    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_clear(t);
+
+    return std::string(tmp);
+}
+
+
 void usage() {
     fprintf(stderr, "usage: sgxwallet\n");
     exit(1);
@@ -233,10 +249,103 @@ TEST_CASE("KeysDB test", "[keys-db]") {
 
 
 
-TEST_CASE("DKG gen test", "[dkg-gen]") {
+TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
 
-    init_all();
+  init_all();
 
-// put your test here
+  uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
+
+  char* errMsg = (char*) calloc(1024,1);
+  int err_status = 0;
+  uint32_t enc_len = 0;
+
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 16);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
+  printf("\n Length: %d \n", enc_len);
+
+  char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
+
+  char* errMsg1 = (char*) calloc(1024,1);
+
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
+  REQUIRE(status == SGX_SUCCESS);
+
+  printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+  printf("decrypted secret %s \n\n", secret);
+
+  free(errMsg);
+  free(errMsg1);
+  free(encrypted_dkg_secret);
+  free(secret);
 }
 
+std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* symbol){
+  std::string str(koefs);
+  std::string delim(symbol);
+  std::vector<libff::alt_bn128_Fr> tokens;
+  size_t prev = 0, pos = 0;
+  do
+  {
+    pos = str.find(delim, prev);
+    if (pos == std::string::npos) pos = str.length();
+    std::string token = str.substr(prev, pos-prev);
+    if (!token.empty()) {
+      libff::alt_bn128_Fr koef(token.c_str());
+      tokens.push_back(koef);
+    }
+    prev = pos + delim.length();
+  }
+  while (pos < str.length() && prev < str.length());
+
+  return tokens;
+}
+
+TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
+
+  init_all();
+
+  uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
+
+  char* errMsg = (char*) calloc(1024,1);
+  int err_status = 0;
+  uint32_t enc_len = 0;
+
+  unsigned t = 3, n = 4;
+
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 3);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
+  printf("\n Length: %d \n", enc_len);
+
+
+  char* errMsg1 = (char*) calloc(1024,1);
+
+  char colon = ':';
+  char* secret_shares = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
+  status = get_secret_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, enc_len, secret_shares, t, n);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("\nget_secret_shares: %d %s \n", err_status, errMsg1);
+  printf("secret shares %s \n\n", secret_shares);
+
+  std::vector <libff::alt_bn128_Fr> s_shares = SplitStringToFr( secret_shares, &colon);
+
+  char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+  printf("decrypted secret %s \n\n", secret);
+
+  signatures::Dkg dkg_obj(t,n);
+
+  std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, &colon);
+  std::vector < libff::alt_bn128_Fr> s_shares_dkg = dkg_obj.SecretKeyContribution(SplitStringToFr((char*)secret, &colon));
+
+  REQUIRE(s_shares == s_shares_dkg);
+
+  free(errMsg);
+  free(errMsg1);
+  free(encrypted_dkg_secret);
+  free(secret_shares);
+
+}

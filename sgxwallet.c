@@ -44,7 +44,6 @@ void usage() {
 }
 
 sgx_launch_token_t token = {0};
-
 sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
