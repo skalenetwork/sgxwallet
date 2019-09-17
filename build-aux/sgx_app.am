@@ -33,5 +33,5 @@ SGX_UAE_SERVICE_LIB=@SGX_UAE_SERVICE_LIB@
 
 if SGX_ENABLED
 %_u.h %_u.c: %.edl
-	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):/d/sgxwallet/intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --untrusted $<
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):${PWD}/intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --untrusted $<
 endif

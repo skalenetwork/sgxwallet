@@ -47,7 +47,7 @@ CLEANFILES = $(ENCLAVE).signed.so
 ## Rule to make trusted proxy functions from an EDL file.
 
 %_t.h %_t.c: %.edl
-	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):/d/sgxwallet/intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --trusted $<
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):${PWD}/../intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --trusted $<
 
 ## When building a debug enclave, go ahead and sign directly using the
 ## supplied private key.
