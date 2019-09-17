@@ -32,7 +32,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
+
+
 #include <jsonrpccpp/server/connectors/httpserver.h>
+
+
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/exponentiation/exponentiation.hpp>
+
+#include <libff/algebra/fields/fp.hpp>
+
+#include <dkg/dkg.h>
 
 #include "sgxwallet_common.h"
 #include "create_enclave.h"

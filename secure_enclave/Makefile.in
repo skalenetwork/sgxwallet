@@ -107,9 +107,10 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
-	secure_enclave.$(OBJEXT) DKGUtils.$(OBJEXT) BLSUtils.$(OBJEXT) \
-	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
-	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
+	secure_enclave.$(OBJEXT) DKGUtils.$(OBJEXT) \
+	BLSEnclave.$(OBJEXT) alt_bn128_init.$(OBJEXT) \
+	alt_bn128_g2.$(OBJEXT) alt_bn128_g1.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
 secure_enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -135,10 +136,10 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/BLSUtils.Po ./$(DEPDIR)/DKGUtils.Po \
-	./$(DEPDIR)/alt_bn128_g1.Po ./$(DEPDIR)/alt_bn128_g2.Po \
-	./$(DEPDIR)/alt_bn128_init.Po ./$(DEPDIR)/secure_enclave.Po \
-	./$(DEPDIR)/secure_enclave_t.Po \
+am__depfiles_remade = ./$(DEPDIR)/BLSEnclave.Po \
+	./$(DEPDIR)/DKGUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
+	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
+	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
 	./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
@@ -338,12 +339,14 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = $(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-    DKGUtils.cpp   BLSUtils.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+    DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a \
+    ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl.a 
+
 all: all-am
 
 .SUFFIXES:
@@ -431,7 +434,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSUtils.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSEnclave.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DKGUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@ # am--include-marker
@@ -645,7 +648,7 @@ clean: clean-am
 clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/BLSUtils.Po
+		-rm -f ./$(DEPDIR)/BLSEnclave.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
@@ -699,7 +702,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/BLSUtils.Po
+		-rm -f ./$(DEPDIR)/BLSEnclave.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
@@ -745,7 +748,7 @@ uninstall-am: uninstall-libexecPROGRAMS
 
 
 %_t.h %_t.c: %.edl
-	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --trusted $<
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):${PWD}/../intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --trusted $<
 @ENCLAVE_RELEASE_SIGN_TRUE@.PHONY: signed_enclave_rel
 @ENCLAVE_RELEASE_SIGN_FALSE@.PHONY: signed_enclave_debug
 
