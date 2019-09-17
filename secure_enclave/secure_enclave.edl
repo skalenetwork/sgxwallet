@@ -1,5 +1,7 @@
 enclave {
 
+
+from "sgx_tsgxssl.edl" import *;
 	trusted {
 		include "sgx_tgmp.h"
 

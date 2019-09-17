@@ -94,6 +94,14 @@ char* encryptTestKey() {
 }
 
 
+class StartFromScratch {
+public:
+    StartFromScratch() {
+
+    }
+
+};
+
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
 
 
@@ -162,16 +170,11 @@ TEST_CASE("BLS sign test", "[bls-sign]") {
 
     strncpy(hexHashBuf,  hexHash, BUF_LEN);
 
-
-
     char sig[BUF_LEN];
 
     REQUIRE(sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig));
 
-
     printf("Signature is: %s \n",  sig );
-
-
 
 }
 
@@ -187,9 +190,7 @@ TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
     REQUIRE(result["encryptedKeyShare"] != "");
 
-
     const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
-
 
     REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash));
 

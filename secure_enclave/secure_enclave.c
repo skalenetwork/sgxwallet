@@ -277,7 +277,7 @@ void ecdsa_sign_message(int *err_status, char *err_string, uint8_t *encrypted_ke
 
     decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
 
-    if (err_status != 0) {
+    if (*err_status != 0) {
         return;
     }
 
