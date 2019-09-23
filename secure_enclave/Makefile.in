@@ -107,7 +107,9 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
-	secure_enclave.$(OBJEXT) DKGUtils.$(OBJEXT) \
+	secure_enclave.$(OBJEXT) curves.$(OBJEXT) \
+	domain_parameters.$(OBJEXT) numbertheory.$(OBJEXT) \
+	point.$(OBJEXT) signature.$(OBJEXT) DKGUtils.$(OBJEXT) \
 	BLSEnclave.$(OBJEXT) alt_bn128_init.$(OBJEXT) \
 	alt_bn128_g2.$(OBJEXT) alt_bn128_g1.$(OBJEXT) $(am__objects_1) \
 	$(am__objects_1)
@@ -139,8 +141,10 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/BLSEnclave.Po \
 	./$(DEPDIR)/DKGUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
 	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
+	./$(DEPDIR)/curves.Po ./$(DEPDIR)/domain_parameters.Po \
+	./$(DEPDIR)/numbertheory.Po ./$(DEPDIR)/point.Po \
 	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
-	./$(DEPDIR)/signed_enclave_debug.Po \
+	./$(DEPDIR)/signature.Po ./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -339,14 +343,13 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = $(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
+	curves.c domain_parameters.c numbertheory.c point.c signature.c \
     DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a \
-    ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl.a 
-
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx -lsgx_tcrypto
 all: all-am
 
 .SUFFIXES:
@@ -439,8 +442,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/curves.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain_parameters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/numbertheory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/point.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave_t.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signature.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_debug.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_rel.Po@am__quote@ # am--include-marker
 
@@ -653,8 +661,13 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
+	-rm -f ./$(DEPDIR)/curves.Po
+	-rm -f ./$(DEPDIR)/domain_parameters.Po
+	-rm -f ./$(DEPDIR)/numbertheory.Po
+	-rm -f ./$(DEPDIR)/point.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po
+	-rm -f ./$(DEPDIR)/signature.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_debug.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_rel.Po
 	-rm -f Makefile
@@ -707,8 +720,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
+	-rm -f ./$(DEPDIR)/curves.Po
+	-rm -f ./$(DEPDIR)/domain_parameters.Po
+	-rm -f ./$(DEPDIR)/numbertheory.Po
+	-rm -f ./$(DEPDIR)/point.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po
+	-rm -f ./$(DEPDIR)/signature.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_debug.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_rel.Po
 	-rm -f Makefile

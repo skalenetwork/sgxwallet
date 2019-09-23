@@ -142,6 +142,8 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
+    // add key generation in enclave
+
     try {
         writeECDSAKey(_keyName, "");
     } catch (RPCException &_e) {
