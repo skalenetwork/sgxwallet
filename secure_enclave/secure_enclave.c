@@ -134,17 +134,25 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
+  unsigned char* rand_char = (unsigned char*)malloc(32);
+  sgx_read_rand( (unsigned char*)rand_char, 32);
+
+  mpz_t seed;
+  mpz_init(seed);
+  mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
+
+  free(rand_char);
+
   mpz_t skey;
   mpz_init(skey);
+  mpz_mod(skey, seed, curve->p);
+  mpz_clear(seed);
+
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
+
 
   //Public key
   point Pkey = point_init();
-
-  gmp_randstate_t state;
-  gmp_randinit_mt(state);
-
-  mpz_urandomm(skey, state, curve->p);
 
   signature_generate_key(Pkey, skey, curve);
 
@@ -152,7 +160,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   //snprintf(err_string, BUF_LEN, "len = %d\n", len);
   char arr_x[len];
   char* px = mpz_get_str(arr_x, 10, Pkey->x);
-  snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
   strncpy(pub_key_x, arr_x, 1024);
 
 
@@ -162,7 +170,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   char skey_str[mpz_sizeinbase (skey, 10) + 2];
   char* s  = mpz_get_str(skey_str, 10, skey);
-  snprintf(err_string, BUF_LEN, "skey is %s\n", skey_str);
+ // snprintf(err_string, BUF_LEN, "skey is %s\n", skey_str);
 
   uint32_t sealedLen = sgx_calc_sealed_data_size(0, 39);
 
@@ -175,7 +183,6 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   *enc_len = sealedLen;
 
   mpz_clear(skey);
-  gmp_randclear(state);
   domain_parameters_clear(curve);
   point_clear(Pkey);
 }
@@ -378,7 +385,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
-  char skey[2*SGX_ECP256_KEY_SIZE];
+  char skey[SGX_ECP256_KEY_SIZE];
 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, skey, &dec_len);
@@ -438,7 +445,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
 
   int r_gr_n = mpz_cmp(sign->r, curve->n);
 
-  if (mpz_sgn(rem) > 0 && r_gr_n < 0){
+  if (mpz_sgn(rem) && r_gr_n < 0){
     sig_v[3] = 'c';
   }
   else if (mpz_sgn(rem) > 0 && r_gr_n > 0){
@@ -447,7 +454,6 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
   else if (mpz_sgn(rem) == 0 && r_gr_n > 0){
     sig_v[3] = 'd';
   }
-
 
   mpz_clear(skey_mpz);
   mpz_clear(msg_mpz);

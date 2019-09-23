@@ -23,6 +23,7 @@
 #include "RPCException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
+#include "ECDSACrypto.h"
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
@@ -136,20 +137,26 @@ Json::Value importECDSAKeyImpl(const std::string &key, const std::string &keyNam
 
 Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
 
-
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
-    // add key generation in enclave
+    char* encryptedKey = nullptr;
 
     try {
-        writeECDSAKey(_keyName, "");
+       /* char* encryptedKey = gen_ecdsa_key();
+        if (encryptedKey == nullptr) {
+            throw RPCException(UNKNOWN_ERROR, "");
+        }*/
+
+        writeECDSAKey(_keyName, encryptedKey);
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+
+    result["encryptedKey"] = encryptedKey;
 
     return result;
 }
@@ -159,15 +166,24 @@ Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::str
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signature"] = "";
+    result["signature_v"] = "";
+    result["signature_r"] = "";
+    result["signature_s"] = "";
+
+    std::vector<std::string> sign_vect;
 
 
     try {
-        readECDSAKey(_keyName);
+       std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
+       sign_vect = ecdsa_sign_hash ((*key_ptr).c_str(), messageHash.c_str());
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+
+    result["signature_v"] = sign_vect.at(0);
+    result["signature_r"] = sign_vect.at(1);
+    result["signature_s"] = sign_vect.at(2);
 
     return result;
 }
@@ -230,11 +246,28 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     levelDb->writeString(key, value);
 }
 
-shared_ptr <std::string> readECDSAKey(const string &_keyShare) {
-    return nullptr;
+shared_ptr <std::string> readECDSAKey(const string &_keyName) {
+  auto keyStr = levelDb->readString("ECDSAKEY::" + _keyName);
 
+  if (keyStr == nullptr) {
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
+  }
+
+  return keyStr;
 }
 
-void writeECDSAKey(const string &_keyShare, const string &value) {
+void writeECDSAKey(const string &_keyName, const string &value) {
+    Json::Value val;
+    Json::FastWriter writer;
 
+    val["value"] = value;
+    std::string json = writer.write(val);
+
+    auto key = "ECDSAKEY:" + _keyName;
+
+    if (levelDb->readString(_keyName) != nullptr) {
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key with this name already exists");
+    }
+
+    levelDb->writeString(key, value);
 }

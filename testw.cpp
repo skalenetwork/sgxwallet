@@ -379,7 +379,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   //printf("before %p\n", pub_key_x);
 
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
-  //printf("\nerrMsg %s\n", errMsg );
+  printf("\nerrMsg %s\n", errMsg );
   REQUIRE(status == SGX_SUCCESS);
 
   printf("\npub_key_x %s: \n", pub_key_x);
@@ -389,8 +389,8 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
     printf("%u ", encr_pr_key[i]);
 
   char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
-  char* signature_r = (char*)malloc(1024);
-  char* signature_s = (char*)malloc(1024);
+  char* signature_r = (char *)calloc(1024, 1);
+  char* signature_s = (char *)calloc(1024, 1);
   char* signature_v = (char*)calloc(4,1);
 
 
