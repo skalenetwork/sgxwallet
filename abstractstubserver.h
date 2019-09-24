@@ -33,6 +33,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         }
         inline virtual void generateECDSAKeyI(const Json::Value &request, Json::Value &response)
         {
+            std::cerr <<"Got request" << std::endl;
             response = this->generateECDSAKey(request["keyName"].asString());
         }
         inline virtual void ecdsaSignMessageHashI(const Json::Value &request, Json::Value &response)

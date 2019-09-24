@@ -12,6 +12,8 @@ using namespace std;
 class SGXWalletServer : public AbstractStubServer {
 
 
+    SGXWalletServer* server = nullptr;
+
 public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
 

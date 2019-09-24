@@ -31,11 +31,19 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                                  serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
+SGXWalletServer* s = nullptr;
+
 int init_server() {
     HttpServer httpserver(1025);
-    SGXWalletServer s(httpserver,
+    s = new SGXWalletServer(httpserver,
                       JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
-    s.StartListening();
+
+    if (!s->StartListening()) {
+      cerr << "Server could not start listening" << endl;
+      exit(-1);
+    }
+
+
     return 0;
 }
 
@@ -142,13 +150,16 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
+    cerr << "Calling method" << endl;
+
+
     char* encryptedKey = nullptr;
 
     try {
-       /* char* encryptedKey = gen_ecdsa_key();
+        encryptedKey = gen_ecdsa_key();
         if (encryptedKey == nullptr) {
             throw RPCException(UNKNOWN_ERROR, "");
-        }*/
+        }
 
         writeECDSAKey(_keyName, encryptedKey);
     } catch (RPCException &_e) {

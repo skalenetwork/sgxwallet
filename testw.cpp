@@ -68,6 +68,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "catch.hpp"
 
+#include "stubclient.h"
+
 std::string stringFromFr(libff::alt_bn128_Fr& el) {
 
     mpz_t t;
@@ -401,6 +403,39 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   printf("\nsignature v: %s  ", signature_v);
   printf("\n %s  \n", errMsg);
 
+
 }
 
+#include "stubclient.h"
+#include <jsonrpccpp/client/connectors/httpclient.h>
+
+using namespace jsonrpc;
+using namespace std;
+
+TEST_CASE("API test", "[api_test]") {
+    cerr << "API test started" << endl;
+    // init_all();
+
+    //HttpServer httpserver(1025);
+    //SGXWalletServer s(httpserver,
+     //               JSONRPC_SERVER_V1); // hybrid server (json-rpc 1.0 & 2.0)
+    // s.StartListening();
+    cerr << "Server inited" << endl;
+    HttpClient client("http://localhost:1025");
+    StubClient c(client, JSONRPC_CLIENT_V1);
+
+    cerr << "Client inited" << endl;
+
+    try {
+        cout << c.generateECDSAKey("test_key") << endl;
+    } catch (JsonRpcException &e) {
+        cerr << e.what() << endl;
+    }
+
+
+  /* shared_ptr <std::string> key_ptr =  readECDSAKey("test_key");
+    if (key_ptr == nullptr) cerr<< " key is null" << endl;
+    else cerr << "key is " << *key_ptr << endl;*/
+
+}
 
