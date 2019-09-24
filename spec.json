@@ -51,7 +51,8 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "encryptedKey": "12345"
+      "encryptedKey": "12345",
+      "PublicKey": "12345"
     }
   },
 
@@ -66,7 +67,9 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "signature": "12345"
+      "signature_v": "12345",
+      "signature_r": "12345",
+      "signature_s": "12345"
     }
   }
 ]

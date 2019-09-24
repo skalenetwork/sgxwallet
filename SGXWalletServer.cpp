@@ -154,21 +154,25 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     cerr << "Calling method" << endl;
 
 
-    char* encryptedKey = nullptr;
+    std::vector<std::string>keys;
 
     try {
-        encryptedKey = gen_ecdsa_key();
-        if (encryptedKey == nullptr) {
+        keys = gen_ecdsa_key();
+        if (keys.size() == 0 ) {
             throw RPCException(UNKNOWN_ERROR, "");
         }
 
-        writeECDSAKey(_keyName, encryptedKey);
+        writeECDSAKey(_keyName, keys.at(0));
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
 
-    result["encryptedKey"] = encryptedKey;
+    result["encryptedKey"] = keys.at(0);
+    result["PublicKey"] = keys.at(1);
+
+
+    std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }

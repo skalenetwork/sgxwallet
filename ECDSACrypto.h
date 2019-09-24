@@ -16,7 +16,7 @@
 #define EXTERNC
 #endif*/
 
-char* gen_ecdsa_key();
+std::vector<std::string> gen_ecdsa_key();
 
 std::vector<std::string> ecdsa_sign_hash(const char* encryptedKey, const char* hashHex);
 

@@ -156,16 +156,18 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   signature_generate_key(Pkey, skey, curve);
 
-  int len = mpz_sizeinbase (Pkey->x, 10) + 2;
+  uint8_t base = 16;
+
+  int len = mpz_sizeinbase (Pkey->x, base) + 2;
   //snprintf(err_string, BUF_LEN, "len = %d\n", len);
   char arr_x[len];
-  char* px = mpz_get_str(arr_x, 10, Pkey->x);
+  char* px = mpz_get_str(arr_x, base, Pkey->x);
   //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
   strncpy(pub_key_x, arr_x, 1024);
 
 
-  char arr_y[mpz_sizeinbase (Pkey->y, 10) + 2];
-  char* py = mpz_get_str(arr_y, 10, Pkey->y);
+  char arr_y[mpz_sizeinbase (Pkey->y, base) + 2];
+  char* py = mpz_get_str(arr_y, base, Pkey->y);
   strncpy(pub_key_y, arr_y, 1024);
 
   char skey_str[mpz_sizeinbase (skey, 10) + 2];

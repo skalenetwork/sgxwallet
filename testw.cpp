@@ -414,7 +414,7 @@ using namespace std;
 
 TEST_CASE("API test", "[api_test]") {
     cerr << "API test started" << endl;
-    // init_all();
+    init_all();
 
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
@@ -427,7 +427,7 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-        cout << c.generateECDSAKey("test_key") << endl;
+        cout << c.generateECDSAKey("test_key1") << endl;
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
