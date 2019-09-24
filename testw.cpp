@@ -30,7 +30,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
-
+#include <libff/algebra/fields/fp.hpp>
+#include <dkg/dkg.h>
 
 
 
@@ -61,9 +62,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SGXWalletServer.hpp"
 
+#include <sgx_tcrypto.h>
+
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
 #include "catch.hpp"
+
+#include "stubclient.h"
 
 std::string stringFromFr(libff::alt_bn128_Fr& el) {
 
@@ -311,7 +316,7 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
   return tokens;
 }
 
-TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
+/*TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
 
   init_all();
 
@@ -358,4 +363,76 @@ TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
   free(encrypted_dkg_secret);
   free(secret_shares);
 
+}*/
+
+
+
+TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
+
+  init_all();
+
+  char *errMsg = (char *)calloc(1024, 1);
+  int err_status = 0;
+  uint8_t *encr_pr_key = (uint8_t *)calloc(1024, 1);
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+  uint32_t enc_len = 0;
+
+  //printf("before %p\n", pub_key_x);
+
+  status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  printf("\nerrMsg %s\n", errMsg );
+  REQUIRE(status == SGX_SUCCESS);
+
+  printf("\npub_key_x %s: \n", pub_key_x);
+  printf("\npub_key_y %s: \n", pub_key_y);
+  printf("\nencr priv_key %s: \n");
+  for ( int i = 0; i < 1024 ; i++)
+    printf("%u ", encr_pr_key[i]);
+
+  char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
+  char* signature_r = (char *)calloc(1024, 1);
+  char* signature_s = (char *)calloc(1024, 1);
+  char* signature_v = (char*)calloc(4,1);
+
+
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v );
+  REQUIRE(status == SGX_SUCCESS);
+  printf("\nsignature r : %s  ", signature_r);
+  printf("\nsignature s: %s  ", signature_s);
+  printf("\nsignature v: %s  ", signature_v);
+  printf("\n %s  \n", errMsg);
+
+
 }
+
+#include "stubclient.h"
+#include <jsonrpccpp/client/connectors/httpclient.h>
+
+using namespace jsonrpc;
+using namespace std;
+
+TEST_CASE("API test", "[api_test]") {
+    cerr << "API test started" << endl;
+    init_all();
+
+    //HttpServer httpserver(1025);
+    //SGXWalletServer s(httpserver,
+     //               JSONRPC_SERVER_V1); // hybrid server (json-rpc 1.0 & 2.0)
+    // s.StartListening();
+    cerr << "Server inited" << endl;
+    HttpClient client("http://localhost:1025");
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    cerr << "Client inited" << endl;
+
+    try {
+        //cout << c.generateECDSAKey("test_key") << endl;
+        cout << c.ecdsaSignMessageHash("test_key","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7" );
+    } catch (JsonRpcException &e) {
+        cerr << e.what() << endl;
+    }
+
+
+}
+

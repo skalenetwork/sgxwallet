@@ -12,6 +12,8 @@ using namespace std;
 class SGXWalletServer : public AbstractStubServer {
 
 
+    SGXWalletServer* server = nullptr;
+
 public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
 
@@ -33,7 +35,7 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
 
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
 
-void writeECDSAKey(const string& _key, const string& value);
+void writeECDSAKey(const string& _keyName, const string& value);
 
 shared_ptr<std::string> readECDSAKey(const string& _key);
 
@@ -42,7 +44,7 @@ Json::Value importBLSKeyShareImpl(int index, const std::string& keyShare, const 
 Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash);
 Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName);
 Json::Value generateECDSAKeyImpl(const std::string& keyName);
-Json::Value ecdsaSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash);
+Json::Value ecdsaSignMessageHashImpl(const std::string& keyName, const std::string& messageHash);
 
 
 

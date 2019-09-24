@@ -1,0 +1,25 @@
+sha1.o: sha1.c \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/string.h
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/string.h:

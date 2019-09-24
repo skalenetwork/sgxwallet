@@ -1,0 +1,37 @@
+curves.o: curves.c ../tgmp-build/include/sgx_tgmp.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
+ domain_parameters.h curves.h point.h
+
+../tgmp-build/include/sgx_tgmp.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h:
+
+domain_parameters.h:
+
+curves.h:
+
+point.h:

@@ -23,6 +23,7 @@
 #include "RPCException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
+#include "ECDSACrypto.h"
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
@@ -30,11 +31,20 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                                  serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
+SGXWalletServer* s = nullptr;
+HttpServer* hs = nullptr;
+
 int init_server() {
-    HttpServer httpserver(1025);
-    SGXWalletServer s(httpserver,
-                      JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
-    s.StartListening();
+    hs = new HttpServer(1025);
+    s = new SGXWalletServer(*hs,
+                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+
+    if (!s->StartListening()) {
+      cerr << "Server could not start listening" << endl;
+      exit(-1);
+    }
+
+
     return 0;
 }
 
@@ -136,18 +146,33 @@ Json::Value importECDSAKeyImpl(const std::string &key, const std::string &keyNam
 
 Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
 
-
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
+    cerr << "Calling method" << endl;
+
+
+    std::vector<std::string>keys;
+
     try {
-        writeECDSAKey(_keyName, "");
+        keys = gen_ecdsa_key();
+        if (keys.size() == 0 ) {
+            throw RPCException(UNKNOWN_ERROR, "");
+        }
+
+        writeECDSAKey(_keyName, keys.at(0));
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+
+    result["encryptedKey"] = keys.at(0);
+    result["PublicKey"] = keys.at(1);
+
+
+    std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }
@@ -157,15 +182,23 @@ Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::str
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signature"] = "";
+    result["signature_v"] = "";
+    result["signature_r"] = "";
+    result["signature_s"] = "";
 
+    std::vector<std::string> sign_vect(3);
 
     try {
-        readECDSAKey(_keyName);
+       std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
+       sign_vect = ecdsa_sign_hash ((*key_ptr).c_str(), messageHash.c_str());
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+
+    result["signature_v"] = sign_vect.at(0);
+    result["signature_r"] = sign_vect.at(1);
+    result["signature_s"] = sign_vect.at(2);
 
     return result;
 }
@@ -228,11 +261,28 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     levelDb->writeString(key, value);
 }
 
-shared_ptr <std::string> readECDSAKey(const string &_keyShare) {
-    return nullptr;
+shared_ptr <std::string> readECDSAKey(const string &_keyName) {
+  auto keyStr = levelDb->readString("ECDSAKEY:" + _keyName);
 
+  if (keyStr == nullptr) {
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
+  }
+
+  return keyStr;
 }
 
-void writeECDSAKey(const string &_keyShare, const string &value) {
+void writeECDSAKey(const string &_keyName, const string &value) {
+    Json::Value val;
+    Json::FastWriter writer;
 
+    val["value"] = value;
+    std::string json = writer.write(val);
+
+    auto key = "ECDSAKEY:" + _keyName;
+
+    if (levelDb->readString(_keyName) != nullptr) {
+        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key with this name already exists");
+    }
+
+    levelDb->writeString(key, value);
 }
