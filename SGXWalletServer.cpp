@@ -32,11 +32,12 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
         : AbstractStubServer(connector, type) {}
 
 SGXWalletServer* s = nullptr;
+HttpServer* hs = nullptr;
 
 int init_server() {
-    HttpServer httpserver(1025);
-    s = new SGXWalletServer(httpserver,
-                      JSONRPC_SERVER_V1V2); // hybrid server (json-rpc 1.0 & 2.0)
+    hs = new HttpServer(1025);
+    s = new SGXWalletServer(*hs,
+                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
     if (!s->StartListening()) {
       cerr << "Server could not start listening" << endl;

@@ -51,8 +51,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "encryptedKey": "12345",
-      "publicKey": "12345"
+      "encryptedKey": "12345"
     }
   },
 

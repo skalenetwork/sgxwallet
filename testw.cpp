@@ -422,7 +422,7 @@ TEST_CASE("API test", "[api_test]") {
     // s.StartListening();
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1025");
-    StubClient c(client, JSONRPC_CLIENT_V1);
+    StubClient c(client, JSONRPC_CLIENT_V2);
 
     cerr << "Client inited" << endl;
 
