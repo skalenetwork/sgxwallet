@@ -186,8 +186,7 @@ Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::str
     result["signature_r"] = "";
     result["signature_s"] = "";
 
-    std::vector<std::string> sign_vect;
-
+    std::vector<std::string> sign_vect(3);
 
     try {
        std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
@@ -263,7 +262,7 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
 }
 
 shared_ptr <std::string> readECDSAKey(const string &_keyName) {
-  auto keyStr = levelDb->readString("ECDSAKEY::" + _keyName);
+  auto keyStr = levelDb->readString("ECDSAKEY:" + _keyName);
 
   if (keyStr == nullptr) {
     throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");

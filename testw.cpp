@@ -427,15 +427,12 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-        cout << c.generateECDSAKey("test_key1") << endl;
+        //cout << c.generateECDSAKey("test_key") << endl;
+        cout << c.ecdsaSignMessageHash("test_key","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7" );
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
 
-
-  /* shared_ptr <std::string> key_ptr =  readECDSAKey("test_key");
-    if (key_ptr == nullptr) cerr<< " key is null" << endl;
-    else cerr << "key is " << *key_ptr << endl;*/
 
 }
 

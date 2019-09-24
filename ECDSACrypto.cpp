@@ -15,7 +15,7 @@ std::vector<std::string> gen_ecdsa_key(){
   char *pub_key_y = (char *)calloc(1024, 1);
   uint32_t enc_len = 0;
 
-  status = generate_ecdsa_key(eid, &err_status, errMsg, (uint8_t*)encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
   std::vector<std::string> keys(2);
 
   char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
@@ -26,7 +26,7 @@ std::vector<std::string> gen_ecdsa_key(){
   return keys;
 }
 
-std::vector<std::string> ecdsa_sign_hash(const char* encryptedKey, const char* hashHex){
+std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex){
   std::vector<std::string> signature_vect(3);
 
   char *errMsg = (char *)calloc(1024, 1);
@@ -34,9 +34,12 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKey, const char* h
   char* signature_r = (char*)malloc(1024);
   char* signature_s = (char*)malloc(1024);
   char* signature_v = (char*)calloc(4,1);
-  uint32_t dec_len = 0;
+  uint64_t dec_len = 0;
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, (uint8_t*)encryptedKey, dec_len, (unsigned char*)hashHex, signature_r, signature_s, signature_v );
+  uint8_t encr_key[BUF_LEN];
+  hex2carray(encryptedKeyHex, &dec_len, encr_key);
+
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, signature_v );
 
   signature_vect.at(0) = signature_v;
   signature_vect.at(1) = "0x" + std::string(signature_r);

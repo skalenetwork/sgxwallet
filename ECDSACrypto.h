@@ -18,6 +18,6 @@
 
 std::vector<std::string> gen_ecdsa_key();
 
-std::vector<std::string> ecdsa_sign_hash(const char* encryptedKey, const char* hashHex);
+std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex);
 
 #endif //SGXD_ECDSACRYPTO_H

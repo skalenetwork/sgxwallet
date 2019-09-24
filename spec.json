@@ -61,7 +61,7 @@
   {
     "name": "ecdsaSignMessageHash",
     "params": {
-      "keyShareName": "key1",
+      "keyName": "key1",
       "messageHash": "1122334455"
     },
     "returns": {
