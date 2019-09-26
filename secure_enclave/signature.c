@@ -86,22 +86,22 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 	mpz_t t3;mpz_init(t3);
 	mpz_t s;mpz_init(s);
 
-        unsigned char* rand_char = (unsigned char*)malloc(32);
-        sgx_read_rand( rand_char, 32);
+    unsigned char* rand_char = (unsigned char*)malloc(32);
+    sgx_read_rand( rand_char, 32);
 
 	gmp_randstate_t r_state;
 
 	signature_sign_start:
 
 	//Set k
-        sgx_read_rand( rand_char, 32);
-        mpz_t seed;
-        mpz_init(seed);
-        mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
-        free(rand_char);
+    sgx_read_rand( rand_char, 32);
+    mpz_t seed;
+    mpz_init(seed);
+    mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
+    free(rand_char);
 
-        mpz_mod(k, seed, curve->p);
-        mpz_clear(seed);
+    mpz_mod(k, seed, curve->p);
+    mpz_clear(seed);
 
 	//Calculate x
 	point_multiplication(Q, k, curve->G, curve);

@@ -293,6 +293,8 @@ TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
   free(errMsg1);
   free(encrypted_dkg_secret);
   free(secret);
+
+  sgx_destroy_enclave(eid);
 }
 
 std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* symbol){
@@ -316,10 +318,10 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
   return tokens;
 }
 
-/*TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
+ TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
 
-  init_all();
-
+  //init_all();
+  init_enclave();
   uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
   char* errMsg = (char*) calloc(1024,1);
@@ -355,25 +357,119 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
 
   std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, &colon);
   std::vector < libff::alt_bn128_Fr> s_shares_dkg = dkg_obj.SecretKeyContribution(SplitStringToFr((char*)secret, &colon));
+  printf("calculated secret: \n");
+  for ( int  i = 0; i < s_shares_dkg.size(); i++){
+    libff::alt_bn128_Fr cur_share = s_shares_dkg.at(i);
+    mpz_t(sshare);
+    mpz_init(sshare);
+    cur_share.as_bigint().to_mpz(sshare);
+    char arr[mpz_sizeinbase (sshare, 10) + 2];
+    char* share_str = mpz_get_str(arr, 10, sshare);
+    printf(" %s \n", share_str);
+    mpz_clear(sshare);
+  }
 
-  REQUIRE(s_shares == s_shares_dkg);
+ // REQUIRE(s_shares == s_shares_dkg);
 
   free(errMsg);
   free(errMsg1);
   free(encrypted_dkg_secret);
   free(secret_shares);
 
-}*/
+  sgx_destroy_enclave(eid);
+}
 
 
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
-  init_all();
+  init_enclave();
 
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
   uint8_t *encr_pr_key = (uint8_t *)calloc(1024, 1);
+
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+  uint32_t enc_len = 0;
+
+  //printf("before %p\n", pub_key_x);
+
+  status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  // printf("\nerrMsg %s\n", errMsg );
+  REQUIRE(status == SGX_SUCCESS);
+
+  printf("\nwas pub_key_x %s: \n", pub_key_x);
+  printf("\nwas pub_key_y %s: \n", pub_key_y);
+  printf("\nencr priv_key : \n");
+  for ( int i = 0; i < 1024 ; i++)
+    printf("%u ", encr_pr_key[i]);
+
+  char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
+  char* signature_r = (char *)calloc(1024, 1);
+  char* signature_s = (char *)calloc(1024, 1);
+  uint8_t signature_v = 0;
+
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v, 10);
+  REQUIRE(status == SGX_SUCCESS);
+  printf("\nsignature r : %s  ", signature_r);
+  printf("\nsignature s: %s  ", signature_s);
+  printf("\nsignature v: %u  ", signature_v);
+  printf("\n %s  \n", errMsg);
+
+  free(errMsg);
+  sgx_destroy_enclave(eid);
+  printf("the end of ecdsa test\n");
+}
+
+TEST_CASE("Test test", "[test_test]") {
+
+  init_enclave();
+
+  char *errMsg = (char *)calloc(1024, 1);
+  int err_status = 0;
+  uint8_t *encr_pr_key = (uint8_t *)calloc(1024, 1);
+
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+  uint32_t enc_len = 0;
+
+  status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  //printf("\nerrMsg %s\n", errMsg );
+  REQUIRE(status == SGX_SUCCESS);
+
+
+
+
+  //printf("\nwas pub_key_x %s: \n", pub_key_x);
+  //printf("\nwas pub_key_y %s: \n", pub_key_y);
+  //printf("\nencr priv_key %s: \n");
+
+
+  //for ( int i = 0; i < 1024 ; i++)
+   // printf("%u ", encr_pr_key[i]);
+
+
+
+
+  //printf( "haha");
+
+
+  //free(errMsg);
+  sgx_destroy_enclave(eid);
+
+
+}
+
+TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
+
+  //init_all();
+  init_enclave();
+
+  char *errMsg = (char *)calloc(1024, 1);
+  int err_status = 0;
+  uint8_t *encr_pr_key = (uint8_t *)calloc(1024, 1);
+
   char *pub_key_x = (char *)calloc(1024, 1);
   char *pub_key_y = (char *)calloc(1024, 1);
   uint32_t enc_len = 0;
@@ -384,26 +480,23 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   printf("\nerrMsg %s\n", errMsg );
   REQUIRE(status == SGX_SUCCESS);
 
-  printf("\npub_key_x %s: \n", pub_key_x);
-  printf("\npub_key_y %s: \n", pub_key_y);
-  printf("\nencr priv_key %s: \n");
+  printf("\nwas pub_key_x %s: \n", pub_key_x);
+  printf("\nwas pub_key_y %s: \n", pub_key_y);
+  /*printf("\nencr priv_key %s: \n");
   for ( int i = 0; i < 1024 ; i++)
-    printf("%u ", encr_pr_key[i]);
+   printf("%u ", encr_pr_key[i]);*/
 
-  char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
-  char* signature_r = (char *)calloc(1024, 1);
-  char* signature_s = (char *)calloc(1024, 1);
-  char* signature_v = (char*)calloc(4,1);
+  char *got_pub_key_x = (char *)calloc(1024, 1);
+  char *got_pub_key_y = (char *)calloc(1024, 1);
 
-
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v );
+  status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, got_pub_key_x,  got_pub_key_y);
   REQUIRE(status == SGX_SUCCESS);
-  printf("\nsignature r : %s  ", signature_r);
-  printf("\nsignature s: %s  ", signature_s);
-  printf("\nsignature v: %s  ", signature_v);
-  printf("\n %s  \n", errMsg);
+  printf("\nnow pub_key_x %s: \n", got_pub_key_x);
+  printf("\nnow pub_key_y %s: \n", got_pub_key_y);
+  printf("\n err  %s  \n", errMsg);
 
-
+  free(errMsg);
+  sgx_destroy_enclave(eid);
 }
 
 #include "stubclient.h"
@@ -427,8 +520,9 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-        //cout << c.generateECDSAKey("test_key") << endl;
-        cout << c.ecdsaSignMessageHash("test_key","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7" );
+         //cout << c.generateECDSAKey("new_key1") << endl;
+         //cout<<c.getPublicECDSAKey("test_key");
+        cout << c.ecdsaSignMessageHash(16, "new_key1","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7" );
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

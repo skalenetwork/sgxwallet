@@ -22,28 +22,68 @@ std::vector<std::string> gen_ecdsa_key(){
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
   keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);
-  std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
+  //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
+
+  free(errMsg);
+  free(pub_key_x);
+  free(pub_key_y);
+  free(encr_pr_key);
+  free(hexEncrKey);
+
   return keys;
 }
 
-std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex){
+std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
+  char *errMsg = (char *)calloc(1024, 1);
+  int err_status = 0;
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+  uint64_t enc_len = 0;
+
+  uint8_t encr_pr_key[BUF_LEN];
+  hex2carray(encryptedKeyHex, &enc_len, encr_pr_key);
+
+  status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);
+  std::cerr << "err str " << errMsg << std::endl;
+
+  free(errMsg);
+  free(pub_key_x);
+  free(pub_key_y);
+
+  return pubKey;
+}
+
+std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex, int base){
   std::vector<std::string> signature_vect(3);
 
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
   char* signature_r = (char*)malloc(1024);
   char* signature_s = (char*)malloc(1024);
-  char* signature_v = (char*)calloc(4,1);
+  uint8_t signature_v = 0;
   uint64_t dec_len = 0;
 
   uint8_t encr_key[BUF_LEN];
   hex2carray(encryptedKeyHex, &dec_len, encr_key);
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, signature_v );
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
+  if ( status != SGX_SUCCESS){
+    std::cerr << "failed to sign " << std::endl;
+  }
+  signature_vect.at(0) = std::to_string(signature_v);
+  if ( base == 16) {
+    signature_vect.at(1) = "0x" + std::string(signature_r);
+    signature_vect.at(2) = "0x" + std::string(signature_s);
+  }
+  else{
+    signature_vect.at(1) = std::string(signature_r);
+    signature_vect.at(2) = std::string(signature_s);
+  }
 
-  signature_vect.at(0) = signature_v;
-  signature_vect.at(1) = "0x" + std::string(signature_r);
-  signature_vect.at(2) = "0x" + std::string(signature_s);
+  free(errMsg);
+  free(signature_r);
+  free(signature_s);
 
   return signature_vect;
 }

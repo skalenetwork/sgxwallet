@@ -31,21 +31,19 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                                  serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
-SGXWalletServer* s = nullptr;
-HttpServer* hs = nullptr;
+  SGXWalletServer *s = nullptr;
+  HttpServer *hs = nullptr;
 
 int init_server() {
-    hs = new HttpServer(1025);
-    s = new SGXWalletServer(*hs,
+  hs = new HttpServer(1025);
+  s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
     if (!s->StartListening()) {
       cerr << "Server could not start listening" << endl;
       exit(-1);
-    }
-
-
-    return 0;
+  }
+  return 0;
 }
 
 Json::Value
@@ -83,7 +81,6 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
 
     return result;
 }
-
 
 Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash) {
     Json::Value result;
@@ -151,7 +148,7 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
-    cerr << "Calling method" << endl;
+    cerr << "Calling method generateECDSAKey"  << endl;
 
 
     std::vector<std::string>keys;
@@ -164,6 +161,7 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
 
         writeECDSAKey(_keyName, keys.at(0));
     } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -172,13 +170,13 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     result["PublicKey"] = keys.at(1);
 
 
-    std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
+    //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }
 
 
-Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::string &messageHash) {
+Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, const std::string &messageHash) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -187,18 +185,47 @@ Json::Value ecdsaSignMessageHashImpl(const std::string &_keyName, const std::str
     result["signature_s"] = "";
 
     std::vector<std::string> sign_vect(3);
-
+    std::cerr << "entered ecdsaSignMessageHashImpl" << std::endl;
     try {
        std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
-       sign_vect = ecdsa_sign_hash ((*key_ptr).c_str(), messageHash.c_str());
+       std::cerr << "read encr key" << *key_ptr << std::endl;
+       sign_vect = ecdsa_sign_hash(key_ptr->c_str(), messageHash.c_str(), base);
+    } catch (RPCException &_e) {
+        std::cerr << "err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+    std::cerr << "got signature_r" << sign_vect.at(1) << std::endl;
+    result["signature_v"] = sign_vect.at(0);
+    result["signature_r"] = sign_vect.at(1);
+    result["signature_s"] = sign_vect.at(2);
+
+    return result;
+}
+
+Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["PublicKey"] = "";
+
+    cerr << "Calling method getPublicECDSAKey"  << endl;
+
+
+    std::string Pkey;
+
+    try {
+         std::shared_ptr<std::string> key_ptr = readECDSAKey(keyName);
+         Pkey = get_ecdsa_pubkey( key_ptr->c_str());
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
+    std::cerr << "PublicKey" << Pkey << std::endl;
+    result["PublicKey"] = Pkey;
 
-    result["signature_v"] = sign_vect.at(0);
-    result["signature_r"] = sign_vect.at(1);
-    result["signature_s"] = sign_vect.at(2);
+
+    //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }
@@ -207,8 +234,13 @@ Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
     return generateECDSAKeyImpl(_keyName);
 }
 
-Json::Value SGXWalletServer::ecdsaSignMessageHash(const std::string &_keyName, const std::string &messageHash) {
-    return ecdsaSignMessageHashImpl(_keyName, messageHash);
+Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
+  return getPublicECDSAKeyImpl(_keyName);
+}
+
+Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+    std::cerr << "entered ecdsaSignMessageHash" << std::endl;
+    return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
 }
 
 Json::Value
@@ -265,7 +297,7 @@ shared_ptr <std::string> readECDSAKey(const string &_keyName) {
   auto keyStr = levelDb->readString("ECDSAKEY:" + _keyName);
 
   if (keyStr == nullptr) {
-    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key with this name does not exists");
   }
 
   return keyStr;

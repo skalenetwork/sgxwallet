@@ -31,13 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include <openssl/ecdsa.h>
+/*#include <openssl/ecdsa.h>
 #include <openssl/ec.h>
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-#include "tSgxSSL_api.h"
+#include "tSgxSSL_api.h"*/
 
 #include "secure_enclave_t.h"
 #include "sgx_tcrypto.h"
@@ -55,7 +55,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "signature.h"
 #include "curves.h"
 #include <string.h>
-
 
 #include <sgx_tcrypto.h>
 
@@ -135,7 +134,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   domain_parameters_load_curve(curve, secp256k1);
 
   unsigned char* rand_char = (unsigned char*)malloc(32);
-  sgx_read_rand( (unsigned char*)rand_char, 32);
+  sgx_read_rand( rand_char, 32);
 
   mpz_t seed;
   mpz_init(seed);
@@ -145,11 +144,11 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   mpz_t skey;
   mpz_init(skey);
-  mpz_mod(skey, seed, curve->p);
+//  mpz_mod(skey, seed, curve->p);
   mpz_clear(seed);
 
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
-
+  mpz_set_str(skey, "1", 10);
 
   //Public key
   point Pkey = point_init();
@@ -162,7 +161,8 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   //snprintf(err_string, BUF_LEN, "len = %d\n", len);
   char arr_x[len];
   char* px = mpz_get_str(arr_x, base, Pkey->x);
-  //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  // snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  //snprintf(err_string, BUF_LEN, "x len %d\n", strlen(px));
   strncpy(pub_key_x, arr_x, 1024);
 
 
@@ -172,7 +172,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   char skey_str[mpz_sizeinbase (skey, 10) + 2];
   char* s  = mpz_get_str(skey_str, 10, skey);
- // snprintf(err_string, BUF_LEN, "skey is %s\n", skey_str);
+  // snprintf(err_string, BUF_LEN, "skey is %s\n", skey_str);
 
   uint32_t sealedLen = sgx_calc_sealed_data_size(0, 39);
 
@@ -185,6 +185,56 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   *enc_len = sealedLen;
 
   mpz_clear(skey);
+  domain_parameters_clear(curve);
+  point_clear(Pkey);
+}
+
+
+void get_public_ecdsa_key(int *err_status, char *err_string,
+    uint8_t *encrypted_key, uint32_t dec_len, char * pub_key_x, char * pub_key_y) {
+
+  //uint32_t dec_len = 0;
+
+  domain_parameters curve = domain_parameters_init();
+  domain_parameters_load_curve(curve, secp256k1);
+
+
+  char skey[SGX_ECP256_KEY_SIZE];
+  //uint8_t decr_bytes[SGX_ECP256_KEY_SIZE];
+
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t *)skey, &dec_len);
+
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
+    return;
+  }
+
+  //strncpy(err, arr_x, 1024);
+
+  mpz_t skey_mpz;
+  mpz_init(skey_mpz);
+  mpz_set_str(skey_mpz, skey, 16);
+
+  //Public key
+  point Pkey = point_init();
+
+  signature_generate_key(Pkey, skey_mpz, curve);
+
+  int base = 16;
+
+  int len = mpz_sizeinbase (Pkey->x, base) + 2;
+  //snprintf(err_string, BUF_LEN, "len = %d\n", len);
+  char arr_x[len];
+  char* px = mpz_get_str(arr_x, base, Pkey->x);
+  //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  strncpy(pub_key_x, arr_x, 1024);
+
+  char arr_y[mpz_sizeinbase (Pkey->y, base) + 2];
+  char* py = mpz_get_str(arr_y, base, Pkey->y);
+  strncpy(pub_key_y, arr_y, 1024);
+
+  mpz_clear(skey_mpz);
   domain_parameters_clear(curve);
   point_clear(Pkey);
 }
@@ -381,8 +431,8 @@ void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg
     calc_public_shares(decrypted_dkg_secret, public_shares, _t);
 }
 
-void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
-                        uint32_t dec_len, unsigned char* hash, char * sig_r, char * sig_s, char* sig_v) {
+void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
+                         unsigned char* hash, char * sig_r, char * sig_s, uint8_t sig_v, int base) {
 
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
@@ -399,7 +449,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
 
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
-  mpz_set_str(skey_mpz, skey, 10);
+  mpz_set_str(skey_mpz, skey, base);
 
   /*mpz_t test_skey;
   mpz_init(test_skey);
@@ -411,7 +461,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
 
   mpz_t msg_mpz;
   mpz_init(msg_mpz);
-  mpz_set_str(msg_mpz, skey, 10);
+  mpz_set_str(msg_mpz, skey, base);
 
   signature sign = signature_init();
 
@@ -426,8 +476,6 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
     return;
   }
 
-  uint8_t base = 16;
-
   char arr_r[mpz_sizeinbase (sign->r, base) + 2];
   char* r = mpz_get_str(arr_r, base, sign->r);
   strncpy(sig_r, arr_r, 1024);
@@ -436,11 +484,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
   char* s = mpz_get_str(arr_s, base, sign->s);
   strncpy(sig_s, arr_s, 1024);
 
-  sig_v[0] = '0';
-  sig_v[1] = 'x';
-  sig_v[2] = '1';
-  sig_v[3] = 'b';
-
+  sig_v = 0;
   mpz_t rem;
   mpz_init(rem);
   mpz_mod_ui(rem, sign->r, 2);
@@ -448,13 +492,13 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
   int r_gr_n = mpz_cmp(sign->r, curve->n);
 
   if (mpz_sgn(rem) && r_gr_n < 0){
-    sig_v[3] = 'c';
+    sig_v = 1;
   }
   else if (mpz_sgn(rem) > 0 && r_gr_n > 0){
-    sig_v[3] = 'e';
+    sig_v = 3;
   }
   else if (mpz_sgn(rem) == 0 && r_gr_n > 0){
-    sig_v[3] = 'd';
+    sig_v = 2;
   }
 
   mpz_clear(skey_mpz);
@@ -462,5 +506,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
   mpz_clear(rem);
   domain_parameters_clear(curve);
   signature_clear(sign);
+  point_clear(Pkey);
+
 }
 

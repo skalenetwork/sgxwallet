@@ -349,7 +349,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx -lsgx_tcrypto
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
 all: all-am
 
 .SUFFIXES:
