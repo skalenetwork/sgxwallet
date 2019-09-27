@@ -144,11 +144,12 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   mpz_t skey;
   mpz_init(skey);
-//  mpz_mod(skey, seed, curve->p);
+  mpz_mod(skey, seed, curve->p);
   mpz_clear(seed);
 
+  //mpz_set_str(skey, "4160780231445160889237664391382223604576", 10);
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
-  mpz_set_str(skey, "1", 10);
+ // mpz_set_str(skey, "1234567890", 10);
 
   //Public key
   point Pkey = point_init();
@@ -162,7 +163,6 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   char arr_x[len];
   char* px = mpz_get_str(arr_x, base, Pkey->x);
   // snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
-  //snprintf(err_string, BUF_LEN, "x len %d\n", strlen(px));
   strncpy(pub_key_x, arr_x, 1024);
 
 
@@ -170,13 +170,18 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   char* py = mpz_get_str(arr_y, base, Pkey->y);
   strncpy(pub_key_y, arr_y, 1024);
 
-  char skey_str[mpz_sizeinbase (skey, 10) + 2];
-  char* s  = mpz_get_str(skey_str, 10, skey);
-  // snprintf(err_string, BUF_LEN, "skey is %s\n", skey_str);
+  int skey_base = 62;
+  char skey_str[mpz_sizeinbase (skey, skey_base) + 2];
+  char* s  = mpz_get_str(skey_str, skey_base, skey);
+   snprintf(err_string, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 39);
+  uint8_t LEN = 62;
+  uint8_t * test_buf = (uint8_t *)malloc(LEN);
+  memcpy(test_buf,skey_str,LEN);
 
-  sgx_status_t status = sgx_seal_data(0, NULL, 39, (uint8_t *)skey_str, sealedLen,(sgx_sealed_data_t*)encrypted_key);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 45);
+
+  sgx_status_t status = sgx_seal_data(0, NULL, 45, (uint8_t *)test_buf/*skey_str*/, sealedLen,(sgx_sealed_data_t*)encrypted_key);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"seal ecsdsa private key failed");
     return;
@@ -198,7 +203,6 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
-
   char skey[SGX_ECP256_KEY_SIZE];
   //uint8_t decr_bytes[SGX_ECP256_KEY_SIZE];
 
@@ -210,16 +214,26 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
     return;
   }
 
-  //strncpy(err, arr_x, 1024);
+  strncpy(err_string, skey, 1024);
 
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
-  mpz_set_str(skey_mpz, skey, 16);
+ // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
+  if (mpz_set_str(skey_mpz, skey, 10) == -1){
+    snprintf(err_string, BUF_LEN,"wrong string to init private key");
+  }
 
   //Public key
   point Pkey = point_init();
 
   signature_generate_key(Pkey, skey_mpz, curve);
+
+  point Pkey_test = point_init();
+  point_multiplication(Pkey_test, skey_mpz, curve->G, curve);
+
+  if (!point_cmp(Pkey, Pkey_test)){
+    snprintf(err_string, BUF_LEN,"Points are not equal");
+  }
 
   int base = 16;
 
@@ -437,7 +451,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
-  char skey[SGX_ECP256_KEY_SIZE];
+  char skey[64];
 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, skey, &dec_len);
@@ -447,9 +461,10 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
     return;
   }
 
+  snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
-  mpz_set_str(skey_mpz, skey, base);
+  mpz_set_str(skey_mpz, skey, 62);
 
   /*mpz_t test_skey;
   mpz_init(test_skey);

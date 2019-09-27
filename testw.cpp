@@ -396,14 +396,14 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   //printf("before %p\n", pub_key_x);
 
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
-  // printf("\nerrMsg %s\n", errMsg );
+  printf("\nerrMsg %s\n", errMsg );
   REQUIRE(status == SGX_SUCCESS);
 
   printf("\nwas pub_key_x %s: \n", pub_key_x);
   printf("\nwas pub_key_y %s: \n", pub_key_y);
-  printf("\nencr priv_key : \n");
+  /*printf("\nencr priv_key : \n");
   for ( int i = 0; i < 1024 ; i++)
-    printf("%u ", encr_pr_key[i]);
+    printf("%u ", encr_pr_key[i]);*/
 
   char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
   char* signature_r = (char *)calloc(1024, 1);
@@ -493,7 +493,7 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
   REQUIRE(status == SGX_SUCCESS);
   printf("\nnow pub_key_x %s: \n", got_pub_key_x);
   printf("\nnow pub_key_y %s: \n", got_pub_key_y);
-  printf("\n err  %s  \n", errMsg);
+  printf("\n pr key  %s  \n", errMsg);
 
   free(errMsg);
   sgx_destroy_enclave(eid);
