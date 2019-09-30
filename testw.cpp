@@ -318,7 +318,7 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
   return tokens;
 }
 
- TEST_CASE( "DKG auto secret shares test", "[dkg-s_shares]" ) {
+ TEST_CASE( "DKG secret shares test", "[dkg-s_shares]" ) {
 
   //init_all();
   init_enclave();
@@ -330,16 +330,16 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
 
   unsigned t = 3, n = 4;
 
-  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 3);
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, n);
   REQUIRE(status == SGX_SUCCESS);
   printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
   printf("\n Length: %d \n", enc_len);
 
-
   char* errMsg1 = (char*) calloc(1024,1);
 
   char colon = ':';
-  char* secret_shares = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
+  char* secret_shares = (char*)calloc(DKG_MAX_SEALED_LEN, 1);
+  printf("BEFORE get_secret_shares\n");
   status = get_secret_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, enc_len, secret_shares, t, n);
   REQUIRE(status == SGX_SUCCESS);
   printf("\nget_secret_shares: %d %s \n", err_status, errMsg1);
@@ -380,7 +380,6 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* 
 }
 
 
-
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
   init_enclave();
@@ -406,12 +405,13 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
     printf("%u ", encr_pr_key[i]);*/
 
  // char* hex = "4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a";
-  char* hex = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
+  char* hex = "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+  printf("hash length %d ", strlen(hex));
   char* signature_r = (char *)calloc(1024, 1);
   char* signature_s = (char *)calloc(1024, 1);
   uint8_t signature_v = 0;
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v, 16);
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, &signature_v, 16);
   REQUIRE(status == SGX_SUCCESS);
   printf("\nsignature r : %s  ", signature_r);
   printf("\nsignature s: %s  ", signature_s);
@@ -481,8 +481,9 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
   printf("\nerrMsg %s\n", errMsg );
   REQUIRE(status == SGX_SUCCESS);
 
-  printf("\nwas pub_key_x %s: \n", pub_key_x);
-  printf("\nwas pub_key_y %s: \n", pub_key_y);
+  printf("\nwas pub_key_x %s length %d: \n", pub_key_x, strlen(pub_key_x));
+  printf("\nwas pub_key_y %s length %d: \n", pub_key_y, strlen(pub_key_y));
+
   /*printf("\nencr priv_key %s: \n");
   for ( int i = 0; i < 1024 ; i++)
    printf("%u ", encr_pr_key[i]);*/
@@ -521,23 +522,11 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-           cout << c.generateECDSAKey("known_key1") << endl;
+          // cout << c.generateECDSAKey("known_key1") << endl;
          //cout<<c.getPublicECDSAKey("test_key");
-        //cout << c.ecdsaSignMessageHash(16, "known_key1","3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F" );
+        cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
 
-}
-
-TEST_CASE("bytes to hex test", "[bytes_to_hex_test]") {
-   char kavun[] = {'a','b','c','d'};
-   uint8_t raw_kavun[3];
-   uint64_t n = 0;
-   hex2carray(kavun, &n, raw_kavun);
-   char new_kavun[10];
-
-   carray2Hex(raw_kavun, 5, new_kavun);
-
-   std::cerr << " got kavun " << new_kavun << std::endl;
 }

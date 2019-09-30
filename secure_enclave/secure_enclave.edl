@@ -78,7 +78,7 @@ from "sgx_tsgxssl.edl" import *;
         public void get_secret_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* decrypted_dkg_secret,
+                                [in, count = 2000] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
                                 [out, count = 2000] char* secret_shares,
                                 unsigned _t,
@@ -101,7 +101,7 @@ from "sgx_tsgxssl.edl" import *;
                                  [in, count = 1024] unsigned char* hash,
                                  [out, count = 1024] char* sig_r,
                                  [out, count = 1024] char* sig_s,
-                                 uint8_t sig_v,
+                                 [user_check] uint8_t* sig_v,
                                  int base);
 	};
 

@@ -185,11 +185,19 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     result["signature_s"] = "";
 
     std::vector<std::string> sign_vect(3);
-    std::cerr << "entered ecdsaSignMessageHashImpl" << std::endl;
+    std::cerr << "entered ecdsaSignMessageHashImpl" <<  messageHash << "length " << messageHash.length() << std::endl;
+    std::string cutHash = messageHash;
+    if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
+      cutHash.erase(cutHash.begin(), cutHash.begin()+2);
+    }
+    while (cutHash[0] == '0'){
+      cutHash.erase(cutHash.begin(), cutHash.begin()+1);
+    }
+    std::cerr << "Hash handled " << cutHash << std::endl;
     try {
        std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
       // std::cerr << "read encr key" << *key_ptr << std::endl;
-       sign_vect = ecdsa_sign_hash(key_ptr->c_str(), messageHash.c_str(), base);
+       sign_vect = ecdsa_sign_hash(key_ptr->c_str(),cutHash.c_str(), base);
     } catch (RPCException &_e) {
         std::cerr << "err str " << _e.errString << std::endl;
         result["status"] = _e.status;
@@ -240,6 +248,7 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
 
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
     std::cerr << "entered ecdsaSignMessageHash" << std::endl;
+    std::cerr << "MessageHash first " << messageHash << std::endl;
     return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
 }
 

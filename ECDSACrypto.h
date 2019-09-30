@@ -22,4 +22,5 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex);
 
 std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex, int base);
 
+
 #endif //SGXD_ECDSACRYPTO_H

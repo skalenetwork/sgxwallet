@@ -7,6 +7,7 @@
 #include "sgxwallet.h"
 #include <iostream>
 
+
 std::vector<std::string> gen_ecdsa_key(){
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
@@ -70,9 +71,11 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
 
   std::cerr << "encryptedKeyHex: "<< encryptedKeyHex << std::endl;
 
+  std::cerr << "HASH: "<< hashHex << std::endl;
+
   std::cerr << "encrypted len" << dec_len << std::endl;
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
 
   std::cerr << "signature r in  ecdsa_sign_hash "<< signature_r << std::endl;
   std::cerr << "signature s in  ecdsa_sign_hash "<< signature_s << std::endl;

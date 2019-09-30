@@ -4,6 +4,7 @@ struct signature_s
 {
 	mpz_t r;
 	mpz_t s;
+	unsigned int v;
 };
 
 typedef struct signature_s* signature;

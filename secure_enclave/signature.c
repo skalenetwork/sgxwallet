@@ -16,6 +16,7 @@ signature signature_init()
 	sig = malloc(sizeof(struct signature_s));
 	mpz_init(sig->r);
 	mpz_init(sig->s);
+	sig->v = 0;
 	return sig;
 }
 
@@ -106,11 +107,11 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     //mpz_set_str(k, "49a0d7b786ec9cde0d0721d72804befd06571c974b191efb42ecf322ba9ddd9a", 16);
     //  mpz_set_str(k, "DC87789C4C1A09C97FF4DE72C0D0351F261F10A2B9009C80AEE70DDEC77201A0", 16);
+    //mpz_set_str(k,"29932781130098090011281004827843485745127563886526054275935615017309884975795",10);
 
 	//Calculate x
 	point_multiplication(Q, k, curve->G, curve);
 	mpz_set(x, Q->x);
-	point_clear(Q);
 
 	//Calculate r
 	mpz_mod(r, x, curve->n);
@@ -131,10 +132,32 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
         mpz_init(t3);
 	mpz_mul(t3, t2, t1);		//t3 = t2 * t1
 	mpz_mod(s, t3, curve->n);	//s = t3 mod n
-/*
-	mpz_t n_div_2;
+
+
+  //Calculate v
+  mpz_t rem;
+  mpz_init(rem);
+  mpz_mod_ui(rem, Q->y, 2);
+
+  mpz_t s_mul_2;
+  mpz_init(s_mul_2);
+  mpz_mul_ui(s_mul_2, s, 2);
+
+  unsigned b = 0;
+  if (mpz_cmp(s_mul_2, curve->n) > 0) {
+    b = 1;
+  }
+  sig->v = mpz_get_ui(rem) ^ b ;
+
+  point_clear(Q);
+  mpz_clear(rem);
+  mpz_clear(s_mul_2);
+
+
+
+  mpz_t n_div_2;
 	mpz_init(n_div_2);
-        mpz_cdiv_q_ui(n_div_2, curve->n + 1, 2);
+        mpz_cdiv_q_ui(n_div_2, curve->n , 2);
 
 	if (mpz_cmp(s, n_div_2) > 0) {
 	  mpz_t neg;
@@ -148,11 +171,12 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 	  mpz_clear(neg);
 	}
 
-	mpz_clear(n_div_2);*/
+	mpz_clear(n_div_2);
 
 	mpz_clear(t1);
 	mpz_clear(t2);
 	mpz_clear(t3);
+
 
 	//Set signature
 	mpz_set(sig->r, r);
