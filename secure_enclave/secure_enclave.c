@@ -149,7 +149,9 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 
   //mpz_set_str(skey, "4160780231445160889237664391382223604576", 10);
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
- // mpz_set_str(skey, "1234567890", 10);
+  //mpz_set_str(skey, "1", 10);
+  //mpz_set_str(skey, "ebb2c082fd7727890a28ac82f6bdf97bad8de9f5d7c9028692de1a255cad3e0f", 16);
+  //mpz_set_str(skey, "D30519BCAE8D180DBFCC94FE0B8383DC310185B0BE97B4365083EBCECCD75759", 16);
 
   //Public key
   point Pkey = point_init();
@@ -170,18 +172,13 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   char* py = mpz_get_str(arr_y, base, Pkey->y);
   strncpy(pub_key_y, arr_y, 1024);
 
-  int skey_base = 62;
-  char skey_str[mpz_sizeinbase (skey, skey_base) + 2];
-  char* s  = mpz_get_str(skey_str, skey_base, skey);
+  char skey_str[mpz_sizeinbase (skey, ECDSA_SKEY_BASE) + 2];
+  char* s  = mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
    snprintf(err_string, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
 
-  uint8_t LEN = 62;
-  uint8_t * test_buf = (uint8_t *)malloc(LEN);
-  memcpy(test_buf,skey_str,LEN);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 45);
-
-  sgx_status_t status = sgx_seal_data(0, NULL, 45, (uint8_t *)test_buf/*skey_str*/, sealedLen,(sgx_sealed_data_t*)encrypted_key);
+  sgx_status_t status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *)skey_str, sealedLen,(sgx_sealed_data_t*)encrypted_key);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"seal ecsdsa private key failed");
     return;
@@ -203,8 +200,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
-  char skey[SGX_ECP256_KEY_SIZE];
-  //uint8_t decr_bytes[SGX_ECP256_KEY_SIZE];
+  char skey[ECDSA_SKEY_LEN];
 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t *)skey, &dec_len);
@@ -219,7 +215,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
  // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
-  if (mpz_set_str(skey_mpz, skey, 10) == -1){
+  if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
     snprintf(err_string, BUF_LEN,"wrong string to init private key");
   }
 
@@ -451,7 +447,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
   domain_parameters curve = domain_parameters_init();
   domain_parameters_load_curve(curve, secp256k1);
 
-  char skey[64];
+  char skey[ECDSA_SKEY_LEN];
 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, skey, &dec_len);
@@ -464,7 +460,7 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
   snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
-  mpz_set_str(skey_mpz, skey, 62);
+  mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE);
 
   /*mpz_t test_skey;
   mpz_init(test_skey);
@@ -476,7 +472,8 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
 
   mpz_t msg_mpz;
   mpz_init(msg_mpz);
-  mpz_set_str(msg_mpz, skey, base);
+  mpz_set_str(msg_mpz, hash, 16);
+  //mpz_set_str(msg_mpz,"4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a", 16);
 
   signature sign = signature_init();
 
@@ -490,6 +487,14 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
     snprintf(err_string, BUF_LEN,"signature is not verified! ");
     return;
   }
+
+  //char arr_x[mpz_sizeinbase (Pkey->x, 16) + 2];
+  //char* px = mpz_get_str(arr_x, 16, Pkey->x);
+  //snprintf(err_string, BUF_LEN,"pub key x %s ", arr_x);
+
+  char arr_m[mpz_sizeinbase (msg_mpz, 16) + 2];
+  char* msg = mpz_get_str(arr_m, 16, msg_mpz);
+  snprintf(err_string, BUF_LEN,"message is %s ", arr_m);
 
   char arr_r[mpz_sizeinbase (sign->r, base) + 2];
   char* r = mpz_get_str(arr_r, base, sign->r);

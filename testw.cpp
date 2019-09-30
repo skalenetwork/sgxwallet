@@ -405,12 +405,13 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   for ( int i = 0; i < 1024 ; i++)
     printf("%u ", encr_pr_key[i]);*/
 
-  char* hex = "38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7";
+ // char* hex = "4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a";
+  char* hex = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
   char* signature_r = (char *)calloc(1024, 1);
   char* signature_s = (char *)calloc(1024, 1);
   uint8_t signature_v = 0;
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v, 10);
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_pr_key, enc_len, (unsigned char*)hex, signature_r, signature_s, signature_v, 16);
   REQUIRE(status == SGX_SUCCESS);
   printf("\nsignature r : %s  ", signature_r);
   printf("\nsignature s: %s  ", signature_s);
@@ -520,13 +521,23 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-         //cout << c.generateECDSAKey("new_key1") << endl;
+      // cout << c.generateECDSAKey("known_key1") << endl;
          //cout<<c.getPublicECDSAKey("test_key");
-        cout << c.ecdsaSignMessageHash(16, "new_key1","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7" );
+        cout << c.ecdsaSignMessageHash(10, "known_key1","3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F" );
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
 
-
 }
 
+TEST_CASE("bytes to hex test", "[bytes_to_hex_test]") {
+   char kavun[] = {'a','b','c','d'};
+   uint8_t raw_kavun[3];
+   uint64_t n = 0;
+   hex2carray(kavun, &n, raw_kavun);
+   char new_kavun[10];
+
+   carray2Hex(raw_kavun, 5, new_kavun);
+
+   std::cerr << " got kavun " << new_kavun << std::endl;
+}

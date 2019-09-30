@@ -158,7 +158,7 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
         if (keys.size() == 0 ) {
             throw RPCException(UNKNOWN_ERROR, "");
         }
-
+       // std::cerr << "write encr key" << keys.at(0) << std::endl;
         writeECDSAKey(_keyName, keys.at(0));
     } catch (RPCException &_e) {
         std::cerr << " err str " << _e.errString << std::endl;
@@ -188,14 +188,14 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     std::cerr << "entered ecdsaSignMessageHashImpl" << std::endl;
     try {
        std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
-       std::cerr << "read encr key" << *key_ptr << std::endl;
+      // std::cerr << "read encr key" << *key_ptr << std::endl;
        sign_vect = ecdsa_sign_hash(key_ptr->c_str(), messageHash.c_str(), base);
     } catch (RPCException &_e) {
         std::cerr << "err str " << _e.errString << std::endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
-    std::cerr << "got signature_r" << sign_vect.at(1) << std::endl;
+    std::cerr << "got signature_s " << sign_vect.at(2) << std::endl;
     result["signature_v"] = sign_vect.at(0);
     result["signature_r"] = sign_vect.at(1);
     result["signature_s"] = sign_vect.at(2);

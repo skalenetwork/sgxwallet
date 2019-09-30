@@ -18,11 +18,12 @@ std::vector<std::string> gen_ecdsa_key(){
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
   std::vector<std::string> keys(2);
 
-  char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
+  char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
   keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);
   //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
+  std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
 
   free(errMsg);
   free(pub_key_x);
@@ -67,7 +68,15 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   uint8_t encr_key[BUF_LEN];
   hex2carray(encryptedKeyHex, &dec_len, encr_key);
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
+  std::cerr << "encryptedKeyHex: "<< encryptedKeyHex << std::endl;
+
+  std::cerr << "encrypted len" << dec_len << std::endl;
+
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, 625, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
+
+  std::cerr << "signature r in  ecdsa_sign_hash "<< signature_r << std::endl;
+  std::cerr << "signature s in  ecdsa_sign_hash "<< signature_s << std::endl;
+
   if ( status != SGX_SUCCESS){
     std::cerr << "failed to sign " << std::endl;
   }
