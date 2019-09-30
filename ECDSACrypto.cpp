@@ -72,7 +72,7 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
 
   std::cerr << "encrypted len" << dec_len << std::endl;
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, 625, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
+  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, signature_v, base );
 
   std::cerr << "signature r in  ecdsa_sign_hash "<< signature_r << std::endl;
   std::cerr << "signature s in  ecdsa_sign_hash "<< signature_s << std::endl;

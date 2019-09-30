@@ -521,9 +521,9 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-      // cout << c.generateECDSAKey("known_key1") << endl;
+           cout << c.generateECDSAKey("known_key1") << endl;
          //cout<<c.getPublicECDSAKey("test_key");
-        cout << c.ecdsaSignMessageHash(10, "known_key1","3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F" );
+        //cout << c.ecdsaSignMessageHash(16, "known_key1","3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F" );
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

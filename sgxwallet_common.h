@@ -31,6 +31,7 @@
 
 #define ECDSA_SKEY_LEN 65
 #define ECDSA_SKEY_BASE 16
+#define ECDSA_ENCR_LEN 625
 
 #define UNKNOWN_ERROR -1
 #define PLAINTEXT_KEY_TOO_LONG -2
