@@ -171,6 +171,18 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
 }
 
+void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 
+    char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                       '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    for (int j = 0; j < _len; j++) {
+        _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
+        _hexArray[j * 2 + 1] = hexval[(d[j]) & 0x0F];
+    }
+
+    _hexArray[_len * 2] = 0;
+
+}
 
 

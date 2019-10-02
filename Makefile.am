@@ -101,4 +101,3 @@ testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLS
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
-

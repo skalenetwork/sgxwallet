@@ -8,7 +8,6 @@
 #include "signature.h"
 #include "numbertheory.h"
 
-
 /*Initialize a signature*/
 signature signature_init()
 {

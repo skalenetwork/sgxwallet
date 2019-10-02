@@ -30,10 +30,6 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
-#include <libff/algebra/fields/fp.hpp>
-#include <dkg/dkg.h>
-
-
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
