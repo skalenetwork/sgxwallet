@@ -91,8 +91,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 
 sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a   -ljsonrpccpp-stub -lpthread -ljsonrpccpp-common \
-   -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl -lprocps intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
-   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
+   -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl -lprocps intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a
 
 
 
@@ -101,4 +100,3 @@ testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLS
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
-

@@ -58,10 +58,21 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value ecdsaSignMessageHash(const std::string& keyShareName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
+        Json::Value getPublicECDSAKey(const std::string& keyName) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
-            p["keyShareName"] = keyShareName;
+            p["keyName"] = keyName;
+            Json::Value result = this->CallMethod("getPublicECDSAKey",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+        Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["base"] = base;
+            p["keyName"] = keyName;
             p["messageHash"] = messageHash;
             Json::Value result = this->CallMethod("ecdsaSignMessageHash",p);
             if (result.isObject())

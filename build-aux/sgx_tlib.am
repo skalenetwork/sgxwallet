@@ -22,5 +22,5 @@ AM_CXXFLAGS=@SGX_TLIB_CXXFLAGS@
 ## Rule to make trusted proxy functions from an EDL file.
 
 %_t.h %_t.c: %.edl
-	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --trusted $<
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR):${PWD}/../intel-sgx-ssl/Linux/package/include $(SGX_EDGER8R_FLAGS) --trusted $<
 
