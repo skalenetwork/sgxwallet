@@ -1,5 +1,7 @@
 enclave {
 
+
+from "sgx_tsgxssl.edl" import *;
 	trusted {
 		include "sgx_tgmp.h"
 
@@ -24,8 +26,18 @@ enclave {
 		public void generate_ecdsa_key (
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
-		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
+		    [out, count = 1024] uint8_t* encrypted_key,
+		    [user_check] uint32_t *enc_len,
+		    [out, count = 1024] char * pub_key_x,
+		    [out, count = 1024] char * pub_key_y);
 
+		public void get_public_ecdsa_key (
+        		    [user_check] int *err_status,
+        		    [out, count = 1024] char* err_string,
+        		    [in, count = 1024] uint8_t* encrypted_key,
+        		    uint32_t dec_len,
+        		    [out, count = 1024] char * pub_key_x,
+        		    [out, count = 1024] char * pub_key_y);
 
 		public void encrypt_key (
 		    [user_check] int *err_status,
@@ -49,14 +61,6 @@ enclave {
             		    [in, count = 1024] char* hashY ,
             		    [out, count = 1024] char* signature);
 
-		public void ecdsa_sign_message (
-            		    [user_check] int *err_status,
-            		    [out, count = 1024] char* err_string,
-            		    [in, count = 1024] uint8_t* encrypted_key,
-            		    uint32_t enc_len,
-            		    [in, count = 1024] uint8_t* hash,
-            		    [out, count = 1024] char* signature);
-
         public void gen_dkg_secret (
                     	[user_check] int *err_status,
                     	[out, count = 1024] char* err_string,
@@ -74,7 +78,7 @@ enclave {
         public void get_secret_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* decrypted_dkg_secret,
+                                [in, count = 2000] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
                                 [out, count = 2000] char* secret_shares,
                                 unsigned _t,
@@ -88,6 +92,25 @@ enclave {
                                 [out, count = 4000] char* public_shares,
                                 unsigned _t,
                                 unsigned _n);
+
+         public void ecdsa_sign1(
+                                 [user_check] int *err_status,
+                                 [out, count = 1024] char* err_string,
+                                 [in, count = 1024] uint8_t* encrypted_key,
+                                 uint32_t enc_len,
+                                 [in, count = 1024] unsigned char* hash,
+                                 [out, count = 1024] char* sig_r,
+                                 [out, count = 1024] char* sig_s,
+                                 [user_check] uint8_t* sig_v,
+                                 int base);
+
+         public void drive_key(
+                                [user_check]int *err_status,
+                                [out, count = 1024] char *err_string,
+                                [out, count = 1024] uint8_t *encrypted_skey,
+                                [user_check]uint32_t* enc_len,
+                                [out, count = 1024] char* result_str,
+                                [out, count = 1024] char* pub_keyB );
 	};
 
 

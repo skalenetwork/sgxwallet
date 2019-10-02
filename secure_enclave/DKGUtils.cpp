@@ -47,9 +47,10 @@ std::string ConvertToString(T field_elem) {
   return output;
 }
 
-std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char* symbol){
+std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char symbol){
     std::string str(koefs);
-    std::string delim(symbol);
+    std::string delim;
+    delim.push_back(symbol);
     std::vector<libff::alt_bn128_Fr> tokens;
     size_t prev = 0, pos = 0;
     do
@@ -90,7 +91,7 @@ libff::alt_bn128_Fr PolynomialValue(const std::vector<libff::alt_bn128_Fr>& pol,
   libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
   for (size_t i = 0; i < _t; ++i) {
     if (i == _t - 1 && pol[i] == libff::alt_bn128_Fr::zero()) {
-      throw std::runtime_error("Error, incorrect degree of a polynomial");
+        //snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status
     }
     value += pol[i] * pow;
     pow *= point;
@@ -104,13 +105,13 @@ void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
   // calculate for each node a list of secret values that will be used for verification
   std::string result;
   char symbol = ':';
-  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, &symbol);
-  for (size_t i = 0; i < _n; ++i) {
+  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, symbol);
+    for (size_t i = 0; i < _n; ++i) {
     libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(i + 1), _t);
-    result += stringFromFr(secret_share);
+    result += ConvertToString(secret_share);//stringFromFr(secret_share);
     result += ":";
   }
-  strncpy(secret_shares, result.c_str(), result.length());
+  strncpy(secret_shares, result.c_str(), 2000);//result.length());
 }
 
 void calc_public_shares(const char* decrypted_koefs, char * public_shares,
@@ -118,9 +119,10 @@ void calc_public_shares(const char* decrypted_koefs, char * public_shares,
   // calculate for each node a list of public shares
   std::string result;
   char symbol = ':';
-  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, &symbol);
+  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, symbol);
+  libff::alt_bn128_Fr three = 3;
   for (size_t i = 0; i < _t; ++i) {
-    libff::alt_bn128_G2 pub_share =  poly.at(i) * libff::alt_bn128_G2::one();
+    libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one() ;
     pub_share.to_affine_coordinates();
     result += ConvertToString(pub_share.X.c0);
     result += ":";
