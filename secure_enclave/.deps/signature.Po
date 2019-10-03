@@ -10,7 +10,7 @@ signature.o: signature.c \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/assert.h \
- domain_parameters.h point.h signature.h numbertheory.h random.h
+ domain_parameters.h point.h signature.h numbertheory.h
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
 
@@ -41,5 +41,3 @@ point.h:
 signature.h:
 
 numbertheory.h:
-
-random.h:

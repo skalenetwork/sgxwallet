@@ -18,6 +18,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             this->bindAndAddMethod(jsonrpc::Procedure("generateECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::generateECDSAKeyI);
             this->bindAndAddMethod(jsonrpc::Procedure("getPublicECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::getPublicECDSAKeyI);
             this->bindAndAddMethod(jsonrpc::Procedure("ecdsaSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "base",jsonrpc::JSON_INTEGER,"keyName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::ecdsaSignMessageHashI);
+            this->bindAndAddMethod(jsonrpc::Procedure("generateDKGPoly", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::generateDKGPolyI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -44,12 +45,17 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->ecdsaSignMessageHash(request["base"].asInt(), request["keyName"].asString(), request["messageHash"].asString());
         }
+        inline virtual void generateDKGPolyI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->generateDKGPoly(request["keyName"].asString(), request["t"].asInt());
+        }
         virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
         virtual Json::Value generateECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value getPublicECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) = 0;
+        virtual Json::Value generateDKGPoly(const std::string& keyName, int t) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

@@ -41,7 +41,8 @@ enclave {
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
 		    [in, count = 1024] char* key,
-		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
+		    [out, count = 1024] uint8_t* encrypted_key,
+		    [user_check] uint32_t *enc_len);
 
         public void decrypt_key (
 		    [user_check] int *err_status,
@@ -62,32 +63,32 @@ enclave {
         public void gen_dkg_secret (
                     	[user_check] int *err_status,
                     	[out, count = 1024] char* err_string,
-                    	[out, count = 2000] uint8_t* encrypted_dkg_secret,
+                    	[out, count = 3650] uint8_t* encrypted_dkg_secret,
                     	[user_check] uint32_t * enc_len,
                     	size_t _t);
 
         public void decrypt_dkg_secret (
                             	[user_check] int *err_status,
                             	[out, count = 1024] char* err_string,
-                            	[in, count = 2000] uint8_t* encrypted_dkg_secret,
-                            	[out, count = 2000] uint8_t* decrypted_dkg_secret,
+                            	[in, count = 3650] uint8_t* encrypted_dkg_secret,
+                            	[out, count = 3650] uint8_t* decrypted_dkg_secret,
                             	uint32_t enc_len);
 
         public void get_secret_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* encrypted_dkg_secret,
+                                [in, count = 3650] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
-                                [out, count = 2000] char* secret_shares,
+                                [out, count = 3650] char* secret_shares,
                                 unsigned _t,
                                 unsigned _n);
 
          public void get_public_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* decrypted_dkg_secret,
+                                [in, count = 3650] uint8_t* decrypted_dkg_secret,
                                 uint32_t enc_len,
-                                [out, count = 4000] char* public_shares,
+                                [out, count = 10000] char* public_shares,
                                 unsigned _t,
                                 unsigned _n);
 

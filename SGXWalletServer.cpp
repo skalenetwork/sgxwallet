@@ -24,6 +24,8 @@
 #include "LevelDB.h"
 #include "BLSCrypto.h"
 #include "ECDSACrypto.h"
+#include "DKGCrypto.h"
+
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
@@ -232,10 +234,37 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
     std::cerr << "PublicKey" << Pkey << std::endl;
     result["PublicKey"] = Pkey;
 
-
     //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
+}
+
+Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
+
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    //result["encryptedPoly"] = "";
+
+
+    std::string encrPolyHex;
+
+    try {
+      encrPolyHex = gen_dkg_poly(t);
+      writeDKGPoly(polyName, encrPolyHex);
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
+    //result["encryptedPoly"] = encrPolyHex;
+
+    return result;
+}
+
+Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
+    return generateDKGPolyImpl(polyName, t);
 }
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
@@ -296,7 +325,7 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
     if (levelDb->readString(_keyShareName) != nullptr) {
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name already exists");
+        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
     levelDb->writeString(key, value);
@@ -322,8 +351,24 @@ void writeECDSAKey(const string &_keyName, const string &value) {
     auto key = "ECDSAKEY:" + _keyName;
 
     if (levelDb->readString(_keyName) != nullptr) {
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key with this name already exists");
+        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key with this name already exists");
     }
 
     levelDb->writeString(key, value);
+}
+
+void writeDKGPoly(const string &_polyName, const string &value) {
+  Json::Value val;
+  Json::FastWriter writer;
+
+  val["value"] = value;
+  std::string json = writer.write(val);
+
+  auto key = "DKGPoly:" + _polyName;
+
+  if (levelDb->readString(_polyName) != nullptr) {
+    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Poly with this name already exists");
+  }
+
+  levelDb->writeString(key, value);
 }

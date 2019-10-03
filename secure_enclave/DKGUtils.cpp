@@ -111,7 +111,7 @@ void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
     result += ConvertToString(secret_share);//stringFromFr(secret_share);
     result += ":";
   }
-  strncpy(secret_shares, result.c_str(), 2000);//result.length());
+  strncpy(secret_shares, result.c_str(), result.length());
 }
 
 void calc_public_shares(const char* decrypted_koefs, char * public_shares,
@@ -120,7 +120,6 @@ void calc_public_shares(const char* decrypted_koefs, char * public_shares,
   std::string result;
   char symbol = ':';
   std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, symbol);
-  libff::alt_bn128_Fr three = 3;
   for (size_t i = 0; i < _t; ++i) {
     libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one() ;
     pub_share.to_affine_coordinates();

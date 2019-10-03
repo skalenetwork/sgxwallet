@@ -65,7 +65,8 @@ bin_PROGRAMS =  sgxwallet testw
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp \
+DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp $(COMMON_SRC)
 
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -97,7 +98,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build
 
 
 testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLSCrypto.cpp ServerInit.cpp LevelDB.cpp \
-    BLSPrivateKeyShareSGX.cpp ECDSACrypto.cpp $(COMMON_SRC)
+ DKGCrypto.cpp BLSPrivateKeyShareSGX.cpp ECDSACrypto.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}

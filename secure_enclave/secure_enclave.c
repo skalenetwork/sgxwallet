@@ -151,7 +151,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
   //mpz_set_str(skey, "1", 10);
   //mpz_set_str(skey, "ebb2c082fd7727890a28ac82f6bdf97bad8de9f5d7c9028692de1a255cad3e0f", 16);
-  //mpz_set_str(skey, "D30519BCAE8D180DBFCC94FE0B8383DC310185B0BE97B4365083EBCECCD75759", 16);
+ // mpz_set_str(skey, "D30519BCAE8D180DBFCC94FE0B8383DC310185B0BE97B4365083EBCECCD75759", 16);
 
   //Public key
   point Pkey = point_init();
@@ -494,7 +494,6 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
 
   signature sign = signature_init();
 
-
   signature_sign( sign, msg_mpz, skey_mpz, curve);
 
   point Pkey = point_init();
@@ -532,9 +531,9 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
 
 }
 
-void drive_key(int *err_status, char *err_string, uint8_t *encrypted_skey, uint32_t* enc_len, char* result_str, char* pub_keyB ){
+void drive_key(int *err_status, char *err_string, uint8_t *encrypted_skey, uint32_t* dec_len, char* result_str, char* pub_keyB ){
 
-  //char* skey = (char*)malloc(1024);
+ /* //char* skey = (char*)malloc(1024);
   char* pub_key = (char*)malloc(1024);
 
   mpz_t skey;
@@ -550,7 +549,7 @@ void drive_key(int *err_status, char *err_string, uint8_t *encrypted_skey, uint3
 
   if(  status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"SGX seal data failed");
-  }
+  }*/
 
  /* char arr_r[mpz_sizeinbase (sign->r, base) + 2];
   char* r = mpz_get_str(arr_r, base, sign->r);
@@ -560,10 +559,22 @@ void drive_key(int *err_status, char *err_string, uint8_t *encrypted_skey, uint3
   char* s = mpz_get_str(arr_s, base, sign->s);
   strncpy(sig_s, arr_s, 1024);*/
 
+  char skey[ECDSA_SKEY_LEN];
+
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_skey, NULL, 0, skey, dec_len);
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
+    return;
+  }
+
+  char * common_key = malloc(64*2);
+
+  gen_session_key(skey, pub_keyB, common_key);
 
   mpz_clear(skey);
  //free(skey);
- free(pub_key);
+ //free(pub_key);
 
 }
 

@@ -56,6 +56,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sgx_tcrypto.h>
 
+#include <dkg/dkg.h>
+
+
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
 #include "catch.hpp"
@@ -250,15 +253,15 @@ TEST_CASE("KeysDB test", "[keys-db]") {
 
 TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
 
-  init_all();
-
+  //init_all();
+  init_enclave();
   uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
   char* errMsg = (char*) calloc(1024,1);
   int err_status = 0;
   uint32_t enc_len = 0;
 
-  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 16);
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 32);
   REQUIRE(status == SGX_SUCCESS);
   printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
   printf("\n Length: %d \n", enc_len);
@@ -351,7 +354,7 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
   int err_status = 0;
   uint32_t enc_len = 0;
 
-  unsigned t = 3, n = 4;
+  unsigned t = 32, n = 32;
 
   status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, n);
   REQUIRE(status == SGX_SUCCESS);
@@ -378,7 +381,7 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
 
   std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, colon);
   std::vector < libff::alt_bn128_Fr> s_shares_dkg = dkg_obj.SecretKeyContribution(SplitStringToFr((char*)secret, colon));
-  /*printf("calculated secret: \n");
+  printf("calculated secret length %d : \n", s_shares_dkg.size());
   for ( int  i = 0; i < s_shares_dkg.size(); i++){
     libff::alt_bn128_Fr cur_share = s_shares_dkg.at(i);
     mpz_t(sshare);
@@ -388,8 +391,7 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
     char* share_str = mpz_get_str(arr, 10, sshare);
     printf(" %s \n", share_str);
     mpz_clear(sshare);
-  }*/
-
+  }
 
   REQUIRE(s_shares == s_shares_dkg);
 
@@ -411,7 +413,7 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
   int err_status = 0;
   uint32_t enc_len = 0;
 
-  unsigned t = 3, n = 4;
+  unsigned t = 32, n = 32;
 
   status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, n);
   REQUIRE(status == SGX_SUCCESS);
@@ -421,7 +423,7 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
   char* errMsg1 = (char*) calloc(1024,1);
 
   char colon = ':';
-  char* public_shares = (char*)calloc(4000, 1);
+  char* public_shares = (char*)calloc(10000, 1);
   status = get_public_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, enc_len, public_shares, t, n);
   REQUIRE(status == SGX_SUCCESS);
   //printf("\nget_public_shares status: %d error %s \n\n", err_status, errMsg1);
@@ -439,13 +441,13 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
   char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
   status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
   REQUIRE(status == SGX_SUCCESS);
-  //printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+  printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
 
   signatures::Dkg dkg_obj(t,n);
 
   std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, colon);
   std::vector < libff::alt_bn128_G2> pub_shares_dkg = dkg_obj.VerificationVector(poly);
-  /*printf("calculated public shares (X.c0): \n");
+  printf("calculated public shares (X.c0): \n");
   for ( int  i = 0; i < pub_shares_dkg.size(); i++){
     libff::alt_bn128_G2 el = pub_shares_dkg.at(i);
     el.to_affine_coordinates();
@@ -457,7 +459,7 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
     char* share_str = mpz_get_str(arr, 10, x_c0);
     printf(" %s \n", share_str);
     mpz_clear(x_c0);
-  }*/
+  }
 
   bool res = (pub_shares_G2 == pub_shares_dkg);
   REQUIRE( res == true);
@@ -516,8 +518,8 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
   for ( int i = 0; i < 1024 ; i++)
     printf("%u ", encr_pr_key[i]);*/
 
- // char* hex = "4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a";
-  char* hex = "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+  char* hex = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
+ // char* hex = "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
   printf("hash length %d ", strlen(hex));
   char* signature_r = (char *)calloc(1024, 1);
   char* signature_s = (char *)calloc(1024, 1);
@@ -629,7 +631,9 @@ TEST_CASE("API test", "[api_test]") {
     try {
           // cout << c.generateECDSAKey("known_key1") << endl;
          //cout<<c.getPublicECDSAKey("test_key");
-        cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
+        //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
+
+        cout << c.generateDKGPoly("poly", 3);
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

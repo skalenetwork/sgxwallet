@@ -42,7 +42,6 @@
     }
   },
 
-
   {
     "name": "generateECDSAKey",
     "params": {
@@ -81,6 +80,18 @@
       "signature_v": "12345",
       "signature_r": "12345",
       "signature_s": "12345"
+    }
+  },
+
+  {
+    "name": "generateDKGPoly",
+    "params": {
+      "keyName": "key1",
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345"
     }
   }
 ]

@@ -88,7 +88,8 @@ alt_bn128_init.o: \
  ../trusted_libff/libff/algebra/fields/fp2.hpp \
  ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
- ../trusted_libff/libff/algebra/curves/curve_utils.tcc
+ ../trusted_libff/libff/algebra/curves/curve_utils.tcc \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp
 
 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp:
 
@@ -267,3 +268,5 @@ alt_bn128_init.o: \
 ../trusted_libff/libff/algebra/curves/curve_utils.hpp:
 
 ../trusted_libff/libff/algebra/curves/curve_utils.tcc:
+
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp:
