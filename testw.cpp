@@ -30,12 +30,20 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+#include <libff/algebra/fields/fp.hpp>
+#include <dkg/dkg.h>
+
+
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/exponentiation/exponentiation.hpp>
+
+#include <libff/algebra/fields/fp.hpp>
+
+#include <dkg/dkg.h>
 
 #include "sgxwallet_common.h"
 #include "create_enclave.h"
@@ -55,9 +63,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SGXWalletServer.hpp"
 
 #include <sgx_tcrypto.h>
-
-#include <dkg/dkg.h>
-
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
