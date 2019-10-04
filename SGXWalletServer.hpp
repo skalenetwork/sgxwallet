@@ -19,11 +19,11 @@ public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
 
     virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
-    virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash);
+    virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex);
 
     virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName);
     virtual Json::Value generateECDSAKey(const std::string& keyName);
-    virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyShareName, const std::string& messageHash );
+    virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyShareName, const std::string& messageHash);
     virtual Json::Value getPublicECDSAKey(const std::string& keyName);
 
     virtual Json::Value generateDKGPoly(const std::string& polyName, int t);
@@ -42,7 +42,7 @@ void writeDKGPoly(const string &_polyName, const string &value);
 
 
 Json::Value importBLSKeyShareImpl(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
-Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash);
+Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex);
 
 Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName);
 Json::Value generateECDSAKeyImpl(const std::string& keyName);

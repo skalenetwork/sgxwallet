@@ -84,7 +84,7 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
     return result;
 }
 
-Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash) {
+Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash,int n, int t, int signerIndex) {
     Json::Value result;
     result["status"] = -1;
     result["errorMessage"] = "Unknown server error";
@@ -115,7 +115,7 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
     }
 
     try {
-        if (!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
+        if (!sign(value->c_str(), messageHash.c_str(), t, n, signerIndex, signature)) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
@@ -288,8 +288,9 @@ SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, cons
 
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash) {
-    return blsSignMessageHashImpl(keyShareName, messageHash);
+Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,
+                                       int t, int signerIndex) {
+    return blsSignMessageHashImpl(keyShareName, messageHash, n,t, signerIndex);
 }
 
 

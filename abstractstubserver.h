@@ -13,7 +13,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         AbstractStubServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractStubServer>(conn, type)
         {
             this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "index",jsonrpc::JSON_INTEGER,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING,"n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::importBLSKeyShareI);
-            this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::blsSignMessageHashI);
+            this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING,"n",jsonrpc::JSON_INTEGER,"signerIndex",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::blsSignMessageHashI);
             this->bindAndAddMethod(jsonrpc::Procedure("importECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "key",jsonrpc::JSON_STRING,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importECDSAKeyI);
             this->bindAndAddMethod(jsonrpc::Procedure("generateECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::generateECDSAKeyI);
             this->bindAndAddMethod(jsonrpc::Procedure("getPublicECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::getPublicECDSAKeyI);
@@ -27,7 +27,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         }
         inline virtual void blsSignMessageHashI(const Json::Value &request, Json::Value &response)
         {
-            response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString());
+            response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString(), request["n"].asInt(), request["signerIndex"].asInt(), request["t"].asInt());
         }
         inline virtual void importECDSAKeyI(const Json::Value &request, Json::Value &response)
         {
@@ -50,7 +50,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->generateDKGPoly(request["keyName"].asString(), request["t"].asInt());
         }
         virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
-        virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) = 0;
+        virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int signerIndex, int t) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
         virtual Json::Value generateECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value getPublicECDSAKey(const std::string& keyName) = 0;

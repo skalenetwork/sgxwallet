@@ -19,7 +19,10 @@
     "name": "blsSignMessageHash",
     "params": {
       "keyShareName": "key1",
-      "messageHash": "1122334455"
+      "messageHash": "1122334455",
+      "n": 2,
+      "t": 2,
+      "signerIndex": 1
     },
     "returns": {
       "status": 0,

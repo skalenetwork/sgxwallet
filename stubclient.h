@@ -26,11 +26,14 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int signerIndex, int t) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
             p["messageHash"] = messageHash;
+            p["n"] = n;
+            p["signerIndex"] = signerIndex;
+            p["t"] = t;
             Json::Value result = this->CallMethod("blsSignMessageHash",p);
             if (result.isObject())
                 return result;
