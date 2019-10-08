@@ -89,12 +89,27 @@
   {
     "name": "generateDKGPoly",
     "params": {
-      "keyName": "key1",
+      "polyName": "key1",
       "t": 3
     },
     "returns": {
       "status": 0,
       "errorMessage": "12345"
+    }
+  },
+
+  {
+    "name": "getVerificationVector",
+    "params": {
+      "polyName": "key1",
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "Verification Vector": [{},{}]
+
     }
   }
 ]

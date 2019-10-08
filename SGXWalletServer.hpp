@@ -27,10 +27,12 @@ public:
     virtual Json::Value getPublicECDSAKey(const std::string& keyName);
 
     virtual Json::Value generateDKGPoly(const std::string& polyName, int t);
+    virtual Json::Value getVerificationVector(const std::string& polyName, int n, int t);
 
 
 };
 
+shared_ptr<string> readFromDb(const string & name, const string & prefix);
 
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
@@ -50,5 +52,6 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string& keyName, const
 Json::Value getPublicECDSAKeyImpl(const std::string& keyName);
 
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t);
+Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t);
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

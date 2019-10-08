@@ -56,6 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
+#include "DKGCrypto.h"
 
 #include "RPCException.h"
 #include "LevelDB.h"
@@ -273,15 +274,18 @@ TEST_CASE( "DKG gen test", "[dkg-gen]" ) {
   printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
   printf("\n Length: %d \n", enc_len);
 
-  char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
+  char* secret = (char*)calloc(DKG_BUFER_LENGTH, sizeof(char));
 
   char* errMsg1 = (char*) calloc(1024,1);
 
-  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
+  uint32_t dec_len;
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, &dec_len);
   REQUIRE(status == SGX_SUCCESS);
 
   printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
   printf("decrypted secret %s \n\n", secret);
+  printf ("secret length %d \n", strlen(secret));
+  printf ("decr length %d \n", dec_len);
 
   free(errMsg);
   free(errMsg1);
@@ -313,7 +317,7 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char s
   return tokens;
 }
 
-std::vector<std::string> SplitString(const char* koefs, const char symbol){
+std::vector<std::string> SplitStringTest(const char* koefs, const char symbol){
   libff::init_alt_bn128_params();
   std::string str(koefs);
   std::string delim;
@@ -352,9 +356,11 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
 
 
  TEST_CASE( "DKG secret shares test", "[dkg-s_shares]" ) {
-  libff::init_alt_bn128_params();
+
   //init_all();
   init_enclave();
+  libff::init_alt_bn128_params();
+
   uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
   char* errMsg = (char*) calloc(1024,1);
@@ -367,40 +373,45 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
   REQUIRE(status == SGX_SUCCESS);
   printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg);
   printf("\n Length: %d \n", enc_len);
+ /* printf("encr_dkg_secret: \n");
+  for ( int i = 0 ; i < enc_len; i++)
+    printf(" %d ", encrypted_dkg_secret[i]);*/
 
   char* errMsg1 = (char*) calloc(1024,1);
 
   char colon = ':';
-  char* secret_shares = (char*)calloc(DKG_MAX_SEALED_LEN, 1);
-  status = get_secret_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, enc_len, secret_shares, t, n);
+  char* secret_shares = (char*)calloc(DKG_BUFER_LENGTH, sizeof(char));
+  uint32_t dec_len = enc_len;
+ // status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret_shares, &dec_len);
+  status = get_secret_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, &dec_len, secret_shares, t, n);
   REQUIRE(status == SGX_SUCCESS);
   printf("\nget_secret_shares status: %d %s \n", err_status, errMsg1);
   printf("secret shares %s \n\n", secret_shares);
 
   std::vector <libff::alt_bn128_Fr> s_shares = SplitStringToFr( secret_shares, colon);
 
-  char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
-  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
-  REQUIRE(status == SGX_SUCCESS);
- // printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
+ char* secret = (char*)calloc(DKG_BUFER_LENGTH, sizeof(char));
+ status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, &dec_len);
+ REQUIRE(status == SGX_SUCCESS);
+ //printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
 
-  signatures::Dkg dkg_obj(t,n);
+ signatures::Dkg dkg_obj(t,n);
 
-  std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, colon);
-  std::vector < libff::alt_bn128_Fr> s_shares_dkg = dkg_obj.SecretKeyContribution(SplitStringToFr((char*)secret, colon));
-  printf("calculated secret length %d : \n", s_shares_dkg.size());
-  for ( int  i = 0; i < s_shares_dkg.size(); i++){
-    libff::alt_bn128_Fr cur_share = s_shares_dkg.at(i);
-    mpz_t(sshare);
-    mpz_init(sshare);
-    cur_share.as_bigint().to_mpz(sshare);
-    char arr[mpz_sizeinbase (sshare, 10) + 2];
-    char* share_str = mpz_get_str(arr, 10, sshare);
-    printf(" %s \n", share_str);
-    mpz_clear(sshare);
-  }
+ std::vector < libff::alt_bn128_Fr> poly = SplitStringToFr((char*)secret, colon);
+ std::vector < libff::alt_bn128_Fr> s_shares_dkg = dkg_obj.SecretKeyContribution(SplitStringToFr((char*)secret, colon));
+ printf("calculated secret length %d : \n", s_shares_dkg.size());
+ for ( int  i = 0; i < s_shares_dkg.size(); i++){
+   libff::alt_bn128_Fr cur_share = s_shares_dkg.at(i);
+   mpz_t(sshare);
+   mpz_init(sshare);
+   cur_share.as_bigint().to_mpz(sshare);
+   char arr[mpz_sizeinbase (sshare, 10) + 2];
+   char* share_str = mpz_get_str(arr, 10, sshare);
+   printf(" %s \n", share_str);
+   mpz_clear(sshare);
+ }
 
-  REQUIRE(s_shares == s_shares_dkg);
+ REQUIRE(s_shares == s_shares_dkg);
 
   free(errMsg);
   free(errMsg1);
@@ -413,6 +424,7 @@ libff::alt_bn128_G2 VectStringToG2(const std::vector<std::string>& G2_str_vect){
 TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
 
   //init_all();
+  libff::init_alt_bn128_params();
   init_enclave();
   uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
@@ -424,7 +436,7 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
 
   status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, n);
   REQUIRE(status == SGX_SUCCESS);
-//  printf("gen_dkg_public completed with status: %d %s \n", err_status, errMsg);
+  //printf("gen_dkg_public completed with status: %d %s \n", err_status, errMsg);
 
 
   char* errMsg1 = (char*) calloc(1024,1);
@@ -433,20 +445,22 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
   char* public_shares = (char*)calloc(10000, 1);
   status = get_public_shares(eid, &err_status, errMsg1, encrypted_dkg_secret, enc_len, public_shares, t, n);
   REQUIRE(status == SGX_SUCCESS);
-  //printf("\nget_public_shares status: %d error %s \n\n", err_status, errMsg1);
+  printf("\nget_public_shares status: %d error %s \n\n", err_status, errMsg1);
+  printf(" LEN: %d \n", strlen(public_shares));
+  printf(" result: %s \n", public_shares);
 
   std::vector <std::string> G2_strings = SplitString( public_shares, ',');
   std::vector <libff::alt_bn128_G2> pub_shares_G2;
   for ( int i = 0; i < G2_strings.size(); i++){
     std::vector <std::string> koef_str = SplitString(G2_strings.at(i).c_str(), ':');
     libff::alt_bn128_G2 el = VectStringToG2(koef_str);
-   // std::cerr << "pub_share G2 " << i+1 << " : " << std::endl;
-   // el.print_coordinates();
+    //std::cerr << "pub_share G2 " << i+1 << " : " << std::endl;
+    //el.print_coordinates();
     pub_shares_G2.push_back(VectStringToG2(koef_str));
   }
 
   char* secret = (char*)calloc(DKG_MAX_SEALED_LEN, sizeof(char));
-  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, enc_len);
+  status = decrypt_dkg_secret(eid, &err_status, errMsg1, encrypted_dkg_secret, (uint8_t*)secret, &enc_len);
   REQUIRE(status == SGX_SUCCESS);
   printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1);
 
@@ -624,11 +638,10 @@ using namespace std;
 TEST_CASE("API test", "[api_test]") {
     cerr << "API test started" << endl;
     init_all();
-
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
-     //               JSONRPC_SERVER_V1); // hybrid server (json-rpc 1.0 & 2.0)
-    // s.StartListening();
+    //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+   // s.StartListening();
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1025");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -639,8 +652,9 @@ TEST_CASE("API test", "[api_test]") {
           // cout << c.generateECDSAKey("known_key1") << endl;
          //cout<<c.getPublicECDSAKey("test_key");
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
-          cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
-        //cout << c.generateDKGPoly("poly", 3);
+        //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
+       //  cout << c.generateDKGPoly("polyy", 5);
+        cout << c.getVerificationVector("polyy", 5,  5);
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

@@ -263,8 +263,43 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
     return result;
 }
 
+Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t) {
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  std::vector <std::vector<std::string>> verifVector;
+  try {
+    std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+
+    verifVector = get_verif_vect(encr_poly_ptr->c_str(), n, t);
+    std::cerr << "verif vect size " << verifVector.size() << std::endl;
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+    result["Verification Vector"] = "";
+  }
+
+  for ( int i = 0; i < t; i++){
+    std::vector<std::string> cur_coef = verifVector.at(i);
+    string num = std::to_string(i);
+    result["Verification Vector"][i][num]["X"]["c0"] = cur_coef.at(0);
+    result["Verification Vector"][i][num]["X"]["c1"] = cur_coef.at(1);
+    result["Verification Vector"][i][num]["Y"]["c0"] = cur_coef.at(2);
+    result["Verification Vector"][i][num]["Y"]["c1"] = cur_coef.at(3);
+  }
+
+  return result;
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
     return generateDKGPolyImpl(polyName, t);
+}
+
+Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int n, int t){
+  return getVerificationVectorImpl(polyName, n, t);
 }
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
@@ -298,6 +333,17 @@ Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::s
     return importECDSAKeyImpl(key, keyName);
 }
 
+
+shared_ptr<string> readFromDb(const string & name, const string & prefix) {
+
+  auto dataStr = levelDb->readString(prefix + name);
+
+  if (dataStr == nullptr) {
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exists");
+  }
+
+  return dataStr;
+}
 
 shared_ptr<string> readKeyShare(const string &_keyShareName) {
 

@@ -83,7 +83,31 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 }
 
+bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
+                uint8_t* _bin, const int _max_length ) {
 
+    int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
+
+
+    if (len == 0 && len % 2 == 1)
+        return false;
+
+    *_bin_len = len / 2;
+
+    for (int i = 0; i < len / 2; i++) {
+        int high = char2int((char)_hex[i * 2]);
+        int low = char2int((char)_hex[i * 2 + 1]);
+
+        if (high < 0 || low < 0) {
+            return false;
+        }
+
+        _bin[i] = (unsigned char) (high * 16 + low);
+    }
+
+    return true;
+
+}
 
 
 bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,

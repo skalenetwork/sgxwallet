@@ -112,10 +112,12 @@ void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
     result += ":";
   }
   strncpy(secret_shares, result.c_str(), result.length());
+  //strncpy(secret_shares, decrypted_koefs, 3650);
 }
 
 void calc_public_shares(const char* decrypted_koefs, char * public_shares,
                         unsigned _t) {
+  libff::init_alt_bn128_params();
   // calculate for each node a list of public shares
   std::string result;
   char symbol = ':';
@@ -133,6 +135,7 @@ void calc_public_shares(const char* decrypted_koefs, char * public_shares,
     result += ",";
   }
   strncpy(public_shares, result.c_str(), result.length());
+  //strncpy(public_shares, decrypted_koefs, 10000);
 }
 
 

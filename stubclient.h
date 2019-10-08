@@ -83,12 +83,24 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value generateDKGPoly(const std::string& keyName, int t) throw (jsonrpc::JsonRpcException)
+        Json::Value generateDKGPoly(const std::string& polyName, int t) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
-            p["keyName"] = keyName;
+            p["polyName"] = polyName;
             p["t"] = t;
             Json::Value result = this->CallMethod("generateDKGPoly",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+        Json::Value getVerificationVector(const std::string& polyName, int n, int t) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["polyName"] = polyName;
+            p["n"] = n;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("getVerificationVector",p);
             if (result.isObject())
                 return result;
             else

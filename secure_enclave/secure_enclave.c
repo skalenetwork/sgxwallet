@@ -430,32 +430,58 @@ void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_s
   free(dkg_secret);
 }
 
-void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len){
+void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t* dec_len){
 
   //uint32_t dec_size = DKG_BUFER_LENGTH;//sgx_get_encrypt_txt_len( ( sgx_sealed_data_t *)encrypted_dkg_secret);
-
+  uint32_t decr_len;
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &enc_len);
+      (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &decr_len);
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
+
+  *dec_len = decr_len;
 }
 
-void get_secret_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* secret_shares,
+void get_secret_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t* dec_len, char* secret_shares,
     unsigned _t, unsigned _n){
-  char* decrypted_dkg_secret = (char*)malloc(DKG_MAX_SEALED_LEN);
-  decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
-  calc_secret_shares(decrypted_dkg_secret, secret_shares, _t, _n);
+
+  char* decrypted_dkg_secret = (char*)malloc(DKG_BUFER_LENGTH);
+
+  //char decrypted_dkg_secret[DKG_MAX_SEALED_LEN];
+  uint32_t decr_len ;
+  //uint32_t* decr_len_test =  (char*)malloc(1);
+  decrypt_dkg_secret(err_status, err_string, encrypted_dkg_secret, (uint8_t*)decrypted_dkg_secret, &decr_len);
+  //sgx_status_t status = sgx_unseal_data(
+    //  (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, (uint8_t*)decrypted_dkg_secret, &decr_len);
+
+  if (*err_status != 0) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", *err_status);
+    return;
+  }
+
+  *dec_len = decr_len;
+
+ // strncpy(err_string, decrypted_dkg_secret, 1024);
+ calc_secret_shares(decrypted_dkg_secret, secret_shares, _t, _n);
+ free(decrypted_dkg_secret);
 }
 
 void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* public_shares,
                        unsigned _t, unsigned _n){
   char* decrypted_dkg_secret = (char*)malloc(DKG_MAX_SEALED_LEN);
-  decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
-  strncpy(err_string, decrypted_dkg_secret, 1024);
+  uint32_t decr_len ;
+  decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, &decr_len);
+  if(  *err_status != 0 ){
+    snprintf(err_string, BUF_LEN,"decrypt_dkg_secret failed with status %d", *err_status);
+    return;
+  }
+  //strncpy(err_string, decrypted_dkg_secret, 1024);
+  //  strncpy(err_string, "before calc_public_shares ", 1024);
   calc_public_shares(decrypted_dkg_secret, public_shares, _t);
+  free(decrypted_dkg_secret);
 }
 
 void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
