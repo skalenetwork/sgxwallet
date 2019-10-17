@@ -493,25 +493,42 @@ TEST_CASE( "DKG public shares test", "[dkg-pub_shares]" ) {
   sgx_destroy_enclave(eid);
 }
 
-TEST_CASE( "DKG drive key test", "[dkg-drive-key]" ) {
+TEST_CASE( "DKG encrypted secret shares test", "[dkg-encr_sshares]" ) {
 
   // init_all();
   init_enclave();
   uint8_t *encrypted_key = (uint8_t *) calloc(BUF_LEN, 1);
 
   char *errMsg = (char *)calloc(1024, 1);
-  char *result = (char *)calloc(1024, 1);
-  char *pub_key = (char *)calloc(1024, 1);
+  char *result = (char *)calloc(130, 1);
+
   int err_status = 0;
   uint32_t enc_len = 0;
 
-  unsigned t = 3, n = 4;
 
-  status = drive_key(eid, &err_status, errMsg, encrypted_key, &enc_len, result,
-                     pub_key);
+  uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
 
+
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 2);
   REQUIRE(status == SGX_SUCCESS);
-  printf(" drive_key completed with status: %d %s \n", err_status, errMsg);
+  std::cerr << " poly generated" << std::endl;
+
+  status = set_encrypted_dkg_poly(eid, &err_status, errMsg, encrypted_dkg_secret);
+  REQUIRE(status == SGX_SUCCESS);
+  std::cerr << " poly set" << std::endl;
+
+  uint8_t *encr_pr_DHkey = (uint8_t *)calloc(1024, 1);
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+
+  char *pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
+
+  status = get_encr_sshare(eid, &err_status, errMsg, encr_pr_DHkey, &enc_len, result,
+                     pub_keyB, 2, 2, 1);
+  REQUIRE(status == SGX_SUCCESS);
+  printf(" get_encr_sshare completed with status: %d %s \n", err_status, errMsg);
+
+  std::cerr << "secret share is " << result << std::endl;
 }
 
 
@@ -653,8 +670,21 @@ TEST_CASE("API test", "[api_test]") {
          //cout<<c.getPublicECDSAKey("test_key");
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
-       //  cout << c.generateDKGPoly("polyy", 5);
-        cout << c.getVerificationVector("polyy", 5,  5);
+        // cout << c.generateDKGPoly("p2", 2);
+        //cout << c.getVerificationVector("polyy", 5,  5);
+
+
+
+        cout << c.getSecretShare("p2",
+              "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e",
+              2,2);
+
+     // cout << c.generateDKGPoly("p3", 3);
+     // cout << c.getSecretShare("p3",
+       //                        "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e9d43f1c88581f53af993da1654c9f91829c1fe5344c4452ef8d2d8675c6a051c19029f6e4f82b035fb3552058cf22c5bbafd9e6456d579634987281765d130b0",
+         //                      3,3);
+
+
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

@@ -27,7 +27,7 @@ secure_enclave.o: secure_enclave.c secure_enclave_t.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
- domain_parameters.h point.h signature.h curves.h drive_key_dkg.h \
+ domain_parameters.h point.h signature.h curves.h DH_dkg.h \
  ../sgxwallet_common.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h \
@@ -99,7 +99,7 @@ signature.h:
 
 curves.h:
 
-drive_key_dkg.h:
+DH_dkg.h:
 
 ../sgxwallet_common.h:
 

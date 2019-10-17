@@ -28,6 +28,7 @@ public:
 
     virtual Json::Value generateDKGPoly(const std::string& polyName, int t);
     virtual Json::Value getVerificationVector(const std::string& polyName, int n, int t);
+    virtual Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t);
 
 
 };
@@ -53,5 +54,6 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName);
 
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t);
 Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t);
+Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t);
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

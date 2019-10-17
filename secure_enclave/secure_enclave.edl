@@ -103,13 +103,20 @@ enclave {
                                  [user_check] uint8_t* sig_v,
                                  int base);
 
-         public void drive_key(
+         public void set_encrypted_dkg_poly( [user_check] int *err_status,
+                                             [out, count = 1024] char* err_string,
+                                             [in, count = 3050] uint8_t* encrypted_poly);
+
+         public void get_encr_sshare(
                                 [user_check]int *err_status,
                                 [out, count = 1024] char *err_string,
                                 [out, count = 1024] uint8_t *encrypted_skey,
-                                [user_check]uint32_t* enc_len,
-                                [out, count = 1024] char* result_str,
-                                [out, count = 1024] char* pub_keyB );
+                                [user_check] uint32_t* dec_len,
+                                [out, count = 193] char* result_str,
+                                [in, count = 129] char* pub_keyB,
+                                uint8_t _t,
+                                uint8_t _n,
+                                uint8_t ind);
 	};
 
 

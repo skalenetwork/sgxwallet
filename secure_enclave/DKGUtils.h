@@ -15,6 +15,10 @@ EXTERNC void gen_dkg_poly( char* secret, unsigned _t);
 
 EXTERNC void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
                         unsigned _t, unsigned _n);
+
+EXTERNC void calc_secret_share(const char* decrypted_koefs, char * s_share,
+                               unsigned _t, unsigned _n, unsigned ind);
+
 EXTERNC void calc_public_shares(const char* decrypted_koefs, char * public_shares,
                         unsigned _t);
 

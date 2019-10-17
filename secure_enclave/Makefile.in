@@ -109,7 +109,7 @@ am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) curves.$(OBJEXT) \
 	domain_parameters.$(OBJEXT) numbertheory.$(OBJEXT) \
-	point.$(OBJEXT) signature.$(OBJEXT) drive_key_dkg.$(OBJEXT) \
+	point.$(OBJEXT) signature.$(OBJEXT) DH_dkg.$(OBJEXT) \
 	DKGUtils.$(OBJEXT) BLSEnclave.$(OBJEXT) \
 	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
 	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
@@ -138,14 +138,13 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/BLSEnclave.Po \
+am__depfiles_remade = ./$(DEPDIR)/BLSEnclave.Po ./$(DEPDIR)/DH_dkg.Po \
 	./$(DEPDIR)/DKGUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
 	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
 	./$(DEPDIR)/curves.Po ./$(DEPDIR)/domain_parameters.Po \
-	./$(DEPDIR)/drive_key_dkg.Po ./$(DEPDIR)/numbertheory.Po \
-	./$(DEPDIR)/point.Po ./$(DEPDIR)/secure_enclave.Po \
-	./$(DEPDIR)/secure_enclave_t.Po ./$(DEPDIR)/signature.Po \
-	./$(DEPDIR)/signed_enclave_debug.Po \
+	./$(DEPDIR)/numbertheory.Po ./$(DEPDIR)/point.Po \
+	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
+	./$(DEPDIR)/signature.Po ./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -344,7 +343,7 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = $(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	curves.c domain_parameters.c numbertheory.c point.c signature.c drive_key_dkg.c \
+	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c \
     DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
@@ -439,13 +438,13 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSEnclave.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DH_dkg.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DKGUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/curves.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain_parameters.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drive_key_dkg.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/numbertheory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/point.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave.Po@am__quote@ # am--include-marker
@@ -659,13 +658,13 @@ clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/BLSEnclave.Po
+	-rm -f ./$(DEPDIR)/DH_dkg.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/curves.Po
 	-rm -f ./$(DEPDIR)/domain_parameters.Po
-	-rm -f ./$(DEPDIR)/drive_key_dkg.Po
 	-rm -f ./$(DEPDIR)/numbertheory.Po
 	-rm -f ./$(DEPDIR)/point.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
@@ -719,13 +718,13 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/BLSEnclave.Po
+	-rm -f ./$(DEPDIR)/DH_dkg.Po
 	-rm -f ./$(DEPDIR)/DKGUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/curves.Po
 	-rm -f ./$(DEPDIR)/domain_parameters.Po
-	-rm -f ./$(DEPDIR)/drive_key_dkg.Po
 	-rm -f ./$(DEPDIR)/numbertheory.Po
 	-rm -f ./$(DEPDIR)/point.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po

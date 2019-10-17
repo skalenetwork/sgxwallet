@@ -31,15 +31,15 @@ std::string stringFromFr(libff::alt_bn128_Fr& _el) {
 }
 
 template<class T>
-std::string ConvertToString(T field_elem) {
+std::string ConvertToString(T field_elem, int base = 10) {
   mpz_t t;
   mpz_init(t);
 
   field_elem.as_bigint().to_mpz(t);
 
-  char arr[mpz_sizeinbase (t, 10) + 2];
+  char arr[mpz_sizeinbase (t, base) + 2];
 
-  char * tmp = mpz_get_str(arr, 10, t);
+  char * tmp = mpz_get_str(arr, base, t);
   mpz_clear(t);
 
   std::string output = tmp;
@@ -69,7 +69,7 @@ std::vector<libff::alt_bn128_Fr> SplitStringToFr(const char* koefs, const char s
     return tokens;
 }
 
-void gen_dkg_poly( char* secret/*[BUF_LEN]*/, unsigned _t ){
+void gen_dkg_poly( char* secret, unsigned _t ){
     libff::init_alt_bn128_params();
     std::string result;
     for (size_t i = 0; i < _t; ++i) {
@@ -81,7 +81,7 @@ void gen_dkg_poly( char* secret/*[BUF_LEN]*/, unsigned _t ){
        result += stringFromFr(cur_coef);
        result += ":";
     }
-    strncpy(secret, result.c_str(), result.length());
+    strncpy(secret, result.c_str(), result.length() + 1);
 }
 
 libff::alt_bn128_Fr PolynomialValue(const std::vector<libff::alt_bn128_Fr>& pol, libff::alt_bn128_Fr point, unsigned _t) {
@@ -100,8 +100,8 @@ libff::alt_bn128_Fr PolynomialValue(const std::vector<libff::alt_bn128_Fr>& pol,
   return value;
 }
 
-void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
-    unsigned _t, unsigned _n) {
+void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,      // calculates secret shares in base 10 to a string secret_shares,
+    unsigned _t, unsigned _n) {                                                 // separated by ":"
   // calculate for each node a list of secret values that will be used for verification
   std::string result;
   char symbol = ':';
@@ -111,8 +111,24 @@ void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
     result += ConvertToString(secret_share);//stringFromFr(secret_share);
     result += ":";
   }
-  strncpy(secret_shares, result.c_str(), result.length());
+  strncpy(secret_shares, result.c_str(), result.length() + 1);
   //strncpy(secret_shares, decrypted_koefs, 3650);
+}
+
+void calc_secret_share(const char* decrypted_koefs, char * s_share,
+                        unsigned _t, unsigned _n, unsigned ind) {
+
+  libff::init_alt_bn128_params();
+  char symbol = ':';
+  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, symbol);
+
+  libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
+  std::string cur_share = ConvertToString(secret_share, 16);//stringFromFr(secret_share);
+  int n_zeroes = 64 - cur_share.size();
+  cur_share.insert(0, n_zeroes, '0');
+
+  strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
+
 }
 
 void calc_public_shares(const char* decrypted_koefs, char * public_shares,

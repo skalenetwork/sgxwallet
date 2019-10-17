@@ -37,10 +37,11 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
   HttpServer *hs = nullptr;
 
 int init_server() {
+
   hs = new HttpServer(1025);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
-
+ 
     if (!s->StartListening()) {
       cerr << "Server could not start listening" << endl;
       exit(-1);
@@ -240,12 +241,11 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
 }
 
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
-
+   std::cerr <<  " enter generateDKGPolyImpl" << std::endl;
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     //result["encryptedPoly"] = "";
-
 
     std::string encrPolyHex;
 
@@ -294,6 +294,28 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t)
   return result;
 }
 
+Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t){
+
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
+    try {
+        std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+        std::string s = get_secret_shares( encr_poly_ptr->c_str(), publicKeys, n, t);
+        //std::cerr << "result is " << s << std::endl;
+        result["SecretShare"] = s;
+
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+        result["SecretShare"] = "";
+    }
+
+    return result;
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
     return generateDKGPolyImpl(polyName, t);
 }
@@ -301,6 +323,11 @@ Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t)
 Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int n, int t){
   return getVerificationVectorImpl(polyName, n, t);
 }
+
+Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t){
+    return getSecretShareImpl(polyName, publicKeys, n, t);
+}
+
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
     return generateECDSAKeyImpl(_keyName);
@@ -316,18 +343,17 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_
     return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
 }
 
+
 Json::Value
 SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, const std::string &_keyShareName, int n,
                                    int t) {
     return importBLSKeyShareImpl(index, _keyShare, _keyShareName, n, t);
-
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,
                                        int t, int signerIndex) {
     return blsSignMessageHashImpl(keyShareName, messageHash, n,t, signerIndex);
 }
-
 
 Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
     return importECDSAKeyImpl(key, keyName);

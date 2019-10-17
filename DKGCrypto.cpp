@@ -38,6 +38,8 @@ std::string gen_dkg_poly( int _t){
 
     status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, _t);
 
+    std::cerr << "gen_dkg_secret, status " << err_status << " err msg " << errMsg << std::endl;
+
  /*   std::cerr << "encr raw poly: " << std::endl;
     for ( int i = 0 ; i < 3050; i++)
       printf(" %d ", encrypted_dkg_secret[i] );*/
@@ -96,4 +98,39 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
   free(encr_dkg_poly);
 
   return pub_shares_vect;
+}
+
+std::string get_secret_shares( const char* encryptedPolyHex, const std::string& publicKeys, int n, int t){
+  char* errMsg1 = (char*) calloc(1024,1);
+  int err_status = 0;
+
+  uint64_t enc_len = 0;
+
+  uint8_t* encr_dkg_poly = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
+  hex2carray2(encryptedPolyHex, &enc_len, encr_dkg_poly, 6100);
+
+  status = set_encrypted_dkg_poly(eid, &err_status, errMsg1, encr_dkg_poly);
+
+  std::string result;
+  for ( int i = 0; i < n; i++){
+    uint8_t encrypted_skey[BUF_LEN];
+    uint32_t dec_len;
+
+    char cur_share[193];
+    std::string pub_keyB = publicKeys.substr(64*i, 64*i + 128);
+    char pubKeyB[129];
+    strncpy(pubKeyB, pub_keyB.c_str(),129);
+    get_encr_sshare(eid, &err_status, errMsg1, encrypted_skey, &dec_len,
+                   cur_share, pubKeyB, t, n, i + 1 );
+
+    result += cur_share;
+
+    //std::cerr << errMsg1 << std::endl << std::endl;
+    //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;
+    //std::cerr << "iteration " << i <<" share length is " << strlen(cur_share) << std::endl;
+    //std::cerr << "iteration " << i <<" share is " << cur_share << std::endl;
+  }
+  //result += '\0';
+
+  return result;
 }

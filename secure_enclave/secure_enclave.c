@@ -31,14 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-/*#include <openssl/ecdsa.h>
-#include <openssl/ec.h>
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include "tSgxSSL_api.h"*/
-
 #include "secure_enclave_t.h"
 #include "sgx_tcrypto.h"
 #include "sgx_tseal.h"
@@ -54,12 +46,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "point.h"
 #include "signature.h"
 #include "curves.h"
-#include "drive_key_dkg.h"
-#include <string.h>
+
+#include "DH_dkg.h"
 
 #include <sgx_tcrypto.h>
 
 #include "../sgxwallet_common.h"
+
+uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH] ;
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -557,50 +551,66 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
 
 }
 
-void drive_key(int *err_status, char *err_string, uint8_t *encrypted_skey, uint32_t* dec_len, char* result_str, char* pub_keyB ){
+void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypted_poly){
 
- /* //char* skey = (char*)malloc(1024);
-  char* pub_key = (char*)malloc(1024);
-
-  mpz_t skey;
-  mpz_init(skey);
-
-  gen_session_keys(skey, pub_key);
-  char arr_sk[mpz_sizeinbase (skey, 16) + 2];
-  char* sk = mpz_get_str(arr_sk, 16, skey);
-  snprintf(err_string, BUF_LEN,"skey is %s length %d", arr_sk, strlen(arr_sk));
-
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
-  sgx_status_t status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t*)arr_sk, sealedLen,(sgx_sealed_data_t*)encrypted_skey);
-
-  if(  status !=  SGX_SUCCESS) {
-    snprintf(err_string, BUF_LEN,"SGX seal data failed");
-  }*/
-
- /* char arr_r[mpz_sizeinbase (sign->r, base) + 2];
-  char* r = mpz_get_str(arr_r, base, sign->r);
-  strncpy(sig_r, arr_r, 1024);
-
-  char arr_s[mpz_sizeinbase (sign->s, base) + 2];
-  char* s = mpz_get_str(arr_s, base, sign->s);
-  strncpy(sig_s, arr_s, 1024);*/
-
-  char skey[ECDSA_SKEY_LEN];
-
+  uint32_t decr_len;
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_skey, NULL, 0, skey, dec_len);
+      (const sgx_sealed_data_t *)encrypted_poly, NULL, 0, Decrypted_dkg_poly, &decr_len);
+
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
 
-  char * common_key = malloc(64*2);
-
-  gen_session_key(skey, pub_keyB, common_key);
-
-  mpz_clear(skey);
- //free(skey);
- //free(pub_key);
-
 }
+
+void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey, uint32_t* dec_len,
+    char* result_str, char* pub_keyB, uint8_t _t, uint8_t _n, uint8_t ind ){
+
+  char skey[ECDSA_SKEY_LEN];
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+
+  uint32_t enc_len;
+
+  generate_ecdsa_key(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+  snprintf(err_string, BUF_LEN,"pub_key_x is %s", pub_key_x);
+
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_skey, NULL, 0, (uint8_t *)skey, &enc_len);
+
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
+    return;
+  }
+
+  char * common_key = (char *)malloc(65);
+  gen_session_key(skey, pub_keyB, common_key);
+  //snprintf(err_string, BUF_LEN,"common key is %s", common_key);
+
+  char* s_share = (char *)malloc(65);
+  //char s_share[65];
+
+  calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind);
+  //snprintf(err_string, BUF_LEN,"secret share is %s", s_share);
+
+  char* cypher = (char *)malloc(65);
+  xor_encrypt(common_key, s_share, cypher);
+  //snprintf(err_string, BUF_LEN,"cypher is %s length is %d", cypher, strlen(cypher));
+
+  strncpy(result_str, cypher, strlen(cypher));
+  strncpy(result_str + strlen(cypher), pub_key_x, strlen(pub_key_x));
+  strncpy(result_str + strlen(pub_key_x) + strlen(pub_key_y), pub_key_y, strlen(pub_key_y));
+  //snprintf(err_string, BUF_LEN,"s_share is %s length is %d", result_str, strlen(result_str));
+
+  //mpz_clear(skey);
+  //free(skey);
+  free(common_key);
+  free(pub_key_x);
+  free(pub_key_y);
+  free(s_share);
+  free(cypher);
+}
+
+
 

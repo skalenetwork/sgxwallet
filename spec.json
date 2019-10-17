@@ -111,5 +111,19 @@
       "Verification Vector": [{},{}]
 
     }
+  },
+  {
+    "name": "getSecretShare",
+    "params": {
+      "polyName": "key1",
+      "publicKeys": "123",
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "SecretShare": "123"
+    }
   }
 ]

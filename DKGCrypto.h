@@ -14,4 +14,6 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
 
 std::vector<std::string> SplitString(const char* koefs, const char symbol);
 
+std::string get_secret_shares( const char* encryptedPolyHex, const std::string& publicKeys, int n, int t);
+
 #endif //SGXD_DKGCRYPTO_H
