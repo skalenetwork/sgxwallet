@@ -141,7 +141,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   mpz_mod(skey, seed, curve->p);
   mpz_clear(seed);
 
-  //mpz_set_str(skey, "4160780231445160889237664391382223604576", 10);
+   //mpz_set_str(skey, "4160780231445160889237664391382223604576", 10);
   //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
   //mpz_set_str(skey, "1", 10);
   //mpz_set_str(skey, "ebb2c082fd7727890a28ac82f6bdf97bad8de9f5d7c9028692de1a255cad3e0f", 16);
@@ -611,6 +611,54 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
   free(s_share);
   free(cypher);
 }
+
+void dkg_verification(int *err_status, char* err_string, const uint8_t * encrypted_dkg_secret, const char* s_share,
+                      uint8_t* encrypted_key, uint64_t key_len, unsigned _t, int _ind, int * result){
+
+  char* decrypted_dkg_secret = (char*)malloc(DKG_BUFER_LENGTH);
+
+  uint32_t decr_len ;
+  decrypt_dkg_secret(err_status, err_string, encrypted_dkg_secret, (uint8_t*)decrypted_dkg_secret, &decr_len);
+  if (*err_status != 0) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_poly failed with status %d", *err_status);
+    return;
+  }
+
+  //uint32_t dec_len = 625;
+  char skey[ECDSA_SKEY_LEN];
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*)skey, &key_len);
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_key failed with status %d", status);
+    return;
+  }
+
+  char encr_sshare[65];
+  strncpy(encr_sshare, s_share, 64);
+  encr_sshare[64] = 0;
+
+  char common_key[65];
+  char decr_sshare[65];
+  session_key_recover(skey, s_share, common_key);
+  common_key[64] = 0;
+
+  xor_decrypt(common_key, encr_sshare, decr_sshare);
+
+  //snprintf(err_string, BUF_LEN,"sshare is %s", decr_sshare);
+  //snprintf(err_string, BUF_LEN,"encr_share is %s", encr_sshare);
+  //snprintf(err_string, BUF_LEN,"common_key is %s", common_key);
+
+  mpz_t s;
+  mpz_init(s);
+  mpz_set_str(s, decr_sshare, 16);
+
+  *result = Verification(decrypted_dkg_secret, s, _t, _ind);
+
+  snprintf(err_string, BUF_LEN,"val is %s", decrypted_dkg_secret);
+
+  free(decrypted_dkg_secret);
+}
+
 
 
 

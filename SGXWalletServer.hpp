@@ -5,6 +5,8 @@
 
 
 #include "abstractstubserver.h"
+#include <mutex>
+
 
 using namespace jsonrpc;
 using namespace std;
@@ -13,7 +15,7 @@ class SGXWalletServer : public AbstractStubServer {
 
 
     SGXWalletServer* server = nullptr;
-
+    std::recursive_mutex m;
 
 public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
@@ -29,11 +31,13 @@ public:
     virtual Json::Value generateDKGPoly(const std::string& polyName, int t);
     virtual Json::Value getVerificationVector(const std::string& polyName, int n, int t);
     virtual Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t);
+    virtual Json::Value DKGVerification(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
 
 
 };
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix);
+void writeDataToDB(const string & Name, const string &value);
 
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
@@ -55,5 +59,6 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName);
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t);
 Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t);
 Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t);
+Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

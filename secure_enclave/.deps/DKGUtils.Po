@@ -1,21 +1,27 @@
 DKGUtils.o: DKGUtils.cpp DKGUtils.h \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp \
- ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp \
- ../sgx-sdk-build/sgxsdk/include/libcxx/vector \
+ /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
+ ../sgx-sdk-build/sgxsdk/include/libcxx/iosfwd \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__config \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__sgx \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/endian.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/assert.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h \
- ../sgx-sdk-build/sgxsdk/include/libcxx/iosfwd \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h \
+ ../sgx-sdk-build/sgxsdk/include/libcxx/cstdio \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp \
+ ../sgx-sdk-build/sgxsdk/include/libcxx/vector \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__bit_reference \
  ../sgx-sdk-build/sgxsdk/include/libcxx/algorithm \
  ../sgx-sdk-build/sgxsdk/include/libcxx/initializer_list \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cstddef \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/type_traits \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cstring \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/string.h \
@@ -48,17 +54,12 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cstdlib \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/climits \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/__split_buffer \
  ../trusted_libff/libff/common/utils.hpp \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cassert \
  ../sgx-sdk-build/sgxsdk/include/libcxx/iostream \
  ../sgx-sdk-build/sgxsdk/include/libcxx/sstream \
  ../sgx-sdk-build/sgxsdk/include/libcxx/string \
- ../sgx-sdk-build/sgxsdk/include/libcxx/cstdio \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cwchar \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cwctype \
  ../sgx-sdk-build/sgxsdk/include/libcxx/cctype \
@@ -70,7 +71,6 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../trusted_libff/libff/algebra/fields/fp.hpp \
  ../trusted_libff/libff/algebra/exponentiation/exponentiation.hpp \
  ../trusted_libff/libff/algebra/fields/bigint.hpp \
- /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
  ../trusted_libff/libff/algebra/fields/bigint.tcc \
  ../sgx-sdk-build/sgxsdk/include/libcxx/random \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_trts.h \
@@ -98,11 +98,9 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
 
 DKGUtils.h:
 
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp:
+/home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h:
 
-../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp:
-
-../sgx-sdk-build/sgxsdk/include/libcxx/vector:
+../sgx-sdk-build/sgxsdk/include/libcxx/iosfwd:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/__config:
 
@@ -114,13 +112,29 @@ DKGUtils.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h:
 
-../sgx-sdk-build/sgxsdk/include/libcxx/iosfwd:
-
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h:
+
+../sgx-sdk-build/sgxsdk/include/libcxx/cstdio:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
+
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp:
+
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp:
+
+../sgx-sdk-build/sgxsdk/include/libcxx/vector:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/__bit_reference:
 
@@ -129,8 +143,6 @@ DKGUtils.h:
 ../sgx-sdk-build/sgxsdk/include/libcxx/initializer_list:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/cstddef:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/type_traits:
 
@@ -196,10 +208,6 @@ DKGUtils.h:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/climits:
 
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
-
 ../sgx-sdk-build/sgxsdk/include/libcxx/__split_buffer:
 
 ../trusted_libff/libff/common/utils.hpp:
@@ -211,12 +219,6 @@ DKGUtils.h:
 ../sgx-sdk-build/sgxsdk/include/libcxx/sstream:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/string:
-
-../sgx-sdk-build/sgxsdk/include/libcxx/cstdio:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
 
 ../sgx-sdk-build/sgxsdk/include/libcxx/cwchar:
 
@@ -239,8 +241,6 @@ DKGUtils.h:
 ../trusted_libff/libff/algebra/exponentiation/exponentiation.hpp:
 
 ../trusted_libff/libff/algebra/fields/bigint.hpp:
-
-/home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h:
 
 ../trusted_libff/libff/algebra/fields/bigint.tcc:
 

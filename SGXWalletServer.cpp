@@ -41,7 +41,7 @@ int init_server() {
   hs = new HttpServer(1025);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
- 
+
     if (!s->StartListening()) {
       cerr << "Server could not start listening" << endl;
       exit(-1);
@@ -302,7 +302,7 @@ Json::Value getSecretShareImpl(const std::string& polyName, const std::string& p
 
     try {
         std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
-        std::string s = get_secret_shares( encr_poly_ptr->c_str(), publicKeys, n, t);
+        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), publicKeys, n, t);
         //std::cerr << "result is " << s << std::endl;
         result["SecretShare"] = s;
 
@@ -316,28 +316,68 @@ Json::Value getSecretShareImpl(const std::string& polyName, const std::string& p
     return result;
 }
 
+Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& EthKeyName,
+                                  const std::string& SecretShare, int t, int n, int ind){
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+  result["result"] = true;
+
+  try {
+    std::shared_ptr<std::string> encryptedPolyHex_ptr = readFromDb(polyName, "DKGPoly:");
+    std::string keyName = polyName + "_" + std::to_string(ind);
+    //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(keyName, "DKG_DH_KEY_");
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey("test_key1");
+
+    if ( !VerifyShares(encryptedPolyHex_ptr->c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
+      result["result"] = false;
+    }
+
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+    result["result"] = false;
+  }
+
+  return result;
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
-    return generateDKGPolyImpl(polyName, t);
+  lock_guard<recursive_mutex> lock(m);
+  return generateDKGPolyImpl(polyName, t);
 }
 
 Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int n, int t){
+  lock_guard<recursive_mutex> lock(m);
   return getVerificationVectorImpl(polyName, n, t);
 }
 
 Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t){
+    lock_guard<recursive_mutex> lock(m);
     return getSecretShareImpl(polyName, publicKeys, n, t);
+}
+
+Json::Value  SGXWalletServer::DKGVerification( const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
+  lock_guard<recursive_mutex> lock(m);
+  return DKGVerificationImpl(polyName, EthKeyName, SecretShare, t, n, index);
 }
 
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
+  lock_guard<recursive_mutex> lock(m);
     return generateECDSAKeyImpl(_keyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
+  lock_guard<recursive_mutex> lock(m);
   return getPublicECDSAKeyImpl(_keyName);
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+    lock_guard<recursive_mutex> lock(m);
     std::cerr << "entered ecdsaSignMessageHash" << std::endl;
     std::cerr << "MessageHash first " << messageHash << std::endl;
     return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
@@ -347,16 +387,19 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_
 Json::Value
 SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, const std::string &_keyShareName, int n,
                                    int t) {
+    lock_guard<recursive_mutex> lock(m);
     return importBLSKeyShareImpl(index, _keyShare, _keyShareName, n, t);
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,
                                        int t, int signerIndex) {
+    lock_guard<recursive_mutex> lock(m);
     return blsSignMessageHashImpl(keyShareName, messageHash, n,t, signerIndex);
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
-    return importECDSAKeyImpl(key, keyName);
+  lock_guard<recursive_mutex> lock(m);
+  return importECDSAKeyImpl(key, keyName);
 }
 
 
@@ -441,6 +484,23 @@ void writeDKGPoly(const string &_polyName, const string &value) {
 
   if (levelDb->readString(_polyName) != nullptr) {
     throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Poly with this name already exists");
+  }
+
+  levelDb->writeString(key, value);
+}
+
+void writeDataToDB(const string & Name, const string &value) {
+  Json::Value val;
+  Json::FastWriter writer;
+
+  val["value"] = value;
+  std::string json = writer.write(val);
+
+  auto key = Name;
+
+  if (levelDb->readString(Name) != nullptr) {
+    std::cerr << "already exists" << std::endl;
+    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   levelDb->writeString(key, value);

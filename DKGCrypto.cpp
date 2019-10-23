@@ -7,6 +7,9 @@
 #include "sgxwallet.h"
 #include <iostream>
 
+#include <memory>
+#include "SGXWalletServer.hpp"
+
 std::vector<std::string> SplitString(const char* koefs, const char symbol){
   std::string str(koefs);
   std::string delim;
@@ -100,7 +103,7 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
   return pub_shares_vect;
 }
 
-std::string get_secret_shares( const char* encryptedPolyHex, const std::string& publicKeys, int n, int t){
+std::string get_secret_shares(const std::string& polyName, const char* encryptedPolyHex, const std::string& publicKeys, int n, int t){
   char* errMsg1 = (char*) calloc(1024,1);
   int err_status = 0;
 
@@ -112,6 +115,8 @@ std::string get_secret_shares( const char* encryptedPolyHex, const std::string& 
   status = set_encrypted_dkg_poly(eid, &err_status, errMsg1, encr_dkg_poly);
 
   std::string result;
+  char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
+
   for ( int i = 0; i < n; i++){
     uint8_t encrypted_skey[BUF_LEN];
     uint32_t dec_len;
@@ -125,6 +130,14 @@ std::string get_secret_shares( const char* encryptedPolyHex, const std::string& 
 
     result += cur_share;
 
+    uint32_t enc_len = BUF_LEN;
+    carray2Hex(encrypted_skey, enc_len, hexEncrKey);
+    //std::cerr << "hexEncrKey: " << hexEncrKey << std::endl;
+
+    std::string name = "DKG_DH_KEY_" + polyName + "_" + std::to_string(i) + ":";
+    //writeDataToDB(name, hexEncrKey);
+
+
     //std::cerr << errMsg1 << std::endl << std::endl;
     //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;
     //std::cerr << "iteration " << i <<" share length is " << strlen(cur_share) << std::endl;
@@ -132,5 +145,35 @@ std::string get_secret_shares( const char* encryptedPolyHex, const std::string& 
   }
   //result += '\0';
 
+  free(encr_dkg_poly);
+  free(errMsg1);
+  free(hexEncrKey);
+
   return result;
+}
+
+bool VerifyShares(const char* encryptedPolyHex, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind ){
+    char* errMsg1 = (char*) calloc(1024,1);
+    int err_status = 0;
+
+    uint64_t poly_len = 0;
+    uint8_t* encr_dkg_poly = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
+    hex2carray2(encryptedPolyHex, &poly_len, encr_dkg_poly, 6100);
+
+    uint64_t dec_key_len ;
+    uint8_t encr_key[BUF_LEN];
+    hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
+    //std::cerr << "encryptedKeyHex " << encryptedKeyHex << std::endl;
+    //std::cerr << "dec_key_len " << dec_key_len << std::endl;
+
+    int result ;
+    dkg_verification(eid, &err_status, errMsg1, encr_dkg_poly, encr_sshare, encr_key, dec_key_len, t, ind, &result);
+
+    std::cerr << "errMsg1: " << errMsg1 << std::endl;
+
+    free(errMsg1);
+    free(encr_dkg_poly);
+
+    std::cerr << "result is " << result << std::endl;
+    return result;
 }

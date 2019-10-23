@@ -86,7 +86,7 @@ enclave {
          public void get_public_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 3050] uint8_t* decrypted_dkg_secret,
+                                [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
                                 [out, count = 10000] char* public_shares,
                                 unsigned _t,
@@ -117,6 +117,17 @@ enclave {
                                 uint8_t _t,
                                 uint8_t _n,
                                 uint8_t ind);
+
+         public void dkg_verification(
+                                [user_check] int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [in, count = 3050] const uint8_t* encrypted_dkg_secret,
+                                [in, count = 129] const char* s_share,
+                                [in, count = 1024] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                unsigned _t,
+                                int _ind,
+                                [user_check] int* result);
 	};
 
 

@@ -125,5 +125,23 @@
       "errorMessage": "12345",
       "SecretShare": "123"
     }
+  },
+  {
+    "name": "DKGVerification",
+    "params": {
+      "polyName": "p2",
+      "EthKeyName":"key1",
+      "SecretShare": "123",
+      "n": 3,
+      "t": 3,
+      "index" : 2
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "result": true
+    }
   }
+
+
 ]

@@ -531,6 +531,44 @@ TEST_CASE( "DKG encrypted secret shares test", "[dkg-encr_sshares]" ) {
   std::cerr << "secret share is " << result << std::endl;
 }
 
+TEST_CASE( "DKG verification test", "[dkg-verify]" ) {
+
+  // init_all();
+  init_enclave();
+  uint8_t *encrypted_key = (uint8_t *) calloc(BUF_LEN, 1);
+
+  char *errMsg = (char *)calloc(1024, 1);
+  char *result = (char *)calloc(130, 1);
+
+  int err_status = 0;
+  uint32_t enc_len = 0;
+
+
+  uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
+
+
+  status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, 2);
+  REQUIRE(status == SGX_SUCCESS);
+  std::cerr << " poly generated" << std::endl;
+
+  status = set_encrypted_dkg_poly(eid, &err_status, errMsg, encrypted_dkg_secret);
+  REQUIRE(status == SGX_SUCCESS);
+  std::cerr << " poly set" << std::endl;
+
+  uint8_t *encr_pr_DHkey = (uint8_t *)calloc(1024, 1);
+  char *pub_key_x = (char *)calloc(1024, 1);
+  char *pub_key_y = (char *)calloc(1024, 1);
+
+  char *pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
+
+  status = get_encr_sshare(eid, &err_status, errMsg, encr_pr_DHkey, &enc_len, result,
+                           pub_keyB, 2, 2, 1);
+  REQUIRE(status == SGX_SUCCESS);
+  printf(" get_encr_sshare completed with status: %d %s \n", err_status, errMsg);
+
+  std::cerr << "secret share is " << result << std::endl;
+}
+
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
@@ -666,14 +704,16 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-          // cout << c.generateECDSAKey("known_key1") << endl;
-         //cout<<c.getPublicECDSAKey("test_key");
+          // cout << c.generateECDSAKey("test_key2") << endl;
+        //cout<<c.getPublicECDSAKey("test_key1");
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
         // cout << c.generateDKGPoly("p2", 2);
         //cout << c.getVerificationVector("polyy", 5,  5);
 
-
+//      cout << c.getSecretShare("p2",
+//          "505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e232d69c361f0bc9e05f1cf8ef387122dc1d2f7cee7b6cda3537fc9427c02328b01f02fd94ec933134dc795a642864f8cb41ae263e11abaf992e21fcf9be732deb",
+//         2,2);
 
         cout << c.getSecretShare("p2",
               "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e",
@@ -683,6 +723,13 @@ TEST_CASE("API test", "[api_test]") {
      // cout << c.getSecretShare("p3",
        //                        "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e9d43f1c88581f53af993da1654c9f91829c1fe5344c4452ef8d2d8675c6a051c19029f6e4f82b035fb3552058cf22c5bbafd9e6456d579634987281765d130b0",
          //                      3,3);
+
+
+//     std::string share_big = "501e364a6ea516f4812b013bcc150cbb435a2c465c9fd525951264969d8441a986798fd3317c1c3e60f868bb26c4cff837d9185f4be6015d8326437cb5b69480495859cd5a385430ece51252acdc234d8dbde75708b600ac50b2974e813ee26bd87140d88647fcc44df7262bbba24328e8ce622cd627a15b508ffa0db9ae81e0e110fab42cfe40da66b524218ca3c8e5aa3363fbcadef748dc3523a7ffb95b8f5d8141a5163db9f69d1ab223494ed71487c9bb032a74c08a222d897a5e49a617";
+      std::string share_big = "03f749e2fcc28021895d757ec16d1636784446f5effcd3096b045136d8ab02657b32adc577f421330b81f5b7063df3b08a0621a897df2584b9046ca416e50ecc27e8c3277e981f7e650f8640289be128eecf0105f89a20e5ffb164744c45cf191d627ce9ab6c44e2ef96f230f2a4de742ea43b6f74b56849138026610b2d965605ececba527048a0f29f46334b1cec1d23df036248b24eccca99057d24764acee66c1a3f2f44771d0d237bf9d18c4177277e3ce3dc4e83686a2647fce1565ee0";
+      std::string share = share_big.substr(0, 192);
+
+      cout << c.DKGVerification("p2", "test_key1", share, 2, 2, 0);
 
 
     } catch (JsonRpcException &e) {

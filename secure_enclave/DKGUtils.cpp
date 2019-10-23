@@ -4,6 +4,7 @@
 #include "DKGUtils.h"
 
 
+
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <../trusted_libff/libff/algebra/fields/fp.hpp>
 
@@ -13,6 +14,7 @@
 #include "../sgxwallet_common.h"
 #include <cstdio>
 #include <stdio.h>
+
 
 
 std::string stringFromFr(libff::alt_bn128_Fr& _el) {
@@ -151,7 +153,34 @@ void calc_public_shares(const char* decrypted_koefs, char * public_shares,
     result += ",";
   }
   strncpy(public_shares, result.c_str(), result.length());
-  //strncpy(public_shares, decrypted_koefs, 10000);
+}
+
+int Verification (char * decrypted_koefs, mpz_t decr_secret_share, int _t, int ind ){
+
+  libff::init_alt_bn128_params();
+  char symbol = ':';
+  std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, symbol);
+  std::vector<libff::alt_bn128_G2> pub_shares;
+  for (size_t i = 0; i < _t; ++i) {
+    libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one();
+    pub_shares.push_back(pub_share);
+  }
+
+  libff::alt_bn128_G2 val = libff::alt_bn128_G2::zero();
+   for (int i = 0; i < _t; ++i) {
+    val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares[i];
+  }
+
+  char arr[mpz_sizeinbase (decr_secret_share, 10) + 2];
+  char * tmp = mpz_get_str(arr, 10, decr_secret_share);
+  libff::alt_bn128_Fr sshare(tmp);
+
+  //strncpy(decrypted_koefs, ConvertToString(val.X.c0).c_str(), 1024);
+
+  libff::alt_bn128_G2  val2 = sshare * libff::alt_bn128_G2::one();
+  strncpy(decrypted_koefs, ConvertToString(val2.X.c0).c_str(), 1024);
+
+  return (val == sshare * libff::alt_bn128_G2::one());
 }
 
 

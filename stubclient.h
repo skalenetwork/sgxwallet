@@ -94,26 +94,41 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value getVerificationVector(const std::string& polyName, int n, int t) throw (jsonrpc::JsonRpcException)
+    Json::Value getVerificationVector(const std::string& polyName, int n, int t) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["polyName"] = polyName;
+        p["n"] = n;
+        p["t"] = t;
+        Json::Value result = this->CallMethod("getVerificationVector",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+    Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["polyName"] = polyName;
+        p["publicKeys"] = publicKeys;
+        p["n"] = n;
+        p["t"] = t;
+        Json::Value result = this->CallMethod("getSecretShare",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+        Json::Value DKGVerification(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
-            p["polyName"] = polyName;
+            p["EthKeyName"] = EthKeyName;
+            p["SecretShare"] = SecretShare;
+            p["index"] = index;
             p["n"] = n;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("getVerificationVector",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-        Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t) throw (jsonrpc::JsonRpcException)
-        {
-            Json::Value p;
             p["polyName"] = polyName;
-            p["publicKeys"] = publicKeys;
-            p["n"] = n;
             p["t"] = t;
-            Json::Value result = this->CallMethod("getSecretShare",p);
+            Json::Value result = this->CallMethod("DKGVerification",p);
             if (result.isObject())
                 return result;
             else
