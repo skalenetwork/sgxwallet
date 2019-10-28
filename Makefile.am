@@ -41,9 +41,9 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 
 ## Additional automake variables
 ##
-## AM_CPPFLAGS +=
-## AM_CFLAGS =
-## AM_CXXFLAGS =
+#AM_CPPFLAGS += -g -Og
+#AM_CFLAGS = -g -Og
+#AM_CXXFLAGS = ${AM_CPPFLAGS}
 
 AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.
 
@@ -65,7 +65,8 @@ bin_PROGRAMS =  sgxwallet testw
 COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp \
+DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp $(COMMON_SRC)
 
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -91,13 +92,13 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 
 sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a   -ljsonrpccpp-stub -lpthread -ljsonrpccpp-common \
-   -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl -lprocps intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a
+   -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl -lprocps intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
+   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
 
 
 
 testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLSCrypto.cpp ServerInit.cpp LevelDB.cpp \
-    BLSPrivateKeyShareSGX.cpp ECDSACrypto.cpp $(COMMON_SRC)
+ DKGCrypto.cpp BLSPrivateKeyShareSGX.cpp ECDSACrypto.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
-

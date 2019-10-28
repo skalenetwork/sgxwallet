@@ -24,6 +24,8 @@
 #include "LevelDB.h"
 #include "BLSCrypto.h"
 #include "ECDSACrypto.h"
+#include "DKGCrypto.h"
+
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
@@ -35,6 +37,7 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
   HttpServer *hs = nullptr;
 
 int init_server() {
+
   hs = new HttpServer(1025);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -82,7 +85,7 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
     return result;
 }
 
-Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash) {
+Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash,int n, int t, int signerIndex) {
     Json::Value result;
     result["status"] = -1;
     result["errorMessage"] = "Unknown server error";
@@ -113,7 +116,7 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
     }
 
     try {
-        if (!sign(value->c_str(), messageHash.c_str(), 2, 2, 1, signature)) {
+        if (!sign(value->c_str(), messageHash.c_str(), t, n, signerIndex, signature)) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
@@ -232,42 +235,234 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
     std::cerr << "PublicKey" << Pkey << std::endl;
     result["PublicKey"] = Pkey;
 
-
     //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }
 
+Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
+   std::cerr <<  " enter generateDKGPolyImpl" << std::endl;
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    //result["encryptedPoly"] = "";
+
+    std::string encrPolyHex;
+
+    try {
+      encrPolyHex = gen_dkg_poly(t);
+      writeDKGPoly(polyName, encrPolyHex);
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
+    //result["encryptedPoly"] = encrPolyHex;
+
+    return result;
+}
+
+Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t) {
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  std::vector <std::vector<std::string>> verifVector;
+  try {
+    std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+
+    verifVector = get_verif_vect(encr_poly_ptr->c_str(), n, t);
+    std::cerr << "verif vect size " << verifVector.size() << std::endl;
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+    result["Verification Vector"] = "";
+  }
+
+  for ( int i = 0; i < t; i++){
+    std::vector<std::string> cur_coef = verifVector.at(i);
+    string num = std::to_string(i);
+    result["Verification Vector"][i][num]["X"]["c0"] = cur_coef.at(0);
+    result["Verification Vector"][i][num]["X"]["c1"] = cur_coef.at(1);
+    result["Verification Vector"][i][num]["Y"]["c0"] = cur_coef.at(2);
+    result["Verification Vector"][i][num]["Y"]["c1"] = cur_coef.at(3);
+  }
+
+  return result;
+}
+
+Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t){
+
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
+    try {
+        std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), publicKeys, n, t);
+        //std::cerr << "result is " << s << std::endl;
+        result["SecretShare"] = s;
+
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+        result["SecretShare"] = "";
+    }
+
+    return result;
+}
+
+Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& EthKeyName,
+                                  const std::string& SecretShare, int t, int n, int ind){
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+  result["result"] = true;
+
+  try {
+    std::shared_ptr<std::string> encryptedPolyHex_ptr = readFromDb(polyName, "DKGPoly:");
+    //std::string keyName = polyName + "_" + std::to_string(ind);
+    //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+
+    if ( !VerifyShares(encryptedPolyHex_ptr->c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
+      result["result"] = false;
+    }
+
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+    result["result"] = false;
+  }
+
+  return result;
+}
+
+Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+  std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  try {
+
+    if (SecretShare.size() != n){
+      result["errorMessage"] = "wrong number of secret shares";
+      return result;
+    }
+    std::vector<std::string> sshares_vect;
+    std::cerr << "sshares are " << std::endl;
+    char sshares[192 * n + 1];
+    for ( int i = 0; i < n ; i++){
+      sshares_vect.push_back(SecretShare[i].asString());
+     // std::cerr << sshares_vect[i] << " ";
+      strncpy(sshares + i * 192, SecretShare[i].asString().c_str(), 192);
+    }
+    sshares[192 * n ] = 0;
+    std::cerr << sshares << std::endl;
+    std::cerr << "length is " << strlen(sshares);
+
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+
+    bool res = CreateBLSShare(sshares, encryptedKeyHex_ptr->c_str());
+     if ( res){
+         std::cerr << "key created " << std::endl;
+     }
+     else {
+         std::cerr << "error " << std::endl;
+     }
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+
+  }
+
+  return result;
+}
+
+Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
+  lock_guard<recursive_mutex> lock(m);
+  return generateDKGPolyImpl(polyName, t);
+}
+
+Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int n, int t){
+  lock_guard<recursive_mutex> lock(m);
+  return getVerificationVectorImpl(polyName, n, t);
+}
+
+Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t){
+    lock_guard<recursive_mutex> lock(m);
+    return getSecretShareImpl(polyName, publicKeys, n, t);
+}
+
+Json::Value  SGXWalletServer::DKGVerification( const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
+  lock_guard<recursive_mutex> lock(m);
+  return DKGVerificationImpl(polyName, EthKeyName, SecretShare, t, n, index);
+}
+
+Json::Value SGXWalletServer::CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+  lock_guard<recursive_mutex> lock(m);
+  return CreateBLSPrivateKeyImpl(BLSKeyName, EthKeyName, SecretShare, t, n);
+}
+
+
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
+  lock_guard<recursive_mutex> lock(m);
     return generateECDSAKeyImpl(_keyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
+  lock_guard<recursive_mutex> lock(m);
   return getPublicECDSAKeyImpl(_keyName);
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+    lock_guard<recursive_mutex> lock(m);
     std::cerr << "entered ecdsaSignMessageHash" << std::endl;
     std::cerr << "MessageHash first " << messageHash << std::endl;
     return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
 }
 
+
 Json::Value
 SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, const std::string &_keyShareName, int n,
                                    int t) {
+    lock_guard<recursive_mutex> lock(m);
     return importBLSKeyShareImpl(index, _keyShare, _keyShareName, n, t);
-
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash) {
-    return blsSignMessageHashImpl(keyShareName, messageHash);
+Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,
+                                       int t, int signerIndex) {
+    lock_guard<recursive_mutex> lock(m);
+    return blsSignMessageHashImpl(keyShareName, messageHash, n,t, signerIndex);
 }
-
 
 Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
-    return importECDSAKeyImpl(key, keyName);
+  lock_guard<recursive_mutex> lock(m);
+  return importECDSAKeyImpl(key, keyName);
 }
 
+
+shared_ptr<string> readFromDb(const string & name, const string & prefix) {
+
+  auto dataStr = levelDb->readString(prefix + name);
+
+  if (dataStr == nullptr) {
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exists");
+  }
+
+  return dataStr;
+}
 
 shared_ptr<string> readKeyShare(const string &_keyShareName) {
 
@@ -296,7 +491,7 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
     if (levelDb->readString(_keyShareName) != nullptr) {
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name already exists");
+        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
     levelDb->writeString(key, value);
@@ -322,8 +517,41 @@ void writeECDSAKey(const string &_keyName, const string &value) {
     auto key = "ECDSAKEY:" + _keyName;
 
     if (levelDb->readString(_keyName) != nullptr) {
-        throw new RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key with this name already exists");
+        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key with this name already exists");
     }
 
     levelDb->writeString(key, value);
+}
+
+void writeDKGPoly(const string &_polyName, const string &value) {
+  Json::Value val;
+  Json::FastWriter writer;
+
+  val["value"] = value;
+  std::string json = writer.write(val);
+
+  auto key = "DKGPoly:" + _polyName;
+
+  if (levelDb->readString(_polyName) != nullptr) {
+    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Poly with this name already exists");
+  }
+
+  levelDb->writeString(key, value);
+}
+
+void writeDataToDB(const string & Name, const string &value) {
+  Json::Value val;
+  Json::FastWriter writer;
+
+  val["value"] = value;
+  std::string json = writer.write(val);
+
+  auto key = Name;
+
+  if (levelDb->readString(Name) != nullptr) {
+    std::cerr << "already exists" << std::endl;
+    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
+  }
+
+  levelDb->writeString(key, value);
 }

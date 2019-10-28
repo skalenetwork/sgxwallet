@@ -99,7 +99,7 @@ BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
   encryptedKeyHex = _encryptedKeyHex;
 }
 
-std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
+std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
     std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
     size_t _signerIndex) {
   shared_ptr<signatures::Bls> obj;
@@ -133,8 +133,6 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
   }
 
 
-
-
   char errMsg[BUF_LEN];
   memset(errMsg, 0, BUF_LEN);
 
@@ -165,6 +163,10 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
       bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
+ // strncpy(signature, "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855", 1024);
+
+  printf("---: %s\n", signature);
+
 
   if (status != SGX_SUCCESS) {
     gmp_printf("SGX enclave call  to bls_sign_message failed: 0x%04x\n", status);
@@ -189,13 +191,128 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
   std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
                      hash_with_hint.second;
 
+
+
+  std::string sig = signature;
+
+  sig.append(":");
+  sig.append(hint);
+
+  return sig;
+}
+
+std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
+    std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
+    size_t _signerIndex) {
+/*  shared_ptr<signatures::Bls> obj;
+
+  if (_signerIndex == 0) {
+    BOOST_THROW_EXCEPTION(runtime_error("Zero signer index"));
+  }
+  if (hash_byte_arr == nullptr) {
+    BOOST_THROW_EXCEPTION(runtime_error("Hash is null"));
+  }
+
+  obj = make_shared<signatures::Bls>(
+      signatures::Bls(requiredSigners, totalSigners));
+
+  std::pair<libff::alt_bn128_G1, std::string> hash_with_hint =
+      obj->HashtoG1withHint(hash_byte_arr);
+
+  int errStatus = 0;
+
+
+  string* xStr = stringFromFq(&(hash_with_hint.first.X));
+
+  if (xStr == nullptr) {
+    BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
+  }
+
+  string* yStr = stringFromFq(&(hash_with_hint.first.Y));
+
+  if (xStr == nullptr) {
+    BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
+  }
+
+
+  char errMsg[BUF_LEN];
+  memset(errMsg, 0, BUF_LEN);
+
+  char xStrArg[BUF_LEN];
+  char yStrArg[BUF_LEN];
+  char signature [BUF_LEN];
+
+  memset(xStrArg, 0, BUF_LEN);
+  memset(yStrArg, 0, BUF_LEN);
+
+  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
+  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+
+  size_t sz = 0;
+
+
+  uint8_t encryptedKey[BUF_LEN];
+
+  bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
+
+  if (!result) {
+    BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
+  }
+
+  cerr << "Key is " + *encryptedKeyHex << endl;
+
+//  sgx_status_t status =
+//      bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
+//                       encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
+
+  strncpy(signature, "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855", 1024);
+
+  printf("---: %s\n", signature);
+
+
+//  if (status != SGX_SUCCESS) {
+//    gmp_printf("SGX enclave call  to bls_sign_message failed: 0x%04x\n", status);
+//    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to bls_sign_message failed"));
+//  }
+
+
+//  if (errStatus != 0) {
+//    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed:" + to_string(errStatus) + ":" + errMsg ));
+//    return nullptr;
+//  }
+
+  int sigLen;
+
+  if ((sigLen = strnlen(signature, 10)) < 10) {
+    BOOST_THROW_EXCEPTION(runtime_error("Signature too short:" + to_string(sigLen)));
+  }
+
+
+
+
+  std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
+                     hash_with_hint.second;
+
   auto sig = make_shared<string>(signature);
 
   sig->append(":");
-  sig->append(hint);
+  sig->append(hint);*/
 
-  auto s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
-                                    totalSigners);
+
+  std::string signature = signWithHelperSGXstr(hash_byte_arr, _signerIndex);
+
+  auto sig = make_shared<string>(signature);
+
+  //BLSSigShare* sig_test = new BLSSigShare(sig, _signerIndex, requiredSigners, totalSigners);
+
+  //std::string hello = "hello";
+  //std::cout << "HINT " << *((void**)&(sig_test->hint)) << std::endl;
+
+  //std::shared_ptr<BLSSigShare> s; s.reset( sig_test );//(sig, _signerIndex, requiredSigners,
+                                    //totalSigners);
+
+  std::shared_ptr<BLSSigShare> s = std::make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
+  totalSigners);
 
   return s;
 }

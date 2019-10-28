@@ -26,11 +26,14 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int signerIndex, int t) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
             p["messageHash"] = messageHash;
+            p["n"] = n;
+            p["signerIndex"] = signerIndex;
+            p["t"] = t;
             Json::Value result = this->CallMethod("blsSignMessageHash",p);
             if (result.isObject())
                 return result;
@@ -80,6 +83,71 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+        Json::Value generateDKGPoly(const std::string& polyName, int t) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["polyName"] = polyName;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("generateDKGPoly",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+    Json::Value getVerificationVector(const std::string& polyName, int n, int t) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["polyName"] = polyName;
+        p["n"] = n;
+        p["t"] = t;
+        Json::Value result = this->CallMethod("getVerificationVector",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+    Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["polyName"] = polyName;
+        p["publicKeys"] = publicKeys;
+        p["n"] = n;
+        p["t"] = t;
+        Json::Value result = this->CallMethod("getSecretShare",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+    Json::Value DKGVerification(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["EthKeyName"] = EthKeyName;
+        p["SecretShare"] = SecretShare;
+        p["index"] = index;
+        p["n"] = n;
+        p["polyName"] = polyName;
+        p["t"] = t;
+        Json::Value result = this->CallMethod("DKGVerification",p);
+        if (result.isObject())
+          return result;
+        else
+          throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+    Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int n, int t) throw (jsonrpc::JsonRpcException)
+    {
+      Json::Value p;
+      p["BLSKeyName"] = BLSKeyName;
+      p["EthKeyName"] = EthKeyName;
+      p["SecretShare"] = SecretShare;
+      p["n"] = n;
+      p["t"] = t;
+      Json::Value result = this->CallMethod("CreateBLSPrivateKey",p);
+      if (result.isObject())
+       return result;
+      else
+       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
 };
 
 #endif //JSONRPC_CPP_STUB_STUBCLIENT_H_

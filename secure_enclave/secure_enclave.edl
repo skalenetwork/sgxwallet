@@ -1,7 +1,5 @@
 enclave {
 
-
-from "sgx_tsgxssl.edl" import *;
 	trusted {
 		include "sgx_tgmp.h"
 
@@ -43,7 +41,8 @@ from "sgx_tsgxssl.edl" import *;
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
 		    [in, count = 1024] char* key,
-		    [out, count = 1024] uint8_t* encrypted_key, [user_check] uint32_t *enc_len);
+		    [out, count = 1024] uint8_t* encrypted_key,
+		    [user_check] uint32_t *enc_len);
 
         public void decrypt_key (
 		    [user_check] int *err_status,
@@ -64,32 +63,32 @@ from "sgx_tsgxssl.edl" import *;
         public void gen_dkg_secret (
                     	[user_check] int *err_status,
                     	[out, count = 1024] char* err_string,
-                    	[out, count = 2000] uint8_t* encrypted_dkg_secret,
+                    	[out, count = 3050] uint8_t* encrypted_dkg_secret,
                     	[user_check] uint32_t * enc_len,
                     	size_t _t);
 
         public void decrypt_dkg_secret (
                             	[user_check] int *err_status,
                             	[out, count = 1024] char* err_string,
-                            	[in, count = 2000] uint8_t* encrypted_dkg_secret,
-                            	[out, count = 2000] uint8_t* decrypted_dkg_secret,
-                            	uint32_t enc_len);
+                            	[in, count = 3050] uint8_t* encrypted_dkg_secret,
+                            	[out, count = 2490] uint8_t* decrypted_dkg_secret,
+                            	[user_check] uint32_t* dec_len);
 
         public void get_secret_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* encrypted_dkg_secret,
-                                uint32_t enc_len,
-                                [out, count = 2000] char* secret_shares,
+                                [in, count = 3050] uint8_t* encrypted_dkg_secret,
+                                [user_check] uint32_t* dec_len,
+                                [out, count = 2490] char* secret_shares,
                                 unsigned _t,
                                 unsigned _n);
 
          public void get_public_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* decrypted_dkg_secret,
+                                [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
-                                [out, count = 4000] char* public_shares,
+                                [out, count = 10000] char* public_shares,
                                 unsigned _t,
                                 unsigned _n);
 
@@ -103,6 +102,40 @@ from "sgx_tsgxssl.edl" import *;
                                  [out, count = 1024] char* sig_s,
                                  [user_check] uint8_t* sig_v,
                                  int base);
+
+         public void set_encrypted_dkg_poly( [user_check] int *err_status,
+                                             [out, count = 1024] char* err_string,
+                                             [in, count = 3050] uint8_t* encrypted_poly);
+
+         public void get_encr_sshare(
+                                [user_check]int *err_status,
+                                [out, count = 1024] char *err_string,
+                                [out, count = 1024] uint8_t *encrypted_skey,
+                                [user_check] uint32_t* dec_len,
+                                [out, count = 193] char* result_str,
+                                [in, count = 129] char* pub_keyB,
+                                uint8_t _t,
+                                uint8_t _n,
+                                uint8_t ind);
+
+         public void dkg_verification(
+                                [user_check] int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [in, count = 3050] const uint8_t* encrypted_dkg_secret,
+                                [in, count = 129] const char* s_share,
+                                [in, count = 1024] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                unsigned _t,
+                                int _ind,
+                                [user_check] int* result);
+
+         public void create_bls_key(
+                                [user_check]int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [in, count = 6145] const char* s_shares,
+                                [in, count = 1024] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                [out, count = 1024] uint8_t * encr_bls_key);
 	};
 
 

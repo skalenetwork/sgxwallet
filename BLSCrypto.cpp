@@ -83,7 +83,31 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 }
 
+bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
+                uint8_t* _bin, const int _max_length ) {
 
+    int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
+
+
+    if (len == 0 && len % 2 == 1)
+        return false;
+
+    *_bin_len = len / 2;
+
+    for (int i = 0; i < len / 2; i++) {
+        int high = char2int((char)_hex[i * 2]);
+        int low = char2int((char)_hex[i * 2 + 1]);
+
+        if (high < 0 || low < 0) {
+            return false;
+        }
+
+        _bin[i] = (unsigned char) (high * 16 + low);
+    }
+
+    return true;
+
+}
 
 
 bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
@@ -97,14 +121,26 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
   uint64_t binLen;
 
   hex2carray(_hashHex, &binLen, hash->data());
+ // assert(binLen == hash->size());
 
   auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
-  auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
+ // {
+    auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
+ // }
 
   auto sigShareStr = sigShare->toString();
 
   strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
+
+  //std::string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
+  //strncpy(_sig, sigShareStr.c_str(), BUF_LEN);
+
+ // std::string test_sig = "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855:9810286616503120081238481858289626967170509983220853777870754480048381194141:5";
+ // auto sig_ptr = std::make_shared<std::string>(test_sig);
+ // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
+
+  std::cerr<< "sig " << _sig <<std::endl;
 
   return true;
 

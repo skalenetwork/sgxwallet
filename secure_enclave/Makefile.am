@@ -85,7 +85,7 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	curves.c domain_parameters.c numbertheory.c point.c signature.c \
+	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c \
     DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
@@ -102,9 +102,9 @@ AM_LDFLAGS += $(TGMP_LDFLAGS)
 
 ## This line is REQUIRED. It can't be generically defined for 
 ## automake, so you must specify it for your enclave. Note that you
-## can't say $(ENCLAVE)_LDADD here: you must spell out the enclave name.../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl.a
+## can't say $(ENCLAVE)_LDADD here: you must spell out the enclave name.
 ## If you add flags to it, you MUST include @SGX_ENCLAVE_LDADD@ as part
-## of the definition to make sure you pick up the right linker flags../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl.a
+## of the definition to make sure you pick up the right linker flags
 ## and SGX trusted libraries.
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
@@ -115,8 +115,7 @@ secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 ## --startgroup and --endgroup flags. (This would be where you'd add
 ## SGXSSL libraries, and your trusted c++ library
 
-SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx
-
+SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
 
 
 

@@ -19,7 +19,10 @@
     "name": "blsSignMessageHash",
     "params": {
       "keyShareName": "key1",
-      "messageHash": "1122334455"
+      "messageHash": "1122334455",
+      "n": 2,
+      "t": 2,
+      "signerIndex": 1
     },
     "returns": {
       "status": 0,
@@ -41,7 +44,6 @@
       "encryptedKey": "12345"
     }
   },
-
 
   {
     "name": "generateECDSAKey",
@@ -82,5 +84,79 @@
       "signature_r": "12345",
       "signature_s": "12345"
     }
+  },
+
+  {
+    "name": "generateDKGPoly",
+    "params": {
+      "polyName": "key1",
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345"
+    }
+  },
+
+  {
+    "name": "getVerificationVector",
+    "params": {
+      "polyName": "key1",
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "Verification Vector": [{},{}]
+
+    }
+  },
+  {
+    "name": "getSecretShare",
+    "params": {
+      "polyName": "key1",
+      "publicKeys": "123",
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "SecretShare": "123"
+    }
+  },
+  {
+    "name": "DKGVerification",
+    "params": {
+      "polyName": "p2",
+      "EthKeyName":"key1",
+      "SecretShare": "123",
+      "n": 3,
+      "t": 3,
+      "index" : 2
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "result": true
+    }
+  },
+  {
+    "name": "CreateBLSPrivateKey",
+    "params": {
+      "BLSKeyName": "key",
+      "EthKeyName":"key1",
+      "SecretShare": ["122","1222"],
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "BLSKeyName": "key"
+    }
   }
+
+
 ]

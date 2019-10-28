@@ -7,7 +7,6 @@
 #include "point.h"
 #include "signature.h"
 #include "numbertheory.h"
-#include "random.h"
 
 /*Initialize a signature*/
 signature signature_init()

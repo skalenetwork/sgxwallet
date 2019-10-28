@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
 
 namespace libff {
@@ -165,6 +166,16 @@ void init_alt_bn128_params()
     alt_bn128_G1::fixed_base_exp_window_table.push_back(0);
     // window 22 is unbeaten in [34552892.20, inf]
     alt_bn128_G1::fixed_base_exp_window_table.push_back(34552892);
+
+    alt_bn128_G2::G2_zero = alt_bn128_G2(alt_bn128_Fq2::zero(),
+                                         alt_bn128_Fq2::one(),
+                                         alt_bn128_Fq2::zero());
+
+    alt_bn128_G2::G2_one = alt_bn128_G2(alt_bn128_Fq2(alt_bn128_Fq("10857046999023057135944570762232829481370756359578518086990519993285655852781"),
+                                                      alt_bn128_Fq("11559732032986387107991004021392285783925812861821192530917403151452391805634")),
+                                        alt_bn128_Fq2(alt_bn128_Fq("8495653923123431417604973247489272438418190587263600148770280649306958101930"),
+                                                      alt_bn128_Fq("4082367875863433681332203403145435568316851327593401208105741076214120093531")),
+                                        alt_bn128_Fq2::one());
 
 
     /* pairing parameters */
