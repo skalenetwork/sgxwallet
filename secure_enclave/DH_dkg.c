@@ -14,7 +14,6 @@
 #include "BLSEnclave.h"
 #include <string.h>
 
-
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
 
     char* pb_keyB_x = (char*)malloc(65);

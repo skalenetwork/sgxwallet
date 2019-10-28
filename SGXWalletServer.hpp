@@ -32,7 +32,7 @@ public:
     virtual Json::Value getVerificationVector(const std::string& polyName, int n, int t);
     virtual Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t);
     virtual Json::Value DKGVerification(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
-
+    virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n);
 
 };
 
@@ -60,5 +60,6 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t);
 Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t);
 Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t);
 Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
+Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n);
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

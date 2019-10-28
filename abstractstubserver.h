@@ -24,6 +24,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("getVerificationVector", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"polyName",jsonrpc::JSON_STRING, "n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getVerificationVectorI);
           this->bindAndAddMethod(jsonrpc::Procedure("getSecretShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"publicKeys",jsonrpc::JSON_STRING,"n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getSecretShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("DKGVerification", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING, "EthKeyName",jsonrpc::JSON_STRING, "SecretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::DKGVerificationI);
+          this->bindAndAddMethod(jsonrpc::Procedure("CreateBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, "EthKeyName",jsonrpc::JSON_STRING,"SecretShare",jsonrpc::JSON_ARRAY,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::CreateBLSPrivateKeyI);
        }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -66,16 +67,23 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->DKGVerification(request["polyName"].asString(), request["EthKeyName"].asString(), request["SecretShare"].asString(), request["t"].asInt(), request["n"].asInt(), request["index"].asInt());
         }
+        inline virtual void CreateBLSPrivateKeyI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->CreateBLSPrivateKey(request["BLSKeyName"].asString(), request["EthKeyName"].asString(), request["SecretShare"],request["t"].asInt(), request["n"].asInt());
+        }
+
         virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int signerIndex, int t) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
         virtual Json::Value generateECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value getPublicECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) = 0;
+
         virtual Json::Value generateDKGPoly(const std::string& polyName, int t) = 0;
         virtual Json::Value getVerificationVector(const std::string& polyName, int n, int t) = 0;
         virtual Json::Value getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t) = 0;
         virtual Json::Value DKGVerification( const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
+        virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

@@ -18,4 +18,6 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
 
 bool VerifyShares(const char* encryptedPolyHex, const char* encr_sshare, const char * encryptedKeyHex,  int t, int n, int ind);
 
+bool CreateBLSShare( const char * s_shares, const char * encryptedKeyHex);
+
 #endif //SGXD_DKGCRYPTO_H

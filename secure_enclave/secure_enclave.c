@@ -654,11 +654,90 @@ void dkg_verification(int *err_status, char* err_string, const uint8_t * encrypt
 
   *result = Verification(decrypted_dkg_secret, s, _t, _ind);
 
-  snprintf(err_string, BUF_LEN,"val is %s", decrypted_dkg_secret);
+  //snprintf(err_string, BUF_LEN,"val is %s", decrypted_dkg_secret);
 
   free(decrypted_dkg_secret);
 }
 
+void create_bls_key(int *err_status, char* err_string, const char* s_shares,
+                      uint8_t* encrypted_key, uint64_t key_len, uint8_t * encr_bls_key){
+
+  //uint32_t dec_len = 625;
+  char skey[ECDSA_SKEY_LEN];
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*)skey, &key_len);
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_key failed with status %d", status);
+    return;
+  }
+
+  int num_shares = strlen(s_shares)/192;
+
+  mpz_t sum;
+  mpz_init(sum);
+  mpz_set_ui(sum, 0);
+
+  for ( int i = 0; i < num_shares; i++) {
+    char encr_sshare[65];
+    strncpy(encr_sshare, s_shares + 192 * i, 64);
+    encr_sshare[64] = 0;
+
+    char s_share[193];
+    strncpy(s_share, s_share + 192 * i, 192);
+    s_share[192] = 0;
+    char common_key[65];
+    session_key_recover(skey, s_share, common_key);
+    common_key[64] = 0;
+
+    char decr_sshare[65];
+    xor_decrypt(common_key, encr_sshare, decr_sshare);
+
+    mpz_t decr_secret_share;
+    mpz_init(decr_secret_share);
+    mpz_set_str(decr_secret_share, decr_sshare, 16);
+
+    mpz_addmul_ui(sum, decr_secret_share, 1);
+    mpz_clear(decr_secret_share);
+  }
+
+   mpz_t q;
+   mpz_init(q);
+   mpz_set_str(q, "21888242871839275222246405745257275088696311157297823662689037894645226208583", 10);
+
+   mpz_t bls_key;
+   mpz_init(bls_key);
+
+   mpz_mod(bls_key, sum, q);
+
+   char arr[mpz_sizeinbase(bls_key, 10) + 2];
+   char *key = mpz_get_str(arr, 10, bls_key);
+
+   uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
+
+   status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *)key, sealedLen,(sgx_sealed_data_t*)encr_bls_key);
+   if( status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"seal bls private key failed");
+    return;
+   }
+
+
+
+
+  //snprintf(err_string, BUF_LEN,"sshare is %s", decr_sshare);
+  //snprintf(err_string, BUF_LEN,"encr_share is %s", encr_sshare);
+  //snprintf(err_string, BUF_LEN,"common_key is %s", common_key);
+
+//  mpz_t s;
+//  mpz_init(s);
+//  mpz_set_str(s, decr_sshare, 16);
+
+
+
+  //snprintf(err_string, BUF_LEN,"val is %s", decrypted_dkg_secret);
+
+  mpz_clear(bls_key);
+  mpz_clear(sum);
+}
 
 
 

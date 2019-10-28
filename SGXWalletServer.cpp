@@ -326,9 +326,9 @@ Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& 
 
   try {
     std::shared_ptr<std::string> encryptedPolyHex_ptr = readFromDb(polyName, "DKGPoly:");
-    std::string keyName = polyName + "_" + std::to_string(ind);
-    //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(keyName, "DKG_DH_KEY_");
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey("test_key1");
+    //std::string keyName = polyName + "_" + std::to_string(ind);
+    //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
 
     if ( !VerifyShares(encryptedPolyHex_ptr->c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
       result["result"] = false;
@@ -340,6 +340,51 @@ Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& 
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
     result["result"] = false;
+  }
+
+  return result;
+}
+
+Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+  std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  try {
+
+    if (SecretShare.size() != n){
+      result["errorMessage"] = "wrong number of secret shares";
+      return result;
+    }
+    std::vector<std::string> sshares_vect;
+    std::cerr << "sshares are " << std::endl;
+    char sshares[192 * n + 1];
+    for ( int i = 0; i < n ; i++){
+      sshares_vect.push_back(SecretShare[i].asString());
+     // std::cerr << sshares_vect[i] << " ";
+      strncpy(sshares + i * 192, SecretShare[i].asString().c_str(), 192);
+    }
+    sshares[192 * n ] = 0;
+    std::cerr << sshares << std::endl;
+    std::cerr << "length is " << strlen(sshares);
+
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+
+    bool res = CreateBLSShare(sshares, encryptedKeyHex_ptr->c_str());
+     if ( res){
+         std::cerr << "key created " << std::endl;
+     }
+     else {
+         std::cerr << "error " << std::endl;
+     }
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+
   }
 
   return result;
@@ -363,6 +408,11 @@ Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const s
 Json::Value  SGXWalletServer::DKGVerification( const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
   lock_guard<recursive_mutex> lock(m);
   return DKGVerificationImpl(polyName, EthKeyName, SecretShare, t, n, index);
+}
+
+Json::Value SGXWalletServer::CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+  lock_guard<recursive_mutex> lock(m);
+  return CreateBLSPrivateKeyImpl(BLSKeyName, EthKeyName, SecretShare, t, n);
 }
 
 

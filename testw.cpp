@@ -715,9 +715,9 @@ TEST_CASE("API test", "[api_test]") {
 //          "505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e232d69c361f0bc9e05f1cf8ef387122dc1d2f7cee7b6cda3537fc9427c02328b01f02fd94ec933134dc795a642864f8cb41ae263e11abaf992e21fcf9be732deb",
 //         2,2);
 
-        cout << c.getSecretShare("p2",
-              "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e",
-              2,2);
+//        cout << c.getSecretShare("p2",
+//              "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e",
+//              2,2);
 
      // cout << c.generateDKGPoly("p3", 3);
      // cout << c.getSecretShare("p3",
@@ -725,12 +725,17 @@ TEST_CASE("API test", "[api_test]") {
          //                      3,3);
 
 
-//     std::string share_big = "501e364a6ea516f4812b013bcc150cbb435a2c465c9fd525951264969d8441a986798fd3317c1c3e60f868bb26c4cff837d9185f4be6015d8326437cb5b69480495859cd5a385430ece51252acdc234d8dbde75708b600ac50b2974e813ee26bd87140d88647fcc44df7262bbba24328e8ce622cd627a15b508ffa0db9ae81e0e110fab42cfe40da66b524218ca3c8e5aa3363fbcadef748dc3523a7ffb95b8f5d8141a5163db9f69d1ab223494ed71487c9bb032a74c08a222d897a5e49a617";
+      std::string share_big0 = "501e364a6ea516f4812b013bcc150cbb435a2c465c9fd525951264969d8441a986798fd3317c1c3e60f868bb26c4cff837d9185f4be6015d8326437cb5b69480495859cd5a385430ece51252acdc234d8dbde75708b600ac50b2974e813ee26bd87140d88647fcc44df7262bbba24328e8ce622cd627a15b508ffa0db9ae81e0e110fab42cfe40da66b524218ca3c8e5aa3363fbcadef748dc3523a7ffb95b8f5d8141a5163db9f69d1ab223494ed71487c9bb032a74c08a222d897a5e49a617";
       std::string share_big = "03f749e2fcc28021895d757ec16d1636784446f5effcd3096b045136d8ab02657b32adc577f421330b81f5b7063df3b08a0621a897df2584b9046ca416e50ecc27e8c3277e981f7e650f8640289be128eecf0105f89a20e5ffb164744c45cf191d627ce9ab6c44e2ef96f230f2a4de742ea43b6f74b56849138026610b2d965605ececba527048a0f29f46334b1cec1d23df036248b24eccca99057d24764acee66c1a3f2f44771d0d237bf9d18c4177277e3ce3dc4e83686a2647fce1565ee0";
       std::string share = share_big.substr(0, 192);
 
-      cout << c.DKGVerification("p2", "test_key1", share, 2, 2, 0);
+      //cout << c.DKGVerification("p2", "test_key1", share, 2, 2, 0);
 
+      Json::Value SecretShare;
+      SecretShare.append(share_big0);
+      SecretShare.append(share_big);
+
+      cout << c.CreateBLSPrivateKey( "test_bls_key","test_key1", SecretShare, 2, 2 );
 
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;

@@ -128,6 +128,14 @@ enclave {
                                 unsigned _t,
                                 int _ind,
                                 [user_check] int* result);
+
+         public void create_bls_key(
+                                [user_check]int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [in, count = 6145] const char* s_shares,
+                                [in, count = 1024] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                [out, count = 1024] uint8_t * encr_bls_key);
 	};
 
 

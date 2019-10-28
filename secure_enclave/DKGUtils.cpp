@@ -3,7 +3,7 @@
 //
 #include "DKGUtils.h"
 
-
+#include <sgx_tgmp.h>
 
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <../trusted_libff/libff/algebra/fields/fp.hpp>
@@ -14,6 +14,10 @@
 #include "../sgxwallet_common.h"
 #include <cstdio>
 #include <stdio.h>
+
+#include "DH_dkg.h"
+
+
 
 
 
@@ -182,5 +186,7 @@ int Verification (char * decrypted_koefs, mpz_t decr_secret_share, int _t, int i
 
   return (val == sshare * libff::alt_bn128_G2::one());
 }
+
+
 
 

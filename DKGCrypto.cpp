@@ -177,3 +177,21 @@ bool VerifyShares(const char* encryptedPolyHex, const char* encr_sshare, const c
     std::cerr << "result is " << result << std::endl;
     return result;
 }
+
+bool CreateBLSShare( const char * s_shares, const char * encryptedKeyHex){
+
+  char* errMsg1 = (char*) calloc(1024,1);
+  int err_status = 0;
+
+  uint64_t dec_key_len ;
+  uint8_t encr_bls_key[BUF_LEN];
+  uint8_t encr_key[BUF_LEN];
+  hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
+
+  create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key);
+  if ( err_status != 0){
+     return false;
+  }
+  else return true;
+
+}

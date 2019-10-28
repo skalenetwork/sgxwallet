@@ -94,7 +94,8 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../sgxwallet_common.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
+ DH_dkg.h
 
 DKGUtils.h:
 
@@ -289,3 +290,5 @@ DKGUtils.h:
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h:
+
+DH_dkg.h:
