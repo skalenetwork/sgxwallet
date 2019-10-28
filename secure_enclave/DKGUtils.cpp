@@ -90,7 +90,7 @@ libff::alt_bn128_Fr PolynomialValue(const std::vector<libff::alt_bn128_Fr>& pol,
   libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
   for (size_t i = 0; i < _t; ++i) {
     if (i == _t - 1 && pol[i] == libff::alt_bn128_Fr::zero()) {
-      throw std::runtime_error("Error, incorrect degree of a polynomial");
+        //snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status
     }
     value += pol[i] * pow;
     pow *= point;
@@ -105,12 +105,12 @@ void calc_secret_shares(const char* decrypted_koefs, char * secret_shares,
   std::string result;
   char symbol = ':';
   std::vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_koefs, &symbol);
-  for (size_t i = 0; i < _n; ++i) {
+    for (size_t i = 0; i < _n; ++i) {
     libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(i + 1), _t);
     result += stringFromFr(secret_share);
     result += ":";
   }
-  strncpy(secret_shares, result.c_str(), result.length());
+  strncpy(secret_shares, result.c_str(), 2000);//result.length());
 }
 
 void calc_public_shares(const char* decrypted_koefs, char * public_shares,

@@ -50,6 +50,7 @@ int updated;
 
 int main(int argc, char *argv[]) {
 
+
   int opt;
 
   while ((opt = getopt(argc, argv, "h")) != -1) {
@@ -67,6 +68,8 @@ int main(int argc, char *argv[]) {
     usage();
 
   init_all();
+
+
 
   while (true) {
       sleep(10);

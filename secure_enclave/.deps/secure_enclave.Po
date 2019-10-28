@@ -1,44 +1,8 @@
-secure_enclave.o: secure_enclave.c \
- ../intel-sgx-ssl/Linux/package/include/openssl/ecdsa.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/ec.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/opensslconf.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/opensslv.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/asn1.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/time.h \
+secure_enclave.o: secure_enclave.c secure_enclave_t.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/e_os2.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/inttypes.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/bio.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/crypto.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/safestack.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/stack.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/ossl_typ.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/cryptoerr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/symhacks.h \
- ../intel-sgx-ssl/Linux/package/include/pthread.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/bioerr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/asn1err.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/bn.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/bnerr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/ecerr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/evp.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/evperr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/objects.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/obj_mac.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/objectserr.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/err.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/lhash.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/errno.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/rand.h \
- ../intel-sgx-ssl/Linux/package/include/openssl/randerr.h \
- ../intel-sgx-ssl/Linux/package/include/tSgxSSL_api.h secure_enclave_t.h \
- /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stddef.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_edger8r.h \
@@ -46,6 +10,9 @@ secure_enclave.o: secure_enclave.c \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_error.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_eid.h \
  /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_tcrypto.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_attributes.h \
@@ -58,93 +25,22 @@ secure_enclave.o: secure_enclave.c \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/float.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/string.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h \
+ /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h \
  domain_parameters.h point.h signature.h curves.h ../sgxwallet_common.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/types.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/endian.h
 
-../intel-sgx-ssl/Linux/package/include/openssl/ecdsa.h:
+secure_enclave_t.h:
 
-../intel-sgx-ssl/Linux/package/include/openssl/ec.h:
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h:
 
-../intel-sgx-ssl/Linux/package/include/openssl/opensslconf.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/opensslv.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/asn1.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/time.h:
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/cdefs.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/_types.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/e_os2.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/inttypes.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/stdint.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/bio.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/crypto.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/safestack.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/stack.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/ossl_typ.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/cryptoerr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/symhacks.h:
-
-../intel-sgx-ssl/Linux/package/include/pthread.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/bioerr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/asn1err.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/bn.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/bnerr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/ecerr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/evp.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/evperr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/objects.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/obj_mac.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/objectserr.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/err.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/lhash.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/errno.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/rand.h:
-
-../intel-sgx-ssl/Linux/package/include/openssl/randerr.h:
-
-../intel-sgx-ssl/Linux/package/include/tSgxSSL_api.h:
-
-secure_enclave_t.h:
-
-/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdint.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/wchar.h:
 
@@ -159,6 +55,12 @@ secure_enclave_t.h:
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_eid.h:
 
 /home/kladko/sgxwallet/tgmp-build/include/sgx_tgmp.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/limits.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/sys/limits.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdlib.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/sgx_tcrypto.h:
 
@@ -183,6 +85,8 @@ secure_enclave_t.h:
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/string.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdio.h:
+
+/home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdarg.h:
 
 /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/stdbool.h:
 

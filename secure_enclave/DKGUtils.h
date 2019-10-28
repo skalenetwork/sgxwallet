@@ -17,5 +17,6 @@ EXTERNC void calc_secret_shares(const char* decrypted_koefs, char * secret_share
                         unsigned _t, unsigned _n);
 EXTERNC void calc_public_shares(const char* decrypted_koefs, char * public_shares,
                         unsigned _t);
+
 #endif //SGXD_DKGUTILS_H
 

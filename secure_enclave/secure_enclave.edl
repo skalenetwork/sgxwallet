@@ -26,11 +26,18 @@ from "sgx_tsgxssl.edl" import *;
 		public void generate_ecdsa_key (
 		    [user_check] int *err_status,
 		    [out, count = 1024] char* err_string,
-		    [out, count = 2048] uint8_t* encrypted_key,
+		    [out, count = 1024] uint8_t* encrypted_key,
 		    [user_check] uint32_t *enc_len,
 		    [out, count = 1024] char * pub_key_x,
 		    [out, count = 1024] char * pub_key_y);
 
+		public void get_public_ecdsa_key (
+        		    [user_check] int *err_status,
+        		    [out, count = 1024] char* err_string,
+        		    [in, count = 1024] uint8_t* encrypted_key,
+        		    uint32_t dec_len,
+        		    [out, count = 1024] char * pub_key_x,
+        		    [out, count = 1024] char * pub_key_y);
 
 		public void encrypt_key (
 		    [user_check] int *err_status,
@@ -71,7 +78,7 @@ from "sgx_tsgxssl.edl" import *;
         public void get_secret_shares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 2000] uint8_t* decrypted_dkg_secret,
+                                [in, count = 2000] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
                                 [out, count = 2000] char* secret_shares,
                                 unsigned _t,
@@ -88,13 +95,14 @@ from "sgx_tsgxssl.edl" import *;
 
          public void ecdsa_sign1(
                                  [user_check] int *err_status,
-                                 [out, count = 2048] char* err_string,
-                                 [in, count = 2048] uint8_t* encrypted_key,
-                                 uint32_t dec_len,
+                                 [out, count = 1024] char* err_string,
+                                 [in, count = 1024] uint8_t* encrypted_key,
+                                 uint32_t enc_len,
                                  [in, count = 1024] unsigned char* hash,
                                  [out, count = 1024] char* sig_r,
                                  [out, count = 1024] char* sig_s,
-                                 [out, count = 4] char* sig_v);
+                                 [user_check] uint8_t* sig_v,
+                                 int base);
 	};
 
 

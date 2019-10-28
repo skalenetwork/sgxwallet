@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <memory>
 #include <string>
+#include <iostream>
 
 
 #include "leveldb/db.h"
@@ -54,6 +55,8 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
     auto status = db->Get(readOptions, _key, &*result);
 
+    std::cerr << "key to read from db: " << _key <<std::endl;
+
     throwExceptionOnError(status);
 
     if (status.IsNotFound())
@@ -69,6 +72,8 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
     auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
 
     throwExceptionOnError(status);
+
+    std::cerr << "written key " << _key << " value " << _value <<std::endl;
 }
 
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
@@ -93,6 +98,7 @@ void LevelDB::writeByteArray(std::string &_key, const char *value,
 }
 
 void LevelDB::throwExceptionOnError(Status _status) {
+    std::cerr << " DB exception " << std::endl;
     if (_status.IsNotFound())
         return;
 
