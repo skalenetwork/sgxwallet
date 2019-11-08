@@ -19,7 +19,7 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
   If not, your machine cant run SGX.
 * Set SGX in BIOS as `enabled` or `software-controlled`.
 * If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section 
-* If not, set SGX in BIOS to `software-controlled` and enable SGX as described below.
+* If not, set SGX in BIOS to `software-controlled` and then enable by running a sgx-enable utility, as described below.
 
 
 ## Install SGX driver
