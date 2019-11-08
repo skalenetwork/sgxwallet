@@ -92,6 +92,7 @@ BLSEnclave.o: BLSEnclave.cpp \
  ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp \
  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp \
+ ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
  ../trusted_libff/libff/algebra/curves/curve_utils.tcc
 
@@ -280,6 +281,8 @@ BLSEnclave.h:
 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp:
 
 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp:
+
+../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp:
 
 ../trusted_libff/libff/algebra/curves/curve_utils.hpp:
 

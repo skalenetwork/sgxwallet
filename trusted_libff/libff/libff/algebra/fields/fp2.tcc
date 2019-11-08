@@ -10,7 +10,7 @@
 #ifndef FP2_TCC_
 #define FP2_TCC_
 
-#include <../trusted_libff/libff/algebra/fields/field_utils.hpp>
+#include <libff/algebra/fields/field_utils.hpp>
 
 namespace libff {
 
@@ -204,7 +204,7 @@ Fp2_model<n,modulus> Fp2_model<n,modulus>::operator^(const bigint<m> &pow) const
     return power<Fp2_model<n, modulus>, m>(*this, pow);
 }
 
-/*template<mp_size_t n, const bigint<n>& modulus>
+template<mp_size_t n, const bigint<n>& modulus>
 std::ostream& operator<<(std::ostream &out, const Fp2_model<n, modulus> &el)
 {
     out << el.c0 << OUTPUT_SEPARATOR << el.c1;
@@ -251,7 +251,7 @@ std::istream& operator>>(std::istream& in, std::vector<Fp2_model<n, modulus> > &
     }
 
     return in;
-}*/
+}
 
 } // libff
 #endif // FP2_TCC_

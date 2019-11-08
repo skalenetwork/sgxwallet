@@ -17,9 +17,9 @@
 #include <gmp.h>
 #include <openssl/sha.h>
 
-#include <libff/algebra/fields/bigint.hpp>
-#include <libff/common/rng.hpp>
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/algebra/fields/bigint.hpp>
+#include <../trusted_libff/libff/common/rng.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 

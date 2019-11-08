@@ -89,7 +89,6 @@ DKGUtils.o: DKGUtils.cpp DKGUtils.h \
  ../trusted_libff/libff/algebra/fields/fp2.tcc \
  ../trusted_libff/libff/algebra/curves/curve_utils.hpp \
  ../trusted_libff/libff/algebra/curves/curve_utils.tcc \
- ../trusted_libff/libff/algebra/fields/fp.hpp \
  ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp \
  ../sgxwallet_common.h \
  /home/kladko/sgxwallet/sgx-sdk-build/sgxsdk/include/tlibc/unistd.h \
@@ -278,8 +277,6 @@ DKGUtils.h:
 ../trusted_libff/libff/algebra/curves/curve_utils.hpp:
 
 ../trusted_libff/libff/algebra/curves/curve_utils.tcc:
-
-../trusted_libff/libff/algebra/fields/fp.hpp:
 
 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp:
 

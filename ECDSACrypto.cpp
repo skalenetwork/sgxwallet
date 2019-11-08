@@ -18,13 +18,14 @@ std::vector<std::string> gen_ecdsa_key(){
 
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
   std::vector<std::string> keys(2);
-
+  std::cerr << "account key is " << errMsg << std::endl;
   char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
   keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);
   //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
-  std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
+  //std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
+
 
   free(errMsg);
   free(pub_key_x);

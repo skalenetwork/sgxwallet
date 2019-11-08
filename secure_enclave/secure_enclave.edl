@@ -121,8 +121,8 @@ enclave {
          public void dkg_verification(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 3050] const uint8_t* encrypted_dkg_secret,
-                                [in, count = 129] const char* s_share,
+                                [in, count = 4097] const char* public_shares,
+                                [in, count = 193] const char* s_share,
                                 [in, count = 1024] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 unsigned _t,
@@ -136,6 +136,13 @@ enclave {
                                 [in, count = 1024] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = 1024] uint8_t * encr_bls_key);
+
+         public void get_bls_pub_key(
+                                [user_check]int *err_status,
+                                [out, count = 1024]  char* err_string,
+                                [in, count = 1024] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                [out, count = 320] char* bls_pub_key);
 	};
 
 

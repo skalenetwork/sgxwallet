@@ -284,25 +284,35 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t)
 
   for ( int i = 0; i < t; i++){
     std::vector<std::string> cur_coef = verifVector.at(i);
-    string num = std::to_string(i);
-    result["Verification Vector"][i][num]["X"]["c0"] = cur_coef.at(0);
-    result["Verification Vector"][i][num]["X"]["c1"] = cur_coef.at(1);
-    result["Verification Vector"][i][num]["Y"]["c0"] = cur_coef.at(2);
-    result["Verification Vector"][i][num]["Y"]["c1"] = cur_coef.at(3);
+    for ( int j = 0; j < 4; j++ ){
+      result["Verification Vector"][i][j] = cur_coef.at(j);
+    }
+
   }
 
   return result;
 }
 
-Json::Value getSecretShareImpl(const std::string& polyName, const std::string& publicKeys, int n, int t){
-
+Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& publicKeys, int n, int t){
+    std::cerr << " enter getSecretShareImpl" << std::endl;
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
 
     try {
+        if (publicKeys.size() != n){
+            result["errorMessage"] = "wrong number of public keys";
+            return result;
+        }
+
         std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
-        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), publicKeys, n, t);
+
+        std::vector<std::string> pubKeys_vect;
+        for ( int i = 0; i < n ; i++) {
+            pubKeys_vect.push_back(publicKeys[i].asString());
+        }
+
+        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), pubKeys_vect, n, t);
         //std::cerr << "result is " << s << std::endl;
         result["SecretShare"] = s;
 
@@ -316,8 +326,10 @@ Json::Value getSecretShareImpl(const std::string& polyName, const std::string& p
     return result;
 }
 
-Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& EthKeyName,
+Json::Value DKGVerificationImpl(const std::string& publicShares, const std::string& EthKeyName,
                                   const std::string& SecretShare, int t, int n, int ind){
+
+  std::cerr << " enter DKGVerificationImpl" << std::endl;
 
   Json::Value result;
   result["status"] = 0;
@@ -325,12 +337,12 @@ Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& 
   result["result"] = true;
 
   try {
-    std::shared_ptr<std::string> encryptedPolyHex_ptr = readFromDb(polyName, "DKGPoly:");
     //std::string keyName = polyName + "_" + std::to_string(ind);
     //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
 
-    if ( !VerifyShares(encryptedPolyHex_ptr->c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
+
+    if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
       result["result"] = false;
     }
 
@@ -345,8 +357,10 @@ Json::Value DKGVerificationImpl(const std::string& polyName, const std::string& 
   return result;
 }
 
-Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n){
   std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
+
+  std::cerr << " enter DKGVerificationImpl" << std::endl;
 
   Json::Value result;
   result["status"] = 0;
@@ -354,31 +368,39 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 
   try {
 
-    if (SecretShare.size() != n){
-      result["errorMessage"] = "wrong number of secret shares";
+    if (SecretShare.length() != n * 192){
+      result["errorMessage"] = "wrong length of secret shares";
       return result;
     }
     std::vector<std::string> sshares_vect;
-    std::cerr << "sshares are " << std::endl;
+    //std::cerr << "sshares are " << std::endl;
     char sshares[192 * n + 1];
     for ( int i = 0; i < n ; i++){
-      sshares_vect.push_back(SecretShare[i].asString());
+      std::string cur_share = SecretShare.substr(192*i, 192*i + 192);
+     // std::cerr << " share " << i << " is " << cur_share << std::endl;
+      sshares_vect.push_back(cur_share);
      // std::cerr << sshares_vect[i] << " ";
-      strncpy(sshares + i * 192, SecretShare[i].asString().c_str(), 192);
+      strncpy(sshares + i * 192, cur_share.c_str(), 192);
     }
     sshares[192 * n ] = 0;
-    std::cerr << sshares << std::endl;
-    std::cerr << "length is " << strlen(sshares);
+    //std::cerr << sshares << std::endl;
+    //std::cerr << "length is " << strlen(sshares);
 
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
 
-    bool res = CreateBLSShare(sshares, encryptedKeyHex_ptr->c_str());
+    bool res = CreateBLSShare(BLSKeyName, sshares, encryptedKeyHex_ptr->c_str());
      if ( res){
          std::cerr << "key created " << std::endl;
+
      }
      else {
          std::cerr << "error " << std::endl;
      }
+
+    /* for ( int i = 0; i < n; i++){
+       std::string name = polyName + "_" + std::to_string(i) + ":";
+       levelDb -> deleteDHDKGKey(name);
+     }*/
 
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
@@ -390,7 +412,28 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
   return result;
 }
 
+Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
+
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
+    try {
+      std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName, "");
+      std::string public_key = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+      result["BLSPublicKeyShare"] = public_key;
+
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
+    return result;
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
+  std::cerr << "entered generateECDSAKey" << std::endl;
   lock_guard<recursive_mutex> lock(m);
   return generateDKGPolyImpl(polyName, t);
 }
@@ -400,20 +443,26 @@ Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, 
   return getVerificationVectorImpl(polyName, n, t);
 }
 
-Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const std::string& publicKeys, int n, int t){
+Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int n, int t){
     lock_guard<recursive_mutex> lock(m);
     return getSecretShareImpl(polyName, publicKeys, n, t);
 }
 
-Json::Value  SGXWalletServer::DKGVerification( const std::string& polyName, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
+Json::Value  SGXWalletServer::DKGVerification( const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
   lock_guard<recursive_mutex> lock(m);
-  return DKGVerificationImpl(polyName, EthKeyName, SecretShare, t, n, index);
+  return DKGVerificationImpl(publicShares, EthKeyName, SecretShare, t, n, index);
 }
 
-Json::Value SGXWalletServer::CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const Json::Value& SecretShare, int t, int n){
+Json::Value SGXWalletServer::CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n){
   lock_guard<recursive_mutex> lock(m);
-  return CreateBLSPrivateKeyImpl(BLSKeyName, EthKeyName, SecretShare, t, n);
+  return CreateBLSPrivateKeyImpl(BLSKeyName, EthKeyName, polyName, SecretShare, t, n);
 }
+
+Json::Value SGXWalletServer::GetBLSPublicKeyShare(const std::string & BLSKeyName){
+    lock_guard<recursive_mutex> lock(m);
+    return GetBLSPublicKeyShareImpl(BLSKeyName);
+}
+
 
 
 Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
@@ -426,12 +475,13 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
   return getPublicECDSAKeyImpl(_keyName);
 }
 
-Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+
+  Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
     lock_guard<recursive_mutex> lock(m);
     std::cerr << "entered ecdsaSignMessageHash" << std::endl;
     std::cerr << "MessageHash first " << messageHash << std::endl;
     return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
-}
+  }
 
 
 Json::Value

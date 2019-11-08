@@ -1,10 +1,10 @@
 #include <cstdio>
 #include <vector>
 
-#include <libff/algebra/curves/bn128/bn128_pp.hpp>
-#include <libff/algebra/scalar_multiplication/multiexp.hpp>
-#include <libff/common/profiling.hpp>
-#include <libff/common/rng.hpp>
+#include <../trusted_libff/libff/algebra/curves/bn128/bn128_pp.hpp>
+#include <../trusted_libff/libff/algebra/scalar_multiplication/multiexp.hpp>
+#include <../trusted_libff/libff/common/profiling.hpp>
+#include <../trusted_libff/libff/common/rng.hpp>
 
 using namespace libff;
 

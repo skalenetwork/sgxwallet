@@ -13,8 +13,8 @@
 #include <complex>
 #include <stdexcept>
 
-#include <libff/common/double.hpp>
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/common/double.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 
