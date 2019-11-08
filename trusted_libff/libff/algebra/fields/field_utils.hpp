@@ -9,9 +9,9 @@
 #define FIELD_UTILS_HPP_
 #include <cstdint>
 
-#include <libff/algebra/fields/bigint.hpp>
-#include <libff/common/double.hpp>
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/algebra/fields/bigint.hpp>
+#include <../trusted_libff/libff/common/double.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 

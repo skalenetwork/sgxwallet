@@ -7,9 +7,9 @@
 
 #ifndef ALT_BN128_INIT_HPP_
 #define ALT_BN128_INIT_HPP_
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/algebra/fields/fp.hpp>
-#include <libff/algebra/fields/fp2.hpp>
+#include <../trusted_libff/libff/algebra/curves/public_params.hpp>
+#include <../trusted_libff/libff/algebra/fields/fp.hpp>
+#include <../trusted_libff/libff/algebra/fields/fp2.hpp>
 
 namespace libff {
 

@@ -24,7 +24,11 @@ EXTERNC void calc_secret_share(const char* decrypted_koefs, char * s_share,
 EXTERNC void calc_public_shares(const char* decrypted_koefs, char * public_shares,
                         unsigned _t);
 
-EXTERNC int Verification (char * decrypted_koefs, mpz_t decr_secret_share, int _t, int ind );
+EXTERNC int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int ind);
 
+EXTERNC void calc_bls_public_key(char* skey, char* pub_key);
+
+EXTERNC void calc_secret_shareG2(const char* public_shares, char * s_shareG2,
+                                 unsigned _t, unsigned ind);
 #endif //SGXD_DKGUTILS_H
 

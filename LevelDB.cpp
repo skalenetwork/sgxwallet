@@ -76,6 +76,34 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
     std::cerr << "written key " << _key << " value " << _value <<std::endl;
 }
 
+
+void LevelDB::deleteDHDKGKey (const std::string &_key) {
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    std::string full_key = "DKG_DH_KEY_" + _key;
+
+    auto status = db->Delete(writeOptions, Slice(_key));
+
+    throwExceptionOnError(status);
+
+    std::cerr << "key deleted " << full_key << std::endl;
+}
+
+void LevelDB::deleteOlegKey (const std::string &_key) {
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    std::string full_key = "key" + _key;
+
+    auto status = db->Delete(writeOptions, Slice(_key));
+
+    throwExceptionOnError(status);
+
+    std::cerr << "key deleted " << full_key << std::endl;
+}
+
+
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
                              size_t _valueLen) {
 

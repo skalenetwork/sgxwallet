@@ -14,7 +14,7 @@
 #ifndef EXPONENTIATION_TCC_
 #define EXPONENTIATION_TCC_
 
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 

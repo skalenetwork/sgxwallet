@@ -14,8 +14,8 @@
 
 #include <math.h>
 
-#include <libff/algebra/fields/bigint.hpp>
-#include <libff/common/double.hpp>
+#include <../trusted_libff/libff/algebra/fields/bigint.hpp>
+#include <../trusted_libff/libff/common/double.hpp>
 
 namespace libff {
 

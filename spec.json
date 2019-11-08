@@ -116,7 +116,7 @@
     "name": "getSecretShare",
     "params": {
       "polyName": "key1",
-      "publicKeys": "123",
+      "publicKeys": ["122","1222"],
       "n": 3,
       "t": 3
     },
@@ -129,9 +129,9 @@
   {
     "name": "DKGVerification",
     "params": {
-      "polyName": "p2",
-      "EthKeyName":"key1",
-      "SecretShare": "123",
+      "publicShares": "123",
+      "EthKeyName":"key_j",
+      "SecretShare": "f_ij",
       "n": 3,
       "t": 3,
       "index" : 2
@@ -139,7 +139,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "result": true
+      "result": True
     }
   },
   {
@@ -147,7 +147,8 @@
     "params": {
       "BLSKeyName": "key",
       "EthKeyName":"key1",
-      "SecretShare": ["122","1222"],
+      "polyName":"p1",
+      "SecretShare": "122",
       "n": 3,
       "t": 3
     },
@@ -155,6 +156,18 @@
       "status": 0,
       "errorMessage": "12345",
       "BLSKeyName": "key"
+    }
+  },
+
+  {
+    "name": "GetBLSPublicKeyShare",
+    "params": {
+      "BLSKeyName": "key"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "BLSPublicKeyShare": "123"
     }
   }
 

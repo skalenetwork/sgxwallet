@@ -18,9 +18,11 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
 
     char* pb_keyB_x = (char*)malloc(65);
     strncpy(pb_keyB_x, pb_keyB, 64);
+    pb_keyB_x[64] = 0;
 
     char* pb_keyB_y = (char*)malloc(65);
     strncpy(pb_keyB_y, pb_keyB + 64, 64);
+    pb_keyB_y[64] = 0;
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
@@ -43,6 +45,7 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
       common_key[i] = '0';
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
+    common_key[64] = 0;
 
     mpz_clear(skey);
     point_clear(pub_keyB);
@@ -55,9 +58,11 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
 
     char* pb_keyB_x = (char*)malloc(65);
     strncpy(pb_keyB_x, sshare + 64, 64);
+    pb_keyB_x[64] = 0;
 
     char* pb_keyB_y = (char*)malloc(65);
     strncpy(pb_keyB_y, sshare + 128, 64);
+    pb_keyB_y[64] = 0;
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
@@ -80,10 +85,11 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
         common_key[i] = '0';
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
-    //strncpy(common_key , pb_keyB_x, 64);
+    //strncpy(common_key , sshare, 64);
 
     mpz_clear(skey);
     point_clear(pub_keyB);
+    point_clear(session_key);
     domain_parameters_clear(curve);
     free(pb_keyB_x);
     free(pb_keyB_y);

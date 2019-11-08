@@ -58,6 +58,10 @@ public:
     void writeByteArray(std::string& _key, const char *value,
                         size_t _valueLen);
 
+    void deleteDHDKGKey (const std::string &_key);
+
+    void deleteOlegKey (const std::string &_key);
+
 public:
 
 

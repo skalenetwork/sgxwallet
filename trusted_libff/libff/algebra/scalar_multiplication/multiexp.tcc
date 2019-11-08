@@ -18,12 +18,12 @@
 #include <cassert>
 #include <type_traits>
 
-#include <libff/algebra/fields/bigint.hpp>
-#include <libff/algebra/fields/fp_aux.tcc>
-#include <libff/algebra/scalar_multiplication/multiexp.hpp>
-#include <libff/algebra/scalar_multiplication/wnaf.hpp>
-#include <libff/common/profiling.hpp>
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/algebra/fields/bigint.hpp>
+#include <../trusted_libff/libff/algebra/fields/fp_aux.tcc>
+#include <../trusted_libff/libff/algebra/scalar_multiplication/multiexp.hpp>
+#include <../trusted_libff/libff/algebra/scalar_multiplication/wnaf.hpp>
+#include <../trusted_libff/libff/common/profiling.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 

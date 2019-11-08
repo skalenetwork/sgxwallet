@@ -9,7 +9,7 @@
 #define CURVE_UTILS_HPP_
 #include <cstdint>
 
-#include <libff/algebra/fields/bigint.hpp>
+#include <../trusted_libff/libff/algebra/fields/bigint.hpp>
 
 namespace libff {
 

@@ -10,6 +10,12 @@
 #include <memory>
 #include "SGXWalletServer.hpp"
 
+#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <../trusted_libff/libff/algebra/fields/fp.hpp>
+
+#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
+
+
 std::vector<std::string> SplitString(const char* koefs, const char symbol){
   std::string str(koefs);
   std::string delim;
@@ -103,7 +109,7 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
   return pub_shares_vect;
 }
 
-std::string get_secret_shares(const std::string& polyName, const char* encryptedPolyHex, const std::string& publicKeys, int n, int t){
+std::string get_secret_shares(const std::string& polyName, const char* encryptedPolyHex, const std::vector<std::string>& publicKeys, int n, int t){
   char* errMsg1 = (char*) calloc(1024,1);
   int err_status = 0;
 
@@ -122,9 +128,11 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
     uint32_t dec_len;
 
     char cur_share[193];
-    std::string pub_keyB = publicKeys.substr(64*i, 64*i + 128);
+    std::string pub_keyB = publicKeys.at(i);//publicKeys.substr(128*i, 128*i + 128);
+    std::cerr << "pub_keyB is " << pub_keyB << std::endl;
     char pubKeyB[129];
-    strncpy(pubKeyB, pub_keyB.c_str(),129);
+    strncpy(pubKeyB, pub_keyB.c_str(), 128);
+    pubKeyB[128] = 0;
     get_encr_sshare(eid, &err_status, errMsg1, encrypted_skey, &dec_len,
                    cur_share, pubKeyB, t, n, i + 1 );
 
@@ -138,7 +146,7 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
     //writeDataToDB(name, hexEncrKey);
 
 
-    //std::cerr << errMsg1 << std::endl << std::endl;
+    std::cerr << errMsg1 << std::endl << std::endl;
     //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;
     //std::cerr << "iteration " << i <<" share length is " << strlen(cur_share) << std::endl;
     //std::cerr << "iteration " << i <<" share is " << cur_share << std::endl;
@@ -152,13 +160,9 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
   return result;
 }
 
-bool VerifyShares(const char* encryptedPolyHex, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind ){
+bool VerifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind ){
     char* errMsg1 = (char*) calloc(1024,1);
     int err_status = 0;
-
-    uint64_t poly_len = 0;
-    uint8_t* encr_dkg_poly = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
-    hex2carray2(encryptedPolyHex, &poly_len, encr_dkg_poly, 6100);
 
     uint64_t dec_key_len ;
     uint8_t encr_key[BUF_LEN];
@@ -167,18 +171,25 @@ bool VerifyShares(const char* encryptedPolyHex, const char* encr_sshare, const c
     //std::cerr << "dec_key_len " << dec_key_len << std::endl;
 
     int result ;
-    dkg_verification(eid, &err_status, errMsg1, encr_dkg_poly, encr_sshare, encr_key, dec_key_len, t, ind, &result);
+    //std::cerr << "encr_sshare length is " << strlen(encr_sshare) << std::endl;
+    //std::cerr << "public shares " << publicShares << std::endl;
+
+    char pshares[4097];
+    strncpy(pshares, publicShares, strlen(publicShares) + 1);
+   // std::cerr << "pshares " << pshares << std::endl;
+
+    dkg_verification(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
 
     std::cerr << "errMsg1: " << errMsg1 << std::endl;
 
     free(errMsg1);
-    free(encr_dkg_poly);
+
 
     std::cerr << "result is " << result << std::endl;
     return result;
 }
 
-bool CreateBLSShare( const char * s_shares, const char * encryptedKeyHex){
+bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex){
 
   char* errMsg1 = (char*) calloc(1024,1);
   int err_status = 0;
@@ -188,10 +199,37 @@ bool CreateBLSShare( const char * s_shares, const char * encryptedKeyHex){
   uint8_t encr_key[BUF_LEN];
   hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
 
+  //std::cerr << " key hex is " << encryptedKeyHex << std::endl;
   create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key);
+
+  std::cerr << "er msg is " << errMsg1 << std::endl;
   if ( err_status != 0){
      return false;
   }
-  else return true;
+  else {
+    char *hexBLSKey = (char *) calloc(2 * BUF_LEN, 1);
+    uint32_t enc_len = BUF_LEN;
+    carray2Hex(encr_bls_key, enc_len, hexBLSKey);
+    writeDataToDB(BLSKeyName, hexBLSKey);
+    free(hexBLSKey);
+    return true;
+  }
+
+}
+
+std::string GetBLSPubKey(const char * encryptedKeyHex){
+    char* errMsg1 = (char*) calloc(1024,1);
+    int err_status = 0;
+
+    uint64_t dec_key_len ;
+    uint8_t encr_bls_key[BUF_LEN];
+    uint8_t encr_key[BUF_LEN];
+    hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
+
+    char pub_key[320];
+    get_bls_pub_key(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
+
+    std::string result = pub_key;
+
 
 }

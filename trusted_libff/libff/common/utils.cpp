@@ -12,7 +12,7 @@
 #include <cstdarg>
 #include <cstdint>
 
-#include <libff/common/utils.hpp>
+#include <../trusted_libff/libff/common/utils.hpp>
 
 namespace libff {
 

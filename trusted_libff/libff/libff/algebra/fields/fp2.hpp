@@ -11,19 +11,18 @@
 #define FP2_HPP_
 #include <vector>
 
-#include <../trusted_libff/libff/algebra/fields/fp.hpp>
-#include <../trusted_libff/libff/algebra/fields/fp.hpp>
+#include <libff/algebra/fields/fp.hpp>
 
 namespace libff {
 
 template<mp_size_t n, const bigint<n>& modulus>
 class Fp2_model;
 
-/*template<mp_size_t n, const bigint<n>& modulus>
+template<mp_size_t n, const bigint<n>& modulus>
 std::ostream& operator<<(std::ostream &, const Fp2_model<n, modulus> &);
 
 template<mp_size_t n, const bigint<n>& modulus>
-std::istream& operator>>(std::istream &, Fp2_model<n, modulus> &);*/
+std::istream& operator>>(std::istream &, Fp2_model<n, modulus> &);
 
 /**
  * Arithmetic in the field F[p^2].
@@ -52,7 +51,7 @@ public:
     Fp2_model(const my_Fp& c0, const my_Fp& c1) : c0(c0), c1(c1) {};
 
     void clear() { c0.clear(); c1.clear(); }
-    //void print() const { printf("c0/c1:\n"); c0.print(); c1.print(); }
+    void print() const { printf("c0/c1:\n"); c0.print(); c1.print(); }
 
     static Fp2_model<n, modulus> zero();
     static Fp2_model<n, modulus> one();
@@ -79,15 +78,15 @@ public:
     static size_t size_in_bits() { return 2*my_Fp::size_in_bits(); }
     static bigint<n> base_field_char() { return modulus; }
 
-   // friend std::ostream& operator<< <n, modulus>(std::ostream &out, const Fp2_model<n, modulus> &el);
-   // friend std::istream& operator>> <n, modulus>(std::istream &in, Fp2_model<n, modulus> &el);
+    friend std::ostream& operator<< <n, modulus>(std::ostream &out, const Fp2_model<n, modulus> &el);
+    friend std::istream& operator>> <n, modulus>(std::istream &in, Fp2_model<n, modulus> &el);
 };
 
-/*template<mp_size_t n, const bigint<n>& modulus>
+template<mp_size_t n, const bigint<n>& modulus>
 std::ostream& operator<<(std::ostream& out, const std::vector<Fp2_model<n, modulus> > &v);
 
 template<mp_size_t n, const bigint<n>& modulus>
-std::istream& operator>>(std::istream& in, std::vector<Fp2_model<n, modulus> > &v); */
+std::istream& operator>>(std::istream& in, std::vector<Fp2_model<n, modulus> > &v);
 
 template<mp_size_t n, const bigint<n>& modulus>
 Fp2_model<n, modulus> operator*(const Fp_model<n, modulus> &lhs, const Fp2_model<n, modulus> &rhs);
