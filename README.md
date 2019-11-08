@@ -7,7 +7,7 @@ sgxwallet is a next generation hardware secure crypto wallet that  is based on I
 
 sgxwallet has been tested on Ubuntu Linux 18.04.
 
-## Clone directory and its submodules
+## Clone this repository and its submodules
 
 ``` git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git ```
 
