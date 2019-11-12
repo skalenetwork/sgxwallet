@@ -233,7 +233,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     }
     std::cerr << "Hash handled " << cutHash << std::endl;
     try {
-       std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
+       std::shared_ptr<std::string> key_ptr = readFromDb(_keyName,"");
       // std::cerr << "read encr key" << *key_ptr << std::endl;
        sign_vect = ecdsa_sign_hash(key_ptr->c_str(),cutHash.c_str(), base);
     } catch (RPCException &_e) {
@@ -261,7 +261,7 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
     std::string Pkey;
 
     try {
-         std::shared_ptr<std::string> key_ptr = readECDSAKey(keyName);
+         std::shared_ptr<std::string> key_ptr = readFromDb(keyName,"");
          Pkey = get_ecdsa_pubkey( key_ptr->c_str());
     } catch (RPCException &_e) {
         result["status"] = _e.status;
