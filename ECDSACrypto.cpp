@@ -7,6 +7,8 @@
 #include "sgxwallet.h"
 #include <iostream>
 
+#include <gmp.h>
+#include <random>
 
 std::vector<std::string> gen_ecdsa_key(){
   char *errMsg = (char *)calloc(1024, 1);
@@ -17,7 +19,7 @@ std::vector<std::string> gen_ecdsa_key(){
   uint32_t enc_len = 0;
 
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
-  std::vector<std::string> keys(2);
+  std::vector<std::string> keys(3);
   std::cerr << "account key is " << errMsg << std::endl;
   char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
@@ -26,6 +28,24 @@ std::vector<std::string> gen_ecdsa_key(){
   //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
   //std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
 
+  std::default_random_engine rand_gen((unsigned int) time(0));
+  unsigned long seed = rand_gen();
+  gmp_randstate_t state;
+  gmp_randinit_default(state);
+
+  gmp_randseed_ui(state, seed);
+
+  mpz_t rand32;
+  mpz_init(rand32);
+  mpz_urandomb(rand32, state, 257);
+
+  char arr[mpz_sizeinbase (rand32, 16) + 2];
+  char * rand_str = mpz_get_str(arr, 16, rand32);
+
+  keys.at(2) = rand_str;
+
+  gmp_randclear(state);
+  mpz_clear(rand32);
 
   free(errMsg);
   free(pub_key_x);
