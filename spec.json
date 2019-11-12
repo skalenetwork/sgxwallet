@@ -29,7 +29,6 @@
       "errorMessage": "12345",
       "signatureShare": "12345"
     }
-
   },
 
   {
@@ -47,14 +46,24 @@
 
   {
     "name": "generateECDSAKey",
-    "params": {
-      "keyName": "key1"
-    },
     "returns": {
       "status": 0,
       "errorMessage": "12345",
       "encryptedKey": "12345",
+      "KeyName": "tmp:123",
       "PublicKey": "12345"
+    }
+  },
+
+  {
+    "name": "renameESDSAKey",
+    "params": {
+      "tempKeyName": "key1",
+      "KeyName": "key2"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345"
     }
   },
 
@@ -101,7 +110,7 @@
   {
     "name": "getVerificationVector",
     "params": {
-      "polyName": "key1",
+      "polyName": "p1",
       "n": 3,
       "t": 3
     },
@@ -139,7 +148,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "result": True
+      "result": true
     }
   },
   {
@@ -168,6 +177,22 @@
       "status": 0,
       "errorMessage": "12345",
       "BLSPublicKeyShare": "123"
+    }
+  },
+
+  {
+    "name": "ComplaintResponse",
+    "params": {
+      "polyName": "p1",
+      "n": 3,
+      "t": 3,
+      "ind": 1
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "share*G2": "123",
+      "DHKey": "123"
     }
   }
 

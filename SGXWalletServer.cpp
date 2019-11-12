@@ -144,7 +144,7 @@ Json::Value importECDSAKeyImpl(const std::string &key, const std::string &keyNam
 }
 
 
-Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
+Json::Value generateECDSAKeyImpl() {
 
     Json::Value result;
     result["status"] = 0;
@@ -152,7 +152,6 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
     result["encryptedKey"] = "";
 
     cerr << "Calling method generateECDSAKey"  << endl;
-
 
     std::vector<std::string>keys;
 
@@ -162,20 +161,56 @@ Json::Value generateECDSAKeyImpl(const std::string &_keyName) {
             throw RPCException(UNKNOWN_ERROR, "");
         }
        // std::cerr << "write encr key" << keys.at(0) << std::endl;
-        writeECDSAKey(_keyName, keys.at(0));
+        std::string keyName = "tmp_NEK:" + keys.at(2);
+        //writeECDSAKey(keyName, keys.at(0));
+        writeDataToDB(keyName, keys.at(0));
+
+        result["encryptedKey"] = keys.at(0);
+        result["PublicKey"] = keys.at(1);
+        result["KeyName"] = keyName;
+
     } catch (RPCException &_e) {
         std::cerr << " err str " << _e.errString << std::endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
-
-    result["encryptedKey"] = keys.at(0);
-    result["PublicKey"] = keys.at(1);
-
-
     //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
+}
+
+Json::Value renameESDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName){
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+  result["encryptedKey"] = "";
+
+  try {
+
+    std::string prefix = tempKeyName.substr(0,8);
+    if (prefix != "tmp_NEK:") {
+     throw RPCException(UNKNOWN_ERROR, "");
+    }
+    prefix = KeyName.substr(0,5);
+    if (prefix != "NODE_") {
+      throw RPCException(UNKNOWN_ERROR, "");
+    }
+    std::string chain_str = "CHAIN_";
+    if ( KeyName.find(chain_str) == std::string::npos){
+      throw RPCException(UNKNOWN_ERROR, "");
+    }
+
+    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName,"");//readECDSAKey(_keyName);
+    writeDataToDB(KeyName, *key_ptr);
+    levelDb->deleteTempNEK(tempKeyName);
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+  }
+
+  return result;
 }
 
 
@@ -397,10 +432,10 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
          std::cerr << "error " << std::endl;
      }
 
-    /* for ( int i = 0; i < n; i++){
+     for ( int i = 0; i < n; i++){
        std::string name = polyName + "_" + std::to_string(i) + ":";
        levelDb -> deleteDHDKGKey(name);
-     }*/
+     }
 
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
@@ -432,8 +467,30 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
     return result;
 }
 
+Json::Value ComplaintResponseImpl(const std::string& polyName, int n, int t, int ind){
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+  try {
+    std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+    std::pair<std::string, std::string> response = response_to_complaint(polyName, encr_poly_ptr->c_str(), n, t, ind);
+
+    result["share*G2"] = response.second;
+    result["DHKey"] = response.first;
+
+  } catch (RPCException &_e) {
+    std::cerr << " err str " << _e.errString << std::endl;
+    result["status"] = _e.status;
+    result["errorMessage"] = _e.errString;
+  }
+
+  return result;
+
+}
+
+
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
-  std::cerr << "entered generateECDSAKey" << std::endl;
+  std::cerr << "entered generateDKGPoly" << std::endl;
   lock_guard<recursive_mutex> lock(m);
   return generateDKGPolyImpl(polyName, t);
 }
@@ -465,9 +522,14 @@ Json::Value SGXWalletServer::GetBLSPublicKeyShare(const std::string & BLSKeyName
 
 
 
-Json::Value SGXWalletServer::generateECDSAKey(const std::string &_keyName) {
+Json::Value SGXWalletServer::generateECDSAKey() {
   lock_guard<recursive_mutex> lock(m);
-    return generateECDSAKeyImpl(_keyName);
+    return generateECDSAKeyImpl();
+}
+
+Json::Value SGXWalletServer::renameESDSAKey(const std::string& KeyName, const std::string& tempKeyName){
+  lock_guard<recursive_mutex> lock(m);
+  return renameESDSAKeyImpl(KeyName, tempKeyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
@@ -476,12 +538,12 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
 }
 
 
-  Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
-    lock_guard<recursive_mutex> lock(m);
-    std::cerr << "entered ecdsaSignMessageHash" << std::endl;
-    std::cerr << "MessageHash first " << messageHash << std::endl;
-    return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
-  }
+Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+  lock_guard<recursive_mutex> lock(m);
+  std::cerr << "entered ecdsaSignMessageHash" << std::endl;
+  std::cerr << "MessageHash first " << messageHash << std::endl;
+  return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
+}
 
 
 Json::Value
@@ -500,6 +562,11 @@ Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName,
 Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
   lock_guard<recursive_mutex> lock(m);
   return importECDSAKeyImpl(key, keyName);
+}
+
+Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int n, int t, int ind){
+  lock_guard<recursive_mutex> lock(m);
+  return ComplaintResponseImpl(polyName, n, t, ind);
 }
 
 

@@ -618,25 +618,29 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
   free(cypher);
 }
 
-/*void complaint_response(int *err_status, char *err_string, uint8_t *encrypted_DHkey, uint8_t *encrypted_koefs, uint32_t* dec_len,
-                    char* s_key, char* s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1, uint8_t ind2){
+void complaint_response(int *err_status, char *err_string, uint8_t *encrypted_DHkey, uint8_t *encrypted_dkg_secret, uint32_t* dec_len,
+                    char* DH_key, char* s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1){
 
   uint32_t enc_len;
 
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_DHkey, NULL, 0, (uint8_t *)skey, &enc_len);
-
+      (const sgx_sealed_data_t *)encrypted_DHkey, NULL, 0, (uint8_t *)DH_key, &enc_len);
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
 
-  char* s_shareG2 = (char *)malloc(196);
-  calc_secret_shareG2(decrypted_koefs, s_shareG2, _t, ind2);
+  char* decrypted_dkg_secret = (char*)malloc(DKG_BUFER_LENGTH);
+  uint32_t decr_len;
+  decrypt_dkg_secret(err_status, err_string, encrypted_dkg_secret, (uint8_t*)decrypted_dkg_secret, &decr_len);
+  if (*err_status != 0) {
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", *err_status);
+    return;
+  }
 
-
-  free(s_shareG2);
-}*/
+  calc_secret_shareG2(decrypted_dkg_secret, s_shareG2, _t, ind1);
+  free(decrypted_dkg_secret);
+}
 
 void dkg_verification(int *err_status, char* err_string, const char * public_shares, const char* s_share,
                       uint8_t* encrypted_key, uint64_t key_len, unsigned _t, int _ind, int * result){
@@ -769,9 +773,6 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     snprintf(err_string, BUF_LEN,"seal bls private key failed with status %d ", status);
     return;
    }
-
-
-
 
   //snprintf(err_string, BUF_LEN,"sshare is %s", decr_sshare);
   //snprintf(err_string, BUF_LEN,"encr_share is %s", encr_sshare);

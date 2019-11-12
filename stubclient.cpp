@@ -17,7 +17,7 @@ int init_client() {
     Json::Value params;
 
     try {
-        cout << c.generateECDSAKey("test_key") << endl;
+        cout << c.generateECDSAKey() << endl;
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }

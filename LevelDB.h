@@ -62,6 +62,8 @@ public:
 
     void deleteOlegKey (const std::string &_key);
 
+    void deleteTempNEK (const std::string &_key);
+
 public:
 
 
