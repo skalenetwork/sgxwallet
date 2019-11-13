@@ -10,6 +10,8 @@
 #include <gmp.h>
 #include <random>
 
+static std::default_random_engine rand_gen((unsigned int) time(0));
+
 std::vector<std::string> gen_ecdsa_key(){
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
@@ -28,7 +30,7 @@ std::vector<std::string> gen_ecdsa_key(){
   //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
   //std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
 
-  std::default_random_engine rand_gen((unsigned int) time(0));
+
   unsigned long seed = rand_gen();
   std::cerr << "seed is " << seed << std::endl;
   gmp_randstate_t state;

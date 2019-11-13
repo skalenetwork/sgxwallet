@@ -56,7 +56,7 @@
   },
 
   {
-    "name": "renameESDSAKey",
+    "name": "renameECDSAKey",
     "params": {
       "tempKeyName": "key1",
       "KeyName": "key2"

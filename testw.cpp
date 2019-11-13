@@ -722,6 +722,8 @@ TEST_CASE("API test", "[api_test]") {
     try {
         //levelDb->deleteOlegKey("0");
         //levelDb->deleteOlegKey("1");
+        levelDb->deleteDHDKGKey("p2_0:");
+      levelDb->deleteDHDKGKey("p2_1:");
 
 
         //cout << c.generateECDSAKey() << endl;
