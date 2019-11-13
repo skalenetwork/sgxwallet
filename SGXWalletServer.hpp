@@ -25,7 +25,7 @@ public:
 
     virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName);
     virtual Json::Value generateECDSAKey();
-    virtual Json::Value renameESDSAKey(const std::string& KeyName, const std::string& tempKeyName);
+    virtual Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName);
     virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyShareName, const std::string& messageHash);
     virtual Json::Value getPublicECDSAKey(const std::string& keyName);
 
@@ -39,7 +39,7 @@ public:
 
 };
 
-shared_ptr<string> readFromDb(const string & name, const string & prefix);
+shared_ptr<string> readFromDb(const string & name, const string & prefix = "");
 void writeDataToDB(const string & Name, const string &value);
 
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
@@ -56,7 +56,7 @@ Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::s
 
 Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName);
 Json::Value generateECDSAKeyImpl();
-Json::Value renameESDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName);
+Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName);
 Json::Value ecdsaSignMessageHashImpl(int base, const std::string& keyName, const std::string& messageHash);
 Json::Value getPublicECDSAKeyImpl(const std::string& keyName);
 

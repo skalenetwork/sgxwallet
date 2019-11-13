@@ -722,9 +722,11 @@ TEST_CASE("API test", "[api_test]") {
     try {
         //levelDb->deleteOlegKey("0");
         //levelDb->deleteOlegKey("1");
+        levelDb->deleteDHDKGKey("p2_0:");
+      levelDb->deleteDHDKGKey("p2_1:");
 
 
-        cout << c.generateECDSAKey() << endl;
+        //cout << c.generateECDSAKey() << endl;
        // cout << c.renameESDSAKey("NODE_1CHAIN_1","tmp_NEK:bcacde0d26c0ea2c7e649992e7f791e1fba2492f5b7ae63dadb799075167c7fc");
         //cout<<c.getPublicECDSAKey("test_key1");
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
@@ -743,7 +745,7 @@ TEST_CASE("API test", "[api_test]") {
       Json::Value publicKeys;
       publicKeys.append("505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e2");
       publicKeys.append("378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e");
-     // cout << c.getSecretShare("p2", publicKeys, 2, 2);
+      cout << c.getSecretShare("p2", publicKeys, 2, 2);
       // cout << c.generateDKGPoly("p3", 3);
      // cout << c.getSecretShare("p3",
        //                        "669aa790e1c5f5199af82ab0b6f1965c382d23a2ebdda581454adba3fd082a30edab62b545f78f1e402ceef7340a0364a7046633d6151fe7e657d8b8a6352378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25e6e9d43f1c88581f53af993da1654c9f91829c1fe5344c4452ef8d2d8675c6a051c19029f6e4f82b035fb3552058cf22c5bbafd9e6456d579634987281765d130b0",

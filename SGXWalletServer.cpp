@@ -29,6 +29,19 @@
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
 
+#include <algorithm>
+
+bool isStringDec( std::string & str){
+  auto res = std::find_if_not(str.begin(), str.end(), [](char c)->bool{
+    return std::isdigit(c);
+  });
+  return !str.empty() && res == str.end();
+  // bool res =tr
+  // for (int i = 0; i < str.length; i++){
+
+//  }
+}
+
 SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                                  serverVersion_t type)
         : AbstractStubServer(connector, type) {}
@@ -179,7 +192,7 @@ Json::Value generateECDSAKeyImpl() {
     return result;
 }
 
-Json::Value renameESDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName){
+Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName){
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -189,18 +202,19 @@ Json::Value renameESDSAKeyImpl(const std::string& KeyName, const std::string& te
 
     std::string prefix = tempKeyName.substr(0,8);
     if (prefix != "tmp_NEK:") {
-     throw RPCException(UNKNOWN_ERROR, "");
+     throw RPCException(UNKNOWN_ERROR, "wrong temp key name");
     }
-    prefix = KeyName.substr(0,5);
-    if (prefix != "NODE_") {
-      throw RPCException(UNKNOWN_ERROR, "");
+    prefix = KeyName.substr(0,12);
+    if (prefix != "NEK_NODE_ID:") {
+      throw RPCException(UNKNOWN_ERROR, "wrong key name");
     }
-    std::string chain_str = "CHAIN_";
-    if ( KeyName.find(chain_str) == std::string::npos){
-      throw RPCException(UNKNOWN_ERROR, "");
+    std::string postfix = KeyName.substr(12, KeyName.length());
+    if (!isStringDec(postfix)){
+      throw RPCException(UNKNOWN_ERROR, "wrong key name");
     }
 
-    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName,"");//readECDSAKey(_keyName);
+    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName);
+    std::cerr << "new key name is " << KeyName <<std::endl;
     writeDataToDB(KeyName, *key_ptr);
     levelDb->deleteTempNEK(tempKeyName);
 
@@ -233,7 +247,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     }
     std::cerr << "Hash handled " << cutHash << std::endl;
     try {
-       std::shared_ptr<std::string> key_ptr = readECDSAKey(_keyName);
+       std::shared_ptr<std::string> key_ptr = readFromDb(_keyName,"");
       // std::cerr << "read encr key" << *key_ptr << std::endl;
        sign_vect = ecdsa_sign_hash(key_ptr->c_str(),cutHash.c_str(), base);
     } catch (RPCException &_e) {
@@ -261,7 +275,7 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
     std::string Pkey;
 
     try {
-         std::shared_ptr<std::string> key_ptr = readECDSAKey(keyName);
+         std::shared_ptr<std::string> key_ptr = readFromDb(keyName,"");
          Pkey = get_ecdsa_pubkey( key_ptr->c_str());
     } catch (RPCException &_e) {
         result["status"] = _e.status;
@@ -374,7 +388,7 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
   try {
     //std::string keyName = polyName + "_" + std::to_string(ind);
     //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
 
     if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
@@ -421,7 +435,7 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
     //std::cerr << sshares << std::endl;
     //std::cerr << "length is " << strlen(sshares);
 
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
     bool res = CreateBLSShare(BLSKeyName, sshares, encryptedKeyHex_ptr->c_str());
      if ( res){
@@ -527,9 +541,9 @@ Json::Value SGXWalletServer::generateECDSAKey() {
     return generateECDSAKeyImpl();
 }
 
-Json::Value SGXWalletServer::renameESDSAKey(const std::string& KeyName, const std::string& tempKeyName){
+Json::Value SGXWalletServer::renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName){
   lock_guard<recursive_mutex> lock(m);
-  return renameESDSAKeyImpl(KeyName, tempKeyName);
+  return renameECDSAKeyImpl(KeyName, tempKeyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
@@ -666,9 +680,10 @@ void writeDataToDB(const string & Name, const string &value) {
   auto key = Name;
 
   if (levelDb->readString(Name) != nullptr) {
-    std::cerr << "already exists" << std::endl;
+    std::cerr << "name " << Name << " already exists" << std::endl;
     throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   levelDb->writeString(key, value);
 }
+
