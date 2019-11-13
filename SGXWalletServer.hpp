@@ -39,7 +39,7 @@ public:
 
 };
 
-shared_ptr<string> readFromDb(const string & name, const string & prefix);
+shared_ptr<string> readFromDb(const string & name, const string & prefix = "");
 void writeDataToDB(const string & Name, const string &value);
 
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);

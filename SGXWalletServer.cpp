@@ -192,15 +192,11 @@ Json::Value renameESDSAKeyImpl(const std::string& KeyName, const std::string& te
      throw RPCException(UNKNOWN_ERROR, "");
     }
     prefix = KeyName.substr(0,5);
-    if (prefix != "NODE_") {
-      throw RPCException(UNKNOWN_ERROR, "");
-    }
-    std::string chain_str = "CHAIN_";
-    if ( KeyName.find(chain_str) == std::string::npos){
+    if (prefix != "NEK_NODE_ID:") {
       throw RPCException(UNKNOWN_ERROR, "");
     }
 
-    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName,"");//readECDSAKey(_keyName);
+    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName);
     writeDataToDB(KeyName, *key_ptr);
     levelDb->deleteTempNEK(tempKeyName);
 
@@ -374,7 +370,7 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
   try {
     //std::string keyName = polyName + "_" + std::to_string(ind);
     //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
 
     if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
@@ -421,7 +417,7 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
     //std::cerr << sshares << std::endl;
     //std::cerr << "length is " << strlen(sshares);
 
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readECDSAKey(EthKeyName);
+    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);//readECDSAKey(EthKeyName);
 
     bool res = CreateBLSShare(BLSKeyName, sshares, encryptedKeyHex_ptr->c_str());
      if ( res){
@@ -666,7 +662,7 @@ void writeDataToDB(const string & Name, const string &value) {
   auto key = Name;
 
   if (levelDb->readString(Name) != nullptr) {
-    std::cerr << "already exists" << std::endl;
+    std::cerr << "name " << Name << " already exists" << std::endl;
     throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 

@@ -30,6 +30,7 @@ std::vector<std::string> gen_ecdsa_key(){
 
   std::default_random_engine rand_gen((unsigned int) time(0));
   unsigned long seed = rand_gen();
+  std::cerr << "seed is " << seed << std::endl;
   gmp_randstate_t state;
   gmp_randinit_default(state);
 
