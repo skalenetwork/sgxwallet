@@ -98,7 +98,7 @@
   {
     "name": "generateDKGPoly",
     "params": {
-      "polyName": "key1",
+      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID",
       "t": 3
     },
     "returns": {
@@ -176,7 +176,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "BLSPublicKeyShare": "123"
+      "BLSPublicKeyShare": []
     }
   },
 

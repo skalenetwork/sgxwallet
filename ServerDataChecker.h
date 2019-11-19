@@ -1,0 +1,8 @@
+//
+// Created by kladko on 11/19/19.
+//
+
+#ifndef SGXD_SERVERDATACHECKER_H
+#define SGXD_SERVERDATACHECKER_H
+
+#endif // SGXD_SERVERDATACHECKER_H

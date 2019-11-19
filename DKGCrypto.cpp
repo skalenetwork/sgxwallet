@@ -9,6 +9,7 @@
 
 #include <memory>
 #include "SGXWalletServer.hpp"
+#include "RPCException.h"
 
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <../trusted_libff/libff/algebra/fields/fp.hpp>
@@ -128,22 +129,25 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
     uint32_t dec_len;
 
     char cur_share[193];
+    char s_shareG2[320];
     std::string pub_keyB = publicKeys.at(i);//publicKeys.substr(128*i, 128*i + 128);
     std::cerr << "pub_keyB is " << pub_keyB << std::endl;
     char pubKeyB[129];
     strncpy(pubKeyB, pub_keyB.c_str(), 128);
     pubKeyB[128] = 0;
     get_encr_sshare(eid, &err_status, errMsg1, encrypted_skey, &dec_len,
-                   cur_share, pubKeyB, t, n, i + 1 );
+                   cur_share, s_shareG2, pubKeyB, t, n, i + 1 );
 
     result += cur_share;
 
     uint32_t enc_len = BUF_LEN;
     carray2Hex(encrypted_skey, enc_len, hexEncrKey);
-    //std::cerr << "hexEncrKey: " << hexEncrKey << std::endl;
+
 
     std::string name = "DKG_DH_KEY_" + polyName + "_" + std::to_string(i) + ":";
-    //writeDataToDB(name, hexEncrKey);
+    std::cerr << "name to write to db is " << name << std::endl;
+    std::cerr << "hexEncrKey: " << hexEncrKey << std::endl;
+   // writeDataToDB(name, hexEncrKey);
 
     std::cerr << errMsg1 << std::endl << std::endl;
     //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;
@@ -197,9 +201,10 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
   uint8_t encr_bls_key[BUF_LEN];
   uint8_t encr_key[BUF_LEN];
   hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
+  
+  uint32_t enc_bls_len = 0;
 
-  //std::cerr << " key hex is " << encryptedKeyHex << std::endl;
-  create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key);
+  create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
 
   std::cerr << "er msg is " << errMsg1 << std::endl;
   if ( err_status != 0){
@@ -207,16 +212,19 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
   }
   else {
     char *hexBLSKey = (char *) calloc(2 * BUF_LEN, 1);
-    uint32_t enc_len = BUF_LEN;
-    carray2Hex(encr_bls_key, enc_len, hexBLSKey);
-    writeDataToDB(BLSKeyName, hexBLSKey);
+
+      std::cerr << "enc_bls_len " << enc_bls_len << std::endl;
+      carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
+      writeDataToDB(BLSKeyName, hexBLSKey);
+    std::cerr << "hexBLSKey length is " << strlen(hexBLSKey) << std::endl;
+    std::cerr << "bls key " << BLSKeyName << " is " << hexBLSKey << std::endl;
     free(hexBLSKey);
     return true;
   }
 
 }
 
-std::string GetBLSPubKey(const char * encryptedKeyHex){
+std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex){
     char* errMsg1 = (char*) calloc(1024,1);
     int err_status = 0;
 
@@ -224,11 +232,18 @@ std::string GetBLSPubKey(const char * encryptedKeyHex){
     uint8_t encr_bls_key[BUF_LEN];
     uint8_t encr_key[BUF_LEN];
     hex2carray(encryptedKeyHex, &dec_key_len, encr_key);
+//    for ( int i = 0; i < BUF_LEN; i++ )
+//      std::cerr << encr_key[i] << " ";
 
     char pub_key[320];
+    std::cerr << "dec_key_len is " << dec_key_len << std::endl;
     get_bls_pub_key(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
-
-    std::string result = pub_key;
+    std::cerr << "errMsg1 is " << errMsg1 << std::endl;
+    std::vector<std::string> pub_key_vect = SplitString(pub_key, ':');
+    std::cerr << "pub key is" << std::endl;
+    for ( int i = 0; i < 4; i++)
+      std::cerr << pub_key_vect.at(i) << std::endl;
+    return pub_key_vect;
 }
 
 std::pair<std::string, std::string> response_to_complaint(const std::string& polyName, const char* encryptedPolyHex, int n, int t, int ind){
@@ -241,10 +256,11 @@ std::pair<std::string, std::string> response_to_complaint(const std::string& pol
   uint8_t* encr_dkg_poly = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);
   hex2carray2(encryptedPolyHex, &enc_len, encr_dkg_poly, 6100);
 
-  status = set_encrypted_dkg_poly(eid, &err_status, errMsg1, encr_dkg_poly);
+
 
   std::string DH_key_name = polyName + "_" + std::to_string(ind) + ":";
   std::shared_ptr<std::string> hexEncrKey_ptr = readFromDb(DH_key_name, "DKG_DH_KEY_");
+  std::cerr << "encr DH key is " << hexEncrKey_ptr << std::endl;
 
   char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
 
@@ -255,21 +271,20 @@ std::pair<std::string, std::string> response_to_complaint(const std::string& pol
 
   uint32_t dec_len;
   char decrpyted_DHkey[ECDSA_SKEY_LEN];
-  char s_shareG2[257];
+  char s_shareG2[320];//[257];
 
   status = complaint_response(eid, &err_status, errMsg1, encrypted_DHkey, encr_dkg_poly, &dec_len,
-                       decrpyted_DHkey, s_shareG2, t, n, ind);
+                      decrpyted_DHkey, s_shareG2, t, n, ind);
 
   std::pair<std::string, std::string> result;
   result.first = decrpyted_DHkey;
   result.second = s_shareG2;
 
-    //std::cerr << errMsg1 << std::endl << std::endl;
+  std::cerr << errMsg1 << std::endl << std::endl;
     //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;
     //std::cerr << "iteration " << i <<" share length is " << strlen(cur_share) << std::endl;
     //std::cerr << "iteration " << i <<" share is " << cur_share << std::endl;
 
-  //result += '\0';
 
   free(encr_dkg_poly);
   free(errMsg1);
@@ -277,3 +292,4 @@ std::pair<std::string, std::string> response_to_complaint(const std::string& pol
 
   return result;
 }
+

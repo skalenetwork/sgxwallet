@@ -22,8 +22,7 @@ std::pair<std::string, std::string> response_to_complaint(const std::string& pol
 
 bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex);
 
-std::string GetBLSPubKey(const char * encryptedKeyHex);
-
+std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex);
 
 
 #endif //SGXD_DKGCRYPTO_H

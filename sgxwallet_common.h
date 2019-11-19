@@ -46,7 +46,7 @@
 #define COULD_NOT_ACCESS_DATABASE -9
 #define NULL_DATABASE -10
 
-#define WALLETDB_NAME "sgxwallet.db"
+#define WALLETDB_NAME  "sgxwallet.db" //"test_sgxwallet.db"//
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 

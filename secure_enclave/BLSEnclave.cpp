@@ -61,9 +61,15 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 }
 
 
-libff::alt_bn128_Fr *keyFromString(const char *_keyString) {
+libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
+    mpz_t skey;
+    mpz_init(skey);
+    mpz_set_str(skey, _keyStringHex, 16);
 
-    return new libff::alt_bn128_Fr(_keyString);
+    char skey_dec[mpz_sizeinbase (skey, 10) + 2];
+    char * skey_str = mpz_get_str(skey_dec, 10, skey);
+
+    return new libff::alt_bn128_Fr(skey_dec);
 }
 
 

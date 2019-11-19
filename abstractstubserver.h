@@ -27,8 +27,9 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("DKGVerification", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares",jsonrpc::JSON_STRING, "EthKeyName",jsonrpc::JSON_STRING, "SecretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::DKGVerificationI);
           this->bindAndAddMethod(jsonrpc::Procedure("CreateBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, "EthKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "SecretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::CreateBLSPrivateKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("GetBLSPublicKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::GetBLSPublicKeyShareI);
+          this->bindAndAddMethod(jsonrpc::Procedure("ComplaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING, "n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, "ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::ComplaintResponseI);
 
-       }
+        }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
         {
@@ -36,7 +37,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         }
         inline virtual void blsSignMessageHashI(const Json::Value &request, Json::Value &response)
         {
-            response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString(), request["n"].asInt(), request["signerIndex"].asInt(), request["t"].asInt());
+            response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString(), request["n"].asInt(), request["t"].asInt(), request["signerIndex"].asInt());
         }
         inline virtual void importECDSAKeyI(const Json::Value &request, Json::Value &response)
         {
@@ -83,6 +84,10 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
           response = this->GetBLSPublicKeyShare(request["BLSKeyName"].asString());
         }
+        inline virtual void ComplaintResponseI(const Json::Value &request, Json::Value &response)
+        {
+          response = this->ComplaintResponse( request["polyName"].asString(), request["n"].asInt(), request["t"].asInt(),request["ind"].asInt());
+        }
 
         virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int signerIndex, int t) = 0;
@@ -98,6 +103,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value DKGVerification( const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
         virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n) = 0;
         virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) = 0;
+        virtual Json::Value ComplaintResponse(const std::string& polyName, int n, int t, int ind) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

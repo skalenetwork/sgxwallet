@@ -115,7 +115,7 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
 
 
     try {
-        value = readKeyShare(keyShareName);
+        value = readFromDb(keyShareName);
     } catch (RPCException _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -174,7 +174,8 @@ Json::Value generateECDSAKeyImpl() {
             throw RPCException(UNKNOWN_ERROR, "");
         }
        // std::cerr << "write encr key" << keys.at(0) << std::endl;
-        std::string keyName = "tmp_NEK:" + keys.at(2);
+        std::cerr << "encr key length is" << keys.at(0).length() << std::endl;
+        std::string keyName = "NEK:" + keys.at(2);
         //writeECDSAKey(keyName, keys.at(0));
         writeDataToDB(keyName, keys.at(0));
 
@@ -409,7 +410,6 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
 Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n){
   std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
 
-  std::cerr << " enter DKGVerificationImpl" << std::endl;
 
   Json::Value result;
   result["status"] = 0;
@@ -422,7 +422,7 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
       return result;
     }
     std::vector<std::string> sshares_vect;
-    //std::cerr << "sshares are " << std::endl;
+    std::cerr << "sshares are " << SecretShare << std::endl;
     char sshares[192 * n + 1];
     for ( int i = 0; i < n ; i++){
       std::string cur_share = SecretShare.substr(192*i, 192*i + 192);
@@ -469,8 +469,12 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
 
     try {
       std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName, "");
-      std::string public_key = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
-      result["BLSPublicKeyShare"] = public_key;
+      std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
+      std::cerr << "length is " << encryptedKeyHex_ptr->length()<< std::endl;
+      std::vector<std::string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+      for ( uint8_t i = 0; i < 4; i++) {
+        result["BLSPublicKeyShare"][i] = public_key_vect.at(i);
+      }
 
     } catch (RPCException &_e) {
         std::cerr << " err str " << _e.errString << std::endl;
@@ -487,6 +491,7 @@ Json::Value ComplaintResponseImpl(const std::string& polyName, int n, int t, int
   result["errorMessage"] = "";
   try {
     std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName, "DKGPoly:");
+    std::cerr << "encr_poly is " << *encr_poly_ptr << std::endl;
     std::pair<std::string, std::string> response = response_to_complaint(polyName, encr_poly_ptr->c_str(), n, t, ind);
 
     result["share*G2"] = response.second;
@@ -622,7 +627,7 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
     if (levelDb->readString(_keyShareName) != nullptr) {
-        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
+        throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
     levelDb->writeString(key, value);
@@ -648,7 +653,7 @@ void writeECDSAKey(const string &_keyName, const string &value) {
     auto key = "ECDSAKEY:" + _keyName;
 
     if (levelDb->readString(_keyName) != nullptr) {
-        throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Key with this name already exists");
+        throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Key with this name already exists");
     }
 
     levelDb->writeString(key, value);
@@ -664,7 +669,7 @@ void writeDKGPoly(const string &_polyName, const string &value) {
   auto key = "DKGPoly:" + _polyName;
 
   if (levelDb->readString(_polyName) != nullptr) {
-    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Poly with this name already exists");
+    throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Poly with this name already exists");
   }
 
   levelDb->writeString(key, value);
@@ -681,7 +686,7 @@ void writeDataToDB(const string & Name, const string &value) {
 
   if (levelDb->readString(Name) != nullptr) {
     std::cerr << "name " << Name << " already exists" << std::endl;
-    throw new RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
+    throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   levelDb->writeString(key, value);
