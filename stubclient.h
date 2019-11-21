@@ -173,12 +173,10 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
 
-    Json::Value ComplaintResponse(const std::string& polyName, int n, int t, int ind) throw (jsonrpc::JsonRpcException)
+    Json::Value ComplaintResponse(const std::string& polyName, int ind) throw (jsonrpc::JsonRpcException)
     {
       Json::Value p;
       p["polyName"] = polyName;
-      p["n"] = n;
-      p["t"] = t;
       p["ind"] = ind;
       Json::Value result = this->CallMethod("ComplaintResponse",p);
       if (result.isObject())

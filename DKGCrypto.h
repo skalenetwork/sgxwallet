@@ -18,7 +18,7 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
 
 bool VerifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex,  int t, int n, int ind);
 
-std::pair<std::string, std::string> response_to_complaint(const std::string& polyName, const char* encryptedPolyHex, int n, int t, int ind);
+std::string decrypt_DHKey(const std::string& polyName, int ind);
 
 bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex);
 

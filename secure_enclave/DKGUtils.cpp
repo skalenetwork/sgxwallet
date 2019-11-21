@@ -100,6 +100,10 @@ void gen_dkg_poly( char* secret, unsigned _t ){
        result += ":";
     }
     strncpy(secret, result.c_str(), result.length() + 1);
+
+    if (strlen(secret) == 0){
+        throw std::exception();
+    }
 }
 
 libff::alt_bn128_Fr PolynomialValue(const std::vector<libff::alt_bn128_Fr>& pol, libff::alt_bn128_Fr point, unsigned _t) {

@@ -139,7 +139,7 @@
     "name": "DKGVerification",
     "params": {
       "publicShares": "123",
-      "EthKeyName":"key_j",
+      "EthKeyName":"NEK:hex",
       "SecretShare": "f_ij",
       "n": 3,
       "t": 3,
@@ -154,9 +154,9 @@
   {
     "name": "CreateBLSPrivateKey",
     "params": {
-      "BLSKeyName": "key",
-      "EthKeyName":"key1",
-      "polyName":"p1",
+      "BLSKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID: ",
+      "EthKeyName":"NEK:hex",
+      "polyName":"POLY:SCHAIN_ID :NODE_ID :DKG_ID: ",
       "SecretShare": "122",
       "n": 3,
       "t": 3
@@ -171,7 +171,7 @@
   {
     "name": "GetBLSPublicKeyShare",
     "params": {
-      "BLSKeyName": "key"
+      "BLSKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID"
     },
     "returns": {
       "status": 0,

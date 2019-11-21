@@ -584,6 +584,8 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
   generate_ecdsa_key(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
  // snprintf(err_string, BUF_LEN,"pub_key_x is %s", pub_key_x);
 
+ *dec_len = enc_len;
+
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_skey, NULL, 0, (uint8_t *)skey, &enc_len);
 

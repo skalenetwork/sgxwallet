@@ -5,4 +5,16 @@
 #ifndef SGXD_SERVERDATACHECKER_H
 #define SGXD_SERVERDATACHECKER_H
 
+#include <string>
+
+bool checkECDSAKeyName(const std::string& keyName);
+
+bool checkHex(const std::string& hash, const uint32_t sizeInBytes = 32);
+
+bool checkPolyName (const std::string& polyName);
+
+bool checkName (const std::string& Name, const std::string& prefix);
+
+bool check_n_t ( const int n, const int t);
+
 #endif // SGXD_SERVERDATACHECKER_H

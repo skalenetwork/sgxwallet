@@ -35,7 +35,7 @@ public:
     virtual Json::Value DKGVerification(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
     virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
     virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName);
-    virtual Json::Value ComplaintResponse(const std::string& polyName, int n, int t, int ind);
+    virtual Json::Value ComplaintResponse(const std::string& polyName, int ind);
 
 };
 
@@ -44,12 +44,6 @@ void writeDataToDB(const string & Name, const string &value);
 
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
-
-void writeECDSAKey(const string& _keyName, const string& value);
-shared_ptr<std::string> readECDSAKey(const string& _key);
-
-void writeDKGPoly(const string &_polyName, const string &value);
-
 
 Json::Value importBLSKeyShareImpl(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
 Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex);
@@ -66,6 +60,6 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
 Json::Value DKGVerificationImpl(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
 Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName);
-Json::Value ComplaintResponseImpl(const std::string& polyName, int n, int t, int ind);
+Json::Value ComplaintResponseImpl(const std::string& polyName, int ind);
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

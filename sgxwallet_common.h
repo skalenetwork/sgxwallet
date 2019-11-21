@@ -29,6 +29,8 @@
 #define  DKG_BUFER_LENGTH 2490//3060
 #define  DKG_MAX_SEALED_LEN 3050
 
+#define SECRET_SHARE_NUM_BYTES 96
+
 #define ECDSA_SKEY_LEN 65
 #define ECDSA_SKEY_BASE 16
 #define ECDSA_ENCR_LEN 625
@@ -46,7 +48,15 @@
 #define COULD_NOT_ACCESS_DATABASE -9
 #define NULL_DATABASE -10
 
-#define WALLETDB_NAME  "sgxwallet.db" //"test_sgxwallet.db"//
+#define INVALID_POLY_NAME -11
+#define INVALID_DKG_PARAMS -12
+
+#define INVALID_ECDSA_KEY_NAME -20
+#define INVALID_HEX -21
+
+#define SGX_ERROR -666;
+
+#define WALLETDB_NAME  "test_sgxwallet.db"//"sgxwallet.db" //
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
