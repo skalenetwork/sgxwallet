@@ -132,20 +132,20 @@ bool checkName (const std::string& Name, const std::string& prefix){
         return false;
     }
 
-    if ( parts.at(2).length() > 64 || parts.at(2).length() < 1){
+    if ( parts.at(2).length() > 78 || parts.at(2).length() < 1){
         return false;
     }
     if (parts.at(4).length() > 5 || parts.at(4).length() < 1){
         return false;
     }
-    if ( parts.at(6).length() > 64 || parts.at(6).length() < 1){
+    if ( parts.at(6).length() > 78 || parts.at(6).length() < 1){
         return false;
     }
 
     mpz_t num;
     mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(2).c_str(), 16) == -1){
+    if ( mpz_set_str(num, parts.at(2).c_str(), 10) == -1){
         mpz_clear(num);
         return false;
     }
@@ -159,7 +159,7 @@ bool checkName (const std::string& Name, const std::string& prefix){
     mpz_clear(num);
     mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(6).c_str(),16) == -1){
+    if ( mpz_set_str(num, parts.at(6).c_str(),10) == -1){
         mpz_clear(num);
         return false;
     }

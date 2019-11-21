@@ -54,7 +54,7 @@
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 
-#define SGX_ERROR -666;
+#define SGX_ENCLAVE_ERROR -666;
 
 #define WALLETDB_NAME  "test_sgxwallet.db"//"sgxwallet.db" //
 

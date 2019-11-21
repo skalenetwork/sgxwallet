@@ -183,6 +183,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
   sgx_status_t status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *)skey_str, sealedLen,(sgx_sealed_data_t*)encrypted_key);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"seal ecsdsa private key failed");
+    *err_status = status;
     return;
   }
 
@@ -209,6 +210,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
+    *err_status = status;
     return;
   }
 
@@ -219,6 +221,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
  // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
   if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
     snprintf(err_string, BUF_LEN,"wrong string to init private key");
+    *err_status = -10;
   }
 
   //Public key
@@ -231,6 +234,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
 
   if (!point_cmp(Pkey, Pkey_test)){
     snprintf(err_string, BUF_LEN,"Points are not equal");
+    *err_status = -11;
   }
 
   int base = 16;
@@ -397,8 +401,6 @@ void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
         strncpy(signature, err_string, BUF_LEN);
         return;
     }
-
-
 
     enclave_sign(key, _hashX, _hashY, sig);
 

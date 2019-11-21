@@ -718,6 +718,28 @@ TEST_CASE( "pub_bls_key", "[pub_bls]" ) {
 using namespace jsonrpc;
 using namespace std;
 
+TEST_CASE("BLS_DKG test", "[bls_dkg]") {
+  cerr << "Server inited" << endl;
+  HttpClient client("http://localhost:1026");
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  cerr << "Client inited" << endl;
+
+  int n = 2, t = 2;
+  Json::Value EthKeys[n];
+  Json::Value Polys[n];
+  Json::Value VerifVects[n];
+  std::vector <std::string> pub_keys;
+  for ( uint8_t i = 0; i < n; i++){
+    EthKeys[i] = c.generateECDSAKey();
+    std::string polyName = "POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) + "DKG_ID:0";
+    Polys[i] = c.generateDKGPoly(polyName, t);
+    VerifVects[i] = c.getVerificationVector(polyName, n, t);
+
+  }
+
+
+}
+
 TEST_CASE("API test", "[api_test]") {
     cerr << "API test started" << endl;
     init_all();
@@ -726,7 +748,7 @@ TEST_CASE("API test", "[api_test]") {
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
    // s.StartListening();
     cerr << "Server inited" << endl;
-    HttpClient client("http://localhost:1026");
+    HttpClient client("http://localhost:1025");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     cerr << "Client inited" << endl;
@@ -738,9 +760,9 @@ TEST_CASE("API test", "[api_test]") {
         //levelDb->deleteDHDKGKey("p2_1:");
 
 
-        //cout << c.generateECDSAKey() << endl;
+      //  cout << c.generateECDSAKey() << endl;
        // cout << c.renameESDSAKey("NODE_1CHAIN_1","tmp_NEK:bcacde0d26c0ea2c7e649992e7f791e1fba2492f5b7ae63dadb799075167c7fc");
-        //cout<<c.getPublicECDSAKey("NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8");
+        cout<<c.getPublicECDSAKey("NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8");
       //cout << c.ecdsaSignMessageHash(16, "NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
@@ -797,7 +819,7 @@ TEST_CASE("API test", "[api_test]") {
 
      // cout << c.blsSignMessageHash("dOsRY","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7", 2, 2, 1);
 
-     cout << c.ComplaintResponse("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 0);
+    // cout << c.ComplaintResponse("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 0);
 
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;

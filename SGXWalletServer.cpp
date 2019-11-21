@@ -49,7 +49,7 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
 
 int init_server() {
 
-  hs = new HttpServer(1026);
+  hs = new HttpServer(1025);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -73,7 +73,9 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
     result["encryptedKeyShare"] = "";
 
     try {
-
+        if ( !checkName(_keyShare, "BLS_KEY")){
+          throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
+        }
         char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
         if (encryptedKeyShareHex == nullptr) {
@@ -113,7 +115,11 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
 
 
     try {
-        value = readFromDb(keyShareName);
+      if ( !checkName(keyShareName, "BLS_KEY")){
+        throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
+      }
+
+      value = readFromDb(keyShareName);
     } catch (RPCException _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -169,7 +175,7 @@ Json::Value generateECDSAKeyImpl() {
     try {
         keys = gen_ecdsa_key();
         if (keys.size() == 0 ) {
-            throw RPCException(UNKNOWN_ERROR, "");
+            throw RPCException(UNKNOWN_ERROR, "key was not generated");
         }
        // std::cerr << "write encr key" << keys.at(0) << std::endl;
         std::cerr << "encr key length is" << keys.at(0).length() << std::endl;
@@ -434,9 +440,9 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
     if( !check_n_t(n, t) || ind > n || ind < 0){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
     }
-    if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
-      throw RPCException(INVALID_HEX, "Invalid Secret share");
-    }
+//    if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
+//      throw RPCException(INVALID_HEX, "Invalid Secret share");
+//    }
 
     //std::string keyName = polyName + "_" + std::to_string(ind);
     //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
@@ -472,23 +478,23 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
       result["errorMessage"] = "wrong length of secret shares";
       return result;
     }
-    if ( !checkECDSAKeyName(EthKeyName)){
-      throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
-    }
+//    if ( !checkECDSAKeyName(EthKeyName)){
+//      throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+//    }
     if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
     }
     if ( !checkName(BLSKeyName, "BLS_KEY")){
-      throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
+      throw RPCException(INVALID_POLY_NAME, "Invalid BLS key name");
     }
     std::vector<std::string> sshares_vect;
     std::cerr << "sshares are " << SecretShare << std::endl;
     char sshares[192 * n + 1];
     for ( int i = 0; i < n ; i++){
       std::string cur_share = SecretShare.substr(192*i, 192*i + 192);
-      if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
-        throw RPCException(INVALID_HEX, "Invalid Secret share");
-      }
+//      if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
+//        throw RPCException(INVALID_HEX, "Invalid Secret share");
+//      }
      // std::cerr << " share " << i << " is " << cur_share << std::endl;
       sshares_vect.push_back(cur_share);
      // std::cerr << sshares_vect[i] << " ";
@@ -532,7 +538,7 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
 
     try {
       if ( !checkName(BLSKeyName, "BLS_KEY")){
-        throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
+        throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
       }
       std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName);
       std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
