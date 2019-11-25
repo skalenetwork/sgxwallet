@@ -148,15 +148,15 @@ std::string get_secret_shares(const std::string& polyName, const char* encrypted
     carray2Hex(encrypted_skey, dec_len, hexEncrKey);
 
 
-    std::string DHKey_name = "DKG_DH_KEY_" + polyName + "_" + std::to_string(i) + ":";
-    std::cerr << "name to write to db is " << DHKey_name << std::endl;
-    std::cerr << "hexEncrKey: " << hexEncrKey << std::endl;
-    writeDataToDB(DHKey_name, hexEncrKey);
-
-    std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(i) + ":";
-    std::cerr << "name to write to db is " << shareG2_name << std::endl;
-    std::cerr << "s_shareG2: " << s_shareG2 << std::endl;
-    writeDataToDB(shareG2_name, s_shareG2);
+//    std::string DHKey_name = "DKG_DH_KEY_" + polyName + "_" + std::to_string(i) + ":";
+//    std::cerr << "name to write to db is " << DHKey_name << std::endl;
+//    std::cerr << "hexEncrKey: " << hexEncrKey << std::endl;
+//    writeDataToDB(DHKey_name, hexEncrKey);
+//
+//    std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(i) + ":";
+//    std::cerr << "name to write to db is " << shareG2_name << std::endl;
+//    std::cerr << "s_shareG2: " << s_shareG2 << std::endl;
+//    writeDataToDB(shareG2_name, s_shareG2);
 
     std::cerr << errMsg1 << std::endl << std::endl;
     //std::cerr << "iteration " << i <<" result length is " << result.length() << std::endl ;

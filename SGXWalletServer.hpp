@@ -20,7 +20,7 @@ class SGXWalletServer : public AbstractStubServer {
 public:
     SGXWalletServer(AbstractServerConnector &connector, serverVersion_t type);
 
-    virtual Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
+    virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int n, int t, int index);
     virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex);
 
     virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName);
@@ -45,7 +45,7 @@ void writeDataToDB(const string & Name, const string &value);
 void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
 shared_ptr<std::string> readKeyShare(const string& _keyShare);
 
-Json::Value importBLSKeyShareImpl(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t);
+Json::Value importBLSKeyShareImpl(const std::string& keyShare, const std::string& keyShareName, int n, int t, int index);
 Json::Value blsSignMessageHashImpl(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex);
 
 Json::Value importECDSAKeyImpl(const std::string& key, const std::string& keyName);

@@ -32,6 +32,15 @@
 #include "ServerDataChecker.h"
 
 #include <algorithm>
+#include <stdlib.h>
+
+
+//#if __cplusplus < 201412L
+//#error expecting C++17 standard
+//#endif
+
+#include <boost/filesystem.hpp>
+
 
 bool isStringDec( std::string & str){
   auto res = std::find_if_not(str.begin(), str.end(), [](char c)->bool{
@@ -49,7 +58,25 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
 
 int init_server() {
 
-  hs = new HttpServer(1025);
+  std::string certPath = "cert/SGXServerCertificate.crt";
+  std::string keyPath = "cert/SGXServerCertificate.key";
+
+  if (!boost::filesystem::exists(certPath) ){
+    std::cerr << "NO!!! " << std::endl;
+    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+
+    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
+
+    if (system(genCert.c_str()) == 0){
+       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  hs = new HttpServer(1026, certPath, keyPath);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -61,7 +88,7 @@ int init_server() {
 }
 
 Json::Value
-importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string &_keyShareName, int n, int t) {
+importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int n, int t, int index) {
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
@@ -73,9 +100,9 @@ importBLSKeyShareImpl(int index, const std::string &_keyShare, const std::string
     result["encryptedKeyShare"] = "";
 
     try {
-        if ( !checkName(_keyShare, "BLS_KEY")){
-          throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
-        }
+//        if ( !checkName(_keyShare, "BLS_KEY")){
+//          throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
+//        }
         char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
         if (encryptedKeyShareHex == nullptr) {
@@ -174,12 +201,16 @@ Json::Value generateECDSAKeyImpl() {
 
     try {
         keys = gen_ecdsa_key();
+
         if (keys.size() == 0 ) {
             throw RPCException(UNKNOWN_ERROR, "key was not generated");
         }
        // std::cerr << "write encr key" << keys.at(0) << std::endl;
-        std::cerr << "encr key length is" << keys.at(0).length() << std::endl;
+
         std::string keyName = "NEK:" + keys.at(2);
+
+        std::cerr << "keyname length is " << keyName.length() << std::endl;
+        std::cerr <<"key name generated: " << keyName << std::endl;
         //writeECDSAKey(keyName, keys.at(0));
         writeDataToDB(keyName, keys.at(0));
 
@@ -642,10 +673,10 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_
 
 
 Json::Value
-SGXWalletServer::importBLSKeyShare(int index, const std::string &_keyShare, const std::string &_keyShareName, int n,
-                                   int t) {
+SGXWalletServer::importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int n,
+                                   int t, int index) {
     lock_guard<recursive_mutex> lock(m);
-    return importBLSKeyShareImpl(index, _keyShare, _keyShareName, n, t);
+    return importBLSKeyShareImpl(_keyShare, _keyShareName, n, t, index );
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,

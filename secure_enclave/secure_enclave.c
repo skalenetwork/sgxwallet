@@ -268,7 +268,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
 void encrypt_key(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
-    init();
+    //init();
 
     *err_status = UNKNOWN_ERROR;
 
@@ -294,10 +294,10 @@ void encrypt_key(int *err_status, char *err_string, char *key,
 
     memset(encrypted_key, 0, BUF_LEN);
 
-    if (sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t *) key, sealedLen, (sgx_sealed_data_t *) encrypted_key) !=
-        SGX_SUCCESS) {
+    sgx_status_t status = sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t *) key, sealedLen, (sgx_sealed_data_t *) encrypted_key);
+    if ( status != SGX_SUCCESS) {
         *err_status = SEAL_KEY_FAILED;
-        snprintf(err_string, BUF_LEN, "SGX seal data failed");
+        snprintf(err_string, BUF_LEN, "SGX seal data failed with status %d", status);
         return;
     }
 
@@ -652,7 +652,7 @@ void complaint_response(int *err_status, char *err_string, uint8_t *encrypted_DH
   calc_secret_shareG2_old(decrypted_dkg_secret, s_shareG2, _t, ind1);
 
   //snprintf(err_string, BUF_LEN,"poly:%s", decrypted_dkg_secret);
- // snprintf(err_string, BUF_LEN,"what the fuck");
+ // snprintf(err_string, BUF_LEN,"what the ...");
 
   //snprintf(err_string, BUF_LEN,"s_shareG2:%s", s_shareG2);
   free(decrypted_dkg_secret);

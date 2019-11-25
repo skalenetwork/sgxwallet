@@ -64,6 +64,8 @@ public:
 
     void deleteTempNEK (const std::string &_key);
 
+    void deleteKey(const std::string &_key);
+
 public:
 
 

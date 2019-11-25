@@ -104,7 +104,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
 
     *err_status = -3;
 
-    // check that key is padded with 0s
+     //check that key is padded with 0s
 
     for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
         if (_keyString[i] != 0) {
@@ -112,22 +112,22 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
         }
     }
 
-    std::string ks(_keyString);
-
-    // std::string  keyString =
-    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
-
-    auto key = keyFromString(ks.c_str());
-
-    auto s1 = stringFromKey(key);
-
-    if (s1->compare(ks) != 0) {
-        throw std::exception();
-    }
+//    std::string ks(_keyString);
+//
+//    // std::string  keyString =
+//    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
+//
+//    auto key = keyFromString(ks.c_str());
+//
+//    auto s1 = stringFromKey(key);
+//
+//    if (s1->compare(ks) != 0) {
+//        throw std::exception();
+//    }
 
     *err_status = 0;
 
-    return;
+   // return;
 }
 
 
@@ -150,9 +150,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
 
     libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
-
-
-
 
     libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
 

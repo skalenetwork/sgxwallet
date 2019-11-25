@@ -12,7 +12,7 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(int index, const std::string& keyShare, const std::string& keyShareName, int n, int t) throw (jsonrpc::JsonRpcException)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int n, int t, int index) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
             p["index"] = index;

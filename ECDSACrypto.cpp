@@ -46,12 +46,14 @@ std::vector<std::string> gen_ecdsa_key(){
 
   mpz_t rand32;
   mpz_init(rand32);
-  mpz_urandomb(rand32, state, 257);
+  mpz_urandomb(rand32, state, 256);
 
   char arr[mpz_sizeinbase (rand32, 16) + 2];
   char * rand_str = mpz_get_str(arr, 16, rand32);
 
   keys.at(2) = rand_str;
+
+  std::cerr << "rand_str length is " << strlen(rand_str) << std::endl;
 
   gmp_randclear(state);
   mpz_clear(rand32);

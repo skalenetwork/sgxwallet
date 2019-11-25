@@ -119,6 +119,17 @@ void LevelDB::deleteTempNEK(const std::string &_key){
     std::cerr << "key deleted " << _key << std::endl;
 }
 
+void LevelDB::deleteKey(const std::string &_key){
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    auto status = db->Delete(writeOptions, Slice(_key));
+
+    throwExceptionOnError(status);
+
+    std::cerr << "key deleted " << _key << std::endl;
+}
+
 
 
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,

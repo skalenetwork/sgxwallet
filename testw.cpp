@@ -172,7 +172,7 @@ TEST_CASE("BLS key import", "[bls-key-import]") {
 
 
 
-    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
+    auto result = importBLSKeyShareImpl(TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
 
     REQUIRE(result["status"] == 0);
 
@@ -212,7 +212,7 @@ TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
     init_all();
 
-    auto result = importBLSKeyShareImpl(1, TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2);
+    auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
 
     REQUIRE(result["status"] == 0);
 
@@ -719,6 +719,7 @@ using namespace jsonrpc;
 using namespace std;
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
+  init_all();
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1026");
   StubClient c(client, JSONRPC_CLIENT_V2);
@@ -728,19 +729,23 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   Json::Value EthKeys[n];
   Json::Value Polys[n];
   Json::Value VerifVects[n];
-  std::vector <std::string> pub_keys;
+  Json::Value pubEthKeys;
   for ( uint8_t i = 0; i < n; i++){
     EthKeys[i] = c.generateECDSAKey();
-    std::string polyName = "POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) + "DKG_ID:0";
+    std::string polyName = "POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) + ":DKG_ID:0";
     Polys[i] = c.generateDKGPoly(polyName, t);
     VerifVects[i] = c.getVerificationVector(polyName, n, t);
-
+    pubEthKeys.append(EthKeys[i]["PublicKey"]);
   }
+
+
 
 
 }
 
 TEST_CASE("API test", "[api_test]") {
+
+  std::cerr << __GNUC__ << std::endl;
     cerr << "API test started" << endl;
     init_all();
     //HttpServer httpserver(1025);
@@ -748,7 +753,7 @@ TEST_CASE("API test", "[api_test]") {
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
    // s.StartListening();
     cerr << "Server inited" << endl;
-    HttpClient client("http://localhost:1025");
+    HttpClient client("http://localhost:1026");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     cerr << "Client inited" << endl;
@@ -758,11 +763,19 @@ TEST_CASE("API test", "[api_test]") {
         //levelDb->deleteOlegKey("1");
        // levelDb->deleteDHDKGKey("p2_0:");
         //levelDb->deleteDHDKGKey("p2_1:");
+        for ( uint8_t i = 0; i < 2; i++) {
+        levelDb->deleteKey("POLY:SCHAIN_ID:0:NODE_ID:" + std::to_string(i) +
+                             ":DKG_ID:0");
 
+          levelDb->deleteKey(" DKG_DH_KEY_POLY:SCHAIN_ID:0:NODE_ID:" + std::to_string(i)+ ":DKG_ID:0_0");
+          levelDb->deleteKey(" DKG_DH_KEY_POLY:SCHAIN_ID:0:NODE_ID:" + std::to_string(i)+ ":DKG_ID:0_1");
+        }
 
-      //  cout << c.generateECDSAKey() << endl;
+       cout << c.importBLSKeyShare("4160780231445160889237664391382223604184857153814275770598791864649971919844","BLS_KEY:SCHAIN_ID:2660016693368503500803087136248943520694587309641817:NODE_ID:33909:DKG_ID:3522960548719023733985054069487289468077787284706573", 4, 3,1);
+
+       // cout << c.generateECDSAKey() << endl;
        // cout << c.renameESDSAKey("NODE_1CHAIN_1","tmp_NEK:bcacde0d26c0ea2c7e649992e7f791e1fba2492f5b7ae63dadb799075167c7fc");
-        cout<<c.getPublicECDSAKey("NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8");
+       // cout<<c.getPublicECDSAKey("NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8");
       //cout << c.ecdsaSignMessageHash(16, "NEK:697fadfc597bdbfae9ffb7412b80939e848c9c2fec2657bb2122b6d0d4a0dca8","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //cout << c.ecdsaSignMessageHash(16, "known_key1","0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
         //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );

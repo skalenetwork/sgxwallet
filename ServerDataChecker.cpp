@@ -6,6 +6,8 @@
 #include "ServerDataChecker.h"
 #include <gmp.h>
 
+#include <iostream>
+
 std::vector<std::string> SplitString(const std::string& str, const std::string& delim = ":"){
     std::vector<std::string> tokens;
     size_t prev = 0, pos = 0;
@@ -23,13 +25,16 @@ std::vector<std::string> SplitString(const std::string& str, const std::string& 
 bool checkECDSAKeyName(const std::string& keyName) {
   std::vector<std::string> parts = SplitString(keyName);
   if (parts.size() != 2) {
+    std::cerr << "num parts != 2" << std::endl;
     return false;
   }
   if (parts.at(0) != "NEK") {
-    return false;
+      std::cerr << "key doesn't start from NEK" << std::endl;
+      return false;
   }
   if ( parts.at(1).length() > 64 || parts.at(1).length() < 1){
-    return false;
+      std::cerr << "wrong key length" << std::endl;
+      return false;
   }
 
   mpz_t num;
