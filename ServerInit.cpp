@@ -30,7 +30,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-
+#include <iostream>
 
 
 
@@ -41,6 +41,7 @@ void init_daemon() {
     libff::init_alt_bn128_params();
 
     static std::string dbName("./" WALLETDB_NAME);
+
 
     levelDb = new LevelDB(dbName);
 
@@ -62,6 +63,8 @@ void init_enclave() {
         exit(1);
     }
 #endif
+
+    std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);

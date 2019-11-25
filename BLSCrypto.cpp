@@ -28,6 +28,8 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
+#include "RPCException.h"
+
 
 
 int char2int(char _input) {
@@ -159,13 +161,16 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 
     status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
 
+    std::cerr << "errStatus is " << *errStatus << " errMsg is " << errMsg << std::endl;
+
     if (status != SGX_SUCCESS) {
+
         *errStatus = -1;
         return nullptr;
     }
 
     if (*errStatus != 0) {
-        return nullptr;
+        throw RPCException(-666, errMsg);
     }
 
 

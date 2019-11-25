@@ -61,9 +61,15 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 }
 
 
-libff::alt_bn128_Fr *keyFromString(const char *_keyString) {
+libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
+    mpz_t skey;
+    mpz_init(skey);
+    mpz_set_str(skey, _keyStringHex, 16);
 
-    return new libff::alt_bn128_Fr(_keyString);
+    char skey_dec[mpz_sizeinbase (skey, 10) + 2];
+    char * skey_str = mpz_get_str(skey_dec, 10, skey);
+
+    return new libff::alt_bn128_Fr(skey_dec);
 }
 
 
@@ -98,7 +104,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
 
     *err_status = -3;
 
-    // check that key is padded with 0s
+     //check that key is padded with 0s
 
     for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
         if (_keyString[i] != 0) {
@@ -106,22 +112,22 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
         }
     }
 
-    std::string ks(_keyString);
-
-    // std::string  keyString =
-    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
-
-    auto key = keyFromString(ks.c_str());
-
-    auto s1 = stringFromKey(key);
-
-    if (s1->compare(ks) != 0) {
-        throw std::exception();
-    }
+//    std::string ks(_keyString);
+//
+//    // std::string  keyString =
+//    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
+//
+//    auto key = keyFromString(ks.c_str());
+//
+//    auto s1 = stringFromKey(key);
+//
+//    if (s1->compare(ks) != 0) {
+//        throw std::exception();
+//    }
 
     *err_status = 0;
 
-    return;
+   // return;
 }
 
 
@@ -144,9 +150,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
 
     libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
-
-
-
 
     libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
 

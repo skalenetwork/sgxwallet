@@ -165,7 +165,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
  // strncpy(signature, "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855", 1024);
 
-  printf("---: %s\n", signature);
+  printf("sig is: %s\n", signature);
 
 
   if (status != SGX_SUCCESS) {
@@ -300,6 +300,7 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
 
   std::string signature = signWithHelperSGXstr(hash_byte_arr, _signerIndex);
+
 
   auto sig = make_shared<string>(signature);
 

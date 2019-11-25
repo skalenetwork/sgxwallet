@@ -5,8 +5,10 @@
 #include "ECDSACrypto.h"
 #include "BLSCrypto.h"
 #include "sgxwallet.h"
-#include <iostream>
 
+#include "RPCException.h"
+
+#include <iostream>
 #include <gmp.h>
 #include <random>
 
@@ -21,6 +23,10 @@ std::vector<std::string> gen_ecdsa_key(){
   uint32_t enc_len = 0;
 
   status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  if ( err_status != 0 ){
+    std::cerr << "RPCException thrown" << std::endl;
+    throw RPCException(-666, errMsg) ;
+  }
   std::vector<std::string> keys(3);
   std::cerr << "account key is " << errMsg << std::endl;
   char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
@@ -40,12 +46,14 @@ std::vector<std::string> gen_ecdsa_key(){
 
   mpz_t rand32;
   mpz_init(rand32);
-  mpz_urandomb(rand32, state, 257);
+  mpz_urandomb(rand32, state, 256);
 
   char arr[mpz_sizeinbase (rand32, 16) + 2];
   char * rand_str = mpz_get_str(arr, 16, rand32);
 
   keys.at(2) = rand_str;
+
+  std::cerr << "rand_str length is " << strlen(rand_str) << std::endl;
 
   gmp_randclear(state);
   mpz_clear(rand32);
@@ -70,6 +78,9 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   hex2carray(encryptedKeyHex, &enc_len, encr_pr_key);
 
   status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  if ( err_status != 0){
+    throw RPCException(-666, errMsg) ;
+  }
   std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);
   std::cerr << "err str " << errMsg << std::endl;
 
@@ -100,6 +111,9 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   std::cerr << "encrypted len" << dec_len << std::endl;
 
   status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
+  if ( err_status != 0){
+    throw RPCException(-666, errMsg ) ;
+  }
 
   std::cerr << "signature r in  ecdsa_sign_hash "<< signature_r << std::endl;
   std::cerr << "signature s in  ecdsa_sign_hash "<< signature_s << std::endl;
