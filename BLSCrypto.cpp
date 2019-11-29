@@ -122,7 +122,9 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
   uint64_t binLen;
 
-  hex2carray(_hashHex, &binLen, hash->data());
+  if (!hex2carray(_hashHex, &binLen, hash->data())){
+      throw RPCException(INVALID_HEX, "Invalid hash");
+  }
  // assert(binLen == hash->size());
 
   auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);

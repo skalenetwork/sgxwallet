@@ -73,7 +73,7 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 
     throwExceptionOnError(status);
 
-    std::cerr << "written key " << _key << " value " << _value <<std::endl;
+    std::cerr << "written key " << _key << std::endl;//<< " value " << _value << std::endl;
 }
 
 

@@ -102,11 +102,17 @@ void xor_encrypt(char* key, char* message, char* cypher){
    //uint8_t key_bin[33];
    uint8_t* key_bin = (uint8_t*)malloc(33);
    uint64_t key_length;
-   hex2carray(key, &key_length, key_bin);
+   if (!hex2carray(key, &key_length, key_bin)){
+     cypher = NULL;
+     return;
+   }
 
    uint64_t msg_length;
    uint8_t msg_bin[33];//[ECDSA_BIN_LEN];
-   hex2carray(message, &msg_length, msg_bin);
+   if (!hex2carray(message, &msg_length, msg_bin)){
+     cypher = NULL;
+     return;
+   }
 
 
    for (int i = 0; i < 32; i++){
@@ -125,11 +131,17 @@ void xor_decrypt(char* key, char* cypher, char* message){
     //uint8_t key_bin[33];
     uint8_t* key_bin = (uint8_t*)malloc(33);
     uint64_t key_length;
-    hex2carray(key, &key_length, key_bin);
+    if (!hex2carray(key, &key_length, key_bin)){
+      message = NULL;
+      return;
+    }
 
     uint64_t cypher_length;
     uint8_t cypher_bin[33];//[ECDSA_BIN_LEN];
-    hex2carray(cypher, &cypher_length, cypher_bin);
+    if (!hex2carray(cypher, &cypher_length, cypher_bin)){
+      message = NULL;
+      return;
+    }
 
 
     for (int i = 0; i < 32; i++){

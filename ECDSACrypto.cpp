@@ -14,6 +14,13 @@
 
 static std::default_random_engine rand_gen((unsigned int) time(0));
 
+std::string concatPubKeyWith0x(char* pub_key_x, char* pub_key_y){
+  std::string px = pub_key_x;
+  std::string py = pub_key_y;
+  std::string result = "0x" + px + py;// + std::to_string(pub_key_x) + std::to_string(pub_key_y);
+  return result;
+}
+
 std::vector<std::string> gen_ecdsa_key(){
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
@@ -32,7 +39,7 @@ std::vector<std::string> gen_ecdsa_key(){
   char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
-  keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);
+  keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
   //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
   //std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
 
@@ -75,13 +82,19 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   uint64_t enc_len = 0;
 
   uint8_t encr_pr_key[BUF_LEN];
-  hex2carray(encryptedKeyHex, &enc_len, encr_pr_key);
+  if (!hex2carray(encryptedKeyHex, &enc_len, encr_pr_key)){
+    throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+  }
 
   status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   if ( err_status != 0){
     throw RPCException(-666, errMsg) ;
   }
-  std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);
+  std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
+
+  std:: cerr << "pubkey is " << pubKey << std::endl;
+  std:: cerr << "pubkey length is " << pubKey.length() << std::endl;
+
   std::cerr << "err str " << errMsg << std::endl;
 
   free(errMsg);
@@ -102,7 +115,9 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   uint64_t dec_len = 0;
 
   uint8_t encr_key[BUF_LEN];
-  hex2carray(encryptedKeyHex, &dec_len, encr_key);
+  if (!hex2carray(encryptedKeyHex, &dec_len, encr_key)){
+      throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+  }
 
   std::cerr << "encryptedKeyHex: "<< encryptedKeyHex << std::endl;
 

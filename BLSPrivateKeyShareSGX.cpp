@@ -182,7 +182,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   int sigLen;
 
   if ((sigLen = strnlen(signature, 10)) < 10) {
-      BOOST_THROW_EXCEPTION(runtime_error("Signature too short:" + to_string(sigLen)));
+     BOOST_THROW_EXCEPTION(runtime_error("Signature is too short:" + to_string(sigLen)));
   }
 
 

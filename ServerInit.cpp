@@ -104,5 +104,6 @@ void init_all() {
 
     init_server();
     init_enclave();
+    std::cerr << "enclave inited" << std::endl;
     init_daemon();
 }

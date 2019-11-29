@@ -56,8 +56,7 @@
 
 #define SGX_ENCLAVE_ERROR -666;
 
-#define WALLETDB_NAME  "test_sgxwallet.db"//"sgxwallet.db" //
-
+#define WALLETDB_NAME "test_sgxwallet1.db"//"sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 

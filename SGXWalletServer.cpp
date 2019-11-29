@@ -57,38 +57,37 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
   HttpServer *hs = nullptr;
 
 int init_server() {
+  std::string certPath ="";//"cert/SGXServerCertificate.crt";
+  std::string keyPath ="";//"cert/SGXServerCertificate.key";
 
-  std::string certPath = "cert/SGXServerCertificate.crt";
-  std::string keyPath = "cert/SGXServerCertificate.key";
+//  if (!boost::filesystem::exists(certPath) ){
+//    std::cerr << "NO!!! " << std::endl;
+//    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+//
+//    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
+//
+//    if (system(genCert.c_str()) == 0){
+//       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+//    }
+//    else{
+//      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+//      exit(-1);
+//    }
+//  }
 
-  if (!boost::filesystem::exists(certPath) ){
-    std::cerr << "NO!!! " << std::endl;
-    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-
-    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
-
-    if (system(genCert.c_str()) == 0){
-       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-    }
-    else{
-      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
-      exit(-1);
-    }
-  }
-
-  hs = new HttpServer(1026, certPath, keyPath);
+  hs = new HttpServer(1027, certPath, keyPath);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
-    if (!s->StartListening()) {
-      cerr << "Server could not start listening" << endl;
-      exit(-1);
+  if (!s->StartListening()) {
+    cerr << "Server could not start listening" << endl;
+    exit(-1);
   }
   return 0;
 }
 
 Json::Value
-importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int n, int t, int index) {
+importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int t, int n, int index) {
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
@@ -125,21 +124,17 @@ importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShare
     return result;
 }
 
-Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash,int n, int t, int signerIndex) {
+Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash,int t, int n, int signerIndex) {
     Json::Value result;
     result["status"] = -1;
     result["errorMessage"] = "Unknown server error";
     result["signatureShare"] = "";
 
-
-
     //int errStatus = UNKNOWN_ERROR;
     //char *errMsg = (char *) calloc(BUF_LEN, 1);
     char *signature = (char *) calloc(BUF_LEN, 1);
 
-
     shared_ptr <std::string> value = nullptr;
-
 
     try {
       if ( !checkName(keyShareName, "BLS_KEY")){
@@ -330,7 +325,8 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
          }
          std::shared_ptr<std::string> key_ptr = readFromDb(keyName);
          Pkey = get_ecdsa_pubkey( key_ptr->c_str());
-         std::cerr << "PublicKey" << Pkey << std::endl;
+         std::cerr << "PublicKey " << Pkey << std::endl;
+         std::cerr << "PublicKey length" << Pkey.length() << std::endl;
          result["PublicKey"] = Pkey;
 
     } catch (RPCException &_e) {
@@ -353,7 +349,7 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
     std::string encrPolyHex;
 
     try {
-      if ( !checkPolyName(polyName)){
+      if ( !checkName(polyName, "POLY")){
         throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
       }
       if ( t <= 0){
@@ -374,7 +370,7 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
     return result;
 }
 
-Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t) {
+Json::Value getVerificationVectorImpl(const std::string& polyName, int t, int n) {
 
   Json::Value result;
   result["status"] = 0;
@@ -382,16 +378,16 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t)
 
   std::vector <std::vector<std::string>> verifVector;
   try {
-    if ( !checkPolyName(polyName)){
+    if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
     }
-    if( !check_n_t(n, t)){
+    if( !check_n_t(t, n)){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
     }
 
     std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName);
 
-    verifVector = get_verif_vect(encr_poly_ptr->c_str(), n, t);
+    verifVector = get_verif_vect(encr_poly_ptr->c_str(), t, n);
     //std::cerr << "verif vect size " << verifVector.size() << std::endl;
 
     for ( int i = 0; i < t; i++){
@@ -411,7 +407,7 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int n, int t)
   return result;
 }
 
-Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& publicKeys, int n, int t){
+Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& publicKeys, int t, int n){
     std::cerr << " enter getSecretShareImpl" << std::endl;
     Json::Value result;
     result["status"] = 0;
@@ -422,10 +418,10 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
             result["errorMessage"] = "wrong number of public keys";
             return result;
         }
-        if ( !checkPolyName(polyName)){
+      if ( !checkName(polyName, "POLY")){
           throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
-        if( !check_n_t(n, t)){
+        if( !check_n_t(t, n)){
           throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
 
@@ -439,7 +435,7 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
             pubKeys_vect.push_back(publicKeys[i].asString());
         }
 
-        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), pubKeys_vect, n, t);
+        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), pubKeys_vect, t, n);
         //std::cerr << "result is " << s << std::endl;
         result["SecretShare"] = s;
 
@@ -468,7 +464,7 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
     if ( !checkECDSAKeyName(EthKeyName)){
       throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
     }
-    if( !check_n_t(n, t) || ind > n || ind < 0){
+    if( !check_n_t(t, n) || ind > n || ind < 0){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
     }
 //    if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
@@ -506,12 +502,13 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
   try {
 
     if (SecretShare.length() != n * 192){
+      std::cerr << "wrong length of secret shares - " << SecretShare.length() << std::endl;
       result["errorMessage"] = "wrong length of secret shares";
       return result;
     }
-//    if ( !checkECDSAKeyName(EthKeyName)){
-//      throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
-//    }
+    if ( !checkECDSAKeyName(EthKeyName)){
+      throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+    }
     if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
     }
@@ -621,14 +618,14 @@ Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t)
   return generateDKGPolyImpl(polyName, t);
 }
 
-Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int n, int t){
+Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int t, int n){
   lock_guard<recursive_mutex> lock(m);
-  return getVerificationVectorImpl(polyName, n, t);
+  return getVerificationVectorImpl(polyName, t, n);
 }
 
-Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int n, int t){
+Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n){
     lock_guard<recursive_mutex> lock(m);
-    return getSecretShareImpl(polyName, publicKeys, n, t);
+    return getSecretShareImpl(polyName, publicKeys, t, n);
 }
 
 Json::Value  SGXWalletServer::DKGVerification( const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
@@ -673,16 +670,16 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_
 
 
 Json::Value
-SGXWalletServer::importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int n,
-                                   int t, int index) {
+SGXWalletServer::importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int t, int n,
+                                    int index) {
     lock_guard<recursive_mutex> lock(m);
-    return importBLSKeyShareImpl(_keyShare, _keyShareName, n, t, index );
+    return importBLSKeyShareImpl(_keyShare, _keyShareName, t, n, index );
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash,int n,
-                                       int t, int signerIndex) {
+Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n,
+                                        int signerIndex) {
     lock_guard<recursive_mutex> lock(m);
-    return blsSignMessageHashImpl(keyShareName, messageHash, n,t, signerIndex);
+    return blsSignMessageHashImpl(keyShareName, messageHash, t, n, signerIndex);
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
