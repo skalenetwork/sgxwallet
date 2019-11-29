@@ -12,7 +12,7 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int n, int t, int index) throw (jsonrpc::JsonRpcException)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
             p["index"] = index;
@@ -26,7 +26,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int n, int t, int signerIndex) throw (jsonrpc::JsonRpcException)
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
@@ -105,7 +105,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-    Json::Value getVerificationVector(const std::string& polyName, int n, int t) throw (jsonrpc::JsonRpcException)
+    Json::Value getVerificationVector(const std::string& polyName, int t, int n) throw (jsonrpc::JsonRpcException)
     {
         Json::Value p;
         p["polyName"] = polyName;
@@ -117,7 +117,7 @@ class StubClient : public jsonrpc::Client
         else
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
-    Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int n, int t) throw (jsonrpc::JsonRpcException)
+    Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) throw (jsonrpc::JsonRpcException)
     {
         Json::Value p;
         p["polyName"] = polyName;
@@ -145,7 +145,7 @@ class StubClient : public jsonrpc::Client
         else
           throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
-    Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int n, int t) throw (jsonrpc::JsonRpcException)
+    Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) throw (jsonrpc::JsonRpcException)
     {
       Json::Value p;
       p["BLSKeyName"] = BLSKeyName;

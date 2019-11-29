@@ -15,6 +15,6 @@ bool checkPolyName (const std::string& polyName);
 
 bool checkName (const std::string& Name, const std::string& prefix);
 
-bool check_n_t ( const int n, const int t);
+bool check_n_t ( const int t, const int n);
 
 #endif // SGXD_SERVERDATACHECKER_H

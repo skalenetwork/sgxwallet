@@ -222,6 +222,8 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
     snprintf(err_string, BUF_LEN,"wrong string to init private key");
     *err_status = -10;
+    mpz_clear(skey_mpz);
+    return;
   }
 
   //Public key
@@ -507,7 +509,12 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
   snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
   mpz_t skey_mpz;
   mpz_init(skey_mpz);
-  mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE);
+  if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid secret key");
+      mpz_clear(skey_mpz);
+      return;
+  }
 
   /*mpz_t test_skey;
   mpz_init(test_skey);
@@ -519,7 +526,12 @@ void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint
 
   mpz_t msg_mpz;
   mpz_init(msg_mpz);
-  mpz_set_str(msg_mpz, hash, 16);
+  if (mpz_set_str(msg_mpz, hash, 16) == -1){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid message hash");
+      mpz_clear(msg_mpz);
+      return;
+  }
   //mpz_set_str(msg_mpz,"4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a", 16);
 
   signature sign = signature_init();
@@ -612,6 +624,11 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
 
   char* cypher = (char *)malloc(65);
   xor_encrypt(common_key, s_share, cypher);
+  if (cypher == NULL){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid common_key");
+      return;
+  }
   //snprintf(err_string, BUF_LEN ,"cypher is %s length is %d", cypher, strlen(cypher));
 
   strncpy(result_str, cypher, strlen(cypher));
@@ -681,6 +698,11 @@ void dkg_verification(int *err_status, char* err_string, const char * public_sha
   common_key[64] = 0;
 
   xor_decrypt(common_key, encr_sshare, decr_sshare);
+    if (decr_sshare == NULL){
+        *err_status = 1;
+        snprintf(err_string, BUF_LEN ,"invalid common_key");
+        return;
+    }
 
 
    //snprintf(err_string, BUF_LEN,"encr_share is %s length is %d", encr_sshare, strlen(encr_sshare));
@@ -693,7 +715,12 @@ void dkg_verification(int *err_status, char* err_string, const char * public_sha
 
   mpz_t s;
   mpz_init(s);
-  mpz_set_str(s, decr_sshare, 16);
+  if (mpz_set_str(s, decr_sshare, 16) == -1){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid decr secret share");
+      mpz_clear(s);
+      return;
+  }
 
   *result = Verification(public_shares, s, _t, _ind);
 
@@ -755,6 +782,11 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
 
     char decr_sshare[65];
     xor_decrypt(common_key, encr_sshare, decr_sshare);
+      if (decr_sshare == NULL){
+          *err_status = 1;
+          snprintf(err_string, BUF_LEN ,"invalid common_key");
+          return;
+      }
     //decr_sshare[64] = 0;
 
     //snprintf(err_string + 89*i, BUF_LEN,"share is %s length is %d ", decr_sshare, strlen(decr_sshare));
@@ -763,7 +795,11 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
 
     mpz_t decr_secret_share;
     mpz_init(decr_secret_share);
-    mpz_set_str(decr_secret_share, decr_sshare, 16);
+    if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1){
+        *err_status = 1;
+        snprintf(err_string, BUF_LEN ,"invalid decrypted secret share");
+        return;
+    }
 
     mpz_addmul_ui(sum, decr_secret_share, 1);
     mpz_clear(decr_secret_share);
