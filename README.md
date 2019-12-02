@@ -32,6 +32,8 @@ To enable SGX using a software utility:
 
 ## Install SGX driver
 
+
+``` sudo apt install make gcc```
 ``` cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin```
 
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
