@@ -69,7 +69,10 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
 
     mpz_t skey;
     mpz_init(skey);
-    mpz_set_str(skey, skey_str, 16);
+    if (mpz_set_str(skey, skey_str, 16) == -1){
+        common_key = NULL;
+        return;
+    }
 
     point pub_keyB = point_init();
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);

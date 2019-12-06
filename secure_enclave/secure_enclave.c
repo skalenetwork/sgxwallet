@@ -694,15 +694,19 @@ void dkg_verification(int *err_status, char* err_string, const char * public_sha
   char common_key[65];
   char decr_sshare[65];
   session_key_recover(skey, s_share, common_key);
-
   common_key[64] = 0;
+  if (common_key == NULL){
+    *err_status = 1;
+    snprintf(err_string, BUF_LEN ,"invalid common_key");
+    return;
+  }
 
   xor_decrypt(common_key, encr_sshare, decr_sshare);
-    if (decr_sshare == NULL){
-        *err_status = 1;
-        snprintf(err_string, BUF_LEN ,"invalid common_key");
-        return;
-    }
+  if (decr_sshare == NULL){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid common_key");
+      return;
+  }
 
 
    //snprintf(err_string, BUF_LEN,"encr_share is %s length is %d", encr_sshare, strlen(encr_sshare));
@@ -724,14 +728,13 @@ void dkg_verification(int *err_status, char* err_string, const char * public_sha
 
   *result = Verification(public_shares, s, _t, _ind);
 
-  snprintf(err_string, BUF_LEN,"data is %s", public_shares);
+  snprintf(err_string, BUF_LEN,"common_key in verification is %s", common_key);
 
 }
 
 void create_bls_key(int *err_status, char* err_string, const char* s_shares,
                       uint8_t* encrypted_key, uint64_t key_len, uint8_t * encr_bls_key, uint32_t *enc_bls_key_len){
 
-  //uint32_t dec_len = 625;
   char skey[ECDSA_SKEY_LEN];
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*)skey, &key_len);
@@ -740,24 +743,14 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     return;
   }
 
+  //char * skey = "a15c19da241e5b1db20d8dd8ca4b5eeaee01c709b49ec57aa78c2133d3c1b3c9";
+
   int num_shares = strlen(s_shares)/192;
 
   mpz_t sum;
   mpz_init(sum);
   mpz_set_ui(sum, 0);
 
-
-  char encr_sshare[65];
-  strncpy(encr_sshare, s_shares, 64);
-  encr_sshare[64] = 0;
-
-  char s_share[193];
-  strncpy(s_share, s_shares, 192);
-  s_share[192] = 0;
-
-  char common_key[65];
-  session_key_recover(skey, s_share, common_key);
-  common_key[64] = 0;
 
   //snprintf(err_string, BUF_LEN,"comon0 is %s len is %d\n", common_key, strlen(common_key));
 
@@ -775,6 +768,11 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     session_key_recover(skey, s_share, common_key);
     common_key[64] = 0;
 
+    if (common_key == NULL){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid common_key");
+      return;
+    }
 
     //snprintf(err_string + 85*(i+1) , BUF_LEN,"common is %s len is %d\n", common_key, strlen(common_key));
 
@@ -782,12 +780,14 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
 
     char decr_sshare[65];
     xor_decrypt(common_key, encr_sshare, decr_sshare);
-      if (decr_sshare == NULL){
-          *err_status = 1;
-          snprintf(err_string, BUF_LEN ,"invalid common_key");
-          return;
-      }
+    if (decr_sshare == NULL){
+        *err_status = 1;
+        snprintf(err_string, BUF_LEN ,"invalid common_key");
+        return;
+    }
     //decr_sshare[64] = 0;
+    snprintf(err_string + 158 * i, BUF_LEN,"decr sshare is %s", decr_sshare);
+    snprintf(err_string + 158 * i + 79, BUF_LEN," common_key is %s", common_key);
 
     //snprintf(err_string + 89*i, BUF_LEN,"share is %s length is %d ", decr_sshare, strlen(decr_sshare));
     //snprintf(err_string + 65*i, BUF_LEN,"%s ", decr_sshare);
@@ -816,18 +816,18 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
 
    char key_share[mpz_sizeinbase(bls_key, 16) + 2];
    char *key = mpz_get_str(key_share, 16, bls_key);
-   snprintf(err_string, BUF_LEN,"bls private key is %s", key_share);
+   snprintf(err_string + 158 * num_shares , BUF_LEN," bls private key is %s", key_share);
    uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
 
    status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *)key_share, sealedLen,(sgx_sealed_data_t*)encr_bls_key);
    if( status !=  SGX_SUCCESS) {
-
+    *err_status= -1;
     snprintf(err_string, BUF_LEN,"seal bls private key failed with status %d ", status);
     return;
    }
   *enc_bls_key_len = sealedLen;
-  //snprintf(err_string, BUF_LEN,"sshare is %s", decr_sshare);
+
   //snprintf(err_string, BUF_LEN,"encr_share is %s", encr_sshare);
   //snprintf(err_string, BUF_LEN,"common_key is %s", common_key);
 

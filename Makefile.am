@@ -94,7 +94,16 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a   -ljsonrpccpp-stub -lpthread -ljsonrpccpp-common \
    -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl -lprocps intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
-   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a -lboost_system -lboost_filesystem
+   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
+   #-lboost_system -lboost_filesystem
+
+# -lboost_filesystem
+# -llibboost_filesystem.a
+
+# find /usr -name *libboost_filesystem*so*
+
+# -llibboost_filesystem.so
+### libboost_filesystem.so.67.1
 
 
 

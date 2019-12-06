@@ -189,6 +189,8 @@ void calc_secret_shareG2(const char* s_share, char * s_shareG2){
 
   libff::alt_bn128_G2 secret_shareG2 = secret_share * libff::alt_bn128_G2::one();
 
+  secret_shareG2.to_affine_coordinates();
+
   std::string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
 
   strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);

@@ -185,6 +185,18 @@ class StubClient : public jsonrpc::Client
         throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
 
+    Json::Value MultG2(const std::string & x) throw (jsonrpc::JsonRpcException)
+    {
+        Json::Value p;
+        p["x"] = x;
+
+        Json::Value result = this->CallMethod("MultG2",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+
 };
 
 #endif //JSONRPC_CPP_STUB_STUBCLIENT_H_
