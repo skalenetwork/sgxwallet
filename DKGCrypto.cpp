@@ -39,6 +39,23 @@ std::vector<std::string> SplitString(const char* koefs, const char symbol){
   return G2_strings;
 }
 
+template<class T>
+std::string ConvertToString(T field_elem, int base = 10) {
+  mpz_t t;
+  mpz_init(t);
+
+  field_elem.as_bigint().to_mpz(t);
+
+  char arr[mpz_sizeinbase (t, base) + 2];
+
+  char * tmp = mpz_get_str(arr, base, t);
+  mpz_clear(t);
+
+  std::string output = tmp;
+
+  return output;
+}
+
 std::string gen_dkg_poly( int _t){
     char *errMsg = (char *)calloc(1024, 1);
     int err_status = 0;
@@ -207,7 +224,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
 }
 
 bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex){
-
+  std::cerr << "ENTER CreateBLSShare" << std::endl;
   char* errMsg1 = (char*) calloc(1024,1);
   int err_status = 0;
 
@@ -215,23 +232,25 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
   uint8_t encr_bls_key[BUF_LEN];
   uint8_t encr_key[BUF_LEN];
   if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)){
-      throw RPCException(INVALID_HEX, "Invalid encryptedPolyHex");
+      throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
   
   uint32_t enc_bls_len = 0;
 
   create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
 
-  std::cerr << "er msg is " << errMsg1 << std::endl;
+  std::cerr << "AFTER create_bls_key IN ENCLAVE er msg is  " << errMsg1 << std::endl;
   if ( err_status != 0){
+     std::cerr << "ERROR IN ENCLAVE" << std::endl;
      return false;
   }
   else {
     char *hexBLSKey = (char *) calloc(2 * BUF_LEN, 1);
-
-      std::cerr << "enc_bls_len " << enc_bls_len << std::endl;
-      carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
-      writeDataToDB(BLSKeyName, hexBLSKey);
+    std::cerr << "BEFORE carray2Hex" << std::endl;
+      //std::cerr << "enc_bls_len " << enc_bls_len << std::endl;
+    carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
+    std::cerr << "BEFORE WRITE BLS KEY TO DB" << std::endl;
+    writeDataToDB(BLSKeyName, hexBLSKey);
     std::cerr << "hexBLSKey length is " << strlen(hexBLSKey) << std::endl;
     std::cerr << "bls key " << BLSKeyName << " is " << hexBLSKey << std::endl;
     free(hexBLSKey);
@@ -291,4 +310,41 @@ std::string decrypt_DHKey(const std::string& polyName, int ind){
 
   return DHKey;
 }
+
+std::vector<std::string> mult_G2(const std::string& x){
+    std::vector<std::string> result(4);
+    libff::init_alt_bn128_params();
+    libff::alt_bn128_Fr el(x.c_str());
+    libff::alt_bn128_G2 elG2 = el * libff::alt_bn128_G2::one();
+    elG2.to_affine_coordinates();
+    result[0] = ConvertToString(elG2.X.c0);
+    result[1] = ConvertToString(elG2.X.c1);
+    result[2] = ConvertToString(elG2.Y.c0);
+    result[3] = ConvertToString(elG2.Y.c1);
+    return result;
+}
+
+bool TestCreateBLSShare( const char * s_shares) {
+
+  char *errMsg1 = (char *)calloc(1024, 1);
+  int err_status = 0;
+
+  uint32_t enc_bls_len = 0;
+  uint8_t encr_key[BUF_LEN];
+  memset(encr_key, 1, BUF_LEN);
+  uint64_t dec_key_len ;
+  uint8_t encr_bls_key[BUF_LEN];
+
+  std::cerr << "Enter TestCreateBLSShare" << std::endl;
+  create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len,
+                 encr_bls_key, &enc_bls_len);
+
+  std::cerr << "err msg is " << errMsg1 << std::endl;
+
+  if ( err_status != 0 ){
+    std::cerr << "something went wrong in enclave " << "status is" << err_status << std::endl;
+  }
+}
+
+
 

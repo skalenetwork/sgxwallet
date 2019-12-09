@@ -24,5 +24,11 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
 
 std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex);
 
+std::vector<std::string> mult_G2(const std::string& x);
+
+
+
+bool TestCreateBLSShare( const char * s_shares);
+
 
 #endif //SGXD_DKGCRYPTO_H

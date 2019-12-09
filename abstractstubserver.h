@@ -28,6 +28,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("CreateBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, "EthKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "SecretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::CreateBLSPrivateKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("GetBLSPublicKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::GetBLSPublicKeyShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("ComplaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::ComplaintResponseI);
+          this->bindAndAddMethod(jsonrpc::Procedure("MultG2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "x",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::MultG2I);
 
         }
 
@@ -88,6 +89,10 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
           response = this->ComplaintResponse( request["polyName"].asString(), request["ind"].asInt());
         }
+        inline virtual void MultG2I(const Json::Value &request, Json::Value &response)
+        {
+            response = this->MultG2(request["x"].asString());
+        }
 
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex ) = 0;
@@ -104,6 +109,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n) = 0;
         virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) = 0;
         virtual Json::Value ComplaintResponse(const std::string& polyName, int ind) = 0;
+        virtual Json::Value MultG2(const std::string & x) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

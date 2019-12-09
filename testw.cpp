@@ -736,6 +736,7 @@ std::string ConvertDecToHex(std::string dec, int numBytes = 32){
   return result;
 }
 
+
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   std::cerr<< "test started" << std::endl;
   init_all();
@@ -746,7 +747,11 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
   reset_db();
 
-  int n = 4, t = 2;
+
+
+
+
+  int n = 2, t = 2;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
@@ -775,8 +780,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
         pubShares[i] += ConvertDecToHex(pubShare);
       }
     }
-    std::cerr << "i is " << i << " pubShares[i] = " << pubShares[i] << std::endl;
-    std::cerr << "length is" << pubShares[i].length() << std::endl;
+//    std::cerr << "i is " << i << " pubShares[i] = " << pubShares[i] << std::endl;
+//    std::cerr << "length is" << pubShares[i].length() << std::endl;
   }
 
   Json::Value ComplaintResponse = c.ComplaintResponse(poly_names[1], 0);
@@ -785,11 +790,14 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
   int k = 0;
 
+  std::vector < std::string> secShares_vect(n);
+
   for ( int i = 0; i < n; i++)
     for ( int j = 0; j < n; j++){
      // if ( i != j ){
        std::cerr << "SecretShare length is " << secretShares[i]["SecretShare"].asString().length() << std::endl;
        std::string secretShare = secretShares[i]["SecretShare"].asString().substr(192*j, 192 * (j+1));
+       secShares_vect[i] +=  secretShares[j]["SecretShare"].asString().substr(192*i, 192 * (i+1));
        bool res = c.DKGVerification(pubShares[i], EthKeys[j]["KeyName"].asString(), secretShare, t, n, j)["result"].asBool();
        k++;
        std::cerr << "NOW K IS " << k << " i is " << i << " j is " << j << std::endl;
@@ -807,14 +815,17 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
         throw RPCException(INVALID_HEX, "Invalid hash");
   }
 
+
   std::map<size_t, std::shared_ptr<BLSPublicKeyShare>> koefs_pkeys_map;
 
   for ( int i = 0; i < t; i++){
     std::string endName = poly_names[i].substr(4);
     std::string blsName = "BLS_KEY" + poly_names[i].substr(4);
     std::string secretShare = secretShares[i]["SecretShare"].asString();
-    cout << c.CreateBLSPrivateKey(blsName, EthKeys[i]["KeyName"].asString(), poly_names[i], secretShare, t, n);
+    //cout << c.CreateBLSPrivateKey(blsName, EthKeys[i]["KeyName"].asString(), poly_names[i], secretShare, t, n);
+    cout << c.CreateBLSPrivateKey(blsName, EthKeys[i]["KeyName"].asString(), poly_names[i], secShares_vect[i], t, n);
     pubBLSKeys[i] = c.GetBLSPublicKeyShare(blsName);
+    std::cerr << "BLS KEY SHARE NAME IS " << blsName << std::endl;
     //std::string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
     BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
     std::cerr << i << " sig share is created " << std::endl;
@@ -837,17 +848,16 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   BLSPublicKey common_public(std::make_shared<std::map<size_t, std::shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
   REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
 
+  std::cout << "try to get bls public key" << std::endl;
+  std::cout << c.GetBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
 
-
-
-
+  exit(0);
 
 }
 
-
 TEST_CASE("API test", "[api_test]") {
 
-  std::cerr << __GNUC__ << std::endl;
+  //std::cerr << __GNUC__ << std::endl;
     cerr << "API test started" << endl;
     init_all();
     //HttpServer httpserver(1025);
@@ -883,7 +893,7 @@ TEST_CASE("API test", "[api_test]") {
         //  cout << c.blsSignMessageHash(TEST_BLS_KEY_NAME, "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db", 2,2,1 );
          // cout << c.generateDKGPoly("pp2", 2);
        //  cout << c.generateDKGPoly("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 2);
-      cout << c.generateDKGPoly("POLY:SCHAIN_ID:14225439306783892379384764908040542049263455631509697460847850632966314337557:NODE_ID:1:DKG_ID:71951190446274221430521459675625214118086594348715", 1);
+      //cout << c.generateDKGPoly("POLY:SCHAIN_ID:14225439306783892379384764908040542049263455631509697460847850632966314337557:NODE_ID:1:DKG_ID:71951190446274221430521459675625214118086594348715", 1);
        //cout << c.getVerificationVector("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:2", 2, 2);
 
       //  cout << c.getVerificationVector("polyy", 5,  5);
@@ -936,9 +946,24 @@ TEST_CASE("API test", "[api_test]") {
      // cout << c.blsSignMessageHash("dOsRY","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7", 2, 2, 1);
 
     // cout << c.ComplaintResponse("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 0);
+     // cout << c.GetBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
+
+    //  cout << c.getPublicECDSAKey("NEK:91573248d6b0ebd5b1bd313ab35163361b423c0f9f01bad085d166650b8b2c1f");
+    cout << c.MultG2("4160780231445160889237664391382223604184857153814275770598791864649971919844");
 
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
   sgx_destroy_enclave(eid);
 }
+
+//decr sshare is 0570d18552dc248c5f806cbfeb96cdc40234d51233b3ba80a9c7b790ae4eed13
+//common_key is e6d91ec58664d25dd80071520793ab307bf408158543a9710445bd663041a760decr
+//sshare is d56909d4b29a0f1d306be98c019bed02e9c6b9b56bfe9e933314815983401b40
+//common_key is 0e4506de4faa7a241fccbcc9339cce03737415ba38349ccfa7aec916d37cee07
+//
+//
+//decr sshare is 1f63caaf684e632338cd7c17569fb65d820004266acd36f0b6d2cbd05648b071
+//common_key is e969840c044a3e7252e4677225f2513722d545ff1612f35d0cd66cda65185356decr
+//sshare is 20d254d489bb31fc5b470c641ba280ea35e7da3a86c11ccdb74d3f9898daaa93
+//common_key is 18dffe11f73f6d53e8f53ce1fe0ab8192f7a9180d50fb7e34a01776652e73471

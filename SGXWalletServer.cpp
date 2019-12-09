@@ -34,12 +34,14 @@
 #include <algorithm>
 #include <stdlib.h>
 
+#include <unistd.h>
+
 
 //#if __cplusplus < 201412L
 //#error expecting C++17 standard
 //#endif
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 
 
 bool isStringDec( std::string & str){
@@ -49,33 +51,48 @@ bool isStringDec( std::string & str){
   return !str.empty() && res == str.end();
 }
 
+
+SGXWalletServer *s = nullptr;
+HttpServer *hs = nullptr;
+
 SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
                                  serverVersion_t type)
         : AbstractStubServer(connector, type) {}
 
-  SGXWalletServer *s = nullptr;
-  HttpServer *hs = nullptr;
+void debug_print(){
+  std::cout << "HERE ARE YOUR KEYS: " << std::endl;
+  class MyVisitor: public LevelDB::KeyVisitor {
+  public:
+    virtual void visitDBKey(const char* _data){
+      std::cout << _data << std::endl;
+    }
+  };
+
+  MyVisitor v;
+
+  levelDb->visitKeys(&v, 100000000);
+}
 
 int init_server() {
-  std::string certPath ="";//"cert/SGXServerCertificate.crt";
-  std::string keyPath ="";//"cert/SGXServerCertificate.key";
+  std::string certPath = "cert/SGXServerCertificate.crt";
+  std::string keyPath = "cert/SGXServerCertificate.key";
 
-//  if (!boost::filesystem::exists(certPath) ){
-//    std::cerr << "NO!!! " << std::endl;
-//    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-//
-//    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
-//
-//    if (system(genCert.c_str()) == 0){
-//       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-//    }
-//    else{
-//      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
-//      exit(-1);
-//    }
-//  }
+  if (access(certPath.c_str(), F_OK) != 0){ //(!boost::filesystem::exists(certPath) ){
+    std::cerr << "NO!!! " << std::endl;
+    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
 
-  hs = new HttpServer(1027, certPath, keyPath);
+    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
+
+    if (system(genCert.c_str()) == 0){
+       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  hs = new HttpServer(1026, certPath, keyPath, 10);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -86,13 +103,24 @@ int init_server() {
   return 0;
 }
 
+//int init_server() { //without ssl
+//
+//  hs = new HttpServer(1027, "", "", 1);
+//  s = new SGXWalletServer(*hs,
+//                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+//  if (!s->StartListening()) {
+//    cerr << "Server could not start listening" << endl;
+//    exit(-1);
+//  }
+//  return 0;
+//}
+
 Json::Value
 importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int t, int n, int index) {
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
     char *errMsg = (char *) calloc(BUF_LEN, 1);
-
 
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -492,6 +520,7 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
 }
 
 Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n){
+
   std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
 
 
@@ -503,8 +532,10 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 
     if (SecretShare.length() != n * 192){
       std::cerr << "wrong length of secret shares - " << SecretShare.length() << std::endl;
-      result["errorMessage"] = "wrong length of secret shares";
-      return result;
+      std::cerr << "secret shares - " << SecretShare << std::endl;
+      //result["errorMessage"] = "wrong length of secret shares";
+      //return result;
+      throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
     }
     if ( !checkECDSAKeyName(EthKeyName)){
       throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
@@ -516,27 +547,14 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
       throw RPCException(INVALID_POLY_NAME, "Invalid BLS key name");
     }
     std::vector<std::string> sshares_vect;
-    std::cerr << "sshares are " << SecretShare << std::endl;
-    char sshares[192 * n + 1];
-    for ( int i = 0; i < n ; i++){
-      std::string cur_share = SecretShare.substr(192*i, 192*i + 192);
-//      if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
-//        throw RPCException(INVALID_HEX, "Invalid Secret share");
-//      }
-     // std::cerr << " share " << i << " is " << cur_share << std::endl;
-      sshares_vect.push_back(cur_share);
-     // std::cerr << sshares_vect[i] << " ";
-      strncpy(sshares + i * 192, cur_share.c_str(), 192);
-    }
-    sshares[192 * n ] = 0;
-    //std::cerr << sshares << std::endl;
-    //std::cerr << "length is " << strlen(sshares);
+    std::cerr << "sshares from json are " << SecretShare << std::endl;
+
 
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
-    bool res = CreateBLSShare(BLSKeyName, sshares, encryptedKeyHex_ptr->c_str());
+    bool res = CreateBLSShare(BLSKeyName, SecretShare.c_str(), encryptedKeyHex_ptr->c_str());
      if ( res){
-         std::cerr << "key created " << std::endl;
+         std::cerr << "BLS KEY SHARE CREATED " << std::endl;
 
      }
      else {
@@ -582,6 +600,8 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
         result["errorMessage"] = _e.errString;
     }
 
+    debug_print();
+
     return result;
 }
 
@@ -609,6 +629,26 @@ Json::Value ComplaintResponseImpl(const std::string& polyName, int ind){
 
   return result;
 
+}
+
+Json::Value MultG2Impl(const std::string& x){
+    Json::Value result;
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    try {
+        std::cerr << "MultG2Impl try " << std::endl;
+        std::vector<std::string> xG2_vect = mult_G2(x);
+        for ( uint8_t i = 0; i < 4; i++) {
+            result["x*G2"][i] = xG2_vect.at(i);
+        }
+
+    } catch (RPCException &_e) {
+        std::cerr << " err str " << _e.errString << std::endl;
+        result["status"] = _e.status;
+        result["errorMessage"] = _e.errString;
+    }
+
+    return result;
 }
 
 
@@ -692,13 +732,18 @@ Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int 
   return ComplaintResponseImpl(polyName, ind);
 }
 
+Json::Value SGXWalletServer::MultG2(const std::string& x){
+    lock_guard<recursive_mutex> lock(m);
+    return MultG2Impl(x);
+}
+
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
   auto dataStr = levelDb->readString(prefix + name);
 
   if (dataStr == nullptr) {
-    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exists");
+    throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
   }
 
   return dataStr;
@@ -709,7 +754,7 @@ shared_ptr<string> readKeyShare(const string &_keyShareName) {
     auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
 
     if (keyShareStr == nullptr) {
-        throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exists");
+        throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exist");
     }
 
     return keyShareStr;
@@ -752,5 +797,6 @@ void writeDataToDB(const string & Name, const string &value) {
   }
 
   levelDb->writeString(key, value);
+  std::cerr << Name << " is written to db " << std::endl;
 }
 
