@@ -50,13 +50,14 @@
 
 #define INVALID_POLY_NAME -11
 #define INVALID_DKG_PARAMS -12
+#define INVALID_SECRET_SHARES_LENGTH -13
 
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 
 #define SGX_ENCLAVE_ERROR -666;
 
-#define WALLETDB_NAME  "test_sgxwallet1.db"//"sgxwallet.db"//////////
+#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet1.db"//
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 

@@ -339,8 +339,10 @@ bool TestCreateBLSShare( const char * s_shares) {
   create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len,
                  encr_bls_key, &enc_bls_len);
 
-  if ( err_status !=0 ){
-    std::cerr << "something went wrong in enclave" << std::endl;
+  std::cerr << "err msg is " << errMsg1 << std::endl;
+
+  if ( err_status != 0 ){
+    std::cerr << "something went wrong in enclave " << "status is" << err_status << std::endl;
   }
 }
 

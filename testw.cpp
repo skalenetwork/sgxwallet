@@ -780,8 +780,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
         pubShares[i] += ConvertDecToHex(pubShare);
       }
     }
-    std::cerr << "i is " << i << " pubShares[i] = " << pubShares[i] << std::endl;
-    std::cerr << "length is" << pubShares[i].length() << std::endl;
+//    std::cerr << "i is " << i << " pubShares[i] = " << pubShares[i] << std::endl;
+//    std::cerr << "length is" << pubShares[i].length() << std::endl;
   }
 
   Json::Value ComplaintResponse = c.ComplaintResponse(poly_names[1], 0);
@@ -854,17 +854,6 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   exit(0);
 
 }
-
-TEST_CASE("create_bls_key_share", "[create_bls_key]") {
-    init_enclave();
-    std::string SecrShare = "937c9c846a6fa7fd1984fe82e739ae37fcaa555c1dc0e8597c9f81b6a12f232ffdf8101e91bd658fa1cea6fdd75adb8542951ce3d251cdaa78f43493dad730b59d32d2e872b36aa70cdce544b550ebe96994de860b6f6ebb7d0b4d4e6724b4bf7232f27fdfe521f3c7997dbb1c15452b7f196bd119d915ce76af3d1a008e1810086ff076abe442563ae9b8938d483ae581f4de2ee54298b3078289bbd85250c8df956450d32f671e4a8ec1e584119753ff171e80a61465246bfd291e8dac3d";
-    bool res = TestCreateBLSShare(SecrShare.c_str());
-    REQUIRE(res);
-
-    sgx_destroy_enclave(eid);
-}
-
-
 
 TEST_CASE("API test", "[api_test]") {
 

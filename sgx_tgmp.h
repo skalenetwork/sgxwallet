@@ -1047,7 +1047,12 @@ __GMP_DECLSPEC void mpz_set_q (mpz_ptr, mpq_srcptr);
 __GMP_DECLSPEC void mpz_set_si (mpz_ptr, signed long int);
 
 #define mpz_set_str __gmpz_set_str
-__GMP_DECLSPEC int mpz_set_str (mpz_ptr, const char *, int);
+#if defined (__cplusplus)
+extern "C" {
+__GMP_DECLSPEC int mpz_set_str(mpz_ptr, const char *, int);
+}
+#endif
+
 
 #define mpz_set_ui __gmpz_set_ui
 #if defined (__cplusplus)

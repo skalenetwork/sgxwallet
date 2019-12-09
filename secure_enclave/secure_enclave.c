@@ -828,8 +828,6 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
    }
   *enc_bls_key_len = sealedLen;
 
-  //snprintf(err_string, BUF_LEN,"encr_share is %s", encr_sshare);
-  //snprintf(err_string, BUF_LEN,"common_key is %s", common_key);
 
 //  mpz_t s;
 //  mpz_init(s);

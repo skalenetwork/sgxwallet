@@ -73,47 +73,47 @@ void debug_print(){
   levelDb->visitKeys(&v, 100000000);
 }
 
-//int init_server() {
-//  std::string certPath = "cert/SGXServerCertificate.crt";
-//  std::string keyPath = "cert/SGXServerCertificate.key";
-//
-//  if (access(certPath.c_str(), F_OK) != 0){ //(!boost::filesystem::exists(certPath) ){
-//    std::cerr << "NO!!! " << std::endl;
-//    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-//
-//    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
-//
-//    if (system(genCert.c_str()) == 0){
-//       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-//    }
-//    else{
-//      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
-//      exit(-1);
-//    }
-//  }
-//
-//  hs = new HttpServer(1026, certPath, keyPath, 1);
-//  s = new SGXWalletServer(*hs,
-//                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
-//
-//  if (!s->StartListening()) {
-//    cerr << "Server could not start listening" << endl;
-//    exit(-1);
-//  }
-//  return 0;
-//}
+int init_server() {
+  std::string certPath = "cert/SGXServerCertificate.crt";
+  std::string keyPath = "cert/SGXServerCertificate.key";
 
-int init_server() { //without ssl
+  if (access(certPath.c_str(), F_OK) != 0){ //(!boost::filesystem::exists(certPath) ){
+    std::cerr << "NO!!! " << std::endl;
+    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
 
-  hs = new HttpServer(1027, "", "", 1);
+    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
+
+    if (system(genCert.c_str()) == 0){
+       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  hs = new HttpServer(1026, certPath, keyPath, 10);
   s = new SGXWalletServer(*hs,
-                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+
   if (!s->StartListening()) {
     cerr << "Server could not start listening" << endl;
     exit(-1);
   }
   return 0;
 }
+
+//int init_server() { //without ssl
+//
+//  hs = new HttpServer(1027, "", "", 1);
+//  s = new SGXWalletServer(*hs,
+//                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+//  if (!s->StartListening()) {
+//    cerr << "Server could not start listening" << endl;
+//    exit(-1);
+//  }
+//  return 0;
+//}
 
 Json::Value
 importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int t, int n, int index) {
@@ -532,8 +532,10 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 
     if (SecretShare.length() != n * 192){
       std::cerr << "wrong length of secret shares - " << SecretShare.length() << std::endl;
-      result["errorMessage"] = "wrong length of secret shares";
-      return result;
+      std::cerr << "secret shares - " << SecretShare << std::endl;
+      //result["errorMessage"] = "wrong length of secret shares";
+      //return result;
+      throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
     }
     if ( !checkECDSAKeyName(EthKeyName)){
       throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
@@ -598,7 +600,7 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
         result["errorMessage"] = _e.errString;
     }
 
-    //debug_print();
+    debug_print();
 
     return result;
 }
