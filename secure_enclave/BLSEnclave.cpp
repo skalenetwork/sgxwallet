@@ -10,8 +10,8 @@
 
 
 #include "BLSEnclave.h"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
+#include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
 std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
 
