@@ -11,11 +11,7 @@
 #include "SGXWalletServer.hpp"
 #include "RPCException.h"
 
-#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <../trusted_libff/libff/algebra/fields/fp.hpp>
-
-#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
-
+#include <libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 std::vector<std::string> SplitString(const char* koefs, const char symbol){
   std::string str(koefs);
