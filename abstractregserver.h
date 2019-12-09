@@ -1,0 +1,8 @@
+//
+// Created by kladko on 12/9/19.
+//
+
+#ifndef SGXD_ABSTRACTREGSERVER_H
+#define SGXD_ABSTRACTREGSERVER_H
+
+#endif //SGXD_ABSTRACTREGSERVER_H
