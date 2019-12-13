@@ -30,7 +30,6 @@ install-sh
 /sgxd
 /cert/SGXServerCertificate*
 /autom4te.cache
-/secure_enclave/.deps
 /sgxwallet
 /testw
 /configure
