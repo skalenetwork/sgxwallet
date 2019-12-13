@@ -98,6 +98,9 @@ assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild"]) == 0
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0
 
+os.chdir(JSON_LIBS_DIR)
+assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+
 os.chdir(SCRIPTS_DIR)
 assert subprocess.call(["bash", "-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0
 
@@ -122,9 +125,6 @@ print "===>>> Making SSL  project"
 os.chdir(SSL_MAKE_DIR)
 #assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all", "test"]) == 0
 assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all" ]) == 0
-
-os.chdir(JSON_LIBS_DIR)
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
