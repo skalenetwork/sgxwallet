@@ -55,6 +55,14 @@ Currently the build builds with **automake 1.15**. You need to install it since 
 
 `cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb`
 
+## Prepare custom root variables for locally build dependencies
+
+```
+export CFLAGS="-I`pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
+export CXXFLAGS="-I`pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
+export LDFLAGS="-L`pwd`/libBLS/deps/deps_inst/x86_or_x64/lib"
+```
+
 ## Build dependencies
 
 Dependencies only need to be built once.
@@ -71,9 +79,6 @@ Co to the project's top directory, then run
 autoreconf
 autoconf
 automake
-export CFLAGS="-I `pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
-export CXXFLAGS="-I `pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
-export LDFLAGS="-L `pwd`/libBLS/deps/deps_inst/x86_or_x64/lib"
 ./configure
 ```
 
