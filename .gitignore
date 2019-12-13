@@ -36,4 +36,8 @@ configure
 jsonrpc/argtable2
 jsonrpc/jsoncpp
 jsonrpc/libjson-rpc-cpp
+jsonrpc/curl-from-git.tar.gz
+jsonrpc/curl
+jsonrpc/libmicrohttpd
 secure_enclave/.deps
+test-driver
