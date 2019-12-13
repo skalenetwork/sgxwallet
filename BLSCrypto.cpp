@@ -135,6 +135,7 @@ bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
 bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
     char* _sig) {
 
+  std::cerr << "ENTER SIGN" << std::endl;
 
   auto keyStr = std::make_shared<std::string>(_encryptedKeyHex);
 
@@ -147,8 +148,11 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
   }
  // assert(binLen == hash->size());
 
+
+
   auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
+  std::cerr << "keyShare created" << std::endl;
  // {
     auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
  // }

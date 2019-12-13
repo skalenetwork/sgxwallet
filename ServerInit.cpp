@@ -47,6 +47,8 @@
 
 #include "SGXWalletServer.h"
 
+#include "SGXRegistrationServer.h"
+
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
@@ -123,6 +125,7 @@ void init_all() {
     sgxServerInited = 1;
 
     init_server();
+    init_registration_server();
     init_enclave();
     std::cerr << "enclave inited" << std::endl;
     init_daemon();

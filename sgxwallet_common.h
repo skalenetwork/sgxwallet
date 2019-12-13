@@ -55,9 +55,13 @@
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 
+#define ERROR_IN_ENCLAVE -33
+
+#define FILE_NOT_FOUND -44
+
 #define SGX_ENCLAVE_ERROR -666;
 
-#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet1.db"//
+#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"//
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 

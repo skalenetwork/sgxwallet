@@ -237,29 +237,29 @@ TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
 }
 
-TEST_CASE("KeysDB test", "[keys-db]") {
-
-
-
-    reset_db();
-    init_all();
-
-
-    string key = TEST_BLS_KEY_SHARE;
-    string value = TEST_BLS_KEY_SHARE;
-
-
-
-    REQUIRE_THROWS(readKeyShare(key));
-
-
-    writeKeyShare(key, value, 1, 2, 1);
-
-    REQUIRE(readKeyShare(key) != nullptr);
-
-
-// put your test here
-}
+//TEST_CASE("KeysDB test", "[keys-db]") {
+//
+//
+//
+//    reset_db();
+//    init_all();
+//
+//
+//    string key = TEST_BLS_KEY_SHARE;
+//    string value = TEST_BLS_KEY_SHARE;
+//
+//
+//
+//    REQUIRE_THROWS(readKeyShare(key));
+//
+//
+//    writeKeyShare(key, value, 1, 2, 1);
+//
+//    REQUIRE(readKeyShare(key) != nullptr);
+//
+//
+//// put your test here
+//}
 
 
 
@@ -741,17 +741,14 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   std::cerr<< "test started" << std::endl;
   init_all();
   cerr << "Server inited" << endl;
-  HttpClient client("http://localhost:1027");
+  HttpClient client("http://localhost:1028");
   StubClient c(client, JSONRPC_CLIENT_V2);
   cerr << "Client inited" << endl;
 
   reset_db();
 
 
-
-
-
-  int n = 2, t = 2;
+  int n = 32, t = 32;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
@@ -851,7 +848,6 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   std::cout << "try to get bls public key" << std::endl;
   std::cout << c.GetBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
 
-  exit(0);
 
 }
 
@@ -957,13 +953,4 @@ TEST_CASE("API test", "[api_test]") {
   sgx_destroy_enclave(eid);
 }
 
-//decr sshare is 0570d18552dc248c5f806cbfeb96cdc40234d51233b3ba80a9c7b790ae4eed13
-//common_key is e6d91ec58664d25dd80071520793ab307bf408158543a9710445bd663041a760decr
-//sshare is d56909d4b29a0f1d306be98c019bed02e9c6b9b56bfe9e933314815983401b40
-//common_key is 0e4506de4faa7a241fccbcc9339cce03737415ba38349ccfa7aec916d37cee07
-//
-//
-//decr sshare is 1f63caaf684e632338cd7c17569fb65d820004266acd36f0b6d2cbd05648b071
-//common_key is e969840c044a3e7252e4677225f2513722d545ff1612f35d0cd66cda65185356decr
-//sshare is 20d254d489bb31fc5b470c641ba280ea35e7da3a86c11ccdb74d3f9898daaa93
-//common_key is 18dffe11f73f6d53e8f53ce1fe0ab8192f7a9180d50fb7e34a01776652e73471
+

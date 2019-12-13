@@ -739,11 +739,10 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*)skey, &key_len);
   if (status != SGX_SUCCESS) {
+    *err_status = 1;
     snprintf(err_string, BUF_LEN,"sgx_unseal_key failed with status %d", status);
     return;
   }
-
-  //char * skey = "a15c19da241e5b1db20d8dd8ca4b5eeaee01c709b49ec57aa78c2133d3c1b3c9";
 
   int num_shares = strlen(s_shares)/192;
 
@@ -786,11 +785,11 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
         return;
     }
     //decr_sshare[64] = 0;
-    snprintf(err_string + 158 * i, BUF_LEN,"decr sshare is %s", decr_sshare);
-    snprintf(err_string + 158 * i + 79, BUF_LEN," common_key is %s", common_key);
 
-    //snprintf(err_string + 89*i, BUF_LEN,"share is %s length is %d ", decr_sshare, strlen(decr_sshare));
-    //snprintf(err_string + 65*i, BUF_LEN,"%s ", decr_sshare);
+    //snprintf(err_string + 158 * i, BUF_LEN,"decr sshare is %s", decr_sshare);
+    //snprintf(err_string + 158 * i + 79, BUF_LEN," common_key is %s", common_key);
+
+
 
 
     mpz_t decr_secret_share;
@@ -816,7 +815,7 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
 
    char key_share[mpz_sizeinbase(bls_key, 16) + 2];
    char *key = mpz_get_str(key_share, 16, bls_key);
-   snprintf(err_string + 158 * num_shares , BUF_LEN," bls private key is %s", key_share);
+   snprintf(err_string, BUF_LEN," bls private key is %s", key_share);
    uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
 
