@@ -36,3 +36,4 @@ configure
 jsonrpc/argtable2
 jsonrpc/jsoncpp
 jsonrpc/libjson-rpc-cpp
+secure_enclave/.deps
