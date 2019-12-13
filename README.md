@@ -84,7 +84,10 @@ cd scripts; ./build.py; cd ..
 Co to the project's top directory, then run
 
 ```
-autoreconf
+export CFLAGS=
+export CXXFLAGS=
+export LDFLAGS=
+#autoreconf
 autoconf
 automake
 ./configure
