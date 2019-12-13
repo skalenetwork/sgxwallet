@@ -203,10 +203,11 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
     int result ;
     //std::cerr << "encr_sshare length is " << strlen(encr_sshare) << std::endl;
     //std::cerr << "public shares " << publicShares << std::endl;
-
-    char pshares[4097];
+    std::cerr << "publicShares length is " << strlen(publicShares) << std::endl;
+    char pshares[8193];
     strncpy(pshares, publicShares, strlen(publicShares) + 1);
-   // std::cerr << "pshares " << pshares << std::endl;
+    //std::cerr << "pshares " << pshares << std::endl;
+
 
     dkg_verification(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
 
@@ -233,11 +234,13 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
   
   uint32_t enc_bls_len = 0;
 
+  std::cerr << "BEFORE create_bls_key IN ENCLAVE " << std::endl;
   create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
 
   std::cerr << "AFTER create_bls_key IN ENCLAVE er msg is  " << errMsg1 << std::endl;
   if ( err_status != 0){
      std::cerr << "ERROR IN ENCLAVE" << std::endl;
+     throw RPCException(ERROR_IN_ENCLAVE, "Something failed in enclave");
      return false;
   }
   else {
@@ -320,27 +323,7 @@ std::vector<std::string> mult_G2(const std::string& x){
     return result;
 }
 
-bool TestCreateBLSShare( const char * s_shares) {
 
-  char *errMsg1 = (char *)calloc(1024, 1);
-  int err_status = 0;
-
-  uint32_t enc_bls_len = 0;
-  uint8_t encr_key[BUF_LEN];
-  memset(encr_key, 1, BUF_LEN);
-  uint64_t dec_key_len ;
-  uint8_t encr_bls_key[BUF_LEN];
-
-  std::cerr << "Enter TestCreateBLSShare" << std::endl;
-  create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len,
-                 encr_bls_key, &enc_bls_len);
-
-  std::cerr << "err msg is " << errMsg1 << std::endl;
-
-  if ( err_status != 0 ){
-    std::cerr << "something went wrong in enclave " << "status is" << err_status << std::endl;
-  }
-}
 
 
 

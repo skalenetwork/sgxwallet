@@ -154,7 +154,7 @@ void LevelDB::writeByteArray(std::string &_key, const char *value,
 }
 
 void LevelDB::throwExceptionOnError(Status _status) {
-    std::cerr << " DB exception " << std::endl;
+
     if (_status.IsNotFound())
         return;
 

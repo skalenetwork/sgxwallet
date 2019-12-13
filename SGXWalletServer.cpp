@@ -105,7 +105,7 @@ int init_server() {
 
 //int init_server() { //without ssl
 //
-//  hs = new HttpServer(1027, "", "", 1);
+//  hs = new HttpServer(1028);
 //  s = new SGXWalletServer(*hs,
 //                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 //  if (!s->StartListening()) {
@@ -600,7 +600,7 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
         result["errorMessage"] = _e.errString;
     }
 
-    debug_print();
+    //debug_print();
 
     return result;
 }
