@@ -68,8 +68,12 @@ cd scripts; ./build.py
 Co to the project's top directory, then run
 
 ```
+autoreconf
 autoconf
 automake
+export CFLAGS="-I `pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
+export CXXFLAGS="-I `pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
+export LDFLAGS="-L `pwd`/libBLS/deps/deps_inst/x86_or_x64/lib"
 ./configure
 ```
 
