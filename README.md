@@ -68,7 +68,7 @@ export LDFLAGS="-L`pwd`/libBLS/deps/deps_inst/x86_or_x64/lib"
 Dependencies only need to be built once.
 
 ```
-cd scripts; ./build.py
+cd scripts; ./build.py; cd ..
 ```
 
 ## Configure
