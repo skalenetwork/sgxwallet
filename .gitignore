@@ -28,3 +28,9 @@ install-sh
 /secure_enclave/secure_enclave_t.c
 /secure_enclave/secure_enclave_t.h
 /sgxd
+/cert/SGXServerCertificate*
+/autom4te.cache
+/secure_enclave/.deps
+/sgxwallet
+/testw
+/configure
