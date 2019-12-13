@@ -36,24 +36,32 @@ To enable SGX using a software utility:
 
 ## Install SGX driver
 
-`cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin`
+```
+cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
+```
 
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
 ## Install SGX sdk
 
-`cd scripts; sudo ./sgx_linux_x64_sdk_2.5.100.49891.bin`
+```
+cd scripts; sudo ./sgx_linux_x64_sdk_2.5.100.49891.bin; cd ..
+```
 
 ## Install required debian packages
 
-`cd scripts; sudo ./install_packages.sh`
+```
+cd scripts; sudo ./install_packages.sh; cd ..
+```
 
 ## Install automake 1.15
 
 Currently the build builds with **automake 1.15**. You need to install it since Ubuntu 18 comes with **automake 1.16** by default.
 
-`cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb`
+```
+cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb; cd ..
+```
 
 ## Prepare custom root variables for locally build dependencies
 
