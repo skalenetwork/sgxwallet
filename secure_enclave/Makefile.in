@@ -322,7 +322,7 @@ SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
 AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -Wall \
 	-Wno-implicit-function-declaration $(TGMP_CPPFLAGS) \
-	-I../trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
+	-I./trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
 	-I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@ $(TGMP_LDFLAGS)

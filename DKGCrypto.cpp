@@ -27,10 +27,12 @@
 #include <iostream>
 
 #include <memory>
+#include <memory>
 #include "SGXWalletServer.hpp"
 #include "RPCException.h"
 
-#include <libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+//#include <libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 std::vector<std::string> SplitString(const char* koefs, const char symbol){
   std::string str(koefs);
@@ -250,7 +252,7 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
   if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)){
       throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
-  
+
   uint32_t enc_bls_len = 0;
 
   std::cerr << "BEFORE create_bls_key IN ENCLAVE " << std::endl;
@@ -341,8 +343,3 @@ std::vector<std::string> mult_G2(const std::string& x){
     result[3] = ConvertToString(elG2.Y.c1);
     return result;
 }
-
-
-
-
-

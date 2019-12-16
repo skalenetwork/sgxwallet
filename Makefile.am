@@ -91,10 +91,14 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB) -Lleveldb/build -LlibBLS/build  -LlibBLS/build/libff/libff -l:libbls.a -l:libleveldb.a \
-   -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a   -ljsonrpccpp-stub -lpthread -ljsonrpccpp-common \
-   -ljsonrpccpp-server -ljsonrpccpp-client -ljsoncpp -lcurl intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
-   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
+sgxwallet_LDADD=-l$(SGX_URTS_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
+   -LlibBLS/build/libff/libff \
+   -l:libbls.a -l:libleveldb.a \
+   -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
+   -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
+   intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
+   intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a \
+   -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread
 
 
 testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLSCrypto.cpp ServerInit.cpp LevelDB.cpp \

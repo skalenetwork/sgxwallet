@@ -63,14 +63,6 @@ Currently the build builds with **automake 1.15**. You need to install it since 
 cd scripts; sudo dpkg -i automake_1.15.1-3ubuntu2_all.deb; cd ..
 ```
 
-## Prepare custom root variables for locally build dependencies
-
-```
-export CFLAGS="-I`pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
-export CXXFLAGS="-I`pwd`/libBLS/deps/deps_inst/x86_or_x64/include"
-export LDFLAGS="-L`pwd`/libBLS/deps/deps_inst/x86_or_x64/lib"
-```
-
 ## Build dependencies
 
 Dependencies only need to be built once.
@@ -84,12 +76,11 @@ cd scripts; ./build.py; cd ..
 Co to the project's top directory, then run
 
 ```
-export CFLAGS=
-export CXXFLAGS=
-export LDFLAGS=
-#autoreconf
+libtoolize --force
+aclocal
+autoheader
+automake --force-missing --add-missing
 autoconf
-automake
 ./configure
 ```
 
@@ -98,6 +89,9 @@ automake
 Go to project's top directory and run
 
 ```
+export CFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
+export CXXFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
+export LDFLAGS=-L`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/lib`
 make
 ```
 
