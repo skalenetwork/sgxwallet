@@ -7,8 +7,5 @@ jhid -d
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!
 
-trap "kill ${pid}" TERM INT
+sgxwallet
 
-sleep 2
-
-exec "$@"
