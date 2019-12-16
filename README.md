@@ -67,7 +67,7 @@ cd scripts; ./build.py
 Cd to the project top dir, then run
 
 ```sh
-autoconf
+autoreconf -vif
 automake
 ./configure
 ```
