@@ -87,11 +87,6 @@ BLS_BUILD_DIR = BLS_DIR + "/build"
 
 subprocess.call(["git", "submodule",  "update", "--init"])
 
-subprocess.call(["rm", "-f",  "install-sh"])
-subprocess.call(["rm", "-f",  "compile"])
-subprocess.call(["rm", "-f",  "missing"])
-subprocess.call(["rm", "-f",  "depcomp"])
-
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
