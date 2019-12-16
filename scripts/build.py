@@ -81,32 +81,15 @@ BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 
-AUTOMAKE_DIR = "/usr/share/automake-1.15"
-
-if not os.path.isdir(AUTOMAKE_DIR):
-    raise Exception("Could not find " + AUTOMAKE_DIR)
 
 
 
 
 subprocess.call(["git", "submodule",  "update", "--init"])
 
-subprocess.call(["rm", "-f",  "install-sh"])
-subprocess.call(["rm", "-f",  "compile"])
-subprocess.call(["rm", "-f",  "missing"])
-subprocess.call(["rm", "-f",  "depcomp"])
-
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
-
-
-
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/install-sh", "install-sh"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
-
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 os.chdir(LEVELDB_DIR);
@@ -166,7 +149,7 @@ print "===>>> Making SSL  project"
 
 os.chdir(SSL_MAKE_DIR);
 
-assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all",  "test"]) == 0
+assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all"]) == 0
 
 os.chdir(topDir)
 
