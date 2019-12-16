@@ -79,6 +79,8 @@ BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
   requiredSigners = _requiredSigners;
   totalSigners = _totalSigners;
 
+  std::cerr <<   "ENTER BLSPrivateKeyShareSGX CONSTRUCTOR" << std::endl;
+
   if (requiredSigners > totalSigners) {
 
     throw std::invalid_argument("requiredSigners > totalSigners");
@@ -104,10 +106,11 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
     size_t _signerIndex) {
   shared_ptr<signatures::Bls> obj;
 
-  if (_signerIndex == 0) {
-    BOOST_THROW_EXCEPTION(runtime_error("Zero signer index"));
-  }
+//  if (_signerIndex == 0) {
+//    BOOST_THROW_EXCEPTION(runtime_error("Zero signer index"));
+//  }
   if (hash_byte_arr == nullptr) {
+    std::cerr <<   "Hash is null" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Hash is null"));
   }
 
@@ -123,12 +126,14 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   string* xStr = stringFromFq(&(hash_with_hint.first.X));
 
   if (xStr == nullptr) {
+    std::cerr <<   "Null xStr" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
   }
 
   string* yStr = stringFromFq(&(hash_with_hint.first.Y));
 
-  if (xStr == nullptr) {
+  if (yStr == nullptr) {
+    std::cerr <<   "Null yStr" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 
@@ -154,6 +159,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 
   if (!result) {
+    cerr <<   "Invalid hex encrypted key" << endl;
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
@@ -197,6 +203,8 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   sig.append(":");
   sig.append(hint);
+
+
 
   return sig;
 }
