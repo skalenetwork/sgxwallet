@@ -65,11 +65,9 @@ LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
-
-
 BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
-
+JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
 
 #subprocess.call(["git", "submodule",  "update", "--init"])
@@ -81,10 +79,6 @@ subprocess.call(["rm", "-f",  "depcomp"])
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/install-sh", "install-sh"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
