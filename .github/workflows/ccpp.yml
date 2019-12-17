@@ -26,6 +26,6 @@ jobs:
         && sudo ./linux/installer/bin/sgx_linux_x64_psw_2.5.100.49891.bin && 
         cd .. && rm -rf linux-sgx/          
     - name: build deps
-      run:  cd scripts; build.py
+      run:  cd scripts; ./build.py
     - name: build sgx
       run:  autoreconf -vif && automake && ./configure && make
