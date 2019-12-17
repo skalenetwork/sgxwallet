@@ -80,9 +80,9 @@ autoconf
 Go to project's top directory and run
 
 ```
-export CFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
-export CXXFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
-export LDFLAGS=-L`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/lib`
+#export CFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
+#export CXXFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
+#export LDFLAGS=-L`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/lib`
 make
 ```
 
