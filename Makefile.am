@@ -46,7 +46,7 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 #AM_CFLAGS = -g -Og
 #AM_CXXFLAGS = ${AM_CPPFLAGS}
 
-AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.
+AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -74,7 +74,7 @@ nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
 EXTRA_sgxwallet_DEPENDENCIES = secure_enclave.signed.so
 
 BUILT_SOURCES = $(COMMON_ENCLAVE_SRC)
-AM_LDFLAGS += $(GMP_LDFLAGS)
+AM_LDFLAGS += $(GMP_LDFLAGS) -L./libBLS/deps/deps_inst/x86_or_x64/lib
 
 secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 	ln -s $?

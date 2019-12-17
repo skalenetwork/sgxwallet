@@ -62,7 +62,7 @@ Dependencies only need to be built once.
 cd scripts; ./build.py; cd ..
 ```
 
-## Configure
+## Configure and build
 
 Co to the project's top directory, then run
 
@@ -73,16 +73,6 @@ autoheader
 automake --force-missing --add-missing
 autoconf
 ./configure
-```
-
-## Build
-
-Go to project's top directory and run
-
-```
-#export CFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
-#export CXXFLAGS=-I`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/include`
-#export LDFLAGS=-L`readlink -f ./libBLS/deps/deps_inst/x86_or_x64/lib`
 make
 ```
 

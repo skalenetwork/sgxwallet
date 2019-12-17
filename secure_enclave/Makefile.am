@@ -63,7 +63,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional Automake flags needed to build the enclave.
 ##
 
-AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./trusted_libff  -I../sgx-sdk-build/sgxsdk/include/libcxx \
+AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./trusted_libff -I../trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS += -fno-builtin
 
@@ -97,7 +97,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 ## Be sure to use += to add to, and not replace, the default
 ## AM_LDFLAGS.
 
-AM_LDFLAGS += $(TGMP_LDFLAGS)
+AM_LDFLAGS += $(TGMP_LDFLAGS) -L./tgmp-build/lib -L../tgmp-build/lib
 
 
 ## This line is REQUIRED. It can't be generically defined for
