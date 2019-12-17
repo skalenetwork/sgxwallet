@@ -90,7 +90,9 @@ make
 make install
 cd ..
 
-tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
+#tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
+git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
+git checkout develop
 cd libjson-rpc-cpp
 rn -rf build || true
 mkdir -p build
