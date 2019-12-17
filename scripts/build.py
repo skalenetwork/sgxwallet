@@ -119,11 +119,11 @@ assert subprocess.call(["bash","-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cma
 
 os.chdir(BLS_DIR);
 
-assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
+# assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
 
 os.chdir(BLS_BUILD_DIR);
 
-assert subprocess.call(["bash","-c", "make"]) == 0
+# assert subprocess.call(["bash","-c", "make"]) == 0
 
 
 os.chdir(SCRIPTS_DIR)
