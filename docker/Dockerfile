@@ -29,4 +29,5 @@ RUN cd scripts; ./build.py
 RUN autoreconf -vif 
 RUN automake
 RUN ./configure
+RUN cd libBLS; cmake -H. -Bbuild; cmake --build build -- -j$(nproc);
 RUN make
