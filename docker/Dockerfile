@@ -31,7 +31,7 @@ WORKDIR  sgxwallet
 RUN cd scripts; ./build.py
 ### RUN autoreconf -vif
 ### RUN automake
-RUN autoreconf
+RUN autoreconf -vif
 RUN libtoolize --force
 RUN aclocal
 RUN autoheader
