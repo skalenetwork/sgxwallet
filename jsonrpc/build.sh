@@ -92,8 +92,9 @@ cd ..
 
 #tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
-git checkout develop
 cd libjson-rpc-cpp
+git checkout develop
+git pull
 rn -rf build || true
 mkdir -p build
 cd build
