@@ -74,20 +74,38 @@ void debug_print(){
 }
 
 int init_server() {
-  std::string certPath = "cert/SGXServerCertificate.crt";
-  std::string keyPath = "cert/SGXServerCertificate.key";
+  std::string rootCAPath = "cert/rootCA.crt";
+  std::string keyCAPath = "cert/rootCA.pem";
 
-  if (access(certPath.c_str(), F_OK) != 0){ //(!boost::filesystem::exists(certPath) ){
-    std::cerr << "NO!!! " << std::endl;
-    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+  if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
+    std::cerr << "YOU DO NOT HAVE ROOT CA CERTIFICATE" << std::endl;
+    std::cerr << "ROOT CA CERTIFICATE IS GOING TO BE CREATED" << std::endl;
 
-    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXServerCertificate\" -e=info@skalelabs.com";
+    std::string genRootCACert = "cd cert && ./create_CA";
 
-    if (system(genCert.c_str()) == 0){
-       std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    if (system(genRootCACert.c_str()) == 0){
+      std::cerr << "ROOT CA ERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
     }
     else{
-      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+      std::cerr << "ROOT CA CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  std::string certPath = "cert/SGXServerCert.crt";
+  std::string keyPath = "cert/SGXServerCert.key";
+
+  if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
+    std::cerr << "YOU DO NOT HAVE SERVER CERTIFICATE " << std::endl;
+    std::cerr << "SERVER CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+
+    std::string genCert = "cd cert && ./create_server_cert";
+
+    if (system(genCert.c_str()) == 0){
+       std::cerr << "SERVER CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "SERVER CERTIFICATE GENERATION FAILED" << std::endl;
       exit(-1);
     }
   }
