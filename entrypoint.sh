@@ -7,5 +7,7 @@ jhid -d
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!
 
-sgxwallet
+sleep 3
+
+/usr/src/sdk/sgxwallet/sgxwallet
 

@@ -91,21 +91,13 @@ if not os.path.isdir(AUTOMAKE_DIR):
 
 subprocess.call(["git", "submodule",  "update", "--init"])
 
-subprocess.call(["rm", "-f",  "install-sh"])
-subprocess.call(["rm", "-f",  "compile"])
-subprocess.call(["rm", "-f",  "missing"])
-subprocess.call(["rm", "-f",  "depcomp"])
+
 
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
 
-
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/install-sh", "install-sh"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/depcomp", "depcomp"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/missing", "missing"])
-subprocess.call(["ln", "-s", AUTOMAKE_DIR + "/compile", "compile"])
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
@@ -119,11 +111,11 @@ assert subprocess.call(["bash","-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cma
 
 os.chdir(BLS_DIR);
 
-assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
+# assert subprocess.call(["bash","-c", "cmake -H. -Bbuild"]) == 0
 
-os.chdir(BLS_BUILD_DIR);
+#os.chdir(BLS_BUILD_DIR);
 
-assert subprocess.call(["bash","-c", "make"]) == 0
+# assert subprocess.call(["bash","-c", "make"]) == 0
 
 
 os.chdir(SCRIPTS_DIR)
@@ -166,7 +158,7 @@ print "===>>> Making SSL  project"
 
 os.chdir(SSL_MAKE_DIR);
 
-assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all",  "test"]) == 0
+assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all"]) == 0
 
 os.chdir(topDir)
 
