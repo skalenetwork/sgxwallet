@@ -6,5 +6,6 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/sgxpsw/aesm/
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!
 
-sgxwallet
+sleep 2
+/usr/src/sdk/sgxwallet/sgxwallet
 

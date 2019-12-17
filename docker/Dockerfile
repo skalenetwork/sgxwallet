@@ -37,3 +37,4 @@ RUN autoconf
 RUN ./configure
 ### RUN cd libBLS; cmake -H. -Bbuild; cmake --build build -- -j$(nproc);
 RUN make
+COPY start.sh ./
