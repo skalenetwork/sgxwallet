@@ -2,7 +2,7 @@ FROM ubuntu:bionic
 
 WORKDIR /usr/src/sdk
 
-RUN apt-get update && apt-get install -yq --no-install-recommends git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
+RUN apt-get update && apt-get install -yq --no-install-recommends yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
 RUN apt install -y libprotobuf10 cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
 
 
