@@ -1,0 +1,14 @@
+sudo: required
+
+services:
+  - docker
+
+branches:
+  only:
+    - develop
+
+
+install:
+  - docker build -t sgxwallet docker
+
+script:
