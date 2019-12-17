@@ -81,14 +81,6 @@ BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 
-AUTOMAKE_DIR = "/usr/share/automake-1.15"
-
-if not os.path.isdir(AUTOMAKE_DIR):
-    raise Exception("Could not find " + AUTOMAKE_DIR)
-
-
-
-
 subprocess.call(["git", "submodule",  "update", "--init"])
 
 
