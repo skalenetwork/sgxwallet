@@ -24,7 +24,9 @@ jobs:
         && make -s -j$(nproc) sdk_install_pkg psw_install_pkg 
         && sudo ./linux/installer/bin/sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=/opt/intel
         && sudo ./linux/installer/bin/sgx_linux_x64_psw_2.5.100.49891.bin && 
-        cd .. && rm -rf linux-sgx/          
+        cd .. && rm -rf linux-sgx/     
+    - name: update git
+      run: git submodule update --init --recursive     
     - name: build deps
       run:  cd scripts; ./build.py
     - name: build sgx
