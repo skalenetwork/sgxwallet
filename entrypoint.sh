@@ -9,5 +9,5 @@ pid=$!
 
 sleep 3
 
-sgxwallet
+/usr/src/sdk/sgxwallet/sgxwallet
 
