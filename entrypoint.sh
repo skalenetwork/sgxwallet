@@ -7,5 +7,7 @@ jhid -d
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!
 
+sleep 3
+
 sgxwallet
 
