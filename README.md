@@ -97,9 +97,10 @@ sudo docker build -t sgxcontainer .
 Enable SGX and install SGX driver on the host machine as described above.
 
 Then run
-`
+
+```
 sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
-`
+```
 
 This will run the server in a Docker container named sgxwallet
 
