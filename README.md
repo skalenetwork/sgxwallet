@@ -84,6 +84,39 @@ make
 
 Type `./sgxwallet`
 
+## Build Docker container
+
+```
+sudo apt-get install -y docker.io;
+cd docker;
+sudo docker build -t sgxcontainer .
+```
+
+## Run Docker container
+
+Enable SGX and install SGX driver on the host machine as described above.
+
+Then run
+`
+sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
+`
+
+This will run the server in a Docker container named sgxwallet
+
+You can check that the server is running by doing 
+
+```
+telnet localhost 2027
+``` 
+
+You can start and stop running sgxwallet container by doing 
+
+```
+docker stop sgxwallet
+docker start sgxwallet
+```
+
+
 ## Development
 
 Note that `configure, Makefile` and `Makefile.in` files are created by `automake` tools on the fly.  
