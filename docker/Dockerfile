@@ -4,8 +4,8 @@ WORKDIR /usr/src/sdk
 
 RUN apt update
 RUN apt install -y libprotobuf10 cmake flex bison ccache autoconf texinfo libgcrypt20-dev libgnutls28-dev
-RUN apt install -yq --no-install-recommends vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python python-setuptools python-pip protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
-### RUN apt install -yq yaml libprocps-dev libssl-dev libssl-dev libcurl4-openssl-dev libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
+RUN apt install -yq --no-install-recommends vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python python-setuptools python-pip protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev libssl-dev libcurl4-openssl-dev
+### RUN apt install -yq yaml libprocps-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
 RUN pip install pyyaml
 
 COPY install-psw.patch ./
