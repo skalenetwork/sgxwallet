@@ -9,9 +9,8 @@
 ## Install Prerequisites
 
 ```
-sudo apt-get install build-essential make cmake gcc g++ python libprotobuf10 flex bison automake libtool texinfo
+sudo apt-get install build-essential make cmake gcc g++ python libprotobuf10 flex bison automake libtool texinfo libgnutls30
 ```
-libssl-dev libboost-all-dev libgmp3-dev libprocps-dev libjsonrpccpp-dev
 
 ## Clone this repository and its submodules
 

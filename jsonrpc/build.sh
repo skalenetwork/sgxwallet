@@ -36,6 +36,13 @@ fi
 export OPENSSL_SRC_RELATIVE="../libBLS/deps/openssl"
 export OPENSSL_SRC=`$READLINK -f $OPENSSL_SRC_RELATIVE`
 
+git clone https://github.com/madler/zlib.git
+cd zlib
+./configure --static --prefix=$INSTALL_ROOT
+make
+make install
+cd ..
+
 git clone https://github.com/jonathanmarvens/argtable2.git
 cd argtable2
 mkdir -p build
@@ -58,7 +65,6 @@ make install
 cd ../..
 
 git clone https://github.com/curl/curl.git
-tar -czf curl-from-git.tar.gz ./curl
 cd curl
 mkdir -p build
 cd build
@@ -86,6 +92,7 @@ cd ..
 
 tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
 cd libjson-rpc-cpp
+rn -rf build || true
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \

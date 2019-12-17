@@ -33,6 +33,7 @@ autom4te.cache
 sgxwallet
 testw
 configure
+jsonrpc/zlib
 jsonrpc/argtable2
 jsonrpc/jsoncpp
 jsonrpc/libjson-rpc-cpp
