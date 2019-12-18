@@ -70,7 +70,13 @@ BLS_BUILD_DIR = BLS_DIR + "/build"
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
 
+<<<<<<< HEAD
 #subprocess.call(["git", "submodule",  "update", "--init"])
+=======
+subprocess.call(["git", "submodule",  "update", "--init"])
+
+
+>>>>>>> origin/develop
 
 subprocess.call(["rm", "-f",  "install-sh"])
 subprocess.call(["rm", "-f",  "compile"])

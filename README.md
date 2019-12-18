@@ -64,7 +64,7 @@ cd scripts; ./build.py; cd ..
 
 ## Configure and build
 
-Co to the project's top directory, then run
+Go to the project's top directory, then run
 
 ```
 libtoolize --force
