@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: install packages
       run: >
-        sudo apt-get update && sudo apt-get install -yq --no-install-recommends python-yaml vim telnet git python-yaml
+        sudo apt-get update && sudo apt-get install -yq --no-install-recommends python-yaml vim telnet git yasm python-yaml
         ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python
         libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien
         cmake debhelper uuid-dev libxml2-dev libprotobuf10 cmake flex bison  libprocps-dev ccache
