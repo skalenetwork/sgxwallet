@@ -36,7 +36,7 @@ RUN cd scripts; ./build.py
 RUN autoreconf -vif
 RUN libtoolize --force
 RUN aclocal
-RUN autoheader
+RUN autoheader || true
 RUN automake --force-missing --add-missing
 RUN autoconf
 RUN ./configure
