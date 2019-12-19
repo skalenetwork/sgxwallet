@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-
+#include <third_party/cryptlite/sha256.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include <stdio.h>
@@ -44,14 +44,19 @@ Json::Value SignSertificateImpl(const std::string& cert){
   result["status"] = 0;
   result["errorMessage"] = "";
   try{
-
-  std::ofstream outfile ("cert/test.csr");
+  std::cerr << " going to create csr" << std::endl;
+  std::ofstream outfile ("cert/client.csr");
   outfile << cert << std::endl;
   outfile.close();
+  std::string csrPath = "cert/client.csr";
+  if (access(csrPath.c_str(), F_OK) != 0){
+    throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
+  }
   result["result"] = true;
   std::thread thr(set_cert_created1, true);
   thr.detach();
 
+  std::string hash = cryptlite::sha256::hash_hex(cert);
 
  // std::thread timeout_thr (std::bind(&SGXRegistrationServer::set_cert_created, this, true));
 
@@ -76,7 +81,7 @@ Json::Value GetSertificateImpl(const std::string& hash){
       result["cert"] = "";
     }
     else {
-      std::ifstream infile("cert/test_cert.crt");
+      std::ifstream infile("cert/client.crt");
       if (!infile.is_open()) {
         throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
       } else {
@@ -101,6 +106,7 @@ Json::Value GetSertificateImpl(const std::string& hash){
 
 
 Json::Value SGXRegistrationServer::SignCertificate(const std::string& cert){
+  std::cerr << "Enter SignCertificate " << std::endl;
   lock_guard<recursive_mutex> lock(m);
   return SignSertificateImpl(cert);
 }
@@ -119,24 +125,24 @@ void SGXRegistrationServer::set_cert_created(bool b){
 
 int init_registration_server() {
 
-  std::string certPath = "cert/SGXCACertificate.crt";
-  std::string keyPath = "cert/SGXCACertificate.key";
+//  std::string certPath = "cert/SGXCACertificate.crt";
+//  std::string keyPath = "cert/SGXCACertificate.key";
+//
+//  if (access(certPath.c_str(), F_OK) != 0){
+//    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+//
+//    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXCACertificate\" -e=info@skalelabs.com";
+//
+//    if (system(genCert.c_str()) == 0){
+//      std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+//    }
+//    else{
+//      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
+//      exit(-1);
+//    }
+//  }
 
-  if (access(certPath.c_str(), F_OK) != 0){
-    std::cerr << "CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-
-    std::string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXCACertificate\" -e=info@skalelabs.com";
-
-    if (system(genCert.c_str()) == 0){
-      std::cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-    }
-    else{
-      std::cerr << "CERTIFICATE GENERATION FAILED" << std::endl;
-      exit(-1);
-    }
-  }
-
-  hs2 = new HttpServer(1027);
+  hs2 = new HttpServer(1031);
   sr = new SGXRegistrationServer(*hs2,
                                  JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 

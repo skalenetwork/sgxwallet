@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Generate root CA key
+openssl genrsa -out rootCA.key 2048
+
+# Create an X.509 cert from the CA key
+openssl req -x509 -sha256 -nodes -days 1024 -newkey rsa:2048 -key rootCA.key -out rootCA.pem -subj "/CN=SGXCACertificate"
+
+mkdir new_certs
+touch index.txt
+echo "01" > serial
+
+
+
