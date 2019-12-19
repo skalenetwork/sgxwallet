@@ -31,7 +31,7 @@ To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Inte
 To enable SGX using a software utility:
 
 -   Build `sgx-enable` utility by typing `cd   sgx-software-enable; make`
--   Run `./sgx-enable`.  Verify that it says that **SGX** is successfully enabled
+-   Run `./sgx_enable`.  Verify that it says that **SGX** is successfully enabled
 
 ## Install SGX driver
 
@@ -64,7 +64,7 @@ cd scripts; ./build.py; cd ..
 
 ## Configure and build
 
-Co to the project's top directory, then run
+Go to the project's top directory, then run
 
 ```
 libtoolize --force

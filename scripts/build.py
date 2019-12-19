@@ -69,7 +69,6 @@ BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
-
 #subprocess.call(["git", "submodule",  "update", "--init"])
 
 subprocess.call(["rm", "-f",  "install-sh"])
@@ -122,8 +121,8 @@ os.chdir(SSL_SOURCE_DIR)
 assert subprocess.call(["wget", "https://www.openssl.org/source/openssl-1.1.1b.tar.gz"]) == 0
 print "===>>> Making SSL  project"
 os.chdir(SSL_MAKE_DIR)
-assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all", "test"]) == 0
-#assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all" ]) == 0
+#assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all", "test"]) == 0
+assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all" ]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
