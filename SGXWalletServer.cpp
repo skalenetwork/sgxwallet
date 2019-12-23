@@ -73,7 +73,7 @@ void debug_print(){
   levelDb->visitKeys(&v, 100000000);
 }
 
-int init_server() {
+int init_server(bool check_certs) {
   std::string rootCAPath = "cert/rootCA.pem";
   std::string keyCAPath = "cert/rootCA.key";
 
@@ -110,7 +110,7 @@ int init_server() {
     }
   }
 
-  hs = new HttpServer(1030, certPath, keyPath, rootCAPath, 10);
+  hs = new HttpServer(1030, certPath, keyPath, rootCAPath, check_certs, 10);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -120,6 +120,7 @@ int init_server() {
   }
   return 0;
 }
+
 
 //int init_server() { //without ssl
 //

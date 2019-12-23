@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-
+#include <stdbool.h>
 
 void usage() {
   fprintf(stderr, "usage: sgxwallet\n");
@@ -50,26 +50,40 @@ int updated;
 
 int main(int argc, char *argv[]) {
 
-
+  bool check_client_cert = true;
+  bool sign_automatically = false;
   int opt;
 
-  while ((opt = getopt(argc, argv, "h")) != -1) {
-    switch (opt) {
-    case 'h':
-    default:
-      usage();
-    }
+  if (argc > 1 && strlen(argv[1])==1){
+    fprintf(stderr, "option is too short %s\n", argv[1]);
+    exit(1);
   }
 
-  argc -= optind;
-  argv += optind;
+  while ((opt = getopt(argc, argv, "csh")) != -1) {
+    switch (opt) {
+//    case 'h':
+//      if (strlen(argv[1]) == 2 ) {
+//        fprintf(stderr, "-c  client certificate will not be checked\n");
+//        fprintf(stderr, "-s  client certificate will be signed automatically\n");
+//        exit(0);
+//      } else {
+//        fprintf(stderr, "unknown flag %s\n", argv[1]);
+//        exit(1);
+//      }
 
-  if (argc != 0)
-    usage();
-
-  init_all();
-
-
+    case 'c':
+      check_client_cert = false;
+      break;
+    case 's':
+      sign_automatically = true;
+      break;
+    case '?': // fprintf(stderr, "unknown flag\n");
+      exit(1);
+    default:
+      break;
+    }
+  }
+  init_all(check_client_cert, sign_automatically);
 
   while (true) {
       sleep(10);
