@@ -23,7 +23,7 @@ RUN git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
 # COPY jhi.conf /etc/jhi/jhi.conf
 
 
-RUN git clone --recurse-submodules https://76b7983ebf14269178b99eff5b2be4b4b56fe7a5:@github.com/skalenetwork/sgxwallet.git
+RUN git clone --recurse-submodules https://github.com/skalenetwork/sgxwallet.git
 WORKDIR  sgxwallet
 RUN cd scripts; ./build.py 
 RUN autoreconf -vif 
