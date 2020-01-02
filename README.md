@@ -6,6 +6,10 @@ sgxwallet is a next generation hardware secure crypto wallet that  is based on I
 
 sgxwallet has been tested on Ubuntu Linux 18.04.
 
+## An important note about production readiness
+
+This sgxwallet library is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
+
 ## Install Prerequisites
 
 ```sh
@@ -26,7 +30,7 @@ To build and run sgxd, you'll need Intel SGX capable hardware. Most Intel chips 
 -   If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section 
 -   If not, set SGX in BIOS to `software-controlled` and then enable by running a sgx-enable utility, as described below.
 
-## Enable "software-controlled" SGX
+## Enable "software-controlled" SGX (for testing purposes only)
 
 To enable SGX using a software utility:
 
@@ -70,7 +74,7 @@ automake
 
 Cd to project top dir and run
 
-```sg
+```sh
 make
 ```
 
@@ -80,11 +84,9 @@ Type `./sgxwallet`
 
 ## Build Docker container
 
-```
-sudo apt-get install -y docker.io;
-cd docker;
-sudo docker build -t sgxcontainer .
-```
+    sudo apt-get install -y docker.io;
+    cd docker;
+    sudo docker build -t sgxcontainer .
 
 ## Run Docker container
 
@@ -92,25 +94,18 @@ Enable SGX and install SGX driver on the host machine as described above.
 
 Then run
 
-```
-sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
-```
+    sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
 
 This will run the server in a Docker container named sgxwallet
 
 You can check that the server is running by doing 
 
-```
-telnet localhost 2027
-``` 
+    telnet localhost 2027
 
 You can start and stop running sgxwallet container by doing 
 
-```
-docker stop sgxwallet
-docker start sgxwallet
-```
-
+    docker stop sgxwallet
+    docker start sgxwallet
 
 ## Development
 
@@ -120,3 +115,21 @@ Please do not add these files to the source tree!
 To add new source and include files to app and enclave, edit the corresponding "Makefile.am" file and then re-run configure. 
 
 If you change .edl file, you need to re-run configure too.
+
+## Libraries
+
+-   [Intel-SGX-SSL by Intel](https://github.com/intel/intel-sgx-ssl)
+-   [LevelDB by Google](https://github.com/google/leveldb)
+-   [libBLS by SKALE Labs](https://github.com/skalenetwork/libBLS)
+-   [libff by SCIPR-LAB](http://www.scipr-lab.org/)
+-   [Linux SGX Driver by Intel](https://github.com/intel/linux-sgx-driver)
+-   [SGX-GMP by Intel](https://github.com/intel/sgx-gmp)
+-   [SGX Software Enable by Intel](https://github.com/intel/sgx-software-enable)
+
+## License
+
+[![License](https://img.shields.io/github/license/skalenetwork/sgxwallet.svg)](LICENSE)
+
+All contributions to sgxwallet are made under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE](LICENSE).
+
+Copyright (C) 2019-Present SKALE Labs.

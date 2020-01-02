@@ -1,6 +1,8 @@
-//
-// Created by kladko on 05.09.19.
-//
+/*
+
+    Modifications Copyright (C) 2019-Present SKALE Labs
+    
+*/
 
 
 /*************************************************************************
