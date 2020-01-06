@@ -60,7 +60,7 @@ print("Top directory is:" + topDir )
 
 makeExecutable = subprocess.check_output(["which", "make"])
 
-SCRIPTS_DIR = topDir + "/scripts" 
+SCRIPTS_DIR = topDir + "/scripts"
 GMP_DIR = topDir +  "/sgx-gmp"
 SSL_DIR =  topDir + "/intel-sgx-ssl"
 SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
@@ -115,7 +115,7 @@ assert subprocess.call(["bash","-c", "cmake -H. -Bbuild && cmake --build build -
 os.chdir(SCRIPTS_DIR)
 
 
-assert subprocess.call(["bash","-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0 
+assert subprocess.call(["bash","-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0
 
 
 os.chdir(GMP_DIR);
@@ -141,14 +141,14 @@ assert subprocess.call(["cp", "sgx_tgmp.h", TGMP_BUILD_DIR + "/include/sgx_tgmp.
 os.chdir(SSL_DIR);
 
 
-print "===>>> Downloading vanilla openssl source package"
+print("===>>> Downloading vanilla openssl source package")
 
 os.chdir(SSL_SOURCE_DIR);
 
 
 assert subprocess.call(["wget", "https://www.openssl.org/source/openssl-1.1.1b.tar.gz"]) == 0
 
-print "===>>> Making SSL  project"
+print("===>>> Making SSL  project")
 
 os.chdir(SSL_MAKE_DIR);
 

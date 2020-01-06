@@ -60,6 +60,7 @@ public:
     virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName);
     virtual Json::Value ComplaintResponse(const std::string& polyName, int ind);
     virtual Json::Value MultG2(const std::string & x);
+    virtual Json::Value getServerStatus();
 
 };
 
@@ -86,5 +87,6 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName);
 Json::Value ComplaintResponseImpl(const std::string& polyName, int ind);
 Json::Value MultG2Impl(const std::string & x);
+Json::Value getServerStatusImpl();
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP
