@@ -653,6 +653,14 @@ Json::Value MultG2Impl(const std::string& x){
     return result;
 }
 
+Json::Value getServerStatusImpl() {
+  
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  return result;
+}
 
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
   std::cerr << "entered generateDKGPoly" << std::endl;
@@ -735,10 +743,14 @@ Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int 
 }
 
 Json::Value SGXWalletServer::MultG2(const std::string& x){
-    lock_guard<recursive_mutex> lock(m);
-    return MultG2Impl(x);
+  lock_guard<recursive_mutex> lock(m);
+  return MultG2Impl(x);
 }
 
+Json::Value SGXWalletServer::getServerStatus() {
+  lock_guard<recursive_mutex> lock(m);
+  return getServerStatusImpl();
+}
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
