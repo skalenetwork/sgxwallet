@@ -1,3 +1,26 @@
+/*
+    Copyright (C) 2019-Present SKALE Labs
+
+    This file is part of sgxwallet.
+
+    sgxwallet is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sgxwallet is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+
+    @file SGXWalletServer.hpp
+    @author Sveta Rogova
+    @date 2019
+*/
+
 #ifndef SGXWALLET_SGXWALLETSERVER_HPP
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
@@ -37,6 +60,7 @@ public:
     virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName);
     virtual Json::Value ComplaintResponse(const std::string& polyName, int ind);
     virtual Json::Value MultG2(const std::string & x);
+    virtual Json::Value getServerStatus();
 
 };
 
@@ -63,5 +87,6 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName);
 Json::Value ComplaintResponseImpl(const std::string& polyName, int ind);
 Json::Value MultG2Impl(const std::string & x);
+Json::Value getServerStatusImpl();
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

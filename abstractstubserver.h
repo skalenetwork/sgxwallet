@@ -30,6 +30,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("ComplaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::ComplaintResponseI);
           this->bindAndAddMethod(jsonrpc::Procedure("MultG2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "x",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::MultG2I);
 
+          this->bindAndAddMethod(jsonrpc::Procedure("getServerStatus", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerStatusI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -93,6 +94,11 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->MultG2(request["x"].asString());
         }
+        inline virtual void getServerStatusI(const Json::Value &request, Json::Value &response)
+        {
+          (void)request;
+          response = this->getServerStatus();
+        }
 
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex ) = 0;
@@ -110,6 +116,8 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) = 0;
         virtual Json::Value ComplaintResponse(const std::string& polyName, int ind) = 0;
         virtual Json::Value MultG2(const std::string & x) = 0;
+
+        virtual Json::Value getServerStatus() = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

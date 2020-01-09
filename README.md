@@ -1,10 +1,16 @@
 # sgxwallet: SKALE SGX-based hardware crypto wallet
 
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
+
 ## Intro
 
 **sgxwallet** is a next generation hardware secure crypto wallet that  is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
 
 **sgxwallet** has been tested on **Ubuntu Linux 18.04**.
+
+## An important note about production readiness
+
+This sgxwallet library is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
 
 ## Install Prerequisites
 
@@ -26,7 +32,7 @@ To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Inte
 -   If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section
 -   If not, set SGX in BIOS to `software-controlled` and then enable by running a sgx-enable utility, as described below.
 
-## Enable "software-controlled" SGX
+## Enable "software-controlled" SGX (for testing purposes only)
 
 To enable SGX using a software utility:
 
@@ -66,7 +72,6 @@ cd scripts; ./build.py; cd ..
 
 Go to the project's top directory, then run
 
-```
 libtoolize --force
 aclocal
 autoheader
@@ -86,11 +91,9 @@ Type:
 
 ## Build Docker container
 
-```
-sudo apt-get install -y docker.io;
-cd docker;
-sudo docker build -t sgxcontainer .
-```
+    sudo apt-get install -y docker.io;
+    cd docker;
+    sudo docker build -t sgxcontainer .
 
 ## Run Docker container
 
@@ -98,25 +101,16 @@ Enable SGX and install SGX driver on the host machine as described above.
 
 Then run
 
-```
-sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
-```
+    sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
 
 This will run the server in a Docker container named sgxwallet
 
 You can check that the server is running by doing
 
-```
-telnet localhost 1030
-```
-
 You can start and stop running sgxwallet container by doing
 
-```
-docker stop sgxwallet
-docker start sgxwallet
-```
-
+    docker stop sgxwallet
+    docker start sgxwallet
 
 ## Development
 
@@ -183,3 +177,28 @@ Above produces on success:
 ```
 {"id":1,"jsonrpc":"2.0","result":{"encryptedKeyShare":"0400020000000000040effffff02000000000000000000000b000000000000ff0000000000000000cecb5d7bd507cb936464fdb6b88cfe80e38eae963af6a39b6b05cdfba5521c60000000f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000080000000000000000000000000000000875c0520e8d6739c440e0e5073633861769fc1d31d627e9a72c66d43871c62bce2cc48e821341e10784242c4c8aad6ca73a491cbf7453c2ff012b6b3d9d96823c0256992d9792ea60269789b2d51ae87c75fe522dbcb8053458c1bca421cbc57f4a58e4e5689d534ca0303db83c7a9e88cd23afe3a39e1a3801371c95e7ffa54e834c6be8853983dcaa1fa9f5e6959a5","errorMessage":"","status":0}}
 ```
+
+
+
+
+
+If you change .edl file, you need to re-run configure too.
+
+## Libraries
+
+-   [Intel-SGX-SSL by Intel](https://github.com/intel/intel-sgx-ssl)
+-   [LevelDB by Google](https://github.com/google/leveldb)
+-   [libBLS by SKALE Labs](https://github.com/skalenetwork/libBLS)
+-   [libff by SCIPR-LAB](http://www.scipr-lab.org/)
+-   [Linux SGX Driver by Intel](https://github.com/intel/linux-sgx-driver)
+-   [SGX-GMP by Intel](https://github.com/intel/sgx-gmp)
+-   [SGX Software Enable by Intel](https://github.com/intel/sgx-software-enable)
+
+## License
+
+[![License](https://img.shields.io/github/license/skalenetwork/sgxwallet.svg)](LICENSE)
+
+All contributions to sgxwallet are made under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE](LICENSE).
+
+Copyright (C) 2019-Present SKALE Labs.
+
