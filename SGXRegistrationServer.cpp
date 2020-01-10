@@ -180,7 +180,7 @@ int init_registration_server(bool sign_automatically) {
 //    }
 //  }
 
-  hs2 = new HttpServer(1031);
+  hs2 = new HttpServer( 1027 );
   sr = new SGXRegistrationServer(*hs2,
                                  JSONRPC_SERVER_V2, sign_automatically); // hybrid server (json-rpc 1.0 & 2.0)
 
