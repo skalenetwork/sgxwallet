@@ -110,13 +110,16 @@ int init_server(bool check_certs) {
     }
   }
 
-  hs = new HttpServer(1030, certPath, keyPath, rootCAPath, check_certs, 10);
+  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 10);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
   if (!s->StartListening()) {
     cerr << "SGX Server could not start listening" << endl;
     exit(-1);
+  }
+  else{
+    cerr << "SGX Server started on port " << BASE_PORT << endl;
   }
   return 0;
 }
