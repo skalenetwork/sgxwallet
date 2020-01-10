@@ -59,7 +59,13 @@
 
 #define FILE_NOT_FOUND -44
 
-#define SGX_ENCLAVE_ERROR -666;
+#define FAIL_TO_CREATE_CERTIFICATE -55
+
+#define SGX_ENCLAVE_ERROR -666
+
+#define MAX_CSR_NUM 1000
+
+#define BASE_PORT 1026
 
 #define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"//
 #define ENCLAVE_NAME "secure_enclave.signed.so"

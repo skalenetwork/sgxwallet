@@ -42,6 +42,9 @@ static ReadOptions readOptions;
 
 
 LevelDB* levelDb = nullptr;
+LevelDB* csrDb = nullptr;
+LevelDB* csrStatusDb = nullptr;
+
 
 std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
@@ -54,6 +57,10 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
     }
 
     auto status = db->Get(readOptions, _key, &*result);
+
+//    if (result == nullptr) {
+//      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
+//    }
 
     std::cerr << "key to read from db: " << _key <<std::endl;
 
@@ -166,8 +173,6 @@ void LevelDB::throwExceptionOnError(Status _status) {
 
 uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVisit) {
 
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
     uint64_t readCounter = 0;
 
     leveldb::Iterator *it = db->NewIterator(readOptions);
@@ -183,6 +188,40 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVi
 
     return readCounter;
 }
+
+std::vector<std::string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
+  uint64_t readCounter = 0;
+  std::vector<std::string> keys;
+
+  leveldb::Iterator *it = db->NewIterator(readOptions);
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    std::string cur_key(it->key().data(), it->key().size());
+    keys.push_back(cur_key);
+   // keys.push_back(it->key().data());
+    readCounter++;
+    if (readCounter >= _maxKeysToVisit) {
+      break;
+    }
+  }
+
+  delete it;
+
+  return keys;
+}
+
+void LevelDB::writeDataUnique(const std::string & Name, const std::string &value) {
+
+  auto key = Name;
+
+  if (readString(Name) != nullptr) {
+    std::cerr << "name " << Name << " already exists" << std::endl;
+    throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
+  }
+
+  writeString(key, value);
+  std::cerr << Name << " is written to db " << std::endl;
+}
+
 
 LevelDB::LevelDB(std::string &filename) {
 

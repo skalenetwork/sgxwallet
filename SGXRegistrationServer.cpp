@@ -22,8 +22,9 @@
 #include <functional>
 
 #include "SGXRegistrationServer.h"
+#include "LevelDB.h"
 
-SGXRegistrationServer *sr = nullptr;
+SGXRegistrationServer *regs = nullptr;
 HttpServer *hs2 = nullptr;
 
 bool cert_created = false;
@@ -33,49 +34,53 @@ void set_cert_created1(bool b){
   cert_created = b;
 }
 
-
 SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
                                  serverVersion_t type, bool auto_sign)
     : AbstractRegServer(connector, type), is_cert_created(false), cert_auto_sign(auto_sign) {}
 
 
-Json::Value SignSertificateImpl(const std::string& cert, bool auto_sign = false){
+Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
   try{
-    //std::hash = cryptlite::sha256::hash_hex(cert);
+    std::cerr << " enter SignCertificateImpl " << std::endl;
 
-    std::cerr << " going to create csr" << std::endl;
+    std::string status = "1";
+    std::string hash = cryptlite::sha256::hash_hex(csr);
+    if ( !auto_sign) {
+      std::string db_key = "CSR:HASH:" + hash;
+      csrDb->writeDataUnique(db_key, csr);
+    }
 
+    if (auto_sign) {
+      std::string csr_name = "cert/" + hash + ".csr";
+      std::ofstream outfile(csr_name);
+      outfile << csr << std::endl;
+      outfile.close();
+      if (access(csr_name.c_str(), F_OK) != 0) {
+        throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
+      }
 
+      std::string genCert = "cd cert && ./create_client_cert " + hash;
 
-  std::ofstream outfile ("cert/client.csr");
-  outfile << cert << std::endl;
-  outfile.close();
-  std::string csrPath = "cert/client.csr";
-  if (access(csrPath.c_str(), F_OK) != 0){
-    throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
-  }
-  result["result"] = true;
-  std::thread thr(set_cert_created1, true);
-  thr.detach();
-
-
-
- // std::thread timeout_thr (std::bind(&SGXRegistrationServer::set_cert_created, this, true));
-
-  if (auto_sign) {
-    std::string genCert = "cd cert && ./create_client_cert";
-
-        if (system(genCert.c_str()) == 0){
+      if (system(genCert.c_str()) == 0){
           std::cerr << "CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-        }
-        else{
+          status = "0";
+      }
+      else{
           std::cerr << "CLIENT CERTIFICATE GENERATION FAILED" << std::endl;
-          exit(-1);
-        }
-  }
+          throw RPCException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
+          //exit(-1);
+      }
+    }
+
+    result["result"] = true;
+    result["hash"] = hash;
+
+    std::string db_key = "CSR:HASH:" + hash + "STATUS:";
+    csrStatusDb->writeDataUnique(db_key, status);
+
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
     result["status"] = _e.status;
@@ -88,31 +93,49 @@ Json::Value SignSertificateImpl(const std::string& cert, bool auto_sign = false)
 
 Json::Value GetSertificateImpl(const std::string& hash){
   Json::Value result;
-  result["status"] = 0;
+  result["status"] = 1;
   result["errorMessage"] = "";
   std::string cert;
   try{
-    if (!cert_created){
-      result["status"] = 1;
-      result["cert"] = "";
+//    std::string rejected_name = "rejected_" + hash + ".txt";
+//    if (access(rejected_name.c_str(), F_OK) == 0){
+//      result["status"] = 2;
+//      result["cert"] = "";
+//      return result;
+//    }
+
+    std::string db_key = "CSR:HASH:" + hash + "STATUS:";
+    std::shared_ptr<string> status_str_ptr = csrStatusDb->readString(db_key);
+    if (status_str_ptr == nullptr){
+       throw RPCException(FILE_NOT_FOUND, "Data with this name does not exist in csr db");
     }
-    else {
-      std::ifstream infile("cert/client.crt");
-      if (!infile.is_open()) {
-        throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
-      } else {
-        ostringstream ss;
-        ss << infile.rdbuf();
-        cert = ss.str();
+    int status = std::atoi(status_str_ptr->c_str());
 
-        infile.close();
 
-        system("cd cert && rm -rf client.crt");
+    if ( status == 0){
+      std::string crt_name = "cert/" + hash + ".crt";
+      //if (access(crt_name.c_str(), F_OK) == 0){
+        std::ifstream infile(crt_name);
+        if (!infile.is_open()) {
+          throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
+        } else {
+          ostringstream ss;
+          ss << infile.rdbuf();
+          cert = ss.str();
 
-        result["cert"] = cert;
-        result["status"] = 0;
+          infile.close();
+          std::string remove_crt = "cd cert && rm -rf" + hash + ".crt";
+          system(remove_crt.c_str());
+
+//        result["cert"] = cert;
+//        result["status"] = 0;
       }
     }
+//    else if (access(crt_name.c_str(), F_OK) != 0){
+//      result["status"] = 1;
+//      result["cert"] = "";
+//    }
+
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
     result["status"] = _e.status;
@@ -124,10 +147,10 @@ Json::Value GetSertificateImpl(const std::string& hash){
 }
 
 
-Json::Value SGXRegistrationServer::SignCertificate(const std::string& cert){
+Json::Value SGXRegistrationServer::SignCertificate(const std::string& csr){
   std::cerr << "Enter SignCertificate " << std::endl;
   lock_guard<recursive_mutex> lock(m);
-  return SignSertificateImpl(cert, cert_auto_sign);
+  return SignCertificateImpl(csr, cert_auto_sign);
 }
 
 Json::Value SGXRegistrationServer::GetCertificate(const std::string& hash){
@@ -161,13 +184,20 @@ int init_registration_server(bool sign_automatically) {
 //    }
 //  }
 
-  hs2 = new HttpServer(1031);
-  sr = new SGXRegistrationServer(*hs2,
+  hs2 = new HttpServer(BASE_PORT + 1);
+  regs = new SGXRegistrationServer(*hs2,
                                  JSONRPC_SERVER_V2, sign_automatically); // hybrid server (json-rpc 1.0 & 2.0)
 
-  if (!sr->StartListening()) {
+  if (!regs->StartListening()) {
     cerr << "Registration server could not start listening" << endl;
     exit(-1);
   }
+  else {
+    cerr << "Registration Server started on port " << BASE_PORT + 1 << endl;
+  }
+
+
+
   return 0;
 }
+

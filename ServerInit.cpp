@@ -46,8 +46,8 @@
 #include "LevelDB.h"
 
 #include "SGXWalletServer.h"
-
 #include "SGXRegistrationServer.h"
+#include "CSRManagerServer.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
@@ -63,9 +63,13 @@ void init_daemon() {
     libff::init_alt_bn128_params();
 
     static std::string dbName("./" WALLETDB_NAME);
-
-
     levelDb = new LevelDB(dbName);
+
+    static std::string csr_dbname = "CSR_DB";
+    csrDb = new LevelDB(csr_dbname);
+
+    static std::string csr_status_dbname = "CSR_STATUS_DB";
+    csrStatusDb = new LevelDB(csr_status_dbname);
 
 }
 
@@ -117,8 +121,6 @@ int sgxServerInited = 0;
 
 void init_all(bool check_cert, bool sign_automatically) {
 
-
-
     if (sgxServerInited == 1)
         return;
 
@@ -126,6 +128,7 @@ void init_all(bool check_cert, bool sign_automatically) {
 
     init_server(check_cert);
     init_registration_server(sign_automatically);
+    init_csrmanager_server();
     init_enclave();
     std::cerr << "enclave inited" << std::endl;
     init_daemon();
