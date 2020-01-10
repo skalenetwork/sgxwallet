@@ -25,6 +25,7 @@
 #define SGXD_ABSTRACTREGSERVER_H
 
 #include <jsonrpccpp/server.h>
+#include <iostream>
 
 class AbstractRegServer : public jsonrpc::AbstractServer<AbstractRegServer>
 {
@@ -37,7 +38,8 @@ public:
 
   inline virtual void SignCertificateI(const Json::Value &request, Json::Value &response)
   {
-    response = this->SignCertificate( request["certificate"].asString());
+      std::cerr << "SignCertificateI in abstr server " << std::endl;
+      response = this->SignCertificate( request["certificate"].asString());
   }
   inline virtual void GetCertificateI(const Json::Value &request, Json::Value &response)
   {

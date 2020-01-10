@@ -136,7 +136,7 @@ char* encryptTestKey() {
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
 
 
-    init_all();
+    init_all(false, false);
     char* key = encryptTestKey();
     REQUIRE(key != nullptr);
 
@@ -147,7 +147,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     {
 
 
-        init_all();
+        init_all(false, false);
 
         int errStatus =  -1;
         char* errMsg = (char*) calloc(BUF_LEN, 1);
@@ -173,7 +173,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 TEST_CASE("BLS key import", "[bls-key-import]") {
     reset_db();
-    init_all();
+    init_all(false, false);
 
 
 
@@ -215,7 +215,8 @@ TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
 
     reset_db();
 
-    init_all();
+    init_all(false, false);
+
 
     auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
 
@@ -741,7 +742,7 @@ std::string ConvertDecToHex(std::string dec, int numBytes = 32){
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   std::cerr<< "test started" << std::endl;
-  init_all();
+  init_all(false, false);
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1028");
   StubClient c(client, JSONRPC_CLIENT_V2);
@@ -857,7 +858,7 @@ TEST_CASE("API test", "[api_test]") {
 
   //std::cerr << __GNUC__ << std::endl;
     cerr << "API test started" << endl;
-    init_all();
+    init_all(false, false);
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -956,7 +957,7 @@ TEST_CASE("API test", "[api_test]") {
 }
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
-  init_all();
+  init_all( false, false );
   HttpClient client("http://localhost:1028");
   StubClient c(client, JSONRPC_CLIENT_V2);
 

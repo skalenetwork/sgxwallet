@@ -63,7 +63,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional Automake flags needed to build the enclave.
 ##
 
-AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I../trusted_libff  -I../sgx-sdk-build/sgxsdk/include/libcxx \
+AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./trusted_libff -I../trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS += -fno-builtin
 
@@ -79,7 +79,7 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 ## SGX_EDGER8R_FLAGS=
 
 
-## Put your sources here. Don't forget to list the _t.c and _t.h 
+## Put your sources here. Don't forget to list the _t.c and _t.h
 ## files. You can't use the $(ENCLAVE) variable in the build
 ## target name (i.e., $(ENCLAVE)_SOURCES will not work).
 
@@ -91,16 +91,16 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 
-## Add additional linker flags to AM_LDFLAGS here. Don't put 
+## Add additional linker flags to AM_LDFLAGS here. Don't put
 ## libraries flags here (see below).
 ##
-## Be sure to use += to add to, and not replace, the default 
+## Be sure to use += to add to, and not replace, the default
 ## AM_LDFLAGS.
 
-AM_LDFLAGS += $(TGMP_LDFLAGS)
+AM_LDFLAGS += $(TGMP_LDFLAGS) -L./tgmp-build/lib -L../tgmp-build/lib
 
 
-## This line is REQUIRED. It can't be generically defined for 
+## This line is REQUIRED. It can't be generically defined for
 ## automake, so you must specify it for your enclave. Note that you
 ## can't say $(ENCLAVE)_LDADD here: you must spell out the enclave name.
 ## If you add flags to it, you MUST include @SGX_ENCLAVE_LDADD@ as part
@@ -111,7 +111,7 @@ secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 
 
 ## Place any additional trusted libraries that your enclave may need in
-## SGX_EXTRA_TLIBS. This will ensure they get place inside the 
+## SGX_EXTRA_TLIBS. This will ensure they get place inside the
 ## --startgroup and --endgroup flags. (This would be where you'd add
 ## SGXSSL libraries, and your trusted c++ library
 
@@ -123,9 +123,8 @@ SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ss
 ##
 ## In general, you shouldn't need to use the program-specific LDFLAGS
 ## instead of AM_LDFLAGS. But, if you need to, then you'll need to ensure
-## @SGX_ENCLAVE_LDFLAGS@ is included in the definition as this will 
+## @SGX_ENCLAVE_LDFLAGS@ is included in the definition as this will
 ## override AM_LDFLAGS.
 ##
 ## secure_enclave_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 ##
-

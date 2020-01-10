@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#sign csr
+yes | openssl ca -config ca.config -in "client.csr" -out "client.crt"

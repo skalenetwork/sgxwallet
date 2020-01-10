@@ -31,7 +31,7 @@
 #endif
 
 
-EXTERNC int init_server();
+EXTERNC int init_server(bool check_certs );
 
 
 

@@ -1,2 +1,2 @@
-apt install -y libprotobuf10 cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
-dpkg -i libsgx-enclave-common_2.5.101.50123-bionic1_amd64.deb
+sudo dpkg -i *.deb
+sudo apt install cmake flex bison yasm ccache autoconf texinfo libgcrypt20-dev libgnutls28-dev
