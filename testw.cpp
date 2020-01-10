@@ -957,7 +957,7 @@ TEST_CASE("API test", "[api_test]") {
 }
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
-  init_all();
+  init_all( false, false );
   HttpClient client("http://localhost:1028");
   StubClient c(client, JSONRPC_CLIENT_V2);
 
