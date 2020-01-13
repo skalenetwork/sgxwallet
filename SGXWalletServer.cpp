@@ -1,6 +1,8 @@
-//
-// Created by kladko on 05.09.19.
-//
+/*
+
+    Modifications Copyright (C) 2019-Present SKALE Labs
+    
+*/
 
 
 /*************************************************************************
@@ -759,6 +761,10 @@ Json::Value SGXWalletServer::MultG2(const std::string& x){
     return MultG2Impl(x);
 }
 
+Json::Value SGXWalletServer::getServerStatus() {
+  lock_guard<recursive_mutex> lock(m);
+  return getServerStatusImpl();
+}
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 

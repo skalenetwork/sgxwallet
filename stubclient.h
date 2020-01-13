@@ -26,6 +26,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -40,6 +41,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value importECDSAKey(const std::string& key, const std::string& keyName) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -51,6 +53,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value generateECDSAKey() throw (jsonrpc::JsonRpcException)
         {
           Json::Value p;
@@ -61,6 +64,7 @@ class StubClient : public jsonrpc::Client
           else
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) throw (jsonrpc::JsonRpcException)
         {
           Json::Value p;
@@ -72,6 +76,7 @@ class StubClient : public jsonrpc::Client
           else
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value getPublicECDSAKey(const std::string& keyName) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -82,6 +87,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -94,6 +100,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
+
         Json::Value generateDKGPoly(const std::string& polyName, int t) throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -105,98 +112,103 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
-    Json::Value getVerificationVector(const std::string& polyName, int t, int n) throw (jsonrpc::JsonRpcException)
-    {
-        Json::Value p;
-        p["polyName"] = polyName;
-        p["n"] = n;
-        p["t"] = t;
-        Json::Value result = this->CallMethod("getVerificationVector",p);
-        if (result.isObject())
+
+        Json::Value getVerificationVector(const std::string& polyName, int t, int n) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["polyName"] = polyName;
+            p["n"] = n;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("getVerificationVector",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["polyName"] = polyName;
+            p["publicKeys"] = publicKeys;
+            p["n"] = n;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("getSecretShare",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value DKGVerification(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["EthKeyName"] = EthKeyName;
+            p["SecretShare"] = SecretShare;
+            p["index"] = index;
+            p["n"] = n;
+            p["publicShares"] = publicShares;
+            p["t"] = t;
+            Json::Value result = this->CallMethod("DKGVerification",p);
+            if (result.isObject())
+              return result;
+            else
+              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) throw (jsonrpc::JsonRpcException)
+        {
+          Json::Value p;
+          p["BLSKeyName"] = BLSKeyName;
+          p["EthKeyName"] = EthKeyName;
+          p["polyName"] = polyName;
+          p["SecretShare"] = SecretShare;
+          p["n"] = n;
+          p["t"] = t;
+          Json::Value result = this->CallMethod("CreateBLSPrivateKey",p);
+          if (result.isObject())
+           return result;
+          else
+           throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["BLSKeyName"] = BLSKeyName;
+
+            Json::Value result = this->CallMethod("GetBLSPublicKeyShare",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value ComplaintResponse(const std::string& polyName, int ind) throw (jsonrpc::JsonRpcException)
+        {
+          Json::Value p;
+          p["polyName"] = polyName;
+          p["ind"] = ind;
+          Json::Value result = this->CallMethod("ComplaintResponse",p);
+          if (result.isObject())
             return result;
-        else
+          else
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
-    Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) throw (jsonrpc::JsonRpcException)
-    {
-        Json::Value p;
-        p["polyName"] = polyName;
-        p["publicKeys"] = publicKeys;
-        p["n"] = n;
-        p["t"] = t;
-        Json::Value result = this->CallMethod("getSecretShare",p);
-        if (result.isObject())
-            return result;
-        else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
-    Json::Value DKGVerification(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index) throw (jsonrpc::JsonRpcException)
-    {
-        Json::Value p;
-        p["EthKeyName"] = EthKeyName;
-        p["SecretShare"] = SecretShare;
-        p["index"] = index;
-        p["n"] = n;
-        p["publicShares"] = publicShares;
-        p["t"] = t;
-        Json::Value result = this->CallMethod("DKGVerification",p);
-        if (result.isObject())
-          return result;
-        else
-          throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
-    Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) throw (jsonrpc::JsonRpcException)
-    {
-      Json::Value p;
-      p["BLSKeyName"] = BLSKeyName;
-      p["EthKeyName"] = EthKeyName;
-      p["polyName"] = polyName;
-      p["SecretShare"] = SecretShare;
-      p["n"] = n;
-      p["t"] = t;
-      Json::Value result = this->CallMethod("CreateBLSPrivateKey",p);
-      if (result.isObject())
-       return result;
-      else
-       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
+        }
 
-    Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) throw (jsonrpc::JsonRpcException)
-    {
-        Json::Value p;
-        p["BLSKeyName"] = BLSKeyName;
+        Json::Value MultG2(const std::string & x) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["x"] = x;
 
-        Json::Value result = this->CallMethod("GetBLSPublicKeyShare",p);
-        if (result.isObject())
-            return result;
-        else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
+            Json::Value result = this->CallMethod("MultG2",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
 
-    Json::Value ComplaintResponse(const std::string& polyName, int ind) throw (jsonrpc::JsonRpcException)
-    {
-      Json::Value p;
-      p["polyName"] = polyName;
-      p["ind"] = ind;
-      Json::Value result = this->CallMethod("ComplaintResponse",p);
-      if (result.isObject())
-        return result;
-      else
-        throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
-
-    Json::Value MultG2(const std::string & x) throw (jsonrpc::JsonRpcException)
-    {
-        Json::Value p;
-        p["x"] = x;
-
-        Json::Value result = this->CallMethod("MultG2",p);
-        if (result.isObject())
-            return result;
-        else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-    }
-
+<<<<<<< HEAD
 
     ////CSRManagerServer
 
@@ -225,6 +237,18 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
 
+=======
+        Json::Value getServerStatus() throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p = Json::nullValue;
+            Json::Value result = this->CallMethod("getServerStatus",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+>>>>>>> 5544e74f0cf62f21722c73e0368b5280879da99a
 };
 
 #endif //JSONRPC_CPP_STUB_STUBCLIENT_H_

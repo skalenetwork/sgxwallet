@@ -1,5 +1,7 @@
 /*
 
+Modifications Copyright (C) 2019 SKALE Labs
+
 Copyright 2018 Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
@@ -954,4 +956,11 @@ TEST_CASE("API test", "[api_test]") {
   sgx_destroy_enclave(eid);
 }
 
+TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
+  init_all( false, false );
+  HttpClient client("http://localhost:1028");
+  StubClient c(client, JSONRPC_CLIENT_V2);
 
+  REQUIRE(c.getServerStatus()["status"] == 0);
+  sgx_destroy_enclave(eid);
+}
