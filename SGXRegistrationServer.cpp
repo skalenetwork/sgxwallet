@@ -70,6 +70,8 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
       }
       else{
           std::cerr << "CLIENT CERTIFICATE GENERATION FAILED" << std::endl;
+          std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
+          csrStatusDb->writeDataUnique(status_db_key, std::to_string(FAIL_TO_CREATE_CERTIFICATE));
           throw RPCException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
           //exit(-1);
       }
@@ -93,21 +95,13 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
 
 Json::Value GetSertificateImpl(const std::string& hash){
   Json::Value result;
-  result["status"] = 1;
-  result["errorMessage"] = "";
+
   std::string cert;
   try{
-//    std::string rejected_name = "rejected_" + hash + ".txt";
-//    if (access(rejected_name.c_str(), F_OK) == 0){
-//      result["status"] = 2;
-//      result["cert"] = "";
-//      return result;
-//    }
-
     std::string db_key = "CSR:HASH:" + hash + "STATUS:";
     std::shared_ptr<string> status_str_ptr = csrStatusDb->readString(db_key);
     if (status_str_ptr == nullptr){
-       throw RPCException(FILE_NOT_FOUND, "Data with this name does not exist in csr db");
+       throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
     }
     int status = std::atoi(status_str_ptr->c_str());
 
@@ -117,6 +111,9 @@ Json::Value GetSertificateImpl(const std::string& hash){
       //if (access(crt_name.c_str(), F_OK) == 0){
         std::ifstream infile(crt_name);
         if (!infile.is_open()) {
+          std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
+          csrStatusDb->deleteKey(status_db_key);
+          csrStatusDb->writeDataUnique(status_db_key, std::to_string(FILE_NOT_FOUND));
           throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
         } else {
           ostringstream ss;
@@ -124,23 +121,19 @@ Json::Value GetSertificateImpl(const std::string& hash){
           cert = ss.str();
 
           infile.close();
-          std::string remove_crt = "cd cert && rm -rf" + hash + ".crt";
+          std::string remove_crt = "cd cert && rm -rf" + hash + ".crt && rm -rf " + hash + ".csr";
           system(remove_crt.c_str());
 
-//        result["cert"] = cert;
-//        result["status"] = 0;
       }
     }
-//    else if (access(crt_name.c_str(), F_OK) != 0){
-//      result["status"] = 1;
-//      result["cert"] = "";
-//    }
+
+    result["status"] = status;
+    result["cert"] = cert;
 
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
-    result["status"] = 1;
   }
 
   return result;

@@ -29,9 +29,7 @@ Json::Value GetUnsignedCSRsImpl(){
 
   try{
     std::vector<std::string> hashes_vect = csrDb->writeKeysToVector1(MAX_CSR_NUM);
-    //std::cerr << " vector size is " << hashes_vect.size() << std::endl;
     for (int i = 0; i < hashes_vect.size(); i++){
-      //std::cerr << " vector element is " << hashes_vect.at(i) << std::endl;
       result["hashes"][i] = hashes_vect.at(i);
     }
   } catch (RPCException &_e) {
@@ -55,6 +53,9 @@ Json::Value SignByHashImpl(const std::string& hash, int status){
 
     std::string csr_db_key = "CSR:HASH:" + hash;
     std::shared_ptr<std::string> csr_ptr = csrDb->readString(csr_db_key);
+    if (csr_ptr == nullptr){
+      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "HASH DOES NOT EXIST IN DB");
+    }
 
     if (status == 0) {
       std::string csr_name = "cert/" + hash + ".csr";
@@ -62,6 +63,7 @@ Json::Value SignByHashImpl(const std::string& hash, int status){
       outfile << *csr_ptr << std::endl;
       outfile.close();
       if (access(csr_name.c_str(), F_OK) != 0) {
+        csrDb->deleteKey(csr_db_key);
         throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
       }
 
