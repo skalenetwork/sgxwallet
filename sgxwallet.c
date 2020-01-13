@@ -63,16 +63,15 @@ int main(int argc, char *argv[]) {
 
   while ((opt = getopt(argc, argv, "csh")) != -1) {
     switch (opt) {
-//    case 'h':
-//      if (strlen(argv[1]) == 2 ) {
-//        fprintf(stderr, "-c  client certificate will not be checked\n");
-//        fprintf(stderr, "-s  client certificate will be signed automatically\n");
-//        exit(0);
-//      } else {
-//        fprintf(stderr, "unknown flag %s\n", argv[1]);
-//        exit(1);
-//      }
-
+    case 'h':
+      if (strlen(argv[1]) == 2 ) {
+        fprintf(stderr, "-c  client certificate will not be checked\n");
+        fprintf(stderr, "-s  client certificate will be signed automatically\n");
+        exit(0);
+      } else {
+        fprintf(stderr, "unknown flag %s\n", argv[1]);
+        exit(1);
+      }
     case 'c':
       check_client_cert = false;
       break;

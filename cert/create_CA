@@ -8,6 +8,7 @@ openssl req -x509 -sha256 -nodes -days 1024 -newkey rsa:2048 -key rootCA.key -ou
 
 mkdir new_certs
 touch index.txt
+touch index.txt.attr
 echo "01" > serial
 
 

@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <mutex>
+#include <vector>
 
 namespace leveldb {
     class DB;
@@ -49,7 +50,7 @@ public:
 
     void writeString(const std::string &key1, const std::string &value1);
 
-
+    void writeDataUnique(const std::string & Name, const std::string &value);
 
     void writeByteArray(const char *_key, size_t _keyLen, const char *value,
                         size_t _valueLen);
@@ -80,9 +81,12 @@ public:
     class KeyVisitor {
     public:
         virtual void visitDBKey(const char* _data) = 0;
+        virtual void writeDBKeysToVector(const char* _data, std::vector<const char*> & keys_vect) {}
     };
 
     uint64_t visitKeys(KeyVisitor* _visitor, uint64_t _maxKeysToVisit);
+
+    std::vector<std::string> writeKeysToVector1(uint64_t _maxKeysToVisit);
 
     virtual ~LevelDB();
 
@@ -91,5 +95,9 @@ public:
 
 
 extern LevelDB* levelDb;
+
+extern LevelDB* csrDb;
+
+extern LevelDB* csrStatusDb;
 
 #endif

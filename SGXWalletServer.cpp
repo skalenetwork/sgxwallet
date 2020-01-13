@@ -112,7 +112,7 @@ int init_server(bool check_certs) {
     }
   }
 
-  hs = new HttpServer( 1026, certPath, keyPath, rootCAPath, check_certs, 10);
+  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 10);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -120,13 +120,16 @@ int init_server(bool check_certs) {
     cerr << "SGX Server could not start listening" << endl;
     exit(-1);
   }
+  else{
+    cerr << "SGX Server started on port " << BASE_PORT << endl;
+  }
   return 0;
 }
 
 
-//int init_server() { //without ssl
+//int init_server(bool check_certs) { //without ssl
 //
-//  hs = new HttpServer(1028);
+//  hs = new HttpServer(1026);
 //  s = new SGXWalletServer(*hs,
 //                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 //  if (!s->StartListening()) {
@@ -673,13 +676,14 @@ Json::Value MultG2Impl(const std::string& x){
 }
 
 Json::Value getServerStatusImpl() {
-  
+
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
 
   return result;
 }
+
 
 Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
   std::cerr << "entered generateDKGPoly" << std::endl;
@@ -762,8 +766,8 @@ Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int 
 }
 
 Json::Value SGXWalletServer::MultG2(const std::string& x){
-  lock_guard<recursive_mutex> lock(m);
-  return MultG2Impl(x);
+    lock_guard<recursive_mutex> lock(m);
+    return MultG2Impl(x);
 }
 
 Json::Value SGXWalletServer::getServerStatus() {

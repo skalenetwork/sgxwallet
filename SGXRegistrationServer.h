@@ -44,13 +44,14 @@ public:
 
   void set_cert_created(bool b);
 
-  virtual Json::Value SignCertificate(const std::string& cert);
+  virtual Json::Value SignCertificate(const std::string& csr);
   virtual Json::Value GetCertificate(const std::string& hash);
 
 };
 
 
 extern int init_registration_server(bool sign_automatically = false);
+
 
 
 #endif // SGXD_SGXREGISTRATIONSERVER_H
