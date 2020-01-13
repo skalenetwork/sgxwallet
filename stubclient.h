@@ -208,7 +208,6 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-<<<<<<< HEAD
 
     ////CSRManagerServer
 
@@ -237,7 +236,7 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
     }
 
-=======
+
         Json::Value getServerStatus() throw (jsonrpc::JsonRpcException)
         {
             Json::Value p;
@@ -248,7 +247,7 @@ class StubClient : public jsonrpc::Client
             else
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
->>>>>>> 5544e74f0cf62f21722c73e0368b5280879da99a
+
 };
 
 #endif //JSONRPC_CPP_STUB_STUBCLIENT_H_

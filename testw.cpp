@@ -958,9 +958,8 @@ TEST_CASE("API test", "[api_test]") {
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
   init_all( false, false );
-  HttpClient client("http://localhost:1028");
+  HttpClient client("http://localhost:1026");
   StubClient c(client, JSONRPC_CLIENT_V2);
-
   REQUIRE(c.getServerStatus()["status"] == 0);
   sgx_destroy_enclave(eid);
 }

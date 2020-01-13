@@ -127,9 +127,9 @@ int init_server(bool check_certs) {
 }
 
 
-//int init_server() { //without ssl
+//int init_server(bool check_certs) { //without ssl
 //
-//  hs = new HttpServer(1028);
+//  hs = new HttpServer(1026);
 //  s = new SGXWalletServer(*hs,
 //                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 //  if (!s->StartListening()) {
@@ -673,6 +673,15 @@ Json::Value MultG2Impl(const std::string& x){
     }
 
     return result;
+}
+
+Json::Value getServerStatusImpl() {
+
+  Json::Value result;
+  result["status"] = 0;
+  result["errorMessage"] = "";
+
+  return result;
 }
 
 
