@@ -237,6 +237,7 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   if (!point_cmp(Pkey, Pkey_test)){
     snprintf(err_string, BUF_LEN,"Points are not equal");
     *err_status = -11;
+    return;
   }
 
   int base = 16;
@@ -264,6 +265,91 @@ void get_public_ecdsa_key(int *err_status, char *err_string,
   mpz_clear(skey_mpz);
   domain_parameters_clear(curve);
   point_clear(Pkey);
+}
+
+void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
+                 unsigned char* hash, char * sig_r, char * sig_s, uint8_t* sig_v, int base) {
+
+    domain_parameters curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
+
+    char skey[ECDSA_SKEY_LEN];
+
+    sgx_status_t status = sgx_unseal_data(
+            (const sgx_sealed_data_t *)encrypted_key, NULL, 0, skey, &dec_len);
+
+    if (status != SGX_SUCCESS) {
+        *err_status = status;
+        snprintf(err_string, BUF_LEN,"sgx_unseal_data failed - encrypted_key with status %d", status);
+        return;
+    }
+
+    snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
+    mpz_t skey_mpz;
+    mpz_init(skey_mpz);
+    if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
+        *err_status = -1;
+        snprintf(err_string, BUF_LEN ,"invalid secret key");
+        mpz_clear(skey_mpz);
+        return;
+    }
+
+    /*mpz_t test_skey;
+    mpz_init(test_skey);
+    mpz_set_str(test_skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
+
+    if(!mpz_cmp(skey,test_skey)){
+      snprintf(err_string, BUF_LEN,"keys are not equal ");
+    }*/
+
+    mpz_t msg_mpz;
+    mpz_init(msg_mpz);
+    if (mpz_set_str(msg_mpz, hash, 16) == -1){
+        *err_status = -1;
+        snprintf(err_string, BUF_LEN ,"invalid message hash");
+        mpz_clear(msg_mpz);
+        return;
+    }
+    //mpz_set_str(msg_mpz,"4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a", 16);
+
+    signature sign = signature_init();
+
+    signature_sign( sign, msg_mpz, skey_mpz, curve);
+
+    point Pkey = point_init();
+
+    signature_generate_key(Pkey, skey_mpz, curve);
+
+    if ( !signature_verify(msg_mpz, sign, Pkey, curve) ){
+        *err_status = -2;
+         snprintf(err_string, BUF_LEN,"signature is not verified! ");
+        return;
+    }
+
+    //char arr_x[mpz_sizeinbase (Pkey->x, 16) + 2];
+    //char* px = mpz_get_str(arr_x, 16, Pkey->x);
+    //snprintf(err_string, BUF_LEN,"pub key x %s ", arr_x);
+
+    char arr_m[mpz_sizeinbase (msg_mpz, 16) + 2];
+    char* msg = mpz_get_str(arr_m, 16, msg_mpz);
+    snprintf(err_string, BUF_LEN,"message is %s ", arr_m);
+
+    char arr_r[mpz_sizeinbase (sign->r, base) + 2];
+    char* r = mpz_get_str(arr_r, base, sign->r);
+    strncpy(sig_r, arr_r, 1024);
+
+    char arr_s[mpz_sizeinbase (sign->s, base) + 2];
+    char* s = mpz_get_str(arr_s, base, sign->s);
+    strncpy(sig_s, arr_s, 1024);
+
+    *sig_v = sign->v;
+
+    mpz_clear(skey_mpz);
+    mpz_clear(msg_mpz);
+    domain_parameters_clear(curve);
+    signature_clear(sign);
+    point_clear(Pkey);
+
 }
 
 
@@ -346,6 +432,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
             (const sgx_sealed_data_t *) encrypted_key, NULL, 0, (uint8_t *) key, &decLen);
 
     if (status != SGX_SUCCESS) {
+        *err_status = status;
         snprintf(err_string, BUF_LEN, "sgx_unseal_data failed with status %d", status);
         return;
     }
@@ -420,7 +507,10 @@ void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_s
 
   char* dkg_secret = (char*)malloc(DKG_BUFER_LENGTH);
 
-  gen_dkg_poly(dkg_secret, _t);
+  if (gen_dkg_poly(dkg_secret, _t) != 0 ){
+    *err_status = - 1;
+     return;
+  }
 
   snprintf(err_string, BUF_LEN,"poly is %s ", dkg_secret);
 
@@ -428,8 +518,10 @@ void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_s
 
   sgx_status_t status = sgx_seal_data(0, NULL, DKG_BUFER_LENGTH, (uint8_t*)dkg_secret, sealedLen,(sgx_sealed_data_t*)encrypted_dkg_secret);
 
-  if(  status !=  SGX_SUCCESS) {
+  if(status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"SGX seal data failed");
+    *err_status = status;
+    return;
   }
 
   *enc_len = sealedLen;
@@ -445,6 +537,7 @@ void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_d
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data - encrypted_dkg_secret failed with status %d", status);
+    *err_status = status;
     return;
   }
 
@@ -486,92 +579,14 @@ void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg
   }
   //strncpy(err_string, decrypted_dkg_secret, 1024);
   //  strncpy(err_string, "before calc_public_shares ", 1024);
-  calc_public_shares(decrypted_dkg_secret, public_shares, _t);
-  free(decrypted_dkg_secret);
-}
-
-void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
-                         unsigned char* hash, char * sig_r, char * sig_s, uint8_t* sig_v, int base) {
-
-  domain_parameters curve = domain_parameters_init();
-  domain_parameters_load_curve(curve, secp256k1);
-
-  char skey[ECDSA_SKEY_LEN];
-
-  sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_key, NULL, 0, skey, &dec_len);
-
-  if (status != SGX_SUCCESS) {
-    snprintf(err_string, BUF_LEN,"sgx_unseal_data failed - encrypted_key with status %d", status);
+  if ( calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0 ){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"t does not match polynomial in db");
     return;
   }
-
-  snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
-  mpz_t skey_mpz;
-  mpz_init(skey_mpz);
-  if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
-      *err_status = 1;
-      snprintf(err_string, BUF_LEN ,"invalid secret key");
-      mpz_clear(skey_mpz);
-      return;
-  }
-
-  /*mpz_t test_skey;
-  mpz_init(test_skey);
-  mpz_set_str(test_skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
-
-  if(!mpz_cmp(skey,test_skey)){
-    snprintf(err_string, BUF_LEN,"keys are not equal ");
-  }*/
-
-  mpz_t msg_mpz;
-  mpz_init(msg_mpz);
-  if (mpz_set_str(msg_mpz, hash, 16) == -1){
-      *err_status = 1;
-      snprintf(err_string, BUF_LEN ,"invalid message hash");
-      mpz_clear(msg_mpz);
-      return;
-  }
-  //mpz_set_str(msg_mpz,"4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a", 16);
-
-  signature sign = signature_init();
-
-  signature_sign( sign, msg_mpz, skey_mpz, curve);
-
-  point Pkey = point_init();
-
-  signature_generate_key(Pkey, skey_mpz, curve);
-
-  if ( !signature_verify(msg_mpz, sign, Pkey, curve) ){
-    snprintf(err_string, BUF_LEN,"signature is not verified! ");
-    return;
-  }
-
-  //char arr_x[mpz_sizeinbase (Pkey->x, 16) + 2];
-  //char* px = mpz_get_str(arr_x, 16, Pkey->x);
-  //snprintf(err_string, BUF_LEN,"pub key x %s ", arr_x);
-
-  char arr_m[mpz_sizeinbase (msg_mpz, 16) + 2];
-  char* msg = mpz_get_str(arr_m, 16, msg_mpz);
-  snprintf(err_string, BUF_LEN,"message is %s ", arr_m);
-
-  char arr_r[mpz_sizeinbase (sign->r, base) + 2];
-  char* r = mpz_get_str(arr_r, base, sign->r);
-  strncpy(sig_r, arr_r, 1024);
-
-  char arr_s[mpz_sizeinbase (sign->s, base) + 2];
-  char* s = mpz_get_str(arr_s, base, sign->s);
-  strncpy(sig_s, arr_s, 1024);
-
-  *sig_v = sign->v;
-
-  mpz_clear(skey_mpz);
-  mpz_clear(msg_mpz);
-  domain_parameters_clear(curve);
-  signature_clear(sign);
-  point_clear(Pkey);
-
 }
+
+
 
 void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypted_poly){
 
@@ -596,6 +611,9 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
   uint32_t enc_len;
 
   generate_ecdsa_key(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+  if ( *err_status != 0){
+    return;
+  }
  // snprintf(err_string, BUF_LEN,"pub_key_x is %s", pub_key_x);
 
  *dec_len = enc_len;
@@ -605,6 +623,7 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
 
   if (status != SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed - encrypted_skey with status %d", status);
+    *err_status = status;
     return;
   }
   snprintf(err_string, BUF_LEN,"unsealed random skey is %s\n", skey);
@@ -617,10 +636,18 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
   char* s_share = (char *)malloc(65);
   //char s_share[65];
 
-  calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind);
+  if (calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind) != 0){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"\nt does not match poly degree\n");
+    return;
+  }
   snprintf(err_string + 88, BUF_LEN,"\nsecret share is %s", s_share);
 
-  calc_secret_shareG2(s_share, s_shareG2);
+  if (calc_secret_shareG2(s_share, s_shareG2) != 0){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"invalid decr secret share\n");
+    return;
+  }
 
   char* cypher = (char *)malloc(65);
   xor_encrypt(common_key, s_share, cypher);
@@ -683,6 +710,7 @@ void dkg_verification(int *err_status, char* err_string, const char * public_sha
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t*)skey, &key_len);
   if (status != SGX_SUCCESS) {
+    *err_status = status;
     snprintf(err_string, BUF_LEN,"sgx_unseal_key failed with status %d", status);
     return;
   }
@@ -770,6 +798,7 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     if (common_key == NULL){
       *err_status = 1;
       snprintf(err_string, BUF_LEN ,"invalid common_key");
+      mpz_clear(sum);
       return;
     }
 
@@ -782,6 +811,7 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     if (decr_sshare == NULL){
         *err_status = 1;
         snprintf(err_string, BUF_LEN ,"invalid common_key");
+        mpz_clear(sum);
         return;
     }
     //decr_sshare[64] = 0;
@@ -790,13 +820,12 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     //snprintf(err_string + 158 * i + 79, BUF_LEN," common_key is %s", common_key);
 
 
-
-
     mpz_t decr_secret_share;
     mpz_init(decr_secret_share);
     if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1){
         *err_status = 1;
         snprintf(err_string, BUF_LEN ,"invalid decrypted secret share");
+        mpz_clear(decr_secret_share);
         return;
     }
 
@@ -823,6 +852,9 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
    if( status !=  SGX_SUCCESS) {
     *err_status= -1;
     snprintf(err_string, BUF_LEN,"seal bls private key failed with status %d ", status);
+    mpz_clear(bls_key);
+    mpz_clear(sum);
+    mpz_clear(q);
     return;
    }
   *enc_bls_key_len = sealedLen;
@@ -850,11 +882,16 @@ void get_bls_pub_key(int *err_status, char* err_string, uint8_t* encrypted_key, 
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_key, NULL, 0, (uint8_t *)skey_hex, &len);
   if (status != SGX_SUCCESS) {
+    *err_status = 1;
     snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status %d", status);
     return;
   }
 
-  calc_bls_public_key(skey_hex, bls_pub_key);
+  if (calc_bls_public_key(skey_hex, bls_pub_key) != 0){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"could not calculate bls public key");
+    return;
+  }
 }
 
 
