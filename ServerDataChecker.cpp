@@ -158,6 +158,10 @@ bool check_n_t ( const int t, const int n){
     return false;
   }
 
+  if (n > 32){
+    return false;
+  }
+
   if ( t < 0 || n < 0){
     return false;
   }

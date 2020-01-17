@@ -65,7 +65,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 
 AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./trusted_libff -I../trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
-AM_CXXFLAGS += -fno-builtin
+AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
 ## Additional files to remove with 'make clean'. This list needs
