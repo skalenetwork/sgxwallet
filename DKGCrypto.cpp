@@ -254,8 +254,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
 
 
       // std::cerr << "encr_sshare length is " << strlen(encr_sshare) << std::endl; std::cerr << "public shares " << publicShares << std::endl;
-      std::cerr << "publicShares length is " << strlen(publicShares)
-                << std::endl;
+      std::cerr << "publicShares length is " << std::char_traits<char>::length(publicShares)<<std::endl; //strlen(publicShares)<< std::endl;
     }
     char pshares[8193];
     strncpy(pshares, publicShares, strlen(publicShares) + 1);
@@ -372,6 +371,7 @@ std::string decrypt_DHKey(const std::string& polyName, int ind){
 
   decrypt_key(eid, &err_status, errMsg1, encrypted_DHkey, DH_enc_len, DHKey);
   if (err_status != 0){
+    free(hexEncrKey);
     throw RPCException(ERROR_IN_ENCLAVE, "decrypt key failed in enclave");
   }
 
