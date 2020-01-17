@@ -2,10 +2,42 @@ FROM ubuntu:bionic
 
 WORKDIR /usr/src/sdk
 
+COPY *.cpp ./
+COPY *.h ./
+COPY *.txt ./
+COPY *.c ./
+COPY *.am ./
+COPY *.hpp ./
+COPY *.sh ./
+COPY *.m4 ./
+COPY *.gmp ./
+COPY *.ac ./
+COPY *.json ./
+COPY docker ./docker
+COPY build-aux ./build-aux
+COPY  cert ./cert
+COPY intel-sgx-ssl ./intel-sgx-ssl
+COPY jsonrpc ./jsonrpc
+COPY leveldb ./leveldb
+COPY libBLS ./libBLS
+COPY m4 ./m4
+COPY scripts ./scripts
+COPY secure_enclave ./secure_enclave
+COPY sgx-gmp ./sgx-gmp
+COPY sgx-software-enable ./sgx-software-enable
+COPY trusted_libff ./trusted_libff
+RUN rm -rf /usr/src/sdk/leveldb/build/
+
+
+
+
+
+
 RUN apt-get update && apt-get install -yq --no-install-recommends python-yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
 RUN apt install -y libprotobuf10 yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
 
-COPY install-psw.patch ./
+COPY docker/install-psw.patch ./
+
 
 RUN git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
     cd linux-sgx && \
@@ -18,12 +50,14 @@ RUN git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
 
 
 # For debug purposes
-# COPY jhi.conf /etc/jhi/jhi.conf
+# COPY docker/jhi.conf /etc/jhi/jhi.conf
 
 ###RUN git clone --recurse-submodules https://76b7983ebf14269178b99eff5b2be4b4b56fe7a5:@github.com/skalenetwork/sgxwallet.git
-RUN git clone --recurse-submodules https://76b7983ebf14269178b99eff5b2be4b4b56fe7a5:@github.com/skalenetwork/sgxwallet.git
-WORKDIR  sgxwallet
+#RUN git clone --recurse-submodules https://76b7983ebf14269178b99eff5b2be4b4b56fe7a5:@github.com/skalenetwork/sgxwallet.git
+#WORKDIR  sgxwallet
 #RUN cd sgx-software-enable && make && ./sgx_enable
+
+COPY configure.gmp ./
 RUN cd scripts; ./build.py
 ### RUN autoreconf -vif
 ### RUN automake
@@ -42,4 +76,4 @@ RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-l
     make install && \
     cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 
-COPY start.sh ./
+COPY docker/start.sh ./
