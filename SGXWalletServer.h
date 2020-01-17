@@ -31,7 +31,8 @@
 #endif
 
 
-EXTERNC int init_server(bool check_certs );
+EXTERNC int init_https_server(bool check_certs );
+EXTERNC int init_http_server();
 
 
 

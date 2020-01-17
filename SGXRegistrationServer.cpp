@@ -44,6 +44,7 @@
 #include "LevelDB.h"
 
 int DEBUG_PRINT = 0;
+int is_sgx_https = 1;
 
 SGXRegistrationServer *regs = nullptr;
 HttpServer *hs2 = nullptr;

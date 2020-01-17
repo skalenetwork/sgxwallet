@@ -78,59 +78,59 @@ void debug_print(){
   levelDb->visitKeys(&v, 100000000);
 }
 
-//int init_server(bool check_certs) {
-//  std::string rootCAPath = "cert/rootCA.pem";
-//  std::string keyCAPath = "cert/rootCA.key";
-//
-//  if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
-//    std::cerr << "YOU DO NOT HAVE ROOT CA CERTIFICATE" << std::endl;
-//    std::cerr << "ROOT CA CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-//
-//    std::string genRootCACert = "cd cert && ./create_CA";
-//
-//    if (system(genRootCACert.c_str()) == 0){
-//      std::cerr << "ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-//    }
-//    else{
-//      std::cerr << "ROOT CA CERTIFICATE GENERATION FAILED" << std::endl;
-//      exit(-1);
-//    }
-//  }
-//
-//  std::string certPath = "cert/SGXServerCert.crt";
-//  std::string keyPath = "cert/SGXServerCert.key";
-//
-//  if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
-//    std::cerr << "YOU DO NOT HAVE SERVER CERTIFICATE " << std::endl;
-//    std::cerr << "SERVER CERTIFICATE IS GOING TO BE CREATED" << std::endl;
-//
-//    std::string genCert = "cd cert && ./create_server_cert";
-//
-//    if (system(genCert.c_str()) == 0){
-//       std::cerr << "SERVER CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
-//    }
-//    else{
-//      std::cerr << "SERVER CERTIFICATE GENERATION FAILED" << std::endl;
-//      exit(-1);
-//    }
-//  }
-//
-//  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 10);
-//  s = new SGXWalletServer(*hs,
-//                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
-//
-//  if (!s->StartListening()) {
-//    cerr << "SGX Server could not start listening" << endl;
-//    exit(-1);
-//  }
-//  else{
-//    cerr << "SGX Server started on port " << BASE_PORT << endl;
-//  }
-//  return 0;
-//}
+int init_https_server(bool check_certs) {
+  std::string rootCAPath = "cert/rootCA.pem";
+  std::string keyCAPath = "cert/rootCA.key";
+
+  if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
+    std::cerr << "YOU DO NOT HAVE ROOT CA CERTIFICATE" << std::endl;
+    std::cerr << "ROOT CA CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+
+    std::string genRootCACert = "cd cert && ./create_CA";
+
+    if (system(genRootCACert.c_str()) == 0){
+      std::cerr << "ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "ROOT CA CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  std::string certPath = "cert/SGXServerCert.crt";
+  std::string keyPath = "cert/SGXServerCert.key";
+
+  if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
+    std::cerr << "YOU DO NOT HAVE SERVER CERTIFICATE " << std::endl;
+    std::cerr << "SERVER CERTIFICATE IS GOING TO BE CREATED" << std::endl;
+
+    std::string genCert = "cd cert && ./create_server_cert";
+
+    if (system(genCert.c_str()) == 0){
+       std::cerr << "SERVER CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+    }
+    else{
+      std::cerr << "SERVER CERTIFICATE GENERATION FAILED" << std::endl;
+      exit(-1);
+    }
+  }
+
+  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 10);
+  s = new SGXWalletServer(*hs,
+                      JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+
+  if (!s->StartListening()) {
+    cerr << "SGX Server could not start listening" << endl;
+    exit(-1);
+  }
+  else{
+    cerr << "SGX Server started on port " << BASE_PORT << endl;
+  }
+  return 0;
+}
 
 
-int init_server(bool check_certs) { //without ssl
+int init_http_server() { //without ssl
 
   hs = new HttpServer(BASE_PORT + 3);
   s = new SGXWalletServer(*hs,
@@ -192,6 +192,17 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
     try {
       if ( !checkName(keyShareName, "BLS_KEY")){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
+      }
+      std::string cutHash = messageHash;
+      if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
+      }
+      while (cutHash[0] == '0'){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 1);
+      }
+
+      if ( !checkHex(cutHash)){
+        throw RPCException(INVALID_HEX, "Invalid hash");
       }
 
       value = readFromDb(keyShareName);
@@ -623,8 +634,10 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
       }
       std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName);
-      std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
-      std::cerr << "length is " << encryptedKeyHex_ptr->length()<< std::endl;
+      if (DEBUG_PRINT) {
+        std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
+        std::cerr << "length is " << encryptedKeyHex_ptr->length() << std::endl;
+      }
       std::vector<std::string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
       for ( uint8_t i = 0; i < 4; i++) {
         result["BLSPublicKeyShare"][i] = public_key_vect.at(i);

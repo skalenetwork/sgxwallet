@@ -345,16 +345,17 @@ int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int in
 
 }
 
-void calc_bls_public_key(char* skey_hex, char* pub_key){
+int calc_bls_public_key(char* skey_hex, char* pub_key){
   libff::init_alt_bn128_params();
 
   mpz_t skey;
   mpz_init(skey);
-  mpz_set_str(skey, skey_hex, 16);
+  if (mpz_set_str(skey, skey_hex, 16) == -1){
+    return 1;
+  }
 
   char skey_dec[mpz_sizeinbase (skey, 10) + 2];
   char * skey_str = mpz_get_str(skey_dec, 10, skey);
-
 
   libff::alt_bn128_Fr bls_skey(skey_dec);
 
@@ -364,6 +365,10 @@ void calc_bls_public_key(char* skey_hex, char* pub_key){
   std::string result = ConvertG2ToString(public_key);
 
   strncpy(pub_key, result.c_str(), result.length());
+
+  mpz_clear(skey);
+
+  return 0;
 }
 
 

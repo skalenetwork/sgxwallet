@@ -432,6 +432,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
             (const sgx_sealed_data_t *) encrypted_key, NULL, 0, (uint8_t *) key, &decLen);
 
     if (status != SGX_SUCCESS) {
+        *err_status = status;
         snprintf(err_string, BUF_LEN, "sgx_unseal_data failed with status %d", status);
         return;
     }
@@ -797,6 +798,7 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     if (common_key == NULL){
       *err_status = 1;
       snprintf(err_string, BUF_LEN ,"invalid common_key");
+      mpz_clear(sum);
       return;
     }
 
@@ -809,7 +811,7 @@ void create_bls_key(int *err_status, char* err_string, const char* s_shares,
     if (decr_sshare == NULL){
         *err_status = 1;
         snprintf(err_string, BUF_LEN ,"invalid common_key");
-        mpz_clear(decr_secret_share);
+        mpz_clear(sum);
         return;
     }
     //decr_sshare[64] = 0;
@@ -885,7 +887,11 @@ void get_bls_pub_key(int *err_status, char* err_string, uint8_t* encrypted_key, 
     return;
   }
 
-  calc_bls_public_key(skey_hex, bls_pub_key);
+  if (calc_bls_public_key(skey_hex, bls_pub_key) != 0){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"could not calculate bls public key");
+    return;
+  }
 }
 
 

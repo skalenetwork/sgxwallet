@@ -295,22 +295,22 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
 
   //std::cerr << "BEFORE create_bls_key IN ENCLAVE " << std::endl;
   create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
-
   //std::cerr << "AFTER create_bls_key IN ENCLAVE er msg is  " << errMsg1 << std::endl;
   if ( err_status != 0){
      std::cerr << "ERROR IN ENCLAVE" << std::endl;
-     throw RPCException(ERROR_IN_ENCLAVE, "Something failed in enclave");
-     return false;
+     throw RPCException(ERROR_IN_ENCLAVE, "Create BLS private key failed in enclave");
   }
   else {
     char *hexBLSKey = (char *) calloc(2 * BUF_LEN, 1);
-    std::cerr << "BEFORE carray2Hex" << std::endl;
+    //std::cerr << "BEFORE carray2Hex" << std::endl;
       //std::cerr << "enc_bls_len " << enc_bls_len << std::endl;
     carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
-    std::cerr << "BEFORE WRITE BLS KEY TO DB" << std::endl;
+   // std::cerr << "BEFORE WRITE BLS KEY TO DB" << std::endl;
     writeDataToDB(BLSKeyName, hexBLSKey);
-    std::cerr << "hexBLSKey length is " << strlen(hexBLSKey) << std::endl;
-    std::cerr << "bls key " << BLSKeyName << " is " << hexBLSKey << std::endl;
+    if (DEBUG_PRINT) {
+      std::cerr << "hexBLSKey length is " << strlen(hexBLSKey) << std::endl;
+      std::cerr << "bls key " << BLSKeyName << " is " << hexBLSKey << std::endl;
+    }
     free(hexBLSKey);
     return true;
   }
@@ -331,13 +331,21 @@ std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex){
 //      std::cerr << encr_key[i] << " ";
 
     char pub_key[320];
-    std::cerr << "dec_key_len is " << dec_key_len << std::endl;
+    if (DEBUG_PRINT) {
+      std::cerr << "dec_key_len is " << dec_key_len << std::endl;
+    }
     get_bls_pub_key(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
-    std::cerr << "errMsg1 is " << errMsg1 << std::endl;
+    if ( err_status != 0){
+      throw RPCException(ERROR_IN_ENCLAVE, "Failed to get BLS public key in enclave");
+    }
     std::vector<std::string> pub_key_vect = SplitString(pub_key, ':');
-    std::cerr << "pub key is" << std::endl;
-    for ( int i = 0; i < 4; i++)
-      std::cerr << pub_key_vect.at(i) << std::endl;
+
+    if (DEBUG_PRINT) {
+      std::cerr << "errMsg1 is " << errMsg1 << std::endl;
+      std::cerr << "pub key is" << std::endl;
+      for (int i = 0; i < 4; i++)
+        std::cerr << pub_key_vect.at(i) << std::endl;
+    }
     return pub_key_vect;
 }
 
@@ -348,7 +356,9 @@ std::string decrypt_DHKey(const std::string& polyName, int ind){
 
   std::string DH_key_name = polyName + "_" + std::to_string(ind) + ":";
   std::shared_ptr<std::string> hexEncrKey_ptr = readFromDb(DH_key_name, "DKG_DH_KEY_");
-  std::cerr << "encr DH key is " << hexEncrKey_ptr << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "encr DH key is " << hexEncrKey_ptr << std::endl;
+  }
 
   char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
 
@@ -361,7 +371,9 @@ std::string decrypt_DHKey(const std::string& polyName, int ind){
   char DHKey[ECDSA_SKEY_LEN];
 
   decrypt_key(eid, &err_status, errMsg1, encrypted_DHkey, DH_enc_len, DHKey);
-
+  if (err_status != 0){
+    throw RPCException(ERROR_IN_ENCLAVE, "decrypt key failed in enclave");
+  }
 
   free(errMsg1);
   free(hexEncrKey);

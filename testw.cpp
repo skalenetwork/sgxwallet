@@ -80,6 +80,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <thread>
 
+
+
 std::string stringFromFr(libff::alt_bn128_Fr& el) {
 
     mpz_t t;
@@ -743,6 +745,7 @@ std::string ConvertDecToHex(std::string dec, int numBytes = 32){
 
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
+  is_sgx_https = 0;
   std::cerr<< "test started" << std::endl;
   init_all(false, false);
   cerr << "Server inited" << endl;
@@ -866,6 +869,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
 TEST_CASE("API test", "[api_test]") {
    //DEBUG_PRINT = 1;
+    is_sgx_https = 0;
   //std::cerr << __GNUC__ << std::endl;
     cerr << "API test started" << endl;
     init_all(false, false);
@@ -971,6 +975,7 @@ TEST_CASE("API test", "[api_test]") {
 }
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
+  is_sgx_https = 0;
   init_all( false, false );
   HttpClient client("http://localhost:1029");
   StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1044,6 +1049,7 @@ void SendRPCRequest(){
  }
 
 TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
+  is_sgx_https = 0;
   init_all( false, false );
 
   std::vector<std::thread> threads;
@@ -1061,6 +1067,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
   //DEBUG_PRINT = 1;
+  is_sgx_https = 0;
 
   cerr << "ecdsa_api_test started" << endl;
   init_all(false, false);
@@ -1104,6 +1111,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
  //  DEBUG_PRINT = 1;
+  is_sgx_https = 0;
 
   cerr << "dkg_api_test started" << endl;
   init_all(false, false);

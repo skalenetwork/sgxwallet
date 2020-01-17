@@ -62,13 +62,14 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  while ((opt = getopt(argc, argv, "cshd")) != -1) {
+  while ((opt = getopt(argc, argv, "cshd0")) != -1) {
     switch (opt) {
     case 'h':
       if (strlen(argv[1]) == 2 ) {
         fprintf(stderr, "-c  client certificate will not be checked\n");
         fprintf(stderr, "-s  client certificate will be signed automatically\n");
         printf(stderr, "-d  turn on debug output\n");
+          printf(stderr, "-0  SGXWalletServer will be launched on http (not https)\n");
         exit(0);
       } else {
         fprintf(stderr, "unknown flag %s\n", argv[1]);
@@ -83,6 +84,9 @@ int main(int argc, char *argv[]) {
     case 'd':
       DEBUG_PRINT = 1;
       break;
+    case '0':
+      is_sgx_https = 0;
+     break;
     case '?': // fprintf(stderr, "unknown flag\n");
       exit(1);
     default:

@@ -34,6 +34,7 @@
 #include <stdbool.h>
 
 extern int DEBUG_PRINT;
+extern int is_sgx_https;
 
 #define BUF_LEN 1024
 
