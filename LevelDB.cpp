@@ -34,6 +34,8 @@
 #include "RPCException.h"
 #include "LevelDB.h"
 
+#include "ServerInit.h"
+
 using namespace leveldb;
 
 
@@ -61,8 +63,9 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 //    if (result == nullptr) {
 //      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
 //    }
-
-    std::cerr << "key to read from db: " << _key <<std::endl;
+    if (DEBUG_PRINT) {
+      std::cerr << "key to read from db: " << _key << std::endl;
+    }
 
     throwExceptionOnError(status);
 
@@ -80,7 +83,9 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 
     throwExceptionOnError(status);
 
-    std::cerr << "written key " << _key << std::endl;//<< " value " << _value << std::endl;
+    if (DEBUG_PRINT) {
+      std::cerr << "written key " << _key  << std::endl;
+    }
 }
 
 
@@ -134,7 +139,9 @@ void LevelDB::deleteKey(const std::string &_key){
 
     throwExceptionOnError(status);
 
-    std::cerr << "key deleted " << _key << std::endl;
+    if (DEBUG_PRINT) {
+      std::cerr << "key deleted " << _key << std::endl;
+    }
 }
 
 

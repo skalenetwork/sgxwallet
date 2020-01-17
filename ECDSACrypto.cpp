@@ -31,6 +31,7 @@
 #include <gmp.h>
 #include <random>
 
+
 static std::default_random_engine rand_gen((unsigned int) time(0));
 
 std::string concatPubKeyWith0x(char* pub_key_x, char* pub_key_y){
@@ -54,7 +55,7 @@ std::vector<std::string> gen_ecdsa_key(){
     throw RPCException(-666, errMsg) ;
   }
   std::vector<std::string> keys(3);
-  std::cerr << "account key is " << errMsg << std::endl;
+  //std::cerr << "account key is " << errMsg << std::endl;
   char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
@@ -64,7 +65,9 @@ std::vector<std::string> gen_ecdsa_key(){
 
 
   unsigned long seed = rand_gen();
-  std::cerr << "seed is " << seed << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "seed is " << seed << std::endl;
+  }
   gmp_randstate_t state;
   gmp_randinit_default(state);
 
@@ -79,7 +82,7 @@ std::vector<std::string> gen_ecdsa_key(){
 
   keys.at(2) = rand_str;
 
-  std::cerr << "rand_str length is " << strlen(rand_str) << std::endl;
+  //std::cerr << "rand_str length is " << strlen(rand_str) << std::endl;
 
   gmp_randclear(state);
   mpz_clear(rand32);
@@ -106,15 +109,16 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   }
 
   status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
-  if ( err_status != 0){
+  if (err_status != 0){
     throw RPCException(-666, errMsg) ;
   }
   std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
-  std:: cerr << "pubkey is " << pubKey << std::endl;
-  std:: cerr << "pubkey length is " << pubKey.length() << std::endl;
-
-  std::cerr << "err str " << errMsg << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "pubkey is " << pubKey << std::endl;
+    std::cerr << "pubkey length is " << pubKey.length() << std::endl;
+    std::cerr << "err str " << errMsg << std::endl;
+  }
 
   free(errMsg);
   free(pub_key_x);
@@ -138,19 +142,21 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
       throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
 
-  std::cerr << "encryptedKeyHex: "<< encryptedKeyHex << std::endl;
-
-  std::cerr << "HASH: "<< hashHex << std::endl;
-
-  std::cerr << "encrypted len" << dec_len << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "encryptedKeyHex: " << encryptedKeyHex << std::endl;
+    std::cerr << "HASH: " << hashHex << std::endl;
+    std::cerr << "encrypted len" << dec_len << std::endl;
+  }
 
   status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
   if ( err_status != 0){
     throw RPCException(-666, errMsg ) ;
   }
 
-  std::cerr << "signature r in  ecdsa_sign_hash "<< signature_r << std::endl;
-  std::cerr << "signature s in  ecdsa_sign_hash "<< signature_s << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "signature r in  ecdsa_sign_hash " << signature_r << std::endl;
+    std::cerr << "signature s in  ecdsa_sign_hash " << signature_s << std::endl;
+  }
 
   if ( status != SGX_SUCCESS){
     std::cerr << "failed to sign " << std::endl;

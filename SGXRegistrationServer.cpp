@@ -43,6 +43,8 @@
 #include "SGXRegistrationServer.h"
 #include "LevelDB.h"
 
+int DEBUG_PRINT = 0;
+
 SGXRegistrationServer *regs = nullptr;
 HttpServer *hs2 = nullptr;
 
@@ -139,8 +141,13 @@ Json::Value GetSertificateImpl(const std::string& hash){
           cert = ss.str();
 
           infile.close();
-          std::string remove_crt = "cd cert && rm -rf" + hash + ".crt && rm -rf " + hash + ".csr";
-          system(remove_crt.c_str());
+          std::string remove_crt = "cd cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
+          if(system(remove_crt.c_str()) == 0){
+              std::cerr << "cert removed" << std::endl;
+          }
+          else{
+              std::cerr << "cert was not removed" << std::endl;
+          }
 
       }
     }
