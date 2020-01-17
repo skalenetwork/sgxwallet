@@ -33,6 +33,9 @@
 
 #include <stdbool.h>
 
+extern int DEBUG_PRINT;
+extern int is_sgx_https;
+
 #define BUF_LEN 1024
 
 #define  MAX_KEY_LENGTH 128
@@ -73,6 +76,7 @@
 
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
+#define INVALID_ECSDA_SIGNATURE -22
 
 #define ERROR_IN_ENCLAVE -33
 

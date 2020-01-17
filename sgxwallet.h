@@ -39,6 +39,4 @@ extern sgx_status_t status;
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
-
-
 #endif //SGXWALLET_SGXWALLET_H

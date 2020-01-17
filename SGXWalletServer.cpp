@@ -22,6 +22,7 @@
 
 #include "sgxwallet_common.h"
 
+
 #include "RPCException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
@@ -38,12 +39,14 @@
 
 #include <unistd.h>
 
+#include "ServerInit.h"
 
 //#if __cplusplus < 201412L
 //#error expecting C++17 standard
 //#endif
 
 //#include <boost/filesystem.hpp>
+
 
 
 bool isStringDec( std::string & str){
@@ -75,7 +78,7 @@ void debug_print(){
   levelDb->visitKeys(&v, 100000000);
 }
 
-int init_server(bool check_certs) {
+int init_https_server(bool check_certs) {
   std::string rootCAPath = "cert/rootCA.pem";
   std::string keyCAPath = "cert/rootCA.key";
 
@@ -127,17 +130,17 @@ int init_server(bool check_certs) {
 }
 
 
-//int init_server(bool check_certs) { //without ssl
-//
-//  hs = new HttpServer(1026);
-//  s = new SGXWalletServer(*hs,
-//                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
-//  if (!s->StartListening()) {
-//    cerr << "Server could not start listening" << endl;
-//    exit(-1);
-//  }
-//  return 0;
-//}
+int init_http_server() { //without ssl
+
+  hs = new HttpServer(BASE_PORT + 3);
+  s = new SGXWalletServer(*hs,
+                          JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+  if (!s->StartListening()) {
+    cerr << "Server could not start listening" << endl;
+    exit(-1);
+  }
+  return 0;
+}
 
 Json::Value
 importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int t, int n, int index) {
@@ -182,8 +185,6 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
     result["errorMessage"] = "Unknown server error";
     result["signatureShare"] = "";
 
-    //int errStatus = UNKNOWN_ERROR;
-    //char *errMsg = (char *) calloc(BUF_LEN, 1);
     char *signature = (char *) calloc(BUF_LEN, 1);
 
     shared_ptr <std::string> value = nullptr;
@@ -191,6 +192,17 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
     try {
       if ( !checkName(keyShareName, "BLS_KEY")){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
+      }
+      std::string cutHash = messageHash;
+      if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
+      }
+      while (cutHash[0] == '0'){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 1);
+      }
+
+      if ( !checkHex(cutHash)){
+        throw RPCException(INVALID_HEX, "Invalid hash");
       }
 
       value = readFromDb(keyShareName);
@@ -217,7 +229,6 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
         result["errorMessage"] = "Sign has thrown exception";
         return result;
     }
-
 
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -252,12 +263,15 @@ Json::Value generateECDSAKeyImpl() {
         if (keys.size() == 0 ) {
             throw RPCException(UNKNOWN_ERROR, "key was not generated");
         }
-       // std::cerr << "write encr key" << keys.at(0) << std::endl;
 
         std::string keyName = "NEK:" + keys.at(2);
 
-        std::cerr << "keyname length is " << keyName.length() << std::endl;
-        std::cerr <<"key name generated: " << keyName << std::endl;
+        if (DEBUG_PRINT) {
+          std::cerr << "write encr key" << keys.at(0) << std::endl;
+          std::cerr << "keyname length is " << keyName.length() << std::endl;
+          std::cerr << "key name generated: " << keyName << std::endl;
+        }
+
         //writeECDSAKey(keyName, keys.at(0));
         writeDataToDB(keyName, keys.at(0));
 
@@ -270,7 +284,6 @@ Json::Value generateECDSAKeyImpl() {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
-    //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
 
     return result;
 }
@@ -320,16 +333,26 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     result["signature_s"] = "";
 
     std::vector<std::string> sign_vect(3);
-    std::cerr << "entered ecdsaSignMessageHashImpl" <<  messageHash << "length " << messageHash.length() << std::endl;
-    std::string cutHash = messageHash;
-    if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
-      cutHash.erase(cutHash.begin(), cutHash.begin()+2);
+
+    if (DEBUG_PRINT) {
+      std::cerr << "entered ecdsaSignMessageHashImpl" << messageHash
+                << "length " << messageHash.length() << std::endl;
     }
-    while (cutHash[0] == '0'){
-      cutHash.erase(cutHash.begin(), cutHash.begin()+1);
-    }
-    std::cerr << "Hash handled " << cutHash << std::endl;
+
     try {
+
+      std::string cutHash = messageHash;
+      if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
+      }
+      while (cutHash[0] == '0'){
+        cutHash.erase(cutHash.begin(), cutHash.begin() + 1);
+      }
+
+      if (DEBUG_PRINT) {
+        std::cerr << "Hash handled " << cutHash << std::endl;
+      }
+
       if ( !checkECDSAKeyName(_keyName)){
         throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
       }
@@ -340,12 +363,17 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
         throw RPCException(-22, "Invalid base");
       }
 
+      std::shared_ptr<std::string> key_ptr = readFromDb(_keyName,"");
 
-       std::shared_ptr<std::string> key_ptr = readFromDb(_keyName,"");
-      // std::cerr << "read encr key" << *key_ptr << std::endl;
-       sign_vect = ecdsa_sign_hash(key_ptr->c_str(),cutHash.c_str(), base);
+      sign_vect = ecdsa_sign_hash(key_ptr->c_str(), cutHash.c_str(), base);
+      if (sign_vect.size() != 3 ){
+        throw RPCException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
+      }
 
-      std::cerr << "got signature_s " << sign_vect.at(2) << std::endl;
+      if (DEBUG_PRINT) {
+        std::cerr << "got signature_s " << sign_vect.at(2) << std::endl;
+      }
+
       result["signature_v"] = sign_vect.at(0);
       result["signature_r"] = sign_vect.at(1);
       result["signature_s"] = sign_vect.at(2);
@@ -355,7 +383,6 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
-
 
     return result;
 }
@@ -368,7 +395,6 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
 
     cerr << "Calling method getPublicECDSAKey"  << endl;
 
-
     std::string Pkey;
 
     try {
@@ -377,8 +403,10 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
          }
          std::shared_ptr<std::string> key_ptr = readFromDb(keyName);
          Pkey = get_ecdsa_pubkey( key_ptr->c_str());
-         std::cerr << "PublicKey " << Pkey << std::endl;
-         std::cerr << "PublicKey length" << Pkey.length() << std::endl;
+         if (DEBUG_PRINT) {
+           std::cerr << "PublicKey " << Pkey << std::endl;
+           std::cerr << "PublicKey length" << Pkey.length() << std::endl;
+         }
          result["PublicKey"] = Pkey;
 
     } catch (RPCException &_e) {
@@ -386,13 +414,11 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
         result["errorMessage"] = _e.errString;
     }
 
-    //std::cerr << "in SGXWalletServer encr key x " << keys.at(0) << std::endl;
-
     return result;
 }
 
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
-   std::cerr <<  " enter generateDKGPolyImpl" << std::endl;
+
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -402,22 +428,20 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
 
     try {
       if ( !checkName(polyName, "POLY")){
-        throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
+        throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name, it should be like POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1");
       }
-      if ( t <= 0){
-        throw RPCException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
+      if ( t <= 0 || t > 32){
+        throw RPCException(INVALID_DKG_PARAMS, "Invalid parameter t ");
       }
       encrPolyHex = gen_dkg_poly(t);
       writeDataToDB(polyName, encrPolyHex);
-      //writeDKGPoly(polyName, encrPolyHex);
+
       //result["encryptedPoly"] = encrPolyHex;
     } catch (RPCException &_e) {
         std::cerr << " err str " << _e.errString << std::endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
-
-
 
     return result;
 }
@@ -467,10 +491,9 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
 
     try {
         if (publicKeys.size() != n){
-            result["errorMessage"] = "wrong number of public keys";
-            return result;
+          throw RPCException(INVALID_DKG_PARAMS, "wrong number of public keys");
         }
-      if ( !checkName(polyName, "POLY")){
+        if ( !checkName(polyName, "POLY")){
           throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
         if( !check_n_t(t, n)){
@@ -492,7 +515,7 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
         result["SecretShare"] = s;
 
     } catch (RPCException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
+        //std::cerr << " err str " << _e.errString << std::endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["SecretShare"] = "";
@@ -519,22 +542,21 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
     if( !check_n_t(t, n) || ind > n || ind < 0){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
     }
-//    if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
-//      throw RPCException(INVALID_HEX, "Invalid Secret share");
-//    }
+    if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
+      throw RPCException(INVALID_HEX, "Invalid Secret share");
+    }
+    if (publicShares.length() != 256 * t){
+      throw RPCException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+    }
 
-    //std::string keyName = polyName + "_" + std::to_string(ind);
-    //std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName, "");
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
-
-    if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(),  t, n, ind )){
+    if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(), t, n, ind )){
       result["result"] = false;
     }
 
-
   } catch (RPCException &_e) {
-    std::cerr << " err str " << _e.errString << std::endl;
+    //std::cerr << " err str " << _e.errString << std::endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
     result["result"] = false;
@@ -547,7 +569,6 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 
   std::cerr << "CreateBLSPrivateKeyImpl entered" << std::endl;
 
-
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -557,8 +578,6 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
     if (SecretShare.length() != n * 192){
       std::cerr << "wrong length of secret shares - " << SecretShare.length() << std::endl;
       std::cerr << "secret shares - " << SecretShare << std::endl;
-      //result["errorMessage"] = "wrong length of secret shares";
-      //return result;
       throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
     }
     if ( !checkECDSAKeyName(EthKeyName)){
@@ -570,9 +589,13 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
     if ( !checkName(BLSKeyName, "BLS_KEY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid BLS key name");
     }
+    if( !check_n_t(t, n)){
+      throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+    }
     std::vector<std::string> sshares_vect;
-    std::cerr << "sshares from json are " << SecretShare << std::endl;
-
+    if (DEBUG_PRINT) {
+      std::cerr << "sshares from json are " << SecretShare << std::endl;
+    }
 
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
@@ -591,7 +614,7 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
      }
 
   } catch (RPCException &_e) {
-    std::cerr << " err str " << _e.errString << std::endl;
+    //std::cerr << " err str " << _e.errString << std::endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
 
@@ -611,8 +634,10 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
       }
       std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName);
-      std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
-      std::cerr << "length is " << encryptedKeyHex_ptr->length()<< std::endl;
+      if (DEBUG_PRINT) {
+        std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
+        std::cerr << "length is " << encryptedKeyHex_ptr->length() << std::endl;
+      }
       std::vector<std::string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
       for ( uint8_t i = 0; i < 4; i++) {
         result["BLSPublicKeyShare"][i] = public_key_vect.at(i);
@@ -737,7 +762,9 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
   lock_guard<recursive_mutex> lock(m);
   std::cerr << "entered ecdsaSignMessageHash" << std::endl;
-  std::cerr << "MessageHash first " << messageHash << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << "MessageHash first " << messageHash << std::endl;
+  }
   return ecdsaSignMessageHashImpl(base,_keyName, messageHash);
 }
 
@@ -834,6 +861,8 @@ void writeDataToDB(const string & Name, const string &value) {
   }
 
   levelDb->writeString(key, value);
-  std::cerr << Name << " is written to db " << std::endl;
+  if (DEBUG_PRINT) {
+    std::cerr << Name << " is written to db " << std::endl;
+  }
 }
 

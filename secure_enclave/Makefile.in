@@ -333,7 +333,8 @@ AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -Wall \
 	-I./trusted_libff -I../trusted_libff \
 	-I../sgx-sdk-build/sgxsdk/include/libcxx \
 	-I../intel-sgx-ssl/Linux/package/include
-AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin
+AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin \
+	-fstack-protector-strong
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@ $(TGMP_LDFLAGS) -L./tgmp-build/lib \
 	-L../tgmp-build/lib
 CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
