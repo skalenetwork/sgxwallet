@@ -9,8 +9,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Login to docker
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: docker login docker.pkg.github.com -u ${GITHUB_ACTOR} || true
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
       run: docker build . --file DockerfileSimulation --tag sgxcontainer:$(date +%s)
+
+    - name: Push the docker images
+      run: docker login
