@@ -84,7 +84,6 @@ automake --force-missing --add-missing
 autoconf
 ./configure
 make
-
 ```
 
 Note: to run in simulation mode, add --enable-sgx-simulation flag when you run configure.
@@ -110,7 +109,7 @@ sudo docker build -t sgxcontainer .
 
 ## Build Docker container in simulation mode
 
-````bash
+```bash
 sudo docker build -t sgxcontainersim -f ./DockerfileSimulation .
 ```
 
