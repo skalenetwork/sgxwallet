@@ -8,7 +8,7 @@ include $(top_srcdir)/build-aux/sgx_app.am
 ##   AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
 ##   AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
 ##
-## And a pattern rule for building proxy functions from EDL files:
+## And a pattern rule for building prexoxy functions from EDL files:
 ##
 ##   %_u.h %_u.c: %.edl
 ##
