@@ -31,6 +31,8 @@
 #include <gmp.h>
 #include <random>
 
+#include "spdlog/spdlog.h"
+
 
 static std::default_random_engine rand_gen((unsigned int) time(0));
 
@@ -66,7 +68,7 @@ std::vector<std::string> gen_ecdsa_key(){
 
   unsigned long seed = rand_gen();
   if (DEBUG_PRINT) {
-    std::cerr << "seed is " << seed << std::endl;
+    spdlog::info("seed is {}", seed);
   }
   gmp_randstate_t state;
   gmp_randinit_default(state);
@@ -115,9 +117,9 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
   if (DEBUG_PRINT) {
-    std::cerr << "pubkey is " << pubKey << std::endl;
-    std::cerr << "pubkey length is " << pubKey.length() << std::endl;
-    std::cerr << "err str " << errMsg << std::endl;
+    spdlog::info("pubkey is {}", pubKey);
+    spdlog::info("pubkey length is {}", pubKey.length());
+    spdlog::info("err str is {}", errMsg);
   }
 
   free(errMsg);
@@ -143,9 +145,9 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   }
 
   if (DEBUG_PRINT) {
-    std::cerr << "encryptedKeyHex: " << encryptedKeyHex << std::endl;
-    std::cerr << "HASH: " << hashHex << std::endl;
-    std::cerr << "encrypted len" << dec_len << std::endl;
+    spdlog::info("encryptedKeyHex: {}", encryptedKeyHex);
+    spdlog::info("HASH: {}", hashHex);
+    spdlog::info("encrypted len: {}", dec_len);
   }
 
   status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
@@ -154,12 +156,12 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   }
 
   if (DEBUG_PRINT) {
-    std::cerr << "signature r in  ecdsa_sign_hash " << signature_r << std::endl;
-    std::cerr << "signature s in  ecdsa_sign_hash " << signature_s << std::endl;
+    spdlog::info("signature r in  ecdsa_sign_hash: {}", signature_r);
+    spdlog::info("signature s in  ecdsa_sign_hash: {}", signature_s);
   }
 
   if ( status != SGX_SUCCESS){
-    std::cerr << "failed to sign " << std::endl;
+    spdlog::info("  failed to sign ");
   }
   signature_vect.at(0) = std::to_string(signature_v);
   if ( base == 16) {

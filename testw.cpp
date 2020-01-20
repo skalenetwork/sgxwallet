@@ -746,6 +746,7 @@ std::string ConvertDecToHex(std::string dec, int numBytes = 32){
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   is_sgx_https = 0;
+  DEBUG_PRINT = 1;
   std::cerr<< "test started" << std::endl;
   init_all(false, false);
   cerr << "Server inited" << endl;
@@ -1066,7 +1067,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 }
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
-  //DEBUG_PRINT = 1;
+  DEBUG_PRINT = 1;
   is_sgx_https = 0;
 
   cerr << "ecdsa_api_test started" << endl;
@@ -1110,7 +1111,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 }
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
- //  DEBUG_PRINT = 1;
+  DEBUG_PRINT = 1;
   is_sgx_https = 0;
 
   cerr << "dkg_api_test started" << endl;

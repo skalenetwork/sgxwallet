@@ -54,6 +54,7 @@
 
 #include <iostream>
 
+#include "spdlog/spdlog.h"
 
 void init_daemon() {
 
@@ -87,7 +88,10 @@ void init_enclave() {
     }
 #endif
 
-    std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
+    if ( DEBUG_PRINT) {
+      spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
+      //std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
+    }
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);
@@ -102,7 +106,8 @@ void init_enclave() {
         exit(1);
     }
 
-    fprintf(stderr, "Enclave launched\n");
+    //fprintf(stderr, "Enclave launched\n");
+    spdlog::info( "Enclave launched");
 
     status = tgmp_init(eid);
     if (status != SGX_SUCCESS) {
@@ -110,14 +115,17 @@ void init_enclave() {
         exit(1);
     }
 
-    fprintf(stderr, "libtgmp initialized\n");
+    if (DEBUG_PRINT) {
+      spdlog::info("libtgmp initialized");
+      //fprintf(stderr, "libtgmp initialized\n");
+    }
 }
 
 
 int sgxServerInited = 0;
 
 void init_all(bool check_cert, bool sign_automatically) {
-
+    //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
 
@@ -132,6 +140,6 @@ void init_all(bool check_cert, bool sign_automatically) {
       init_http_server();
     }
     init_enclave();
-    std::cerr << "enclave inited" << std::endl;
+    //std::cerr << "enclave inited" << std::endl;
     init_daemon();
 }

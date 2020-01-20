@@ -50,7 +50,7 @@
 
 #include "RPCException.h"
 
-
+#include "spdlog/spdlog.h"
 
 int char2int(char _input) {
   if (_input >= '0' && _input <= '9')
@@ -187,7 +187,9 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 
     status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
 
-    std::cerr << "errStatus is " << *errStatus << " errMsg is " << errMsg << std::endl;
+    if (DEBUG_PRINT) {
+      spdlog::info("errStatus is {}",*errStatus, " errMsg is ", errMsg );
+    }
 
     if (status != SGX_SUCCESS) {
 
