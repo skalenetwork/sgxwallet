@@ -118,7 +118,7 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
 
   if (DEBUG_PRINT) {
     // std::cerr << "got encr poly " << encryptedPolyHex << std::endl;
-    spdlog::info("got encr poly size {}", strlen(encryptedPolyHex));
+    spdlog::info("got encr poly size {}", std::char_traits<char>::length(encryptedPolyHex));
   }
 
   char* public_shares = (char*)calloc(10000, 1);
@@ -312,7 +312,7 @@ bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const
    // std::cerr << "BEFORE WRITE BLS KEY TO DB" << std::endl;
     writeDataToDB(BLSKeyName, hexBLSKey);
     if (DEBUG_PRINT) {
-      spdlog::info("hexBLSKey length is {}", strlen(hexBLSKey));
+      spdlog::info("hexBLSKey length is {}", std::char_traits<char>::length(hexBLSKey));
       spdlog::info("bls key {}", BLSKeyName, " is ", hexBLSKey );
     }
     free(hexBLSKey);
