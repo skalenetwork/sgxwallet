@@ -56,17 +56,33 @@
 
 #include "spdlog/spdlog.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+//#include <system>
+
 void init_daemon() {
 
     libff::init_alt_bn128_params();
 
+    struct stat info;
+    if (stat("SGXData", &info) !=0 ){
+      spdlog::info("going to create SGXData folder");
+      if (system("mkdir SGXData") == 0){
+        spdlog::info("SGXData folder was created");
+      }
+      else{
+        spdlog::info("creating SGXData folder failed");
+        exit(-1);
+      }
+    }
+
     static std::string dbName("./" WALLETDB_NAME);
     levelDb = new LevelDB(dbName);
 
-    static std::string csr_dbname = "CSR_DB";
+    static std::string csr_dbname = "SGXData/CSR_DB";
     csrDb = new LevelDB(csr_dbname);
 
-    static std::string csr_status_dbname = "CSR_STATUS_DB";
+    static std::string csr_status_dbname = "SGXData/CSR_STATUS_DB";
     csrStatusDb = new LevelDB(csr_status_dbname);
 
 }
