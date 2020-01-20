@@ -19,5 +19,3 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file DockerfileSimulation --tag sgxcontainer:$(date +%s)
 
-    - name: Push the docker images
-      run: docker login
