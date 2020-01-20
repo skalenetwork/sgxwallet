@@ -17,7 +17,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file DockerfileSimulation --tag  docker.pkg.github.com/skalenetwork/sgxwallet/sgxwaletsim:1.0
+      run: docker build . --file DockerfileSimulation --tag  docker.pkg.github.com/skalenetwork/sgxwallet/sgxwalletsim:1.0
     - name: push docker image
-      run:  docker push docker.pkg.github.com/skalenetwork/sgxwallet/sgxwaletsim:1.0
+      run:  docker push docker.pkg.github.com/skalenetwork/sgxwallet/sgxwalletsim:1.0
 
