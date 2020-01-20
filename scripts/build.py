@@ -83,6 +83,7 @@ subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
+
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 os.chdir(LEVELDB_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0

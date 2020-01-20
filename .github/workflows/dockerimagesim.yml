@@ -13,4 +13,4 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag sgxcontainer:$(date +%s)
+      run: docker build . --file DockerfileSimulation --tag sgxcontainer:$(date +%s)

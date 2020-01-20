@@ -16,7 +16,6 @@ This sgxwallet library is still in active development and therefore should be re
 
 ```bash
 sudo apt-get install build-essential make cmake gcc g++ yasm  python libprotobuf10 flex bison automake libtool texinfo libgcrypt20-dev libgnutls28-dev
-
 ```
 
 ## Clone this repository and its submodules
@@ -85,7 +84,12 @@ automake --force-missing --add-missing
 autoconf
 ./configure
 make
+```
 
+Note: to run in simulation mode, add --enable-sgx-simulation flag when you run configure.
+
+```
+./configure --enable-sgx-simulation
 ```
 
 ## Running sgxwallet
@@ -93,17 +97,20 @@ make
 Type:
 
 ```bash
-`./sgxwallet`
-
+./sgxwallet
 ```
 
 ## Build Docker container
 
 ```bash
 sudo apt-get install -y docker.io;
-cd docker;
 sudo docker build -t sgxcontainer .
+```
 
+## Build Docker container in simulation mode
+
+```bash
+sudo docker build -t sgxcontainersim -f ./DockerfileSimulation .
 ```
 
 ## Run Docker container
@@ -114,7 +121,6 @@ Then run
 
 ```bash
 sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer ./start.sh
-
 ```
 
 This will run the server in a Docker container named sgxwallet
@@ -126,8 +132,14 @@ You can start and stop running sgxwallet container by doing
 ```bash
 docker stop sgxwallet
 docker start sgxwallet
-
 ```
+
+## Run Docker container in simulation mode
+
+```bash
+sudo docker run -di --network host --name sgxwalletsim sgxcontainersim ./start.sh
+```
+
 
 ## Development
 
@@ -152,7 +164,6 @@ cat $KEY_FILE
 export KEY_PEM_FILE=k.pem
 openssl rsa -in $KEY_FILE -text > $KEY_PEM_FILE
 cat $KEY_PEM_FILE
-
 ```
 
 Next, send content of `a.csr` as single line (by replacing real end of lines with `\n`) to port `1027`.
