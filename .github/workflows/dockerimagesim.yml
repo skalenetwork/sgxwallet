@@ -12,7 +12,7 @@ jobs:
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p {GITHBU_TOKEN}
+      run: docker login docker.pkg.github.com -u ${GITHUB_ACTOR} -p {GITHUB_TOKEN}
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
