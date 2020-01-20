@@ -11,6 +11,8 @@
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
+#include "spdlog/spdlog.h"
+
 
 CSRManagerServer *cs = nullptr;
 jsonrpc::HttpServer *hs3 = nullptr;
@@ -21,7 +23,7 @@ CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
 
 
 Json::Value GetUnsignedCSRsImpl(){
-  std::cerr << "Enter GetUnsignedCSRsImpl" << std::endl;
+  spdlog::info("Enter GetUnsignedCSRsImpl");
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -70,9 +72,9 @@ Json::Value SignByHashImpl(const std::string& hash, int status){
       std::string signClientCert = "cd cert && ./create_client_cert " + hash;
 
       if (system(signClientCert.c_str()) == 0) {
-        std::cerr << "CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+        spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
       } else {
-        std::cerr << "CLIENT CERTIFICATE GENERATION FAILED" << std::endl;
+        spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
         csrDb->deleteKey(csr_db_key);
         std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
         csrStatusDb->deleteKey(status_db_key);
@@ -115,12 +117,11 @@ int init_csrmanager_server(){
   cs = new CSRManagerServer(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)
 
   if (!cs->StartListening()) {
-    std::cerr << "CSR manager server could not start listening" << std::endl;
+    spdlog::info("CSR manager server could not start listening");
     exit(-1);
   }
   else {
-    std::cerr << "CSR manager server started on port " << BASE_PORT + 2 << std::endl;
+    spdlog::info("CSR manager server started on port {}", BASE_PORT + 2);
   }
-  std::cerr << "CSR manager inited" << std::endl;
   return 0;
 };

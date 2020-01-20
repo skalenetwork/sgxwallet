@@ -43,6 +43,8 @@
 #include "SGXRegistrationServer.h"
 #include "LevelDB.h"
 
+#include "spdlog/spdlog.h"
+
 int DEBUG_PRINT = 0;
 int is_sgx_https = 1;
 
@@ -66,7 +68,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
   result["status"] = 0;
   result["errorMessage"] = "";
   try{
-    std::cerr << " enter SignCertificateImpl " << std::endl;
+    spdlog::info("enter SignCertificateImpl");
 
     std::string status = "1";
     std::string hash = cryptlite::sha256::hash_hex(csr);
@@ -87,11 +89,11 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
       std::string genCert = "cd cert && ./create_client_cert " + hash;
 
       if (system(genCert.c_str()) == 0){
-          std::cerr << "CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED" << std::endl;
+          spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
           status = "0";
       }
       else{
-          std::cerr << "CLIENT CERTIFICATE GENERATION FAILED" << std::endl;
+          spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
           std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
           csrStatusDb->writeDataUnique(status_db_key, std::to_string(FAIL_TO_CREATE_CERTIFICATE));
           throw RPCException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
@@ -144,10 +146,12 @@ Json::Value GetSertificateImpl(const std::string& hash){
           infile.close();
           std::string remove_crt = "cd cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
           if(system(remove_crt.c_str()) == 0){
-              std::cerr << "cert removed" << std::endl;
+              //std::cerr << "cert removed" << std::endl;
+              spdlog::info(" cert removed ");
+
           }
           else{
-              std::cerr << "cert was not removed" << std::endl;
+              spdlog::info(" cert was not removed ");
           }
 
       }
@@ -167,7 +171,7 @@ Json::Value GetSertificateImpl(const std::string& hash){
 
 
 Json::Value SGXRegistrationServer::SignCertificate(const std::string& csr){
-  std::cerr << "Enter SignCertificate " << std::endl;
+  spdlog::info("Enter SignCertificate ");
   lock_guard<recursive_mutex> lock(m);
   return SignCertificateImpl(csr, cert_auto_sign);
 }
@@ -208,11 +212,11 @@ int init_registration_server(bool sign_automatically) {
                                  JSONRPC_SERVER_V2, sign_automatically); // hybrid server (json-rpc 1.0 & 2.0)
 
   if (!regs->StartListening()) {
-    cerr << "Registration server could not start listening" << endl;
+    spdlog::info("Registration server could not start listening");
     exit(-1);
   }
   else {
-    cerr << "Registration Server started on port " << BASE_PORT + 1 << endl;
+    spdlog::info("Registration server started on port {}", BASE_PORT + 1);
   }
 
 

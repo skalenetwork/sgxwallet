@@ -54,18 +54,35 @@
 
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+//#include <system>
 
 void init_daemon() {
 
     libff::init_alt_bn128_params();
 
+    struct stat info;
+    if (stat("SGXData", &info) !=0 ){
+      spdlog::info("going to create SGXData folder");
+      if (system("mkdir SGXData") == 0){
+        spdlog::info("SGXData folder was created");
+      }
+      else{
+        spdlog::info("creating SGXData folder failed");
+        exit(-1);
+      }
+    }
+
     static std::string dbName("./" WALLETDB_NAME);
     levelDb = new LevelDB(dbName);
 
-    static std::string csr_dbname = "CSR_DB";
+    static std::string csr_dbname = "SGXData/CSR_DB";
     csrDb = new LevelDB(csr_dbname);
 
-    static std::string csr_status_dbname = "CSR_STATUS_DB";
+    static std::string csr_status_dbname = "SGXData/CSR_STATUS_DB";
     csrStatusDb = new LevelDB(csr_status_dbname);
 
 }
@@ -87,7 +104,10 @@ void init_enclave() {
     }
 #endif
 
-    std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
+    if ( DEBUG_PRINT) {
+      spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
+      //std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
+    }
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);
@@ -102,7 +122,8 @@ void init_enclave() {
         exit(1);
     }
 
-    fprintf(stderr, "Enclave launched\n");
+    //fprintf(stderr, "Enclave launched\n");
+    spdlog::info( "Enclave launched");
 
     status = tgmp_init(eid);
     if (status != SGX_SUCCESS) {
@@ -110,14 +131,17 @@ void init_enclave() {
         exit(1);
     }
 
-    fprintf(stderr, "libtgmp initialized\n");
+    if (DEBUG_PRINT) {
+      spdlog::info("libtgmp initialized");
+      //fprintf(stderr, "libtgmp initialized\n");
+    }
 }
 
 
 int sgxServerInited = 0;
 
 void init_all(bool check_cert, bool sign_automatically) {
-
+    //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
 
@@ -132,6 +156,6 @@ void init_all(bool check_cert, bool sign_automatically) {
       init_http_server();
     }
     init_enclave();
-    std::cerr << "enclave inited" << std::endl;
+    //std::cerr << "enclave inited" << std::endl;
     init_daemon();
 }

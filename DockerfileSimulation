@@ -26,6 +26,7 @@ COPY secure_enclave ./secure_enclave
 COPY sgx-gmp ./sgx-gmp
 COPY sgx-software-enable ./sgx-software-enable
 COPY trusted_libff ./trusted_libff
+COPY spdlog ./spdlog
 RUN rm -rf /usr/src/sdk/leveldb/build/
 
 
