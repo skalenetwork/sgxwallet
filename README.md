@@ -12,11 +12,7 @@
 
 This sgxwallet library is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
 
-## Install Prerequisites
-
-```bash
-sudo apt-get install build-essential make cmake gcc g++ yasm  python libprotobuf10 flex bison automake libtool texinfo libgcrypt20-dev libgnutls28-dev
-```
+# Running sgxwallet 
 
 ## Clone this repository and its submodules
 
@@ -32,22 +28,41 @@ To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Inte
 -   If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section
 -   If not, set SGX in BIOS to `software-controlled` and then enable by running a sgx-enable utility, as described below.
 
-## Enable "software-controlled" SGX (for testing purposes only)
+## Enable "software-controlled" SGX
 
 To enable SGX using a software utility:
 
--   Build `sgx-enable` utility by typing `cd   sgx-software-enable; make`
+-   Build `sgx-enable` utility by typing `cd  sgx-software-enable; make`
 -   Run `./sgx_enable`.  Verify that it says that **SGX** is successfully enabled
 
 ## Install SGX driver
 
 ```bash
 cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
-
 ```
 
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
+
+## Install docker and docker-compose
+
+```
+sudo apt-get install docker.io docker-compose
+```
+
+## Run the latest sgxwallet docker container from dockerhub
+
+```
+sudo docker-compose up -d
+```
+
+# Development
+
+## Install Prerequisites
+
+```bash
+sudo apt-get install build-essential make cmake gcc g++ yasm  python libprotobuf10 flex bison automake libtool texinfo libgcrypt20-dev libgnutls28-dev
+```
 
 ## Install SGX sdk
 
@@ -72,7 +87,7 @@ cd scripts; ./build.py; cd ..
 
 ```
 
-## Configure and build
+## Configure and build sgxwallet
 
 Go to the project's top directory, then run
 
@@ -92,7 +107,7 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 ./configure --enable-sgx-simulation
 ```
 
-## Running sgxwallet
+## Run sgxwallet
 
 Type:
 
@@ -103,7 +118,6 @@ Type:
 ## Build Docker container
 
 ```bash
-sudo apt-get install -y docker.io;
 sudo docker build -t sgxcontainer .
 ```
 
@@ -115,17 +129,12 @@ sudo docker build -t sgxcontainersim -f ./DockerfileSimulation .
 
 ## Run Docker container
 
-Enable SGX and install SGX driver on the host machine as described above.
-
-Then run
 
 ```bash
 sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet sgxcontainer
 ```
 
 This will run the server in a Docker container named sgxwallet
-
-You can check that the server is running by doing
 
 You can start and stop running sgxwallet container by doing
 
@@ -141,7 +150,7 @@ sudo docker run -di --network host --name sgxwalletsim sgxcontainersim
 ```
 
 
-## Development
+## Adding new source files
 
 Note that `configure, Makefile` and `Makefile.in` files are created by `automake` tools on the fly.  
 Please do not add these files to the source tree!
