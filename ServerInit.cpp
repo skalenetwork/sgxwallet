@@ -85,6 +85,11 @@ void init_daemon() {
     static std::string csr_status_dbname = "SGXData/CSR_STATUS_DB";
     csrStatusDb = new LevelDB(csr_status_dbname);
 
+    std::shared_ptr<std::string> encr_SEK_ptr = levelDb->readString("SEK");
+    if (encr_SEK_ptr == nullptr){
+      spdlog::info("SEK was not created yet");
+    }
+
 }
 
 
@@ -106,7 +111,6 @@ void init_enclave() {
 
     if ( DEBUG_PRINT) {
       spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
-      //std::cerr << "SGX_DEBUG_FLAG = " << SGX_DEBUG_FLAG << std::endl;
     }
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,

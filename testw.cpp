@@ -885,10 +885,6 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-        //levelDb->deleteOlegKey("0");
-        //levelDb->deleteOlegKey("1");
-       // levelDb->deleteDHDKGKey("p2_0:");
-        //levelDb->deleteDHDKGKey("p2_1:");
 //        for ( uint8_t i = 0; i < 2; i++) {
 //        levelDb->deleteKey("POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) +
 //                             ":DKG_ID:0");

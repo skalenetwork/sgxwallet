@@ -50,7 +50,7 @@ include $(top_srcdir)/build-aux/sgx_enclave.am
 
 ENCLAVE=secure_enclave
 ENCLAVE_CONFIG=$(ENCLAVE).config.xml
-ENCLAVE_KEY=$(ENCLAVE)_private.pem
+ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 
 ## Provide additional flags to sgx_sign when signing the enclave.
