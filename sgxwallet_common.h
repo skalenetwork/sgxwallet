@@ -92,7 +92,7 @@ extern int is_sgx_https;
 
 #define BASE_PORT 1026
 
-#define WALLETDB_NAME  "SGXData/sgxwallet.db"//"test_sgxwallet.db"//
+#define WALLETDB_NAME  "sgx_data/sgxwallet.db"//"test_sgxwallet.db"//
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
 

@@ -78,7 +78,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
     }
 
     if (auto_sign) {
-      std::string csr_name = "cert/" + hash + ".csr";
+      std::string csr_name = "sgx_data/cert/" + hash + ".csr";
       std::ofstream outfile(csr_name);
       outfile << csr << std::endl;
       outfile.close();
@@ -86,7 +86,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
         throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
       }
 
-      std::string genCert = "cd cert && ./create_client_cert " + hash;
+      std::string genCert = "cd sgx_data/cert && ./create_client_cert " + hash;
 
       if (system(genCert.c_str()) == 0){
           spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
@@ -130,7 +130,7 @@ Json::Value GetSertificateImpl(const std::string& hash){
     int status = std::atoi(status_str_ptr->c_str());
 
     if ( status == 0){
-      std::string crt_name = "cert/" + hash + ".crt";
+      std::string crt_name = "sgx_data/cert/" + hash + ".crt";
       //if (access(crt_name.c_str(), F_OK) == 0){
         std::ifstream infile(crt_name);
         if (!infile.is_open()) {
@@ -144,7 +144,7 @@ Json::Value GetSertificateImpl(const std::string& hash){
           cert = ss.str();
 
           infile.close();
-          std::string remove_crt = "cd cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
+          std::string remove_crt = "cd sgx_data/cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
           if(system(remove_crt.c_str()) == 0){
               //std::cerr << "cert removed" << std::endl;
               spdlog::info(" cert removed ");

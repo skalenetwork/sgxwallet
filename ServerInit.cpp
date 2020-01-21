@@ -65,24 +65,18 @@ void init_daemon() {
     libff::init_alt_bn128_params();
 
     struct stat info;
-    if (stat("SGXData", &info) !=0 ){
-      spdlog::info("going to create SGXData folder");
-      if (system("mkdir SGXData") == 0){
-        spdlog::info("SGXData folder was created");
-      }
-      else{
-        spdlog::info("creating SGXData folder failed");
+    if (stat("sgx_data", &info) !=0 ){
+        spdlog::info("there is no sgx_data folder");
         exit(-1);
-      }
     }
 
     static std::string dbName("./" WALLETDB_NAME);
     levelDb = new LevelDB(dbName);
 
-    static std::string csr_dbname = "SGXData/CSR_DB";
+    static std::string csr_dbname = "sgx_data/CSR_DB";
     csrDb = new LevelDB(csr_dbname);
 
-    static std::string csr_status_dbname = "SGXData/CSR_STATUS_DB";
+    static std::string csr_status_dbname = "sgx_data/CSR_STATUS_DB";
     csrStatusDb = new LevelDB(csr_status_dbname);
 
     std::shared_ptr<std::string> encr_SEK_ptr = levelDb->readString("SEK");

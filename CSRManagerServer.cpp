@@ -60,7 +60,7 @@ Json::Value SignByHashImpl(const std::string& hash, int status){
     }
 
     if (status == 0) {
-      std::string csr_name = "cert/" + hash + ".csr";
+      std::string csr_name = "sgx_data/cert/" + hash + ".csr";
       std::ofstream outfile(csr_name);
       outfile << *csr_ptr << std::endl;
       outfile.close();
@@ -69,7 +69,7 @@ Json::Value SignByHashImpl(const std::string& hash, int status){
         throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
       }
 
-      std::string signClientCert = "cd cert && ./create_client_cert " + hash;
+      std::string signClientCert = "cd sgx_data/cert && ./create_client_cert " + hash;
 
       if (system(signClientCert.c_str()) == 0) {
         spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");

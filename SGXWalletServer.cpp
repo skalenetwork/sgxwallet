@@ -82,14 +82,14 @@ void debug_print(){
 
 int init_https_server(bool check_certs) {
 
-  std::string rootCAPath = "cert/rootCA.pem";
-  std::string keyCAPath = "cert/rootCA.key";
+  std::string rootCAPath = "sgx_data/cert/rootCA.pem";
+  std::string keyCAPath = "sgx_data/cert/rootCA.key";
 
   if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE ROOT CA CERTIFICATE");
     spdlog::info("ROOT CA CERTIFICATE IS GOING TO BE CREATED");
 
-    std::string genRootCACert = "cd cert && ./create_CA";
+    std::string genRootCACert = "cd sgx_data/cert && ./create_CA";
 
     if (system(genRootCACert.c_str()) == 0){
       spdlog::info("ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED");
@@ -100,14 +100,14 @@ int init_https_server(bool check_certs) {
     }
   }
 
-  std::string certPath = "cert/SGXServerCert.crt";
-  std::string keyPath = "cert/SGXServerCert.key";
+  std::string certPath = "sgx_data/cert/SGXServerCert.crt";
+  std::string keyPath = "sgx_data/cert/SGXServerCert.key";
 
   if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE SERVER CERTIFICATE");
     spdlog::info("SERVER CERTIFICATE IS GOING TO BE CREATED");
 
-    std::string genCert = "cd cert && ./create_server_cert";
+    std::string genCert = "cd sgx_data/cert && ./create_server_cert";
 
     if (system(genCert.c_str()) == 0){
       spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
