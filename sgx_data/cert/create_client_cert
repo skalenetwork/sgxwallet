@@ -1,8 +1,0 @@
-#!/bin/bash
-
-#sign csr
-CSREXT=".csr"
-CRTEXT=".crt"
-CSRFILE="$1$CSREXT"
-CRTFILE="$1$CRTEXT" 
-yes | openssl ca -config ca.config -in $CSRFILE -out $CRTFILE
