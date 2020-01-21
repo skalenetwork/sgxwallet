@@ -1,43 +1,6 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
 
-<<<<<<< HEAD
-COPY *.cpp ./
-COPY *.h ./
-COPY *.txt ./
-COPY *.c ./
-COPY *.am ./
-COPY *.hpp ./
-COPY *.sh ./
-COPY *.m4 ./
-COPY *.gmp ./
-COPY *.ac ./
-COPY *.json ./
-COPY docker ./docker
-COPY build-aux ./build-aux
-COPY cert ./cert
-COPY intel-sgx-ssl ./intel-sgx-ssl
-COPY jsonrpc ./jsonrpc
-COPY leveldb ./leveldb
-COPY libBLS ./libBLS
-COPY m4 ./m4
-COPY scripts ./scripts
-COPY secure_enclave ./secure_enclave
-COPY sgx-gmp ./sgx-gmp
-COPY sgx-software-enable ./sgx-software-enable
-COPY trusted_libff ./trusted_libff
-COPY spdlog ./spdlog
-RUN rm -rf /usr/src/sdk/leveldb/build/
-
-
-
-
-
-
-RUN apt-get update && apt-get install -yq --no-install-recommends python-yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
-RUN apt install -y libprotobuf10 yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools
-=======
->>>>>>> develop
 
 
 RUN autoreconf -vif
