@@ -12,5 +12,6 @@ services:
     volumes:
       - ./sgx_data:/sgx_data
     restart: unless-stopped
+    command: -s
 
 
