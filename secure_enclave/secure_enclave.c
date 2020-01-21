@@ -53,7 +53,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../sgxwallet_common.h"
 
-uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH] ;
+uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH];
+uint8_t SEK[32];
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -587,7 +588,6 @@ void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg
 }
 
 
-
 void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypted_poly){
 
   uint32_t decr_len;
@@ -911,7 +911,7 @@ void generate_SEK(int *err_status, char *err_string,
 
   *enc_len = sealedLen;
 
-    free(rand_char);
+  free(rand_char);
 }
 
 

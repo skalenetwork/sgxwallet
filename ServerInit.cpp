@@ -64,32 +64,33 @@ void init_daemon() {
 
     libff::init_alt_bn128_params();
 
+    std::string sgx_data_folder = SGXDATA_FOLDER;
     struct stat info;
-    if (stat("SGXData", &info) !=0 ){
-      spdlog::info("going to create SGXData folder");
-      if (system("mkdir SGXData") == 0){
-        spdlog::info("SGXData folder was created");
+    if (stat(sgx_data_folder.c_str(), &info) !=0 ){
+      spdlog::info("going to create sgx_data folder");
+      std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
+      if (system(make_sgx_data_folder.c_str()) == 0){
+        spdlog::info("sgx_data folder was created");
       }
       else{
-        spdlog::info("creating SGXData folder failed");
+        spdlog::info("creating sgx_data folder failed");
         exit(-1);
       }
     }
 
-    static std::string dbName("./" WALLETDB_NAME);
+    static std::string dbName = sgx_data_folder +  WALLETDB_NAME;
     levelDb = new LevelDB(dbName);
 
-    static std::string csr_dbname = "SGXData/CSR_DB";
+    static std::string csr_dbname = sgx_data_folder + "CSR_DB";
     csrDb = new LevelDB(csr_dbname);
 
-    static std::string csr_status_dbname = "SGXData/CSR_STATUS_DB";
+    static std::string csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
     csrStatusDb = new LevelDB(csr_status_dbname);
 
     std::shared_ptr<std::string> encr_SEK_ptr = levelDb->readString("SEK");
     if (encr_SEK_ptr == nullptr){
       spdlog::info("SEK was not created yet");
     }
-
 }
 
 

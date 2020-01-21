@@ -82,8 +82,8 @@ void debug_print(){
 
 int init_https_server(bool check_certs) {
 
-  std::string rootCAPath = "cert/rootCA.pem";
-  std::string keyCAPath = "cert/rootCA.key";
+  std::string rootCAPath = std::string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+  std::string keyCAPath = std::string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
   if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE ROOT CA CERTIFICATE");
@@ -100,8 +100,8 @@ int init_https_server(bool check_certs) {
     }
   }
 
-  std::string certPath = "cert/SGXServerCert.crt";
-  std::string keyPath = "cert/SGXServerCert.key";
+  std::string certPath = std::string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
+  std::string keyPath = std::string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
 
   if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE SERVER CERTIFICATE");
