@@ -1,5 +1,4 @@
 FROM docker.pkg.github.com/skalenetwork/sgxwallet/sgxwallet_base:latest
-
 WORKDIR /usr/src/sdk
 
 RUN autoreconf -vif
