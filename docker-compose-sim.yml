@@ -8,4 +8,5 @@ services:
       - "1028:1028"
     volumes:
       - ./sgx_data:/sgx_data
+    restart: unless-stopped
 
