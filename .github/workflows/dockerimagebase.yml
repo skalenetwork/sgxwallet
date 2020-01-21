@@ -2,7 +2,7 @@ name: Build base container
 on:
   push:
     tags:
-      - build_base
+      - build_base*
 jobs:
   build:
     runs-on: ubuntu-latest
