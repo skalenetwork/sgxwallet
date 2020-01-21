@@ -157,6 +157,12 @@ enclave {
                                 uint8_t _t,
                                 uint8_t _n,
                                 uint8_t ind1);
+
+         public void generate_SEK(
+                                [user_check] int *err_status,
+                                [out, count = 1024] char *err_string,
+                                [in, count = 1024] uint8_t *encrypted_SEK,
+                                [user_check] uint32_t *enc_len);
 	};
 
 

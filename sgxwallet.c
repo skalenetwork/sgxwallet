@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
       if (strlen(argv[1]) == 2 ) {
         fprintf(stderr, "-c  client certificate will not be checked\n");
         fprintf(stderr, "-s  client certificate will be signed automatically\n");
-        printf(stderr, "-d  turn on debug output\n");
-          printf(stderr, "-0  SGXWalletServer will be launched on http (not https)\n");
+        fprintf(stderr, "-d  turn on debug output\n");
+        fprintf(stderr, "-0  SGXWalletServer will be launched on http (not https)\n");
         exit(0);
       } else {
         fprintf(stderr, "unknown flag %s\n", argv[1]);

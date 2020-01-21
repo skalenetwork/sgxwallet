@@ -27,6 +27,8 @@
 
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
 std::vector<std::string> SplitString(const std::string& str, const std::string& delim = ":"){
     std::vector<std::string> tokens;
     size_t prev = 0, pos = 0;
@@ -44,15 +46,15 @@ std::vector<std::string> SplitString(const std::string& str, const std::string& 
 bool checkECDSAKeyName(const std::string& keyName) {
   std::vector<std::string> parts = SplitString(keyName);
   if (parts.size() != 2) {
-    std::cerr << "num parts != 2" << std::endl;
+    spdlog::info("ECDSAKeyName num parts != 2");
     return false;
   }
   if (parts.at(0) != "NEK") {
-      std::cerr << "key doesn't start from NEK" << std::endl;
+      spdlog::info("key doesn't start from NEK");
       return false;
   }
   if ( parts.at(1).length() > 64 || parts.at(1).length() < 1){
-      std::cerr << "wrong key length" << std::endl;
+      spdlog::info("wrong key length");
       return false;
   }
 
@@ -87,36 +89,36 @@ bool checkHex(const std::string& hex, const uint32_t sizeInBytes){
 bool checkName (const std::string& Name, const std::string& prefix){
     std::vector<std::string> parts = SplitString(Name);
     if ( parts.size() != 7) {
-        std::cerr << "parts.size() != 7" << std::endl;
+        spdlog::info("parts.size() != 7");
         return false;
     }
     if ( parts.at(0) != prefix ) {
-        std::cerr << "parts.at(0) != prefix" << std::endl;
+        spdlog::info("parts.at(0) != prefix");
         return false;
     }
     if ( parts.at(1) != "SCHAIN_ID"){
-        std::cerr << "parts.at(1) != SCHAIN_ID" << std::endl;
+        spdlog::info("parts.at(1) != SCHAIN_ID");
         return false;
     }
     if ( parts.at(3) != "NODE_ID"){
-        std::cerr << "parts.at(3) != Node_ID" << std::endl;
+        spdlog::info("parts.at(3) != Node_ID");
         return false;
     }
     if ( parts.at(5) != "DKG_ID"){
-        std::cerr << "parts.at(1) != DKG_ID" << std::endl;
+        spdlog::info("parts.at(1) != DKG_ID");
         return false;
     }
 
     if ( parts.at(2).length() > 78 || parts.at(2).length() < 1){
-        std::cerr << "parts.at(2).length() > 78" << std::endl;
+        spdlog::info("parts.at(2).length() > 78");
         return false;
     }
     if (parts.at(4).length() > 5 || parts.at(4).length() < 1){
-        std::cerr << "parts.at(4).length() > 5" << std::endl;
+        spdlog::info("parts.at(4).length() > 5");
         return false;
     }
     if ( parts.at(6).length() > 78 || parts.at(6).length() < 1){
-        std::cerr << "parts.at(6).length() > 78" << std::endl;
+        spdlog::info("parts.at(6).length() > 78");
         return false;
     }
 
@@ -125,7 +127,7 @@ bool checkName (const std::string& Name, const std::string& prefix){
 
     if ( mpz_set_str(num, parts.at(2).c_str(), 10) == -1){
         mpz_clear(num);
-        std::cerr << "parts.at(2) not num" << std::endl;
+        spdlog::info("parts.at(2) not num");
         return false;
     }
     mpz_clear(num);
@@ -133,7 +135,7 @@ bool checkName (const std::string& Name, const std::string& prefix){
 
     if ( mpz_set_str(num, parts.at(4).c_str(), 10) == -1){
         mpz_clear(num);
-        std::cerr << "parts.at(4) not num" << std::endl;
+        spdlog::info("parts.at(4) not num");
         return false;
     }
     mpz_clear(num);
@@ -141,7 +143,7 @@ bool checkName (const std::string& Name, const std::string& prefix){
 
     if ( mpz_set_str(num, parts.at(6).c_str(),10) == -1){
         mpz_clear(num);
-        std::cerr << "parts.at(6) not num" << std::endl;
+        spdlog::info("parts.at(6) not num");
         return false;
     }
     mpz_clear(num);
