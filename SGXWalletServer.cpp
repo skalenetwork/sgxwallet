@@ -602,7 +602,7 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
     std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
 
     bool res = CreateBLSShare(BLSKeyName, SecretShare.c_str(), encryptedKeyHex_ptr->c_str());
-     if ( res){
+     if (res){
          spdlog::info("BLS KEY SHARE CREATED ");
      }
      else {
@@ -612,6 +612,8 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
      for ( int i = 0; i < n; i++){
        std::string name = polyName + "_" + std::to_string(i) + ":";
        levelDb -> deleteDHDKGKey(name);
+       std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(i) + ":";
+       levelDb -> deleteKey(shareG2_name);
      }
 
   } catch (RPCException &_e) {

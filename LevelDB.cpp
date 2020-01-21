@@ -62,9 +62,6 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
     auto status = db->Get(readOptions, _key, &*result);
 
-//    if (result == nullptr) {
-//      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
-//    }
     if (DEBUG_PRINT) {
       spdlog::info("key to read from db: {}",_key );
       //std::cerr << "key to read from db: " << _key << std::endl;
@@ -106,22 +103,6 @@ void LevelDB::deleteDHDKGKey (const std::string &_key) {
     if (DEBUG_PRINT) {
       spdlog::info("key deleted: {}",full_key );
       //std::cerr << "key deleted " << full_key << std::endl;
-    }
-
-}
-
-void LevelDB::deleteOlegKey (const std::string &_key) {
-
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
-    std::string full_key = "key" + _key;
-
-    auto status = db->Delete(writeOptions, Slice(_key));
-
-    throwExceptionOnError(status);
-
-    if (DEBUG_PRINT) {
-      std::cerr << "key deleted " << full_key << std::endl;
     }
 }
 
