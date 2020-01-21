@@ -894,5 +894,25 @@ void get_bls_pub_key(int *err_status, char* err_string, uint8_t* encrypted_key, 
   }
 }
 
+void generate_SEK(int *err_status, char *err_string,
+                        uint8_t *encrypted_SEK, uint32_t *enc_len){
+
+  unsigned char* rand_char = (unsigned char*)malloc(16);
+  sgx_read_rand( rand_char, 16);
+
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 32);
+
+  sgx_status_t status = sgx_seal_data(0, NULL, 32, (uint8_t *)rand_char, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
+  if( status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"seal SEK failed");
+    *err_status = status;
+    return;
+  }
+
+  *enc_len = sealedLen;
+
+    free(rand_char);
+}
+
 
 

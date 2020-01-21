@@ -343,7 +343,7 @@ CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_SOURCES = signed_enclave_debug.c
 ENCLAVE = secure_enclave
 ENCLAVE_CONFIG = $(ENCLAVE).config.xml
-ENCLAVE_KEY = $(ENCLAVE)_private.pem
+ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
 	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c \

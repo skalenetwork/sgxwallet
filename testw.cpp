@@ -190,59 +190,59 @@ TEST_CASE("BLS key import", "[bls-key-import]") {
 }
 
 
-TEST_CASE("BLS sign test", "[bls-sign]") {
-
-    //init_all();
-    init_enclave();
-
-    char* encryptedKeyHex ="04000200000000000406ffffff02000000000000000000000b000000000000ff0000000000000000813f8390f6228a568e181a4dadb6508e3e66f5247175d65dbd0d8c7fbfa4df45000000f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000008000000000000000000000000000000000dc044ae0cd79faaf41e8a7abb412790476738a98b5b6ce95fa1a32db5551b0a0d867305f4de558c64fee730a1f62394633c7d4ca65e3a40b7883e89c2801c61918b01c5de8624a52963df6f4de8581bcbdd2f9b69720d4cc764e03a04c7a99314bfdb5d2d55deda2ca40cd691f093fb2ecbae24cdacdd4d5de93189c6dfd6792d7b95bd5e330aec3538e7a85d15793"; //encryptTestKey();
-
-    REQUIRE(encryptedKeyHex != nullptr);
-
-
-   // const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
-    const char *hexHash = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
-
-    char* hexHashBuf = (char*) calloc(BUF_LEN, 1);
-
-    strncpy(hexHashBuf,  hexHash, BUF_LEN);
-
-    char sig[BUF_LEN];
-    auto result = sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig);
-
-    REQUIRE(result == true);
-    printf("Signature is: %s \n",  sig );
-
-}
-
-TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
-
-    reset_db();
-
-    init_all(false, false);
-
-
-    auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
-
-    REQUIRE(result["status"] == 0);
-
-    REQUIRE(result["encryptedKeyShare"] != "");
-
-    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
-
-    REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash,2,2,1));
-
-    if (result["status"] != 0) {
-        printf("Error message: %s", result["errorMessage"].asString().c_str());
-    }
-
-
-    REQUIRE(result["status"] == 0);
-    REQUIRE(result["signatureShare"] != "");
-
-    printf("Signature is: %s \n",  result["signatureShare"].asString().c_str());
-
-}
+//TEST_CASE("BLS sign test", "[bls-sign]") {
+//
+//    //init_all();
+//    init_enclave();
+//
+//    char* encryptedKeyHex ="04000200000000000406ffffff02000000000000000000000b000000000000ff0000000000000000813f8390f6228a568e181a4dadb6508e3e66f5247175d65dbd0d8c7fbfa4df45000000f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000008000000000000000000000000000000000dc044ae0cd79faaf41e8a7abb412790476738a98b5b6ce95fa1a32db5551b0a0d867305f4de558c64fee730a1f62394633c7d4ca65e3a40b7883e89c2801c61918b01c5de8624a52963df6f4de8581bcbdd2f9b69720d4cc764e03a04c7a99314bfdb5d2d55deda2ca40cd691f093fb2ecbae24cdacdd4d5de93189c6dfd6792d7b95bd5e330aec3538e7a85d15793"; //encryptTestKey();
+//
+//    REQUIRE(encryptedKeyHex != nullptr);
+//
+//
+//   // const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+//    const char *hexHash = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
+//
+//    char* hexHashBuf = (char*) calloc(BUF_LEN, 1);
+//
+//    strncpy(hexHashBuf,  hexHash, BUF_LEN);
+//
+//    char sig[BUF_LEN];
+//    auto result = sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig);
+//
+//    REQUIRE(result == true);
+//    printf("Signature is: %s \n",  sig );
+//
+//}
+//
+//TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
+//
+//    reset_db();
+//
+//    init_all(false, false);
+//
+//
+//    auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
+//
+//    REQUIRE(result["status"] == 0);
+//
+//    REQUIRE(result["encryptedKeyShare"] != "");
+//
+//    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
+//
+//    REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash,2,2,1));
+//
+//    if (result["status"] != 0) {
+//        printf("Error message: %s", result["errorMessage"].asString().c_str());
+//    }
+//
+//
+//    REQUIRE(result["status"] == 0);
+//    REQUIRE(result["signatureShare"] != "");
+//
+//    printf("Signature is: %s \n",  result["signatureShare"].asString().c_str());
+//
+//}
 
 //TEST_CASE("KeysDB test", "[keys-db]") {
 //
@@ -746,6 +746,7 @@ std::string ConvertDecToHex(std::string dec, int numBytes = 32){
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   is_sgx_https = 0;
+  DEBUG_PRINT = 1;
   std::cerr<< "test started" << std::endl;
   init_all(false, false);
   cerr << "Server inited" << endl;
@@ -884,10 +885,6 @@ TEST_CASE("API test", "[api_test]") {
     cerr << "Client inited" << endl;
 
     try {
-        //levelDb->deleteOlegKey("0");
-        //levelDb->deleteOlegKey("1");
-       // levelDb->deleteDHDKGKey("p2_0:");
-        //levelDb->deleteDHDKGKey("p2_1:");
 //        for ( uint8_t i = 0; i < 2; i++) {
 //        levelDb->deleteKey("POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) +
 //                             ":DKG_ID:0");
@@ -1066,7 +1063,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 }
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
-  //DEBUG_PRINT = 1;
+  DEBUG_PRINT = 1;
   is_sgx_https = 0;
 
   cerr << "ecdsa_api_test started" << endl;
@@ -1110,7 +1107,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 }
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
- //  DEBUG_PRINT = 1;
+  DEBUG_PRINT = 1;
   is_sgx_https = 0;
 
   cerr << "dkg_api_test started" << endl;

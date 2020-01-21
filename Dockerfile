@@ -2,6 +2,7 @@ FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
 
 
+
 RUN autoreconf -vif
 RUN libtoolize --force
 RUN aclocal

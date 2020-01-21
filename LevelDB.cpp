@@ -36,6 +36,8 @@
 
 #include "ServerInit.h"
 
+#include "spdlog/spdlog.h"
+
 using namespace leveldb;
 
 
@@ -60,11 +62,9 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
 
     auto status = db->Get(readOptions, _key, &*result);
 
-//    if (result == nullptr) {
-//      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
-//    }
     if (DEBUG_PRINT) {
-      std::cerr << "key to read from db: " << _key << std::endl;
+      spdlog::info("key to read from db: {}",_key );
+      //std::cerr << "key to read from db: " << _key << std::endl;
     }
 
     throwExceptionOnError(status);
@@ -84,7 +84,8 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
     throwExceptionOnError(status);
 
     if (DEBUG_PRINT) {
-      std::cerr << "written key " << _key  << std::endl;
+        spdlog::info("written key: {}",_key );
+       // std::cerr << "written key " << _key  << std::endl;
     }
 }
 
@@ -99,20 +100,10 @@ void LevelDB::deleteDHDKGKey (const std::string &_key) {
 
     throwExceptionOnError(status);
 
-    std::cerr << "key deleted " << full_key << std::endl;
-}
-
-void LevelDB::deleteOlegKey (const std::string &_key) {
-
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
-    std::string full_key = "key" + _key;
-
-    auto status = db->Delete(writeOptions, Slice(_key));
-
-    throwExceptionOnError(status);
-
-    std::cerr << "key deleted " << full_key << std::endl;
+    if (DEBUG_PRINT) {
+      spdlog::info("key deleted: {}",full_key );
+      //std::cerr << "key deleted " << full_key << std::endl;
+    }
 }
 
 void LevelDB::deleteTempNEK(const std::string &_key){
@@ -140,7 +131,8 @@ void LevelDB::deleteKey(const std::string &_key){
     throwExceptionOnError(status);
 
     if (DEBUG_PRINT) {
-      std::cerr << "key deleted " << _key << std::endl;
+      spdlog::info("key deleted: {}",_key );
+      // std::cerr << "key deleted " << _key << std::endl;
     }
 }
 
@@ -221,12 +213,16 @@ void LevelDB::writeDataUnique(const std::string & Name, const std::string &value
   auto key = Name;
 
   if (readString(Name) != nullptr) {
-    std::cerr << "name " << Name << " already exists" << std::endl;
+    spdlog::info("name {}",Name, " already exists");
+     // std::cerr << "name " << Name << " already exists" << std::endl;
     throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   writeString(key, value);
-  std::cerr << Name << " is written to db " << std::endl;
+  if (DEBUG_PRINT) {
+      spdlog::info("{}",Name, " is written to db");
+    //std::cerr << Name << " is written to db " << std::endl;
+  }
 }
 
 
