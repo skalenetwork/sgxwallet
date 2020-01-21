@@ -1,15 +1,12 @@
 name: Build base container
-
-on: [push]
-  tags:
-    - build_base
-
+on:
+  push:
+    tags:
+      - build_base
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Login to docker
       env:
