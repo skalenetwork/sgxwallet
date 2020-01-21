@@ -15,7 +15,7 @@ COPY *.ac ./
 COPY *.json ./
 COPY docker ./docker
 COPY build-aux ./build-aux
-COPY  cert ./cert
+COPY cert ./cert
 COPY intel-sgx-ssl ./intel-sgx-ssl
 COPY jsonrpc ./jsonrpc
 COPY leveldb ./leveldb
