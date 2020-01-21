@@ -1,13 +1,11 @@
-name: Build and push sim container
-
-on: [push]
-
+name: Build base container
+on:
+  push:
+    tags:
+      - build_base*
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Login to docker
       env:
@@ -17,7 +15,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file DockerfileSimulation --tag  skalenetwork/sgxwalletsim:latest
+      run: docker build . --file DockerfileBase --tag  skalenetwork/sgxwallet_base:latest
     - name: push docker image
-      run:  docker push skalenetwork/sgxwalletsim:latest
+      run:  docker push skalenetwork/sgxwallet_base:latest
 
