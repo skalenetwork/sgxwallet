@@ -11,4 +11,6 @@ services:
       - "/dev/mei0"
     volumes:
       - ./sgx_data:/sgx_data
+    restart: unless-stopped
+
 
