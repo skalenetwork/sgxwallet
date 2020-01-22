@@ -53,7 +53,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../sgxwallet_common.h"
 
-uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH] ;
+uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH];
+uint8_t SEK[32];
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -900,9 +901,12 @@ void generate_SEK(int *err_status, char *err_string,
   unsigned char* rand_char = (unsigned char*)malloc(16);
   sgx_read_rand( rand_char, 16);
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 32);
+  carray2Hex(rand_char, 16, SEK);
 
-  sgx_status_t status = sgx_seal_data(0, NULL, 32, (uint8_t *)rand_char, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 32);
+  memcpy(err_string, 32, SEK);
+
+  sgx_status_t status = sgx_seal_data(0, NULL, 32, (uint8_t *)SEK, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN,"seal SEK failed");
     *err_status = status;
@@ -911,7 +915,7 @@ void generate_SEK(int *err_status, char *err_string,
 
   *enc_len = sealedLen;
 
-    free(rand_char);
+  free(rand_char);
 }
 
 

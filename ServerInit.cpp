@@ -52,6 +52,8 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
+#include "SEKManager.h"
+
 #include <iostream>
 
 #include "spdlog/spdlog.h"
@@ -88,6 +90,7 @@ void init_daemon() {
     std::shared_ptr<std::string> encr_SEK_ptr = levelDb->readString("SEK");
     if (encr_SEK_ptr == nullptr){
       spdlog::info("SEK was not created yet");
+      generate_SEK();
     }
 
 }
