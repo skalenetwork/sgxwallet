@@ -588,7 +588,6 @@ void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg
 }
 
 
-
 void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypted_poly){
 
   uint32_t decr_len;
