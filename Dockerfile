@@ -1,6 +1,26 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
 
+COPY *.cpp ./
+COPY *.h ./
+COPY *.txt ./
+COPY *.c ./
+COPY *.am ./
+COPY *.hpp ./
+COPY *.sh ./
+COPY *.m4 ./
+COPY *.gmp ./
+COPY *.ac ./
+COPY *.json ./
+COPY docker ./docker
+COPY build-aux ./build-aux
+COPY  cert ./cert
+COPY jsonrpc ./jsonrpc
+COPY leveldb ./leveldb
+COPY m4 ./m4
+COPY scripts ./scripts
+COPY secure_enclave ./secure_enclave
+COPY spdlog ./spdlog
 
 
 RUN autoreconf -vif
