@@ -1281,5 +1281,3 @@ void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_
 }
 
 
-
-

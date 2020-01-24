@@ -62,8 +62,8 @@ std::vector<std::string> gen_ecdsa_key(){
     std::cerr << "account key is " << errMsg << std::endl;
     std::cerr << "enc_len is " << enc_len << std::endl;
     std::cerr << "enc_key is "  << std::endl;
-    for(int i = 0 ; i < 1024; i++)
-      std::cerr << (int)encr_pr_key[i] << " " ;
+//    for(int i = 0 ; i < 1024; i++)
+//      std::cerr << (int)encr_pr_key[i] << " " ;
   }
   char *hexEncrKey = (char *) calloc(BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
@@ -118,13 +118,6 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   if (!hex2carray(encryptedKeyHex, &enc_len, encr_pr_key)){
     throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
-
-
-  spdlog::info("encr_hex_key is {}", encryptedKeyHex);
-  std::cerr << "enc_key is "  << std::endl;
-  for(int i = 0 ; i < BUF_LEN; i++)
-    std::cerr << (int)encr_pr_key[i] << " " ;
-
 
   //status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   status = get_public_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );

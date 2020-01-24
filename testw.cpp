@@ -1190,3 +1190,34 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
 
   sgx_destroy_enclave(eid);
 }
+
+TEST_CASE("IsPolyExists test", "[is_poly_test]") {
+  DEBUG_PRINT = 1;
+  is_sgx_https = 0;
+
+  cerr << "is_poly_test started" << endl;
+  init_all(false, false);
+
+  cerr << "Server inited" << endl;
+  HttpClient client("http://localhost:1029");
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  cerr << "Client inited" << endl;
+
+  reset_db();
+
+  std::string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
+  Json::Value genPoly = c.generateDKGPoly(polyName, 2);
+  cout << genPoly << std::endl;
+  Json::Value polyExists = c.IsPolyExists(polyName);
+  cout << polyExists << std::endl;
+  REQUIRE(polyExists["IsExist"].asBool());
+
+  Json::Value polyDoesNotExist = c.IsPolyExists("Vasya");
+  cout << polyDoesNotExist << std::endl;
+  REQUIRE(!polyDoesNotExist["IsExist"].asBool());
+
+
+
+
+}
