@@ -51,14 +51,21 @@ std::vector<std::string> gen_ecdsa_key(){
   char *pub_key_y = (char *)calloc(1024, 1);
   uint32_t enc_len = 0;
 
-  status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  //status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
   if ( err_status != 0 ){
     std::cerr << "RPCException thrown" << std::endl;
     throw RPCException(-666, errMsg) ;
   }
   std::vector<std::string> keys(3);
-  //std::cerr << "account key is " << errMsg << std::endl;
-  char *hexEncrKey = (char *) calloc(2*BUF_LEN, 1);
+  if (DEBUG_PRINT) {
+    std::cerr << "account key is " << errMsg << std::endl;
+    std::cerr << "enc_len is " << enc_len << std::endl;
+    std::cerr << "enc_key is "  << std::endl;
+//    for(int i = 0 ; i < 1024; i++)
+//      std::cerr << (int)encr_pr_key[i] << " " ;
+  }
+  char *hexEncrKey = (char *) calloc(BUF_LEN, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
   keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
@@ -69,6 +76,7 @@ std::vector<std::string> gen_ecdsa_key(){
   unsigned long seed = rand_gen();
   if (DEBUG_PRINT) {
     spdlog::info("seed is {}", seed);
+    std::cerr << "strlen is " << strlen(hexEncrKey) << std::endl;
   }
   gmp_randstate_t state;
   gmp_randinit_default(state);
@@ -105,26 +113,31 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   char *pub_key_y = (char *)calloc(1024, 1);
   uint64_t enc_len = 0;
 
-  uint8_t encr_pr_key[BUF_LEN];
+  //uint8_t encr_pr_key[BUF_LEN];
+  uint8_t* encr_pr_key = (uint8_t*)calloc(1024, 1);
   if (!hex2carray(encryptedKeyHex, &enc_len, encr_pr_key)){
     throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
 
-  status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  //status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  status = get_public_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   if (err_status != 0){
     throw RPCException(-666, errMsg) ;
   }
   std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
   if (DEBUG_PRINT) {
+    spdlog::info("enc_len is {}", enc_len);
     spdlog::info("pubkey is {}", pubKey);
     spdlog::info("pubkey length is {}", pubKey.length());
     spdlog::info("err str is {}", errMsg);
+    spdlog::info("err status is {}", err_status);
   }
 
   free(errMsg);
   free(pub_key_x);
   free(pub_key_y);
+  free(encr_pr_key);
 
   return pubKey;
 }
@@ -134,12 +147,13 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
 
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
-  char* signature_r = (char*)malloc(1024);
-  char* signature_s = (char*)malloc(1024);
+  char* signature_r = (char *)calloc(1024, 1);
+  char* signature_s = (char *)calloc(1024, 1);
   uint8_t signature_v = 0;
   uint64_t dec_len = 0;
 
-  uint8_t encr_key[BUF_LEN];
+  //uint8_t encr_key[BUF_LEN];
+  uint8_t* encr_key = (uint8_t*)calloc(1024, 1);
   if (!hex2carray(encryptedKeyHex, &dec_len, encr_key)){
       throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
@@ -150,7 +164,8 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
     spdlog::info("encrypted len: {}", dec_len);
   }
 
-  status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
+  //status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
+  status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
   if ( err_status != 0){
     throw RPCException(-666, errMsg ) ;
   }
@@ -176,6 +191,7 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
   free(errMsg);
   free(signature_r);
   free(signature_s);
+  free(encr_key);
 
   return signature_vect;
 }

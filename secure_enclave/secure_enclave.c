@@ -51,10 +51,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sgx_tcrypto.h>
 
-#include "../sgxwallet_common.h"
+#include "AESUtils.h"
+
+//#include "../sgxwallet_common.h"
+#include "enclave_common.h"
 
 uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH];
-uint8_t SEK[32];
+
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -896,23 +899,385 @@ void get_bls_pub_key(int *err_status, char* err_string, uint8_t* encrypted_key, 
 
 void generate_SEK(int *err_status, char *err_string,
                         uint8_t *encrypted_SEK, uint32_t *enc_len){
+  uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
+  //unsigned char* rand_char = (unsigned char*)malloc(16);
+  sgx_read_rand( SEK_raw, SGX_AESGCM_KEY_SIZE);
+  uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
+  uint8_t SEK[hex_aes_key_length];
+  carray2Hex(SEK_raw, SGX_AESGCM_KEY_SIZE, SEK);
 
-  unsigned char* rand_char = (unsigned char*)malloc(16);
-  sgx_read_rand( rand_char, 16);
 
-  uint32_t sealedLen = sgx_calc_sealed_data_size(0, 32);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, hex_aes_key_length + 1);
+  memcpy(err_string, SEK, BUF_LEN);
 
-  sgx_status_t status = sgx_seal_data(0, NULL, 32, (uint8_t *)rand_char, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
+  for ( uint8_t i = 0; i < SGX_AESGCM_KEY_SIZE; i++){
+    AES_key[i] = SEK_raw[i];
+  }
+
+
+
+  sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, SEK, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
   if( status !=  SGX_SUCCESS) {
-    snprintf(err_string, BUF_LEN,"seal SEK failed");
+    snprintf(err_string, BUF_LEN, "seal SEK failed");
     *err_status = status;
     return;
   }
 
   *enc_len = sealedLen;
-
-  free(rand_char);
+  //free(rand_char);
 }
 
+void generate_ecdsa_key_aes(int *err_status, char *err_string,
+                        uint8_t *encrypted_key, uint32_t *enc_len, char * pub_key_x, char * pub_key_y) {
+
+  domain_parameters curve = domain_parameters_init();
+  domain_parameters_load_curve(curve, secp256k1);
+
+  unsigned char* rand_char = (unsigned char*)malloc(32);
+  sgx_read_rand( rand_char, 32);
+
+  mpz_t seed;
+  mpz_init(seed);
+  mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
+
+  free(rand_char);
+
+  mpz_t skey;
+  mpz_init(skey);
+  mpz_mod(skey, seed, curve->p);
+  mpz_clear(seed);
+
+  //Public key
+  point Pkey = point_init();
+
+  signature_generate_key(Pkey, skey, curve);
+
+  uint8_t base = 16;
+
+  int len = mpz_sizeinbase (Pkey->x, base) + 2;
+  //snprintf(err_string, BUF_LEN, "len = %d\n", len);
+  char arr_x[len];
+  char* px = mpz_get_str(arr_x, base, Pkey->x);
+  //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  int n_zeroes = 64 - strlen(arr_x);
+  for ( int i = 0; i < n_zeroes; i++){
+    pub_key_x[i] = '0';
+  }
+
+  strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
+
+  char arr_y[mpz_sizeinbase (Pkey->y, base) + 2];
+  char* py = mpz_get_str(arr_y, base, Pkey->y);
+  n_zeroes = 64 - strlen(arr_y);
+  for ( int i = 0; i < n_zeroes; i++){
+    pub_key_y[i] = '0';
+  }
+  strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+  char skey_str[mpz_sizeinbase (skey, ECDSA_SKEY_BASE) + 2];
+  char* s  = mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
+  snprintf(err_string, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
+
+  int stat = AES_encrypt(skey_str, encrypted_key);
+
+  if( stat != 0) {
+    snprintf(err_string, BUF_LEN,"ecdsa private key encryption failed");
+    *err_status = stat;
+    return;
+  }
+
+  *enc_len = strlen(skey_str) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
+  stat = AES_decrypt(encrypted_key, *enc_len, skey_str);
+  if( stat != 0) {
+    snprintf(err_string + 19 + strlen(skey_str), BUF_LEN,"ecdsa private key decr failed with status %d", stat);
+    //*err_status = stat;
+    return;
+  }
+
+  mpz_clear(skey);
+  domain_parameters_clear(curve);
+  point_clear(Pkey);
+}
+
+void get_public_ecdsa_key_aes(int *err_status, char *err_string,
+                          uint8_t *encrypted_key, uint32_t enc_len, char * pub_key_x, char * pub_key_y) {
+
+  domain_parameters curve = domain_parameters_init();
+  domain_parameters_load_curve(curve, secp256k1);
+
+  char skey[ECDSA_SKEY_LEN];
+
+  int status = AES_decrypt(encrypted_key, enc_len, skey);
+
+  if (status != 0) {
+    snprintf(err_string, BUF_LEN,"AES_decrypt failed with status %d", status);
+    *err_status = status;
+    return;
+  }
+
+  skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
+
+  strncpy(err_string, skey, 1024);
+
+  mpz_t skey_mpz;
+  mpz_init(skey_mpz);
+  // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
+  if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
+    snprintf(err_string, BUF_LEN,"wrong string to init private key  - %s", skey);
+    *err_status = -10;
+    mpz_clear(skey_mpz);
+    return;
+  }
+
+  //Public key
+  point Pkey = point_init();
+
+  signature_generate_key(Pkey, skey_mpz, curve);
+
+  point Pkey_test = point_init();
+  point_multiplication(Pkey_test, skey_mpz, curve->G, curve);
+
+  if (!point_cmp(Pkey, Pkey_test)){
+    snprintf(err_string, BUF_LEN,"Points are not equal");
+    *err_status = -11;
+    return;
+  }
+
+  int base = 16;
+
+  int len = mpz_sizeinbase (Pkey->x, base) + 2;
+  //snprintf(err_string, BUF_LEN, "len = %d\n", len);
+  char arr_x[len];
+  char* px = mpz_get_str(arr_x, base, Pkey->x);
+  //snprintf(err_string, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
+  int n_zeroes = 64 - strlen(arr_x);
+  for ( int i = 0; i < n_zeroes; i++){
+    pub_key_x[i] = '0';
+  }
+
+  strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
+
+  char arr_y[mpz_sizeinbase (Pkey->y, base) + 2];
+  char* py = mpz_get_str(arr_y, base, Pkey->y);
+  n_zeroes = 64 - strlen(arr_y);
+  for ( int i = 0; i < n_zeroes; i++){
+    pub_key_y[i] = '0';
+  }
+  strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+
+  mpz_clear(skey_mpz);
+  domain_parameters_clear(curve);
+  point_clear(Pkey);
+}
+
+void ecdsa_sign_aes(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t enc_len,
+                 unsigned char* hash, char * sig_r, char * sig_s, uint8_t* sig_v, int base) {
+
+  domain_parameters curve = domain_parameters_init();
+  domain_parameters_load_curve(curve, secp256k1);
+
+  char skey[ECDSA_SKEY_LEN];
+
+  int status = AES_decrypt(encrypted_key, enc_len, skey);
+
+  if (status != 0) {
+    *err_status = status;
+    snprintf(err_string, BUF_LEN,"aes decrypt failed with status %d", status);
+    return;
+  }
+
+  skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE - 1] = '\0';
+
+  snprintf(err_string, BUF_LEN,"pr key is %s length %d ", skey, strlen(skey));
+  mpz_t skey_mpz;
+  mpz_init(skey_mpz);
+  if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN ,"invalid secret key");
+    mpz_clear(skey_mpz);
+    return;
+  }
+
+
+  mpz_t msg_mpz;
+  mpz_init(msg_mpz);
+  if (mpz_set_str(msg_mpz, hash, 16) == -1){
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN ,"invalid message hash");
+    mpz_clear(msg_mpz);
+    return;
+  }
+
+  signature sign = signature_init();
+
+  signature_sign( sign, msg_mpz, skey_mpz, curve);
+
+  point Pkey = point_init();
+
+  signature_generate_key(Pkey, skey_mpz, curve);
+
+  if ( !signature_verify(msg_mpz, sign, Pkey, curve) ){
+    *err_status = -2;
+    snprintf(err_string, BUF_LEN,"signature is not verified! ");
+    return;
+  }
+
+  //char arr_x[mpz_sizeinbase (Pkey->x, 16) + 2];
+  //char* px = mpz_get_str(arr_x, 16, Pkey->x);
+  //snprintf(err_string, BUF_LEN,"pub key x %s ", arr_x);
+
+  char arr_m[mpz_sizeinbase (msg_mpz, 16) + 2];
+  char* msg = mpz_get_str(arr_m, 16, msg_mpz);
+  snprintf(err_string, BUF_LEN,"message is %s ", arr_m);
+
+  char arr_r[mpz_sizeinbase (sign->r, base) + 2];
+  char* r = mpz_get_str(arr_r, base, sign->r);
+  strncpy(sig_r, arr_r, 1024);
+
+  char arr_s[mpz_sizeinbase (sign->s, base) + 2];
+  char* s = mpz_get_str(arr_s, base, sign->s);
+  strncpy(sig_s, arr_s, 1024);
+
+  *sig_v = sign->v;
+
+  mpz_clear(skey_mpz);
+  mpz_clear(msg_mpz);
+  domain_parameters_clear(curve);
+  signature_clear(sign);
+  point_clear(Pkey);
+
+}
+
+void encrypt_key_aes(int *err_status, char *err_string, char *key,
+                 uint8_t *encrypted_key, uint32_t *enc_len) {
+
+  //init();
+
+  *err_status = UNKNOWN_ERROR;
+
+  memset(err_string, 0, BUF_LEN);
+
+  checkKey(err_status, err_string, key);
+
+  if (*err_status != 0) {
+    snprintf(err_string + strlen(err_string), BUF_LEN, "check_key failed");
+    return;
+  }
+
+
+
+  memset(encrypted_key, 0, BUF_LEN);
+
+
+  int stat = AES_encrypt(key, encrypted_key);
+  if ( stat != 0) {
+    *err_status = stat;
+    snprintf(err_string, BUF_LEN, "AES encrypt failed with status %d", stat);
+    return;
+  }
+
+  *enc_len = strlen(key) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
+  char decryptedKey[BUF_LEN];
+  memset(decryptedKey, 0, BUF_LEN);
+
+  stat = AES_decrypt(encrypted_key, *enc_len, decryptedKey);
+
+  if (stat != 0) {
+    *err_status = stat;
+    snprintf(err_string, BUF_LEN, ":decrypt_key failed with status %d", stat);
+    return;
+  }
+
+  uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
+
+  if (decryptedKeyLen == MAX_KEY_LENGTH) {
+    snprintf(err_string, BUF_LEN, "Decrypted key is not null terminated");
+    return;
+  }
+
+
+  *err_status = -8;
+
+  if (strncmp(key, decryptedKey, MAX_KEY_LENGTH) != 0) {
+    snprintf(err_string, BUF_LEN, "Decrypted key does not match original key");
+    return;
+  }
+
+  *err_status = 0;
+}
+
+void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
+                 uint32_t enc_len, char *key) {
+
+  init();
+
+  uint32_t decLen;
+
+  *err_status = -9;
+
+  int status = AES_decrypt(encrypted_key, enc_len, key);
+
+
+  if (status != 0) {
+    *err_status = status;
+    snprintf(err_string, BUF_LEN, "aes decrypt failed with status %d", status);
+    return;
+  }
+
+  //snprintf(err_string, BUF_LEN, "decr key is %s", key);
+
+  if (decLen > MAX_KEY_LENGTH) {
+    snprintf(err_string, BUF_LEN, "wrong decLen");//"decLen != MAX_KEY_LENGTH");
+    return;
+  }
+
+  *err_status = -10;
+
+
+  uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+
+  if (keyLen == MAX_KEY_LENGTH) {
+    snprintf(err_string, BUF_LEN, "Key is not null terminated");
+    return;
+  }
+
+  *err_status = 0;
+  return;
+
+}
+
+void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
+                      uint32_t enc_len, char *_hashX,
+                      char *_hashY, char *signature) {
+
+
+
+  char key[BUF_LEN];
+  char* sig = (char*) calloc(BUF_LEN, 1);
+
+  init();
+
+
+  int stat = AES_decrypt(encrypted_key, enc_len, key);
+
+  if ( stat != 0) {
+    *err_status = stat;
+    strncpy(signature, err_string, BUF_LEN);
+    return;
+  }
+
+  enclave_sign(key, _hashX, _hashY, sig);
+
+  strncpy(signature, sig, BUF_LEN);
+
+  if (strnlen(signature, BUF_LEN) < 10) {
+    *err_status = -1;
+    return;
+  }
+
+
+}
 
 

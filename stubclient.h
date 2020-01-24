@@ -208,6 +208,18 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value IsPolyExists(const std::string & polyName) throw (jsonrpc::JsonRpcException)
+        {
+            Json::Value p;
+            p["polyName"] = polyName;
+
+            Json::Value result = this->CallMethod("IsPolyExists",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
 
     ////CSRManagerServer
 
