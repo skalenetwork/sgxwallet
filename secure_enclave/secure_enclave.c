@@ -1276,8 +1276,29 @@ void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_
     *err_status = -1;
     return;
   }
+}
 
+void gen_dkg_secret_aes (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
 
+  char* dkg_secret = (char*)calloc(DKG_BUFER_LENGTH, 1);
+
+  if (gen_dkg_poly(dkg_secret, _t) != 0 ){
+    *err_status = - 1;
+    return;
+  }
+
+  snprintf(err_string, BUF_LEN,"poly is %s ", dkg_secret);
+
+  int status = AES_encrypt(dkg_secret, encrypted_dkg_secret);
+
+  if(status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"SGX AES encrypt DKG poly failed");
+    *err_status = status;
+    return;
+  }
+
+  *enc_len = strlen(dkg_secret) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+  free(dkg_secret);
 }
 
 

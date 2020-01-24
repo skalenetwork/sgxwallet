@@ -706,11 +706,21 @@ Json::Value MultG2Impl(const std::string& x){
 
 Json::Value IsPolyExistsImpl(const std::string& polyName){
     Json::Value result;
-
+    try {
     std::shared_ptr<std::string> poly_str_ptr = levelDb->readString(polyName);
     result["IsExist"] = true;
+    result["status"] = 0;
+    result["errorMessage"] = "";
     if (poly_str_ptr == nullptr){
         result["IsExist"] = false;
+        result["status"] = 0;
+        result["errorMessage"] = "";
+    }
+    } catch (RPCException &_e) {
+      std::cerr << " err str " << _e.errString << std::endl;
+      result["status"] = _e.status;
+      result["errorMessage"] = _e.errString;
+      result["IsExist"] = false;
     }
 
     return result;

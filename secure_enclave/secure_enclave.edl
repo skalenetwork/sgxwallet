@@ -213,6 +213,7 @@ enclave {
                                 uint32_t enc_len,
                                 [out, count = 1024] char* key );
 
+
         public void bls_sign_message_aes (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
@@ -221,6 +222,16 @@ enclave {
                                 [in, count = 1024] char* hashX ,
                                 [in, count = 1024] char* hashY ,
                                 [out, count = 1024] char* signature);
+
+        public void gen_dkg_secret_aes (
+                                [user_check] int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [out, count = 3050] uint8_t* encrypted_dkg_secret,
+                                [user_check] uint32_t * enc_len,
+                                        size_t _t);
+
+
+
 	};
 
 

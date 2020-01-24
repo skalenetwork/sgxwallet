@@ -1217,7 +1217,40 @@ TEST_CASE("IsPolyExists test", "[is_poly_test]") {
   cout << polyDoesNotExist << std::endl;
   REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
+}
 
+TEST_CASE("AES_DKG test", "[aes_dkg]") {
+  is_sgx_https = 0;
+  DEBUG_PRINT = 1;
 
+  std::cerr << "test started" << std::endl;
+  init_all(false, false);
+  cerr << "Server inited" << endl;
+  HttpClient client("http://localhost:1029");
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  cerr << "Client inited" << endl;
 
+  reset_db();
+
+  int n = 4, t = 4;
+  Json::Value EthKeys[n];
+  Json::Value VerifVects[n];
+  Json::Value pubEthKeys;
+  Json::Value secretShares[n];
+  Json::Value pubBLSKeys[n];
+  Json::Value BLSSigShares[n];
+  std::vector<std::string> pubShares(n);
+  std::vector<std::string> poly_names(n);
+
+  for (uint8_t i = 0; i < n; i++) {
+    EthKeys[i] = c.generateECDSAKey();
+    std::string polyName =
+        "POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) + ":DKG_ID:0";
+    cout << c.generateDKGPoly(polyName, t);
+
+//    poly_names[i] = polyName;
+//    VerifVects[i] = c.getVerificationVector(polyName, t, n);
+//    cout << "VV " << i << " " << VerifVects[i] << std::endl;
+//    pubEthKeys.append(EthKeys[i]["PublicKey"]);
+  }
 }
