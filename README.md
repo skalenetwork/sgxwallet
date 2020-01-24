@@ -27,7 +27,7 @@ Table of Contents
    * [Running sgxwallet](#running-sgxwallet)
       * [Clone this repository and its submodules](#clone-this-repository-and-its-submodules)
       * [Try instantly in simulation mode](#try-instantly-in-simulation-mode)
-      * [Start, stop and upgrade sgxwallet.](#start-stop-and-upgrade-sgxwallet)
+      * [Start, stop and upgrade sgxwallet](#start-stop-and-upgrade-sgxwallet)
       * [Enable SGX on your machine](#enable-sgx-on-your-machine)
       * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
       * [Install SGX driver](#install-sgx-driver)
@@ -80,7 +80,7 @@ sudo docker-compose up
 
 Voila! You should see the "SGX Server started" message.
 
-## Start, stop and upgrade sgxwallet.
+## Start, stop and upgrade sgxwallet
 
 As any docker-compose application sgxwallet is super easy to use. 
 
