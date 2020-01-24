@@ -18,7 +18,7 @@ The administrator manually approves each registration.
 
 ## An important note about production readiness
 
-The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
+The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security.**
 
 Table of Contents
 =================
