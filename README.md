@@ -31,7 +31,7 @@ Table of Contents
       * [Enable SGX on your machine](#enable-sgx-on-your-machine)
       * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
       * [Install SGX driver](#install-sgx-driver)
-      * [Run the latest sgxwallet docker container from dockerhub](#run-the-latest-sgxwallet-docker-container-from-dockerhub)
+      * [Run sgxwallet in secure SGX mode](#run-the-latest-sgxwallet-docker-container-from-dockerhub)
    * [Development](#development)
       * [Install Prerequisites](#install-prerequisites)
       * [Install SGX sdk](#install-sgx-sdk)
@@ -165,7 +165,9 @@ Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx`
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
 
-## Run the latest sgxwallet docker container from dockerhub
+## Run sgxwallet in secure SGX mode
+
+Run the latest sgxwallet docker container image in SGX mode
 
 ```
 cd run_sgx; 
