@@ -275,7 +275,6 @@ Json::Value generateECDSAKeyImpl() {
           spdlog::info("key name generated: {}", keyName);
         }
 
-        //writeECDSAKey(keyName, keys.at(0));
         writeDataToDB(keyName, keys.at(0));
 
         result["encryptedKey"] = keys.at(0);

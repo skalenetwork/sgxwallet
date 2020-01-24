@@ -35,23 +35,23 @@ void generate_SEK(){
 
   char *errMsg = (char *)calloc(1024, 1);
   int err_status = 0;
-  uint8_t* encr_pr_key = (uint8_t *)calloc(1024, 1);
+  uint8_t* encr_SEK = (uint8_t *)calloc(1024, 1);
   uint32_t enc_len = 0;
 
-  status = generate_SEK(eid, &err_status, errMsg, encr_pr_key, &enc_len);
+  status = generate_SEK(eid, &err_status, errMsg, encr_SEK, &enc_len);
   if ( err_status != 0 ){
     std::cerr << "RPCException thrown" << std::endl;
     throw RPCException(-666, errMsg) ;
   }
 
-  char *hexEncrKey = (char *) calloc(BUF_LEN, 1);
-  //carray2Hex(encr_pr_key, enc_len, hexEncrKey);
+  char *hexEncrKey = (char *) calloc(2*enc_len + 1, 1);
+  carray2Hex(encr_SEK, enc_len, hexEncrKey);
 
   std::cerr << "key is " << errMsg << std::endl;
 
-  //levelDb->writeDataUnique("SEK", hexEncrKey);
+  levelDb->writeDataUnique("SEK", hexEncrKey);
 
   free(errMsg);
-  free(encr_pr_key);
+  free(encr_SEK);
   free(hexEncrKey);
 }
