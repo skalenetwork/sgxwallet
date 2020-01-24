@@ -8,5 +8,5 @@ jhid -d
 pid=$!
 
 sleep 2
-cd /usr/src/sdk; ./sgxwallet $1
+cd /usr/src/sdk; ./sgxwallet $1 $2 $3 $4
 
