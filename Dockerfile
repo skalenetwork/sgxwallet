@@ -16,6 +16,7 @@ COPY docker ./docker
 COPY build-aux ./build-aux
 COPY  cert ./cert
 COPY jsonrpc ./jsonrpc
+
 COPY leveldb ./leveldb
 COPY m4 ./m4
 COPY scripts ./scripts
