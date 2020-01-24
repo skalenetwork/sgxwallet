@@ -48,4 +48,10 @@ RUN git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
 COPY configure.gmp ./
 RUN cd scripts; ./build.py
 
+RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
+    cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
+    cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && \
+    make install && \
+    cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+
 
