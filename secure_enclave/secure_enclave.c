@@ -1248,7 +1248,7 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 }
 
-void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
+void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted_key,
                       uint32_t enc_len, char *_hashX,
                       char *_hashY, char *signature) {
 
