@@ -37,6 +37,7 @@
 
 extern int DEBUG_PRINT;
 extern int is_sgx_https;
+extern int is_aes;
 
 #define BUF_LEN 1024
 

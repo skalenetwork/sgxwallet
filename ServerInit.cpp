@@ -166,6 +166,8 @@ void init_all(bool check_cert, bool sign_automatically) {
     if (sgxServerInited == 1)
         return;
 
+    init_daemon();
+
     sgxServerInited = 1;
 
     init_daemon();
