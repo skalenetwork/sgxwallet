@@ -4,13 +4,21 @@
 
 ## Intro
 
-**sgxwallet** is a next generation hardware secure crypto wallet that  is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
+**sgxwallet** is a next generation hardware secure crypto wallet that is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
+
+**sgxwallet** runs as a network server.  Clients connect to the server, authenticate to it using 
+TLS 1.0 protocol with client certificates, and then issue requests to the server to generate crypto 
+keys and perform cryptographic operations. The keys are generated inside the secure SGX enclave and never
+leave the enclave unencrypted.  
+
+The server provides an initial registration service to issue client certificates to the clients.
+The administrator manually approves each registration.
 
 **sgxwallet** has been tested on **Ubuntu Linux 18.04**.
 
 ## An important note about production readiness
 
-This sgxwallet library is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
+The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
 
 # Running sgxwallet 
 
@@ -18,9 +26,81 @@ This sgxwallet library is still in active development and therefore should be re
 
 `git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
 
+## Try instantly in simulation mode
+
+
+The easiest way to try the sgxwallet server is to run in in  
+insecure simulation mode that emulates an SGX processor. Once you are familiar with the server,
+you can enable sgx on your machine and run it in secure production mode.
+
+To try the server:
+
+Install docker-compose if you do not have it.
+
+```
+sudo apt-get install docker.io docker-compose
+```
+
+And then do 
+
+ ```
+cd run_sgx_sim; 
+sudo docker-compose up
+``` 
+
+Voila! You should see the "SGX Server started" message.
+
+## Starting, stopping and upgrading the sgxwallet server.
+
+As any docker-compose application sgxwallet server is super easy to use. 
+
+To run the server as a daemon, do
+
+``` 
+sudo docker-compose up -d
+```
+
+To stop/start server do 
+
+``` 
+sudo docker-compose stop
+sudo docker-compose start
+```
+
+To view server logs do 
+
+``` 
+sudo docker-compose logs
+```
+
+To upgrade the server to the latest version do 
+
+``` 
+sudo docker-compose stop
+sudo docker-compose pull
+sudo docker-compose up
+```
+
+Note: all docker-compose commands need to be issued from run_sgx_sim directory.
+
+Note: sgxwallet places all its data into the sgx_data directory, which is created the first time you run sgxwallet.
+Do not remove this directory!
+
+Note: Sgxwallet operates on network ports 1026 (https) and 1027 (http for initial registration). 
+If you have a firewall on your network, please make sure these ports are open so clients are able to
+connect to the server. 
+
+
 ## Enable SGX on your machine
 
-To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
+Once your tried sgxwallet in the simulation mode, you can enable sgx on your machine, and run the server in production
+mode.  First, remove the simulation mode wallet by doing 
+
+``` 
+sudo docker-compose rm
+```
+
+To run **sgxwallet**, you'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
 
 -   Enter **BIOS** of you machine by pressing and holding **Del** or **F2** on boot-up and verify that **BIOS** includes **SGX options**.
     If not, your machine cant run **SGX**.
@@ -44,17 +124,15 @@ cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
-## Install docker and docker-compose
-
-```
-sudo apt-get install docker.io docker-compose
-```
 
 ## Run the latest sgxwallet docker container from dockerhub
 
 ```
+cd run_sgx; 
 sudo docker-compose up -d
 ```
+
+You should see "SGX Server started message".
 
 # Development
 
