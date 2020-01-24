@@ -152,6 +152,8 @@ void init_all(bool check_cert, bool sign_automatically) {
 
     sgxServerInited = 1;
 
+    init_daemon();
+
     if (is_sgx_https) {
       init_https_server(check_cert);
       init_registration_server(sign_automatically);
@@ -162,5 +164,5 @@ void init_all(bool check_cert, bool sign_automatically) {
     }
     init_enclave();
     //std::cerr << "enclave inited" << std::endl;
-    init_daemon();
+
 }

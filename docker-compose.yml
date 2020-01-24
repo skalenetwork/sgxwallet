@@ -10,7 +10,7 @@ services:
       - "/dev/isgx"
       - "/dev/mei0"
     volumes:
-      - ./sgx_data:/sgx_data
+      - ./sgx_data:/usr/src/sdk/sgx_data
     restart: unless-stopped
     command: -s
 
