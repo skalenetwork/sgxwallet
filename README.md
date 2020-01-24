@@ -110,10 +110,9 @@ You'll need **Intel SGX** capable hardware. Most Intel chips that were produced 
 
 ## Enable "software-controlled" SGX
 
-To enable SGX using a software utility:
+This repo includes the ***sgx_enable*** utility. To enable SGX run:
 
 ```bash
-cd sgx-software-enable;
 sudo ./sgx_enable
 ```
 
