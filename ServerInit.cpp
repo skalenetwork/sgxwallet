@@ -58,15 +58,28 @@
 
 #include "spdlog/spdlog.h"
 
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
+
 //#include <system>
 
 void init_daemon() {
 
     libff::init_alt_bn128_params();
 
-    std::string sgx_data_folder = SGXDATA_FOLDER;
+
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        spdlog::error("could not get cwd");
+        exit(-1);
+    }
+
+
+    std::string sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
     struct stat info;
     if (stat(sgx_data_folder.c_str(), &info) !=0 ){
       spdlog::info("going to create sgx_data folder");
@@ -75,7 +88,7 @@ void init_daemon() {
         spdlog::info("sgx_data folder was created");
       }
       else{
-        spdlog::info("creating sgx_data folder failed");
+        spdlog::error("creating sgx_data folder failed");
         exit(-1);
       }
     }
@@ -155,6 +168,8 @@ void init_all(bool check_cert, bool sign_automatically) {
 
     sgxServerInited = 1;
 
+    init_daemon();
+
     if (is_sgx_https) {
       init_https_server(check_cert);
       init_registration_server(sign_automatically);
@@ -165,5 +180,5 @@ void init_all(bool check_cert, bool sign_automatically) {
     }
     init_enclave();
     //std::cerr << "enclave inited" << std::endl;
-    init_daemon();
+
 }
