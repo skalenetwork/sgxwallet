@@ -275,7 +275,6 @@ Json::Value generateECDSAKeyImpl() {
           spdlog::info("key name generated: {}", keyName);
         }
 
-        //writeECDSAKey(keyName, keys.at(0));
         writeDataToDB(keyName, keys.at(0));
 
         result["encryptedKey"] = keys.at(0);
@@ -705,6 +704,18 @@ Json::Value MultG2Impl(const std::string& x){
     return result;
 }
 
+Json::Value IsPolyExistsImpl(const std::string& polyName){
+    Json::Value result;
+
+    std::shared_ptr<std::string> poly_str_ptr = levelDb->readString(polyName);
+    result["IsExist"] = true;
+    if (poly_str_ptr == nullptr){
+        result["IsExist"] = false;
+    }
+
+    return result;
+}
+
 Json::Value getServerStatusImpl() {
 
   Json::Value result;
@@ -800,6 +811,11 @@ Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int 
 Json::Value SGXWalletServer::MultG2(const std::string& x){
     lock_guard<recursive_mutex> lock(m);
     return MultG2Impl(x);
+}
+
+Json::Value SGXWalletServer::IsPolyExists(const std::string& polyName){
+    lock_guard<recursive_mutex> lock(m);
+    return IsPolyExistsImpl(polyName);
 }
 
 Json::Value SGXWalletServer::getServerStatus() {

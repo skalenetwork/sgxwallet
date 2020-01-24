@@ -29,6 +29,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("GetBLSPublicKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "BLSKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::GetBLSPublicKeyShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("ComplaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::ComplaintResponseI);
           this->bindAndAddMethod(jsonrpc::Procedure("MultG2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "x",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::MultG2I);
+          this->bindAndAddMethod(jsonrpc::Procedure("IsPolyExists", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::IsPolyExistsI);
 
           this->bindAndAddMethod(jsonrpc::Procedure("getServerStatus", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerStatusI);
         }
@@ -41,6 +42,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString(), request["t"].asInt(), request["n"].asInt(), request["signerIndex"].asInt());
         }
+
         inline virtual void importECDSAKeyI(const Json::Value &request, Json::Value &response)
         {
             response = this->importECDSAKey(request["key"].asString(), request["keyName"].asString());
@@ -62,6 +64,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->ecdsaSignMessageHash(request["base"].asInt(), request["keyName"].asString(), request["messageHash"].asString());
         }
+
         inline virtual void generateDKGPolyI(const Json::Value &request, Json::Value &response)
         {
             response = this->generateDKGPoly(request["polyName"].asString(), request["t"].asInt());
@@ -94,6 +97,12 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         {
             response = this->MultG2(request["x"].asString());
         }
+        inline virtual void IsPolyExistsI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->IsPolyExists(request["polyName"].asString());
+        }
+
+
         inline virtual void getServerStatusI(const Json::Value &request, Json::Value &response)
         {
           (void)request;
@@ -116,6 +125,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName) = 0;
         virtual Json::Value ComplaintResponse(const std::string& polyName, int ind) = 0;
         virtual Json::Value MultG2(const std::string & x) = 0;
+        virtual Json::Value IsPolyExists(const std::string& polyName) = 0;
 
         virtual Json::Value getServerStatus() = 0;
 };
