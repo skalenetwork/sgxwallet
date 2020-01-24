@@ -29,7 +29,7 @@ The sgxwallet server is still in active development and therefore should be rega
 ## Try instantly in simulation mode
 
 
-The easiest way to try the sgxwallet server is to run in in  
+The easiest way to try the sgxwallet server is to run it in  
 insecure simulation mode that emulates an SGX processor. Once you are familiar with the server,
 you can enable sgx on your machine and run it in secure production mode.
 
@@ -50,9 +50,9 @@ sudo docker-compose up
 
 Voila! You should see the "SGX Server started" message.
 
-## Starting, stopping and upgrading the sgxwallet server.
+## Start, stop and upgrade sgxwallet.
 
-As any docker-compose application sgxwallet server is super easy to use. 
+As any docker-compose application sgxwallet is super easy to use. 
 
 To run the server as a daemon, do
 
@@ -60,7 +60,7 @@ To run the server as a daemon, do
 sudo docker-compose up -d
 ```
 
-To stop/start server do 
+To stop/start the server do 
 
 ``` 
 sudo docker-compose stop
@@ -73,7 +73,7 @@ To view server logs do
 sudo docker-compose logs
 ```
 
-To upgrade the server to the latest version do 
+To upgrade sgxwallet to the latest version do 
 
 ``` 
 sudo docker-compose stop
@@ -86,7 +86,7 @@ Note: all docker-compose commands need to be issued from run_sgx_sim directory.
 Note: sgxwallet places all its data into the sgx_data directory, which is created the first time you run sgxwallet.
 Do not remove this directory!
 
-Note: Sgxwallet operates on network ports 1026 (https) and 1027 (http for initial registration). 
+Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initial registration). 
 If you have a firewall on your network, please make sure these ports are open so clients are able to
 connect to the server. 
 
@@ -100,9 +100,9 @@ mode.  First, remove the simulation mode wallet by doing
 sudo docker-compose rm
 ```
 
-To run **sgxwallet**, you'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
+You'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
 
--   Enter **BIOS** of you machine by pressing and holding **Del** or **F2** on boot-up and verify that **BIOS** includes **SGX options**.
+-   Enter **BIOS** of your machine by pressing and holding **Del** or **F2** on boot-up and verify that **BIOS** includes **SGX options**.
     If not, your machine cant run **SGX**.
 -   Set SGX in BIOS as `enabled` or `software-controlled`.
 -   If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section
@@ -112,8 +112,19 @@ To run **sgxwallet**, you'll need **Intel SGX** capable hardware. Most Intel chi
 
 To enable SGX using a software utility:
 
--   Build `sgx-enable` utility by typing `cd  sgx-software-enable; make`
--   Run `./sgx_enable`.  Verify that it says that **SGX** is successfully enabled
+```bash
+cd sgx-software-enable;
+sudo ./sgx_enable
+```
+
+Note: if you are not using Ubuntu 18.04 (something that we do not recommend), you may need
+to rebuild the sgx-software-enable utility before use by typing:
+
+```bash
+cd sgx-software-enable;
+make
+```
+
 
 ## Install SGX driver
 
@@ -146,14 +157,12 @@ sudo apt-get install build-essential make cmake gcc g++ yasm  python libprotobuf
 
 ```bash
 cd scripts; sudo ./sgx_linux_x64_sdk_2.5.100.49891.bin; cd ..
-
 ```
 
 ## Install required debian packages
 
 ```bash
 cd scripts; sudo ./install_packages.sh; cd ..
-
 ```
 
 ## Build dependencies
@@ -162,7 +171,6 @@ Dependencies only need to be built once.
 
 ```bash
 cd scripts; ./build.py; cd ..
-
 ```
 
 ## Configure and build sgxwallet
