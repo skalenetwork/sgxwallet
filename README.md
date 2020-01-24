@@ -20,6 +20,36 @@ The administrator manually approves each registration.
 
 The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
 
+Table of Contents
+=================
+
+
+   * [Running sgxwallet](#running-sgxwallet)
+      * [Clone this repository and its submodules](#clone-this-repository-and-its-submodules)
+      * [Try instantly in simulation mode](#try-instantly-in-simulation-mode)
+      * [Start, stop and upgrade sgxwallet.](#start-stop-and-upgrade-sgxwallet)
+      * [Enable SGX on your machine](#enable-sgx-on-your-machine)
+      * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
+      * [Install SGX driver](#install-sgx-driver)
+      * [Run the latest sgxwallet docker container from dockerhub](#run-the-latest-sgxwallet-docker-container-from-dockerhub)
+   * [Development](#development)
+      * [Install Prerequisites](#install-prerequisites)
+      * [Install SGX sdk](#install-sgx-sdk)
+      * [Install required debian packages](#install-required-debian-packages)
+      * [Build dependencies](#build-dependencies)
+      * [Configure and build sgxwallet](#configure-and-build-sgxwallet)
+      * [Run sgxwallet](#run-sgxwallet)
+      * [Build Docker container](#build-docker-container)
+      * [Build Docker container in simulation mode](#build-docker-container-in-simulation-mode)
+      * [Run Docker container](#run-docker-container)
+      * [Run Docker container in simulation mode](#run-docker-container-in-simulation-mode)
+      * [Adding new source files](#adding-new-source-files)
+      * [Example of client certificate instantiation](#example-of-client-certificate-instantiation)
+      * [Libraries](#libraries)
+      * [License](#license)
+
+
+
 # Running sgxwallet 
 
 ## Clone this repository and its submodules
