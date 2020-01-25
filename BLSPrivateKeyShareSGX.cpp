@@ -21,7 +21,7 @@
   @date 2019
 */
 
-using namespace std;
+
 
 #include "BLSSigShare.h"
 #include "BLSSignature.h"
@@ -33,6 +33,7 @@ using namespace std;
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
+#include "common.h"
 
 #include "BLSPrivateKeyShareSGX.h"
 

@@ -1,5 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
+sgx-gmp/
 gmp-build
 tgmp-build
 install-sh
@@ -13,6 +14,10 @@ secure_enclave.edl
 am--include-marker
 *.o
 aclocal.m4
+missing
+compile
+depcomp
+ltmain.sh
 secure_enclave.signed.so
 sgxgmpmath
 sgxgmppi
