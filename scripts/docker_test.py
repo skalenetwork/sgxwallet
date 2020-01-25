@@ -25,9 +25,9 @@ s2 = socket.socket()
 s3 = socket.socket()
 address = '127.0.0.1'
 port = 80  # port number is a number, not string
-s.connect((address, 1026))
-s.connect((address, 1027))
-s.connect((address, 1028))
+s1.connect((address, 1026))
+s2.connect((address, 1027))
+s3.connect((address, 1028))
 
 s1.close()
 s2.close()
