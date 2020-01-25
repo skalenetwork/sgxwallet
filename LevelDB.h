@@ -42,6 +42,12 @@ class LevelDB {
 
     leveldb::DB* db;
 
+    extern LevelDB* levelDb;
+
+    extern LevelDB* csrDb;
+
+    extern LevelDB* csrStatusDb;
+
 public:
 
 
@@ -92,10 +98,6 @@ public:
 };
 
 
-extern LevelDB* levelDb;
 
-extern LevelDB* csrDb;
-
-extern LevelDB* csrStatusDb;
 
 #endif
