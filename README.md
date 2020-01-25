@@ -235,6 +235,7 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 Type:
 
 ```bash
+source sgx-sdk-build/sgxsdk/environment;
 ./sgxwallet
 ```
 

@@ -1,5 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
+sgx-gmp/doc
 gmp-build
 tgmp-build
 install-sh
