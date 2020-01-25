@@ -8,7 +8,6 @@ COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
 COPY *.sh ./
-COPY *.m4 ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
