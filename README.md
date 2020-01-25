@@ -80,6 +80,7 @@ sudo docker-compose up
 
 Voila! You should see the "SGX Server started" message.
 
+
 ## Start, stop and upgrade sgxwallet
 
 As any docker-compose application sgxwallet is super easy to use. 
@@ -165,6 +166,7 @@ Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx`
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
 
+
 ## Run sgxwallet in secure SGX mode
 
 Run the latest sgxwallet docker container image in SGX mode
@@ -175,6 +177,10 @@ sudo docker-compose up -d
 ```
 
 You should see "SGX Server started message".
+
+Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
+as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
+device to use. 
 
 # Development
 
