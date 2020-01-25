@@ -22,6 +22,6 @@ jobs:
       run:  docker push skalenetwork/sgxwalletsim:latest
     - name: run docker image
       run: docker run -d --network=host skalenetwork/sgxwalletsim:latest
-    - name: sleep and checl
+    - name: sleep and check
       run: sleep 3; ls sgx_data;
 

@@ -13,6 +13,10 @@ secure_enclave.edl
 am--include-marker
 *.o
 aclocal.m4
+missing
+compile
+depcomp
+ltmain.sh
 secure_enclave.signed.so
 sgxgmpmath
 sgxgmppi

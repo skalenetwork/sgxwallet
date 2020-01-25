@@ -1,0 +1,85 @@
+cmake_minimum_required(VERSION 3.15)
+project(sgxwallet)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(.)
+include_directories(secure_enclave)
+include_directories(sgx-software-enable)
+include_directories(tgmp-build)
+include_directories(tgmp-build/include)
+
+add_executable(sgxwallet
+        secure_enclave/AESUtils.c
+        secure_enclave/AESUtils.h
+        secure_enclave/BLSEnclave.cpp
+        secure_enclave/BLSEnclave.h
+        secure_enclave/curves.c
+        secure_enclave/curves.h
+        secure_enclave/DH_dkg.c
+        secure_enclave/DH_dkg.h
+        secure_enclave/DKGUtils.cpp
+        secure_enclave/DKGUtils.h
+        secure_enclave/domain_parameters.c
+        secure_enclave/domain_parameters.h
+        secure_enclave/enclave_common.h
+        secure_enclave/numbertheory.c
+        secure_enclave/numbertheory.h
+        secure_enclave/point.c
+        secure_enclave/point.h
+        secure_enclave/secure_enclave.c
+        secure_enclave/secure_enclave.i
+        secure_enclave/secure_enclave_t.c
+        secure_enclave/secure_enclave_t.h
+        secure_enclave/signature.c
+        secure_enclave/signature.h
+        sgx-software-enable/sgx_capable.h
+        sgx-software-enable/sgx_enable.c
+        tgmp-build/include/sgx_tgmp.h
+        abstractCSRManagerServer.h
+        abstractregserver.h
+        abstractstubserver.h
+        BLSCrypto.cpp
+        BLSCrypto.h
+        BLSPrivateKeyShareSGX.cpp
+        BLSPrivateKeyShareSGX.h
+        catch.hpp
+        cert_util.cpp
+        common.h
+        create_enclave.c
+        create_enclave.h
+        CSRManagerServer.cpp
+        CSRManagerServer.h
+        DKGCrypto.cpp
+        DKGCrypto.h
+        ECDSACrypto.cpp
+        ECDSACrypto.h
+        LevelDB.cpp
+        LevelDB.h
+        oc_alloc.c
+        RPCException.cpp
+        RPCException.h
+        secure_enclave_u.c
+        secure_enclave_u.h
+        SEKManager.cpp
+        SEKManager.h
+        ServerDataChecker.cpp
+        ServerDataChecker.h
+        ServerInit.cpp
+        ServerInit.h
+        sgx_detect.h
+        sgx_detect_linux.c
+        sgx_stub.c
+        sgx_stub.h
+        sgx_tgmp.h
+        SGXRegistrationServer.cpp
+        SGXRegistrationServer.h
+        sgxwallet.c
+        sgxwallet.h
+        sgxwallet_common.h
+        SGXWalletServer.cpp
+        SGXWalletServer.h
+        SGXWalletServer.hpp
+        stubclient.cpp
+        stubclient.h
+        testw.cpp)
