@@ -38,54 +38,54 @@ namespace leveldb {
 
 class LevelDB {
 
-    std::recursive_mutex mutex;
+    recursive_mutex mutex;
 
-    std::shared_ptr<leveldb::DB> db;
+    shared_ptr<leveldb::DB> db;
 
     static bool isInited;
 
-    static std::shared_ptr<LevelDB> levelDb;
+    static shared_ptr<LevelDB> levelDb;
 
-    static std::shared_ptr<LevelDB> csrDb;
+    static shared_ptr<LevelDB> csrDb;
 
-    static std::shared_ptr<LevelDB> csrStatusDb;
+    static shared_ptr<LevelDB> csrStatusDb;
 
-    static std::shared_ptr<std::string> sgx_data_folder;
+    static string sgx_data_folder;
 
 
 public:
 
 
-    static void initDBs(std::string &_sgx_data_folder);
+    static void initDataFolderAndDBs();
 
-    static const std::shared_ptr<LevelDB> &getLevelDb();
+    static const shared_ptr<LevelDB> &getLevelDb();
 
-    static const std::shared_ptr<LevelDB> &getCsrDb();
+    static const shared_ptr<LevelDB> &getCsrDb();
 
-    static const std::shared_ptr<LevelDB> &getCsrStatusDb();
+    static const shared_ptr<LevelDB> &getCsrStatusDb();
 
 public:
 
 
-    std::shared_ptr<std::string> readString(const std::string& _key);
+    shared_ptr<string> readString(const string& _key);
 
 
-    void writeString(const std::string &key1, const std::string &value1);
+    void writeString(const string &key1, const string &value1);
 
-    void writeDataUnique(const std::string & Name, const std::string &value);
+    void writeDataUnique(const string & Name, const string &value);
 
     void writeByteArray(const char *_key, size_t _keyLen, const char *value,
                         size_t _valueLen);
 
 
-    void writeByteArray(std::string& _key, const char *value,
+    void writeByteArray(string& _key, const char *value,
                         size_t _valueLen);
 
-    void deleteDHDKGKey (const std::string &_key);
+    void deleteDHDKGKey (const string &_key);
 
-    void deleteTempNEK (const std::string &_key);
+    void deleteTempNEK (const string &_key);
 
-    void deleteKey(const std::string &_key);
+    void deleteKey(const string &_key);
 
 public:
 
@@ -93,7 +93,7 @@ public:
     void throwExceptionOnError(leveldb::Status result);
 
 
-    LevelDB(std::string& filename);
+    LevelDB(string& filename);
 
 
 
@@ -101,14 +101,16 @@ public:
     class KeyVisitor {
     public:
         virtual void visitDBKey(const char* _data) = 0;
-        virtual void writeDBKeysToVector(const char* _data, std::vector<const char*> & keys_vect) {}
+        virtual void writeDBKeysToVector(const char* _data, vector<const char*> & keys_vect) {}
     };
 
     uint64_t visitKeys(KeyVisitor* _visitor, uint64_t _maxKeysToVisit);
 
-    std::vector<std::string> writeKeysToVector1(uint64_t _maxKeysToVisit);
+    vector<string> writeKeysToVector1(uint64_t _maxKeysToVisit);
 
     virtual ~LevelDB();
+
+    static const string &getSgxDataFolder();
 
 
 };

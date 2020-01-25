@@ -72,28 +72,7 @@ void init_daemon() {
     libff::init_alt_bn128_params();
 
 
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        spdlog::error("could not get cwd");
-        exit(-1);
-    }
-
-
-    std::string sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
-    struct stat info;
-    if (stat(sgx_data_folder.c_str(), &info) !=0 ){
-      spdlog::info("going to create sgx_data folder");
-      std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
-      if (system(make_sgx_data_folder.c_str()) == 0){
-        spdlog::info("sgx_data folder was created");
-      }
-      else{
-        spdlog::error("creating sgx_data folder failed");
-        exit(-1);
-      }
-    }
-
-    LevelDB::initDBs(sgx_data_folder);
+    LevelDB::initDataFolderAndDBs();
 
 
     std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");

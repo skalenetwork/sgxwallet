@@ -267,22 +267,49 @@ std::shared_ptr<LevelDB> LevelDB::csrDb = nullptr;
 
 std::shared_ptr<LevelDB> LevelDB::csrStatusDb = nullptr;
 
-std::shared_ptr<string> LevelDB::sgx_data_folder = nullptr;
+string LevelDB::sgx_data_folder;
 
 bool LevelDB::isInited = false;
 
-void LevelDB::initDBs(string &_sgx_data_folder) {
+void LevelDB::initDataFolderAndDBs() {
 
     if (isInited)
         return;
 
-    auto dbName = _sgx_data_folder +  WALLETDB_NAME;
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        spdlog::error("could not get cwd");
+        exit(-1);
+    }
+
+
+    sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
+
+    struct stat info;
+    if (stat(sgx_data_folder.c_str(), &info) !=0 ){
+        spdlog::info("going to create sgx_data folder");
+        std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
+        if (system(make_sgx_data_folder.c_str()) == 0){
+            spdlog::info("sgx_data folder was created");
+        }
+        else{
+            spdlog::error("creating sgx_data folder failed");
+            exit(-1);
+        }
+    }
+
+
+    auto dbName = sgx_data_folder +  WALLETDB_NAME;
     levelDb = make_shared<LevelDB>(dbName);
 
-    auto csr_dbname = _sgx_data_folder + "CSR_DB";
+    auto csr_dbname = sgx_data_folder + "CSR_DB";
     csrDb = make_shared<LevelDB>(csr_dbname);
 
-    auto csr_status_dbname = _sgx_data_folder + "CSR_STATUS_DB";
+    auto csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
     csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
 
+}
+
+const string &LevelDB::getSgxDataFolder() {
+    return sgx_data_folder;
 }
