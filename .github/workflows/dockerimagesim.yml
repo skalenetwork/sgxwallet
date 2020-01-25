@@ -19,7 +19,7 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file DockerfileSimulation --tag  skalenetwork/sgxwalletsim:latest
     - name: run docker image
-      run: docker run -v ./sgx_data:/usr/src/sdk/sgx_data -d --network=host skalenetwork/sgxwalletsim:latest
+      run: docker run -v ${PWD}/sgx_data:/usr/src/sdk/sgx_data -d --network=host skalenetwork/sgxwalletsim:latest
     - name: sleep and check
       run: sleep 5; scripts/docker_test.py
     - name: push docker image
