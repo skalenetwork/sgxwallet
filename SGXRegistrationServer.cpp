@@ -75,7 +75,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
     std::string hash = cryptlite::sha256::hash_hex(csr);
     if ( !auto_sign) {
       std::string db_key = "CSR:HASH:" + hash;
-      csrDb->writeDataUnique(db_key, csr);
+      LevelDB::getCsrStatusDb()->writeDataUnique(db_key, csr);
     }
 
     if (auto_sign) {
@@ -96,7 +96,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
       else{
           spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
           std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-          csrStatusDb->writeDataUnique(status_db_key, std::to_string(FAIL_TO_CREATE_CERTIFICATE));
+          LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, std::to_string(FAIL_TO_CREATE_CERTIFICATE));
           throw RPCException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
           //exit(-1);
       }
@@ -106,7 +106,7 @@ Json::Value SignCertificateImpl(const std::string& csr, bool auto_sign = false){
     result["hash"] = hash;
 
     std::string db_key = "CSR:HASH:" + hash + "STATUS:";
-    csrStatusDb->writeDataUnique(db_key, status);
+    LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
 
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
@@ -123,21 +123,21 @@ Json::Value GetSertificateImpl(const std::string& hash){
 
   std::string cert;
   try{
-    std::string db_key = "CSR:HASH:" + hash + "STATUS:";
-    std::shared_ptr<string> status_str_ptr = csrStatusDb->readString(db_key);
+    string db_key = "CSR:HASH:" + hash + "STATUS:";
+    shared_ptr<string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
     if (status_str_ptr == nullptr){
        throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
     }
     int status = std::atoi(status_str_ptr->c_str());
 
     if ( status == 0){
-      std::string crt_name = "cert/" + hash + ".crt";
+      string crt_name = "cert/" + hash + ".crt";
       //if (access(crt_name.c_str(), F_OK) == 0){
-        std::ifstream infile(crt_name);
+        ifstream infile(crt_name);
         if (!infile.is_open()) {
-          std::string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-          csrStatusDb->deleteKey(status_db_key);
-          csrStatusDb->writeDataUnique(status_db_key, std::to_string(FILE_NOT_FOUND));
+          string status_db_key = "CSR:HASH:" + hash + "STATUS:";
+          LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
+          LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, std::to_string(FILE_NOT_FOUND));
           throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
         } else {
           ostringstream ss;

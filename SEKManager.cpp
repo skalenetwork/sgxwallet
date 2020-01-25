@@ -47,9 +47,9 @@ void generate_SEK(){
   char *hexEncrKey = (char *) calloc(2*enc_len + 1, 1);
   carray2Hex(encr_SEK, enc_len, hexEncrKey);
 
-  std::cerr << "key is " << errMsg << std::endl;
+  std::cegit crr << "key is " << errMsg << std::endl;
 
-  levelDb->writeDataUnique("SEK", hexEncrKey);
+  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey);
 
   free(errMsg);
   free(encr_SEK);

@@ -77,7 +77,7 @@ void debug_print(){
 
   MyVisitor v;
 
-  levelDb->visitKeys(&v, 100000000);
+  LevelDB::getLevelDb()->visitKeys(&v, 100000000);
 }
 
 int init_https_server(bool check_certs) {
@@ -314,7 +314,7 @@ Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& te
     std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName);
     std::cerr << "new key name is " << KeyName <<std::endl;
     writeDataToDB(KeyName, *key_ptr);
-    levelDb->deleteTempNEK(tempKeyName);
+    LevelDB::getLevelDb()->deleteTempNEK(tempKeyName);
 
   } catch (RPCException &_e) {
     std::cerr << " err str " << _e.errString << std::endl;
@@ -610,9 +610,9 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
 
      for ( int i = 0; i < n; i++){
        std::string name = polyName + "_" + std::to_string(i) + ":";
-       levelDb -> deleteDHDKGKey(name);
+       LevelDB::getLevelDb() -> deleteDHDKGKey(name);
        std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(i) + ":";
-       levelDb -> deleteKey(shareG2_name);
+       LevelDB::getLevelDb() -> deleteKey(shareG2_name);
      }
 
   } catch (RPCException &_e) {
@@ -707,7 +707,7 @@ Json::Value MultG2Impl(const std::string& x){
 Json::Value IsPolyExistsImpl(const std::string& polyName){
     Json::Value result;
 
-    std::shared_ptr<std::string> poly_str_ptr = levelDb->readString(polyName);
+    std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(polyName);
     result["IsExist"] = true;
     if (poly_str_ptr == nullptr){
         result["IsExist"] = false;
@@ -825,7 +825,7 @@ Json::Value SGXWalletServer::getServerStatus() {
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
-  auto dataStr = levelDb->readString(prefix + name);
+  auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
 
   if (dataStr == nullptr) {
     throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
@@ -836,7 +836,7 @@ shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
 shared_ptr<string> readKeyShare(const string &_keyShareName) {
 
-    auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
+    auto keyShareStr = LevelDB::getLevelDb()->readString("BLSKEYSHARE:" + _keyShareName);
 
     if (keyShareStr == nullptr) {
         throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exist");
@@ -860,11 +860,11 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
-    if (levelDb->readString(_keyShareName) != nullptr) {
+    if (LevelDB::getLevelDb()->readString(_keyShareName) != nullptr) {
         throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
-    levelDb->writeString(key, value);
+    LevelDB::getLevelDb()->writeString(key, value);
 }
 
 void writeDataToDB(const string & Name, const string &value) {
@@ -876,12 +876,12 @@ void writeDataToDB(const string & Name, const string &value) {
 
   auto key = Name;
 
-  if (levelDb->readString(Name) != nullptr) {
+  if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
     spdlog::info("name {}", Name, " already exists");
     throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
-  levelDb->writeString(key, value);
+  LevelDB::getLevelDb()->writeString(key, value);
   if (DEBUG_PRINT) {
     spdlog::info("{} ", Name, " is written to db ");
   }

@@ -29,7 +29,7 @@
 #include <string>
 #include <mutex>
 #include <vector>
-
+#include "common.h"
 namespace leveldb {
     class DB;
     class Status;
@@ -40,7 +40,29 @@ class LevelDB {
 
     std::recursive_mutex mutex;
 
-    leveldb::DB* db;
+    std::shared_ptr<leveldb::DB> db;
+
+    static bool isInited;
+
+    static std::shared_ptr<LevelDB> levelDb;
+
+    static std::shared_ptr<LevelDB> csrDb;
+
+    static std::shared_ptr<LevelDB> csrStatusDb;
+
+    static std::shared_ptr<std::string> sgx_data_folder;
+
+
+public:
+
+
+    static void initDBs(std::string &_sgx_data_folder);
+
+    static const std::shared_ptr<LevelDB> &getLevelDb();
+
+    static const std::shared_ptr<LevelDB> &getCsrDb();
+
+    static const std::shared_ptr<LevelDB> &getCsrStatusDb();
 
 public:
 
@@ -92,10 +114,6 @@ public:
 };
 
 
-extern LevelDB* levelDb;
 
-extern LevelDB* csrDb;
-
-extern LevelDB* csrStatusDb;
 
 #endif

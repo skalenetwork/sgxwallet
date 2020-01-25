@@ -37,24 +37,24 @@
 #include "ServerInit.h"
 
 #include "spdlog/spdlog.h"
+#include "common.h"
+
 
 using namespace leveldb;
+
 
 
 static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
 
-LevelDB* levelDb = nullptr;
-LevelDB* csrDb = nullptr;
-LevelDB* csrStatusDb = nullptr;
 
 
-std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
+std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    auto result = std::make_shared<std::string>();
+    auto result = std::make_shared<string>();
 
     if (db == nullptr) {
         throw RPCException(NULL_DATABASE, "Null db");
@@ -75,7 +75,7 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
     return result;
 }
 
-void LevelDB::writeString(const std::string &_key, const std::string &_value) {
+void LevelDB::writeString(const string &_key, const string &_value) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -90,11 +90,11 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 }
 
 
-void LevelDB::deleteDHDKGKey (const std::string &_key) {
+void LevelDB::deleteDHDKGKey (const string &_key) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    std::string full_key = "DKG_DH_KEY_" + _key;
+    string full_key = "DKG_DH_KEY_" + _key;
 
     auto status = db->Delete(writeOptions, Slice(_key));
 
@@ -106,11 +106,11 @@ void LevelDB::deleteDHDKGKey (const std::string &_key) {
     }
 }
 
-void LevelDB::deleteTempNEK(const std::string &_key){
+void LevelDB::deleteTempNEK(const string &_key){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    std::string prefix = _key.substr(0,8);
+    string prefix = _key.substr(0,8);
     if (prefix != "tmp_NEK:") {
       return;
     }
@@ -122,7 +122,7 @@ void LevelDB::deleteTempNEK(const std::string &_key){
     std::cerr << "key deleted " << _key << std::endl;
 }
 
-void LevelDB::deleteKey(const std::string &_key){
+void LevelDB::deleteKey(const string &_key){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -149,7 +149,7 @@ void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value
 }
 
 
-void LevelDB::writeByteArray(std::string &_key, const char *value,
+void LevelDB::writeByteArray(string &_key, const char *value,
                              size_t _valueLen) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
@@ -188,13 +188,13 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVi
     return readCounter;
 }
 
-std::vector<std::string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
+std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
   uint64_t readCounter = 0;
-  std::vector<std::string> keys;
+  std::vector<string> keys;
 
   leveldb::Iterator *it = db->NewIterator(readOptions);
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    std::string cur_key(it->key().data(), it->key().size());
+    string cur_key(it->key().data(), it->key().size());
     keys.push_back(cur_key);
    // keys.push_back(it->key().data());
     readCounter++;
@@ -208,7 +208,7 @@ std::vector<std::string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
   return keys;
 }
 
-void LevelDB::writeDataUnique(const std::string & Name, const std::string &value) {
+void LevelDB::writeDataUnique(const string & Name, const string &value) {
 
   auto key = Name;
 
@@ -226,7 +226,7 @@ void LevelDB::writeDataUnique(const std::string & Name, const std::string &value
 }
 
 
-LevelDB::LevelDB(std::string &filename) {
+LevelDB::LevelDB(string &filename) {
 
 
     leveldb::Options options;
@@ -243,9 +243,46 @@ LevelDB::LevelDB(std::string &filename) {
 }
 
 LevelDB::~LevelDB() {
-    if (db != nullptr)
-        delete db;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getLevelDb() {
+    CHECK_STATE(levelDb)
+    return levelDb;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getCsrDb() {
+    CHECK_STATE(csrDb)
+    return csrDb;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getCsrStatusDb() {
+    CHECK_STATE(csrStatusDb)
+    return csrStatusDb;
 }
 
 
+std::shared_ptr<LevelDB> LevelDB::levelDb = nullptr;
 
+std::shared_ptr<LevelDB> LevelDB::csrDb = nullptr;
+
+std::shared_ptr<LevelDB> LevelDB::csrStatusDb = nullptr;
+
+std::shared_ptr<string> LevelDB::sgx_data_folder = nullptr;
+
+bool LevelDB::isInited = false;
+
+void LevelDB::initDBs(string &_sgx_data_folder) {
+
+    if (isInited)
+        return;
+
+    auto dbName = _sgx_data_folder +  WALLETDB_NAME;
+    levelDb = make_shared<LevelDB>(dbName);
+
+    auto csr_dbname = _sgx_data_folder + "CSR_DB";
+    csrDb = make_shared<LevelDB>(csr_dbname);
+
+    auto csr_status_dbname = _sgx_data_folder + "CSR_STATUS_DB";
+    csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
+
+}
