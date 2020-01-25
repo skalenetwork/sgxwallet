@@ -34,25 +34,23 @@
 
 void generate_SEK(){
 
-  char *errMsg = (char *)calloc(1024, 1);
+  vector<char> errMsg(1024,0);
   int err_status = 0;
-  uint8_t* encr_SEK = (uint8_t *)calloc(1024, 1);
+  vector<uint8_t> encr_SEK(1024, 0);
   uint32_t enc_len = 0;
 
-  status = generate_SEK(eid, &err_status, errMsg, encr_SEK, &enc_len);
+  status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len);
   if ( err_status != 0 ){
     cerr << "RPCException thrown" << endl;
-    throw RPCException(-666, errMsg) ;
+    throw RPCException(-666, errMsg.data()) ;
   }
 
-  char *hexEncrKey = (char *) calloc(2*enc_len + 1, 1);
-  carray2Hex(encr_SEK, enc_len, hexEncrKey);
+  vector<char> hexEncrKey(2*enc_len + 1, 0);
 
-  cerr << "key is " << errMsg << endl;
+  carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
-  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey);
+  cerr << "key is " << errMsg.data() << endl;
 
-  free(errMsg);
-  free(encr_SEK);
-  free(hexEncrKey);
+  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
+
 }

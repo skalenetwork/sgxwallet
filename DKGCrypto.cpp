@@ -76,37 +76,26 @@ string ConvertToString(T field_elem, int base = 10) {
 }
 
 string gen_dkg_poly( int _t){
-    char *errMsg = (char *)calloc(1024, 1);
+    vector<char> errMsg(1024, 0);
     int err_status = 0;
-    uint8_t* encrypted_dkg_secret = (uint8_t*) calloc(DKG_MAX_SEALED_LEN, 1);;
+    vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
 
     uint32_t enc_len = 0;
 
-    status = gen_dkg_secret (eid, &err_status, errMsg, encrypted_dkg_secret, &enc_len, _t);
+    status = gen_dkg_secret (eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     if ( err_status != 0){
-        throw RPCException(-666, errMsg ) ;
+        throw RPCException(-666, errMsg.data() ) ;
     }
 
     if (DEBUG_PRINT) {
-      spdlog::info("gen_dkg_secret, status {}", err_status, " err msg ", errMsg);
-
-      /*   cerr << "encr raw poly: " << endl;
-         for ( int i = 0 ; i < 3050; i++)
-           printf(" %d ", encrypted_dkg_secret[i] );*/
-
+      spdlog::info("gen_dkg_secret, status {}", err_status, " err msg ", errMsg.data());
       spdlog::info("in DKGCrypto encr len is {}", enc_len);
     }
 
-    char *hexEncrPoly = (char *) calloc(DKG_MAX_SEALED_LEN * 2 + 1, 1);//(4*BUF_LEN, 1);
+    vector<char> hexEncrPoly(DKG_MAX_SEALED_LEN * 2 + 1, 0);//(4*BUF_LEN, 1);
 
-    carray2Hex(encrypted_dkg_secret, DKG_MAX_SEALED_LEN, hexEncrPoly);
-    string result(hexEncrPoly);
-
-
-
-    free(errMsg);
-    free(encrypted_dkg_secret);
-    free(hexEncrPoly);
+    carray2Hex(encrypted_dkg_secret.data(), DKG_MAX_SEALED_LEN, hexEncrPoly.data());
+    string result(hexEncrPoly.data());
 
     return result;
 }
@@ -137,7 +126,7 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
       printf(" %d ", encr_dkg_poly[i] );*/
   }
 
-  uint32_t len;
+  uint32_t len = 0;
   status = get_public_shares(eid, &err_status, errMsg1, encr_dkg_poly, len, public_shares, t, n);
   if ( err_status != 0){
     throw RPCException(-666, errMsg1 );
@@ -331,8 +320,6 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex){
     if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)){
         throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
-//    for ( int i = 0; i < BUF_LEN; i++ )
-//      cerr << encr_key[i] << " ";
 
     char pub_key[320];
     if (DEBUG_PRINT) {
@@ -355,7 +342,7 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex){
 
 string decrypt_DHKey(const string& polyName, int ind){
 
-  char* errMsg1 = (char*) calloc(1024,1);
+  vector<char> errMsg1(1024,0);
   int err_status = 0;
 
   string DH_key_name = polyName + "_" + to_string(ind) + ":";
@@ -364,7 +351,7 @@ string decrypt_DHKey(const string& polyName, int ind){
     spdlog::info("encr DH key is {}", *hexEncrKey_ptr);
   }
 
-  char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
+  vector<char> hexEncrKey(2 * BUF_LEN, 0);
 
   uint64_t DH_enc_len = 0;
   uint8_t encrypted_DHkey[BUF_LEN];
@@ -374,14 +361,10 @@ string decrypt_DHKey(const string& polyName, int ind){
 
   char DHKey[ECDSA_SKEY_LEN];
 
-  decrypt_key(eid, &err_status, errMsg1, encrypted_DHkey, DH_enc_len, DHKey);
+  decrypt_key(eid, &err_status, errMsg1.data(), encrypted_DHkey, DH_enc_len, DHKey);
   if (err_status != 0){
-    free(hexEncrKey);
     throw RPCException(ERROR_IN_ENCLAVE, "decrypt key failed in enclave");
   }
-
-  free(errMsg1);
-  free(hexEncrKey);
 
   return DHKey;
 }
