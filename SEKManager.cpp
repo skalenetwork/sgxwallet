@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include "sgxwallet_common.h"
+#include "common.h"
 #include "sgxwallet.h"
 
 void generate_SEK(){
@@ -40,14 +41,14 @@ void generate_SEK(){
 
   status = generate_SEK(eid, &err_status, errMsg, encr_SEK, &enc_len);
   if ( err_status != 0 ){
-    std::cerr << "RPCException thrown" << std::endl;
+    cerr << "RPCException thrown" << endl;
     throw RPCException(-666, errMsg) ;
   }
 
   char *hexEncrKey = (char *) calloc(2*enc_len + 1, 1);
   carray2Hex(encr_SEK, enc_len, hexEncrKey);
 
-  std::cegit crr << "key is " << errMsg << std::endl;
+  cerr << "key is " << errMsg << endl;
 
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey);
 

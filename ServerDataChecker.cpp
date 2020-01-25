@@ -28,14 +28,15 @@
 #include <iostream>
 
 #include "spdlog/spdlog.h"
+#include "common.h"
 
-std::vector<std::string> SplitString(const std::string& str, const std::string& delim = ":"){
-    std::vector<std::string> tokens;
+vector<string> SplitString(const string& str, const string& delim = ":"){
+    vector<string> tokens;
     size_t prev = 0, pos = 0;
     do {
         pos = str.find(delim, prev);
-        if (pos == std::string::npos) pos = str.length();
-        std::string token = str.substr(prev, pos-prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
         if (!token.empty()) tokens.push_back(token);
         prev = pos + delim.length();
     } while (pos < str.length() && prev < str.length());
@@ -43,8 +44,8 @@ std::vector<std::string> SplitString(const std::string& str, const std::string& 
     return tokens;
 }
 
-bool checkECDSAKeyName(const std::string& keyName) {
-  std::vector<std::string> parts = SplitString(keyName);
+bool checkECDSAKeyName(const string& keyName) {
+  vector<string> parts = SplitString(keyName);
   if (parts.size() != 2) {
     spdlog::info("ECDSAKeyName num parts != 2");
     return false;
@@ -69,7 +70,7 @@ bool checkECDSAKeyName(const std::string& keyName) {
   return true;
 }
 
-bool checkHex(const std::string& hex, const uint32_t sizeInBytes){
+bool checkHex(const string& hex, const uint32_t sizeInBytes){
   if ( hex.length() > sizeInBytes * 2 || hex.length() == 0){
     return false;
   }
@@ -86,8 +87,8 @@ bool checkHex(const std::string& hex, const uint32_t sizeInBytes){
   return true;
 }
 
-bool checkName (const std::string& Name, const std::string& prefix){
-    std::vector<std::string> parts = SplitString(Name);
+bool checkName (const string& Name, const string& prefix){
+    vector<string> parts = SplitString(Name);
     if ( parts.size() != 7) {
         spdlog::info("parts.size() != 7");
         return false;
