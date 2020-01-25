@@ -20,4 +20,8 @@ jobs:
       run: docker build . --file DockerfileSimulation --tag  skalenetwork/sgxwalletsim:latest
     - name: push docker image
       run:  docker push skalenetwork/sgxwalletsim:latest
+    - name: run docker image
+      run: docker run -d --network=host skalenetwork/sgxwalletsim:latest
+    - name: sleep and checl
+      run: sleep 3; ls sgx_data;
 
