@@ -18,10 +18,10 @@ jobs:
       run: git submodule update --init --recursive
     - name: Build the Docker image
       run: docker build . --file DockerfileSimulation --tag  skalenetwork/sgxwalletsim:latest
-    - name: push docker image
-      run:  docker push skalenetwork/sgxwalletsim:latest
     - name: run docker image
       run: docker run -v ./sgx_data:/usr/src/sdk/sgx_data -d --network=host skalenetwork/sgxwalletsim:latest
     - name: sleep and check
       run: sleep 3; scripts/docker_test.py
+    - name: push docker image
+      run:  docker push skalenetwork/sgxwalletsim:latest
 

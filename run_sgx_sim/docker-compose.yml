@@ -9,5 +9,5 @@ services:
     volumes:
       - ./sgx_data:/usr/src/sdk/sgx_data
     restart: unless-stopped
-    command: -s
+    command: -s -d 
 
