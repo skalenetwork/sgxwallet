@@ -270,7 +270,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
     return result;
 }
 
-bool CreateBLSShare( const string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex){
+bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex){
   if (DEBUG_PRINT) {
     spdlog::info("ENTER CreateBLSShare");
   }
@@ -299,10 +299,10 @@ bool CreateBLSShare( const string& BLSKeyName, const char * s_shares, const char
       //cerr << "enc_bls_len " << enc_bls_len << endl;
     carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
    // cerr << "BEFORE WRITE BLS KEY TO DB" << endl;
-    writeDataToDB(BLSKeyName, hexBLSKey);
+    writeDataToDB(blsKeyName, hexBLSKey);
     if (DEBUG_PRINT) {
       spdlog::info("hexBLSKey length is {}", char_traits<char>::length(hexBLSKey));
-      spdlog::info("bls key {}", BLSKeyName, " is ", hexBLSKey );
+      spdlog::info("bls key {}", blsKeyName, " is ", hexBLSKey );
     }
     free(hexBLSKey);
     return true;

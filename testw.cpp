@@ -781,7 +781,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     poly_names[i] = polyName;
     VerifVects[i] = c.getVerificationVector(polyName, t, n);
     cout << "VV " << i <<  " " << VerifVects[i] << endl;
-    pubEthKeys.append(EthKeys[i]["PublicKey"]);
+    pubEthKeys.append(EthKeys[i]["publicKey"]);
   }
 
 
@@ -797,9 +797,9 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 //    cerr << "length is" << pubShares[i].length() << endl;
   }
 
-  Json::Value ComplaintResponse = c.ComplaintResponse(poly_names[1], 0);
-  cerr << "share * G2 is " << ComplaintResponse["share*G2"].asString();
-  cerr << "DHKey is " << ComplaintResponse["DHKey"].asString();
+  Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
+  cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
+  cerr << "DHKey is " << complaintResponse["DHKey"].asString();
 
   int k = 0;
 
@@ -810,16 +810,16 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   for ( int i = 0; i < n; i++)
     for ( int j = 0; j < n; j++){
      // if ( i != j ){
-       cerr << "SecretShare length is " << secretShares[i]["SecretShare"].asString().length() << endl;
-       string secretShare = secretShares[i]["SecretShare"].asString().substr(192*j, 192);
-       secShares_vect[i] +=  secretShares[j]["SecretShare"].asString().substr(192*i, 192);
-       bool res = c.DKGVerification(pubShares[i], EthKeys[j]["KeyName"].asString(), secretShare, t, n, j)["result"].asBool();
+       cerr << "secretShare length is " << secretShares[i]["secretShare"].asString().length() << endl;
+       string secretShare = secretShares[i]["secretShare"].asString().substr(192*j, 192);
+       secShares_vect[i] +=  secretShares[j]["secretShare"].asString().substr(192*i, 192);
+       bool res = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j)["result"].asBool();
        k++;
        cerr << "NOW K IS " << k << " i is " << i << " j is " << j << endl;
        REQUIRE(res);
 
        pSharesBad[i][0] = 'q';
-       Json::Value wrongVerif = c.DKGVerification(pSharesBad[i], EthKeys[j]["KeyName"].asString(), secretShare, t, n, j);
+       Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
        res = wrongVerif["result"].asBool();
        REQUIRE(!res);
        cerr << "wrong verification " << wrongVerif << endl;
@@ -842,10 +842,10 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   for ( int i = 0; i < t; i++){
     string endName = poly_names[i].substr(4);
     string blsName = "BLS_KEY" + poly_names[i].substr(4);
-    string secretShare = secretShares[i]["SecretShare"].asString();
-    //cout << c.CreateBLSPrivateKey(blsName, EthKeys[i]["KeyName"].asString(), poly_names[i], secretShare, t, n);
-    cout << c.CreateBLSPrivateKey(blsName, EthKeys[i]["KeyName"].asString(), poly_names[i], secShares_vect[i], t, n);
-    pubBLSKeys[i] = c.GetBLSPublicKeyShare(blsName);
+    string secretShare = secretShares[i]["secretShare"].asString();
+    //cout << c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secretShare, t, n);
+    cout << c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t, n);
+    pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
     cerr << "BLS KEY SHARE NAME IS " << blsName << endl;
     //string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
     BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
@@ -870,7 +870,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
 
   cout << "try to get bls public key" << endl;
-  cout << c.GetBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
+  cout << c.getBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
 
 
 }
@@ -904,8 +904,8 @@ TEST_CASE("API test", "[api_test]") {
 
         Json::Value genKey = c.generateECDSAKey();
         cout << genKey << endl;
-        cout << c.ecdsaSignMessageHash(16, genKey["KeyName"].asString(),"0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
-        Json::Value getPubKey = c.getPublicECDSAKey(genKey["KeyName"].asString());
+        cout << c.ecdsaSignMessageHash(16, genKey["keyName"].asString(),"0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db" );
+        Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
         cout << getPubKey << endl;
             // cout << c.renameESDSAKey("NODE_1CHAIN_1","tmp_NEK:bcacde0d26c0ea2c7e649992e7f791e1fba2492f5b7ae63dadb799075167c7fc");
       //  cout<<c.getPublicECDSAKey("NEK:7ca98cf32fd1edba26ea685820719fd2201b068a10c1264d382abbde13802a0e");
@@ -943,34 +943,34 @@ TEST_CASE("API test", "[api_test]") {
       string share = share_big.substr(0, 192);
 
       string publicShares = "1fc8154abcbf0c2ebf559571d7b57a8995c0e293a73d4676a8f76051a0d0ace30e00a87c9f087254c9c860c3215c4f11e8f85a3e8fae19358f06a0cbddf3df1924b1347b9b58f5bcb20958a19bdbdd832181cfa9f9e9fd698f6a485051cb47b829d10f75b6e227a7d7366dd02825b5718072cd42c39f0352071808622b7db6421b1069f519527e49052a8da6e3720cbda9212fc656eef945f5e56a4159c3b9622d883400460a9eff07fe1873f9b1ec50f6cf70098b9da0b90625b176f12329fa2ecc65082c626dc702d9cfb23a06770d4a2c7867e269efe84e3709b11001fb380a32d609855d1d46bc60f21140c636618b8ff55ed06d7788b6f81b498f96d3f9";
-    //  cout << c.DKGVerification(publicShares, "test_key1", "37092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76", 2, 2, 0);
+    //  cout << c.dkgVerification(publicShares, "test_key1", "37092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76", 2, 2, 0);
 
-     // cout << c.DKGVerification("oleh1", "key0", "37092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76", 2, 2, 0);
+     // cout << c.dkgVerification("oleh1", "key0", "37092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76", 2, 2, 0);
 
       Json::Value SecretShare;
       SecretShare.append(share_big0);
       SecretShare.append(share_big);
 
-      //cout << c.CreateBLSPrivateKey( "test_bls_key1","test_key1", "p2", share_big0, 2, 2 );
+      //cout << c.createBLSPrivateKey( "test_bls_key1","test_key1", "p2", share_big0, 2, 2 );
 
      // string shares = "252122c309ed1f32faa897ede140c5b9c1bc07d5d9c94b7a22d4eeb13da7b7142aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76df831dbef474cfc38be1c980130a8d273ff410fbf87deece9d7756a1b08ba9e954c1676cc7f2cac16e16cff0c877d8cf967381321fb4cc78e3638245a1dc85419766d281aff4935cc6eac25c9842032c8f7fae567c57622969599a72c42d2e1e";
      string shares = "252122c309ed1f32faa897ede140c5b9c1bc07d5d9c94b7a22d4eeb13da7b7142aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b7637092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76";
-     //cout << c.CreateBLSPrivateKey( "test_bls1","key0", "oleh1", shares, 2, 2 );
+     //cout << c.createBLSPrivateKey( "test_bls1","key0", "oleh1", shares, 2, 2 );
 
-     //cout << c.GetBLSPublicKeyShare("test_bls_key0");
+     //cout << c.getBLSPublicKeyShare("test_bls_key0");
 
       string s_share = "13b871ad5025fed10a41388265b19886e78f449f758fe8642ade51440fcf850bb2083f87227d8fb53fdfb2854e2d0abec4f47e2197b821b564413af96124cd84a8700f8eb9ed03161888c9ef58d6e5896403de3608e634e23e92fba041aa283484427d0e6de20922216c65865cfe26edd2cf9cbfc3116d007710e8d82feafd9135c497bef0c800ca310ba6044763572681510dad5e043ebd87ffaa1a4cd45a899222207f3d05dec8110d132ad34c62d6a3b40bf8e9f40f875125c3035062d2ca";
-      string EthKeyName = "tmp_NEK:8abc8e8280fb060988b65da4b8cb00779a1e816ec42f8a40ae2daa520e484a01";
-      //cout << c.CreateBLSPrivateKey( "test_blskey", EthKeyName, "JCGMt", s_share, 2, 2 );
-      //cout << c.GetBLSPublicKeyShare("test_blskey");
+      string ethKeyName = "tmp_NEK:8abc8e8280fb060988b65da4b8cb00779a1e816ec42f8a40ae2daa520e484a01";
+      //cout << c.createBLSPrivateKey( "test_blskey", ethKeyName, "JCGMt", s_share, 2, 2 );
+      //cout << c.getBLSPublicKeyShare("test_blskey");
 
      // cout << c.blsSignMessageHash("dOsRY","38433e5ce087dcc1be82fcc834eae83c256b3db87d34f84440d0b708daa0c6f7", 2, 2, 1);
 
-    // cout << c.ComplaintResponse("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 0);
-     // cout << c.GetBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
+    // cout << c.complaintResponse("POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1", 0);
+     // cout << c.getBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
 
     //  cout << c.getPublicECDSAKey("NEK:91573248d6b0ebd5b1bd313ab35163361b423c0f9f01bad085d166650b8b2c1f");
-    //cout << c.MultG2("4160780231445160889237664391382223604184857153814275770598791864649971919844");
+    //cout << c.multG2("4160780231445160889237664391382223604184857153814275770598791864649971919844");
 
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
@@ -1015,7 +1015,7 @@ void SendRPCRequest(){
     poly_names[i] = polyName;
     VerifVects[i] = c.getVerificationVector(polyName, t, n);
     cout << "VV " << i <<  " " << VerifVects[i] << endl;
-    pubEthKeys.append(EthKeys[i]["PublicKey"]);
+    pubEthKeys.append(EthKeys[i]["publicKey"]);
   }
 
   for ( uint8_t i = 0; i < n; i++){
@@ -1030,9 +1030,9 @@ void SendRPCRequest(){
 //    cerr << "length is" << pubShares[i].length() << endl;
   }
 
-//  Json::Value ComplaintResponse = c.ComplaintResponse(poly_names[1], 0);
-//  cerr << "share * G2 is " << ComplaintResponse["share*G2"].asString();
-//  cerr << "DHKey is " << ComplaintResponse["DHKey"].asString();
+//  Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
+//  cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
+//  cerr << "DHKey is " << complaintResponse["DHKey"].asString();
 
   int k = 0;
 
@@ -1041,10 +1041,10 @@ void SendRPCRequest(){
   for ( int i = 0; i < n; i++)
     for ( int j = 0; j < n; j++){
       if ( i != j ){
-        cerr << "SecretShare length is " << secretShares[i]["SecretShare"].asString().length() << endl;
-        string secretShare = secretShares[i]["SecretShare"].asString().substr(192*j, 192 );
-        secShares_vect[i] +=  secretShares[j]["SecretShare"].asString().substr(192*i, 192 );
-        bool res = c.DKGVerification(pubShares[i], EthKeys[j]["KeyName"].asString(), secretShare, t, n, j)["result"].asBool();
+        cerr << "SecretShare length is " << secretShares[i]["secretShare"].asString().length() << endl;
+        string secretShare = secretShares[i]["secretShare"].asString().substr(192*j, 192 );
+        secShares_vect[i] +=  secretShares[j]["secretShare"].asString().substr(192*i, 192 );
+        bool res = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j)["result"].asBool();
         k++;
         cerr << "NOW K IS " << k << " i is " << i << " j is " << j << endl;
         REQUIRE( res );
@@ -1087,19 +1087,19 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
   cout << genKey << endl;
   REQUIRE(genKey["status"].asInt() == 0);
 
-  Json::Value getPubKey = c.getPublicECDSAKey(genKey["KeyName"].asString());
+  Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
   cout << getPubKey << endl;
   REQUIRE(getPubKey["status"].asInt() == 0);
-  REQUIRE(getPubKey["PublicKey"].asString() == genKey["PublicKey"].asString());
+  REQUIRE(getPubKey["publicKey"].asString() == genKey["publicKey"].asString());
 
-  Json::Value ecdsaSign = c.ecdsaSignMessageHash(16, genKey["KeyName"].asString(), "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
+  Json::Value ecdsaSign = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
   cout << ecdsaSign << endl;
   REQUIRE(ecdsaSign["status"].asInt() == 0);
 
 
 
 //  //wrong base
-//  Json::Value ecdsaSignWrongBase = c.ecdsaSignMessageHash(0, genKey["KeyName"].asString(), "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
+//  Json::Value ecdsaSignWrongBase = c.ecdsaSignMessageHash(0, genKey["keyName"].asString(), "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
 //  cout << ecdsaSignWrongBase << endl;
 //  REQUIRE(ecdsaSignWrongBase["status"].asInt() != 0);
 //
@@ -1112,7 +1112,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 //  cout << getPubKeyWrongKeyName << endl;
 //
 //  //wrong hash
-//  Json::Value ecdsaSignWrongHash = c.ecdsaSignMessageHash(16, genKey["KeyName"].asString(), "");
+//  Json::Value ecdsaSignWrongHash = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), "");
 //  cout << ecdsaSignWrongHash << endl;
 //  REQUIRE(ecdsaSignWrongHash["status"].asInt() != 0);
 
@@ -1186,14 +1186,14 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
   //wrong verif
   Json::Value Skeys = c.getSecretShare(polyName, publicKeys, 2, 2);
   Json::Value verifVect = c.getVerificationVector(polyName, 2, 2);
-  Json::Value verificationWrongSkeys = c.DKGVerification("","","",2, 2, 1);
+  Json::Value verificationWrongSkeys = c.dkgVerification("","","",2, 2, 1);
   REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
   cout << verificationWrongSkeys << endl;
 
   sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("IsPolyExists test", "[is_poly_test]") {
+TEST_CASE("isPolyExists test", "[is_poly_test]") {
   DEBUG_PRINT = 1;
   is_sgx_https = 0;
 
@@ -1211,11 +1211,11 @@ TEST_CASE("IsPolyExists test", "[is_poly_test]") {
   string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
   Json::Value genPoly = c.generateDKGPoly(polyName, 2);
   cout << genPoly << endl;
-  Json::Value polyExists = c.IsPolyExists(polyName);
+  Json::Value polyExists = c.isPolyExists(polyName);
   cout << polyExists << endl;
   REQUIRE(polyExists["IsExist"].asBool());
 
-  Json::Value polyDoesNotExist = c.IsPolyExists("Vasya");
+  Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
   cout << polyDoesNotExist << endl;
   REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
