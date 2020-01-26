@@ -223,11 +223,11 @@ class StubClient : public jsonrpc::Client
 
     ////CSRManagerServer
 
-  Json::Value GetUnsignedCSRs() throw (jsonrpc::JsonRpcException)
+  Json::Value getUnsignedCSRs() throw (jsonrpc::JsonRpcException)
   {
     Json::Value p;
     p = Json::nullValue;
-    Json::Value result = this->CallMethod("GetUnsignedCSRs",p);
+    Json::Value result = this->CallMethod("getUnsignedCSRs",p);
     if (result.isObject())
       return result;
     else
@@ -236,12 +236,12 @@ class StubClient : public jsonrpc::Client
 
 
 
-    Json::Value SignByHash(const std::string& hash, int status) throw (jsonrpc::JsonRpcException)
+    Json::Value signByHash(const std::string& hash, int status) throw (jsonrpc::JsonRpcException)
     {
         Json::Value p;
         p["hash"] = hash;
         p["status"] = status;
-        Json::Value result = this->CallMethod("SignByHash",p);
+        Json::Value result = this->CallMethod("signByHash",p);
         if (result.isObject())
             return result;
         else
