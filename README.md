@@ -28,6 +28,7 @@ Table of Contents
       * [Clone this repository and its submodules](#clone-this-repository-and-its-submodules)
       * [Try instantly in simulation mode](#try-instantly-in-simulation-mode)
       * [Start, stop and upgrade sgxwallet](#start-stop-and-upgrade-sgxwallet)
+      * [Configure logging](#configure-logging)
       * [Enable SGX on your machine](#enable-sgx-on-your-machine)
       * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
       * [Install SGX driver](#install-sgx-driver)
@@ -121,6 +122,19 @@ Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initia
 If you have a firewall on your network, please make sure these ports are open so clients are able to
 connect to the server. 
 
+## Configure logging
+
+By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
+To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as 
+
+```
+logging:
+  driver: syslog
+  options:
+    syslog-address: "tcp://SYSLOG_SERVER_IP:PORT"
+``` 
+
+See docker-compose documentation for more options.
 
 ## Enable SGX on your machine
 
