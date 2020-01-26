@@ -23,8 +23,8 @@ CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
     serverVersion_t type):abstractCSRManagerServer(connector, type){}
 
 
-Json::Value GetUnsignedCSRsImpl(){
-  spdlog::info("Enter GetUnsignedCSRsImpl");
+Json::Value getUnsignedCSRsImpl(){
+  spdlog::info("Enter getUnsignedCSRsImpl");
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -44,7 +44,7 @@ Json::Value GetUnsignedCSRsImpl(){
   return result;
 }
 
-Json::Value SignByHashImpl(const string& hash, int status){
+Json::Value signByHashImpl(const string& hash, int status){
   Json::Value result;
   result["errorMessage"] = "";
 
@@ -101,14 +101,14 @@ Json::Value SignByHashImpl(const string& hash, int status){
 }
 
 
-Json::Value CSRManagerServer::GetUnsignedCSRs(){
+Json::Value CSRManagerServer::getUnsignedCSRs(){
   lock_guard<recursive_mutex> lock(m);
-  return GetUnsignedCSRsImpl();
+  return getUnsignedCSRsImpl();
 }
 
-Json::Value CSRManagerServer::SignByHash(const string& hash, int status){
+Json::Value CSRManagerServer::signByHash(const string& hash, int status){
    lock_guard<recursive_mutex> lock(m);
-   return SignByHashImpl(hash, status);
+   return signByHashImpl(hash, status);
 }
 
 int init_csrmanager_server(){

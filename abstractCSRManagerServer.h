@@ -12,22 +12,22 @@ class abstractCSRManagerServer : public jsonrpc::AbstractServer<abstractCSRManag
 public:
     abstractCSRManagerServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<abstractCSRManagerServer>(conn, type)
     {
-        this->bindAndAddMethod(jsonrpc::Procedure("GetUnsignedCSRs", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &abstractCSRManagerServer::GetUnsignedCSRsI);
-        this->bindAndAddMethod(jsonrpc::Procedure("SignByHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"hash",jsonrpc::JSON_STRING, "status", jsonrpc::JSON_INTEGER, NULL), &abstractCSRManagerServer::SignByHashI);
+        this->bindAndAddMethod(jsonrpc::Procedure("getUnsignedCSRs", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &abstractCSRManagerServer::getUnsignedCSRsI);
+        this->bindAndAddMethod(jsonrpc::Procedure("signByHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"hash",jsonrpc::JSON_STRING, "status", jsonrpc::JSON_INTEGER, NULL), &abstractCSRManagerServer::signByHashI);
     }
 
-    inline virtual void GetUnsignedCSRsI(const Json::Value &request, Json::Value &response)
+    inline virtual void getUnsignedCSRsI(const Json::Value &request, Json::Value &response)
     {
     (void)request;
-    response = this->GetUnsignedCSRs();
+    response = this->getUnsignedCSRs();
     }
-    inline virtual void SignByHashI(const Json::Value &request, Json::Value &response)
+    inline virtual void signByHashI(const Json::Value &request, Json::Value &response)
     {
-        response = this->SignByHash( request["hash"].asString(), request["status"].asInt());
+        response = this->signByHash( request["hash"].asString(), request["status"].asInt());
     }
 
-    virtual Json::Value GetUnsignedCSRs() = 0;
-    virtual Json::Value SignByHash(const std::string& hash, int status) = 0;
+    virtual Json::Value getUnsignedCSRs() = 0;
+    virtual Json::Value signByHash(const std::string& hash, int status) = 0;
 
 };
 

@@ -65,12 +65,12 @@ SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
     : AbstractRegServer(connector, type), is_cert_created(false), cert_auto_sign(auto_sign) {}
 
 
-Json::Value SignCertificateImpl(const string& csr, bool auto_sign = false){
+Json::Value signCertificateImpl(const string& csr, bool auto_sign = false){
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
   try{
-    spdlog::info("enter SignCertificateImpl");
+    spdlog::info("enter signCertificateImpl");
 
     string status = "1";
     string hash = cryptlite::sha256::hash_hex(csr);
@@ -172,13 +172,13 @@ Json::Value GetSertificateImpl(const string& hash){
 }
 
 
-Json::Value SGXRegistrationServer::SignCertificate(const string& csr){
-  spdlog::info("Enter SignCertificate ");
+Json::Value SGXRegistrationServer::signCertificate(const string& csr){
+  spdlog::info("Enter signCertificate ");
   lock_guard<recursive_mutex> lock(m);
-  return SignCertificateImpl(csr, cert_auto_sign);
+  return signCertificateImpl(csr, cert_auto_sign);
 }
 
-Json::Value SGXRegistrationServer::GetCertificate(const string& hash){
+Json::Value SGXRegistrationServer::getCertificate(const string& hash){
   lock_guard<recursive_mutex> lock(m);
   return GetSertificateImpl(hash);
 }

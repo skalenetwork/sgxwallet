@@ -20,8 +20,8 @@ class CSRManagerServer : public abstractCSRManagerServer {
 
   CSRManagerServer(AbstractServerConnector &connector, serverVersion_t type);
 
-  virtual Json::Value GetUnsignedCSRs();
-  virtual Json::Value SignByHash(const std::string& hash, int status);
+  virtual Json::Value getUnsignedCSRs();
+  virtual Json::Value signByHash(const std::string& hash, int status);
 };
 
 extern int init_csrmanager_server();
