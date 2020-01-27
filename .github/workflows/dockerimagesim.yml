@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: test
       run: echo ${GITHUB_REF##*/}
-    - if: ${GITHUB_REF##*/} == "two_docker_images"}
+    - if: ${GITHUB_REF##*/} == "two_docker_images"
       run: echo "haha"
     - name: Login to docker
       env:
