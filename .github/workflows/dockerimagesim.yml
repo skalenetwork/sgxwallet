@@ -8,10 +8,6 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - name: test
-      run: echo ${GITHUB_REF##*/}
-    - name: test3
-      run: echo ${TAG}
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
