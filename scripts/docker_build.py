@@ -46,7 +46,7 @@
 #    @date 2020
 #
 
-import sys, os, subprocess, time
+import sys, os, subprocess, time, socket 
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
 BRANCH = sys.argv[1];
