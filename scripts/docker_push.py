@@ -49,7 +49,6 @@
 import sys, os, subprocess, time
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build push")
 print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 
