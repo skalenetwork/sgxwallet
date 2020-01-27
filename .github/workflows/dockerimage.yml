@@ -14,7 +14,7 @@ jobs:
       - name: build
         run: python3 scripts/docker_build.py ${GITHUB_REF##*/} Dockerfile sgxwallet
       - name: push
-        run: python3 scripts/docker_test.py ${GITHUB_REF##*/} Dockerfile sgxwallet
+        run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet
 
 
 
