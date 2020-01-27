@@ -20,5 +20,5 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: build and push
-      run: python3 scripts/build_push.py
+      run: python3 scripts/docker_build_push.py
 
