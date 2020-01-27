@@ -65,3 +65,30 @@ assert subprocess.call(["pwd"]) == 0;
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
                                               "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX]) == 0;
 
+
+print("Running tests for branch " + BRANCH);
+assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
+                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
+
+time.sleep(10);
+
+assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
+assert os.path.isdir(topDir + '/sgx_data/cert_data');
+assert os.path.isdir(topDir + '/sgx_data/CSR_DB');
+assert os.path.isdir(topDir + '/sgx_data/CSR_STATUS_DB');
+assert os.path.isfile(topDir + '/sgx_data/cert_data/SGXServerCert.crt')
+assert os.path.isfile(topDir + '/sgx_data/cert_data/SGXServerCert.key')
+assert os.path.isfile(topDir + '/sgx_data/cert_data/rootCA.pem')
+assert os.path.isfile(topDir + '/sgx_data/cert_data/rootCA.key')
+
+s1 = socket.socket()
+s2 = socket.socket()
+s3 = socket.socket()
+address = '127.0.0.1'
+s1.connect((address, 1026))
+s2.connect((address, 1027))
+s3.connect((address, 1028))
+
+s1.close()
+s2.close()
+s3.close()
