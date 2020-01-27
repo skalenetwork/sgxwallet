@@ -50,6 +50,8 @@ import sys, os, subprocess, time
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
 BRANCH = sys.argv[1];
+DOCKER_FILE_NAME = sys.argv[2];
+IMAGE_NAME = sys.argv[3];
 if (BRANCH == "develop") :
    TAG_POSTFIX = "latest";
 else :
@@ -60,7 +62,6 @@ print("Starting build for branch " + BRANCH, flush=True)
 
 assert subprocess.call(["pwd"]) == 0;
 
-
-assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/DockerfileSimulation", "--tag",
-                                              "skalenetwork/sgxwalletsim:" + TAG_POSTFIX]) == 0;
+assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
+                                              "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX]) == 0;
 

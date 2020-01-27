@@ -54,6 +54,8 @@ print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 
 BRANCH = sys.argv[1];
+DOCKER_FILE_NAME = sys.argv[2];
+IMAGE_NAME = sys.argv[3];
 if (BRANCH == "develop") :
     TAG_POSTFIX = "latest";
 else :
@@ -64,5 +66,5 @@ else :
 #print(sys.argv[1]);
 #print(sys.argv[2]);
 
-assert subprocess.call(["docker", "push", "skalenetwork/sgxwalletsim:" + TAG_POSTFIX]) == 0;
+assert subprocess.call(["docker", "push", "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX]) == 0;
 

@@ -14,6 +14,9 @@ print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 
 BRANCH = sys.argv[1];
+DOCKER_FILE_NAME = sys.argv[2];
+IMAGE_NAME = sys.argv[3];
+
 if (BRANCH == "develop") :
     TAG_POSTFIX = "latest";
 else :
@@ -21,7 +24,7 @@ else :
 
 print("Running tests for branch " + BRANCH);
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
-                        "-d", "--network=host", "skalenetwork/sgxwalletsim:" + TAG_POSTFIX]) == 0
+                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
 time.sleep(5);
 
