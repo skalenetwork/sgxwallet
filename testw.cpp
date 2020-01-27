@@ -789,7 +789,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
     for ( uint8_t k = 0; k < t; k++ ) {
       for (uint8_t j = 0; j < 4; j++) {
-        string pubShare = VerifVects[i]["Verification Vector"][k][j].asString();
+        string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
         pubShares[i] += ConvertDecToHex(pubShare);
       }
     }
@@ -799,7 +799,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
   Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
   cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
-  cerr << "DHKey is " << complaintResponse["DHKey"].asString();
+  cerr << "DHKey is " << complaintResponse["dhKey"].asString();
 
   int k = 0;
 
@@ -856,7 +856,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
     vector<string> pubKey_vect;
     for ( uint8_t j = 0; j < 4; j++){
-        pubKey_vect.push_back(pubBLSKeys[i]["BLSPublicKeyShare"][j].asString());
+        pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
     }
     BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
     REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
@@ -1022,7 +1022,7 @@ void SendRPCRequest(){
     secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
     for ( uint8_t k = 0; k < t; k++ ) {
       for (uint8_t j = 0; j < 4; j++) {
-        string pubShare = VerifVects[i]["Verification Vector"][k][j].asString();
+        string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
         pubShares[i] += ConvertDecToHex(pubShare);
       }
     }
