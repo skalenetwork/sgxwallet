@@ -54,9 +54,6 @@ print("Top directory is:" + topDir)
 dockerExecutable = subprocess.check_output(["which", "docker"])
 SCRIPTS_DIR = topDir + "/scripts"
 
-print(topDir);
-
-sys.exit(-1);
 
 #print(sys.argv[1]);
 #print(sys.argv[2]);
