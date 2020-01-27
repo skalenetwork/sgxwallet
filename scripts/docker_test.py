@@ -6,19 +6,28 @@
 #    @date 2020
 #
 
-import sys
-import os
-import subprocess
-import socket
+import sys, os, subprocess, socket, time
+os.chdir("..")
+topDir = os.getcwd()
+print("Starting build push")
+print("Top directory is:" + topDir)
+dockerExecutable = subprocess.check_output(["which", "docker"])
+SCRIPTS_DIR = topDir + "/scripts"
 
-assert os.path.isdir('sgx_data/sgxwallet.db')
-assert os.path.isdir('sgx_data/cert_data');
-assert os.path.isdir('sgx_data/CSR_DB');
-assert os.path.isdir('sgx_data/CSR_STATUS_DB');
-assert os.path.isfile('sgx_data/cert_data/SGXServerCert.crt')
-assert os.path.isfile('sgx_data/cert_data/SGXServerCert.key')
-assert os.path.isfile('sgx_data/cert_data/rootCA.pem')
-assert os.path.isfile('sgx_data/cert_data/rootCA.key')
+print("Running test");
+assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
+                        "-d", "--network=host", "skalenetwork/sgxwalletsim:latest"]) == 0
+
+time.sleep(5);
+
+assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
+assert os.path.isdir(topDir + 'sgx_data/cert_data');
+assert os.path.isdir(topDir + 'sgx_data/CSR_DB');
+assert os.path.isdir(topDir + 'sgx_data/CSR_STATUS_DB');
+assert os.path.isfile(topDir + 'sgx_data/cert_data/SGXServerCert.crt')
+assert os.path.isfile(topDir + 'sgx_data/cert_data/SGXServerCert.key')
+assert os.path.isfile(topDir + 'sgx_data/cert_data/rootCA.pem')
+assert os.path.isfile(topDir + 'sgx_data/cert_data/rootCA.key')
 
 s1 = socket.socket()
 s2 = socket.socket()
@@ -31,7 +40,6 @@ s3.connect((address, 1028))
 s1.close()
 s2.close()
 s3.close()
-
 
 
 
