@@ -176,7 +176,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "BLSPublicKeyShare": []
+      "blsPublicKeyShare": []
     }
   },
 
@@ -192,7 +192,7 @@
       "status": 0,
       "errorMessage": "12345",
       "share*G2": "123",
-      "DHKey": "123"
+      "dhKey": "123"
     }
   },
 

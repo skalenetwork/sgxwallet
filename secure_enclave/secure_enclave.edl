@@ -214,6 +214,28 @@ enclave {
                                 [out, count = 1024] char* key );
 
 
+        public void gen_dkg_secret_aes (
+                                [user_check] int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [out, count = 3050] uint8_t* encrypted_dkg_secret,
+                                [user_check] uint32_t * enc_len,
+                                        size_t _t);
+
+        public void decrypt_dkg_secret_aes (
+                                [user_check] int *err_status,
+                                [out, count = 1024] char* err_string,
+                                [in, count = 3050] uint8_t* encrypted_dkg_secret,
+                                [out, count = 2490] uint8_t* decrypted_dkg_secret,
+                                [user_check] uint32_t* dec_len);
+
+        public void set_encrypted_dkg_poly_aes( [user_check] int *err_status,
+                              [out, count = 1024] char* err_string,
+                              [in, count = 3050] uint8_t* encrypted_poly,
+                              [user_check] uint64_t* enc_len);
+
+
+
+
 	};
 
 

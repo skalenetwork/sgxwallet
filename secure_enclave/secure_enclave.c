@@ -598,6 +598,7 @@ void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypte
       (const sgx_sealed_data_t *)encrypted_poly, NULL, 0, Decrypted_dkg_poly, &decr_len);
 
   if (status != SGX_SUCCESS) {
+    *err_status = -1;
     snprintf(err_string, BUF_LEN,"sgx_unseal_data - encrypted_poly failed with status %d", status);
     return;
   }
@@ -1276,8 +1277,54 @@ void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted
     *err_status = -1;
     return;
   }
-
-
 }
 
+void gen_dkg_secret_aes (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
+
+  char* dkg_secret = (char*)calloc(DKG_BUFER_LENGTH, 1);
+
+  if (gen_dkg_poly(dkg_secret, _t) != 0 ){
+    *err_status = - 1;
+    return;
+  }
+
+  snprintf(err_string, BUF_LEN,"poly is %s ", dkg_secret);
+
+  int status = AES_encrypt(dkg_secret, encrypted_dkg_secret);
+
+  if(status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"SGX AES encrypt DKG poly failed");
+    *err_status = status;
+    return;
+  }
+
+  *enc_len = strlen(dkg_secret) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+  free(dkg_secret);
+}
+
+void decrypt_dkg_secret_aes (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t* dec_len){
+
+  int status = AES_decrypt(encrypted_dkg_secret, dec_len, decrypted_dkg_secret);
+
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"aes decrypt data - encrypted_dkg_secret failed with status %d", status);
+    *err_status = status;
+    return;
+  }
+
+  //*dec_len = decr_len;
+}
+
+void set_encrypted_dkg_poly_aes(int *err_status, char *err_string, uint8_t* encrypted_poly,  uint64_t* enc_len){
+
+  uint32_t decr_len;
+  int status = AES_decrypt(encrypted_poly, enc_len, Decrypted_dkg_poly);
+
+  if (status != SGX_SUCCESS) {
+    *err_status = -1;
+    snprintf(err_string, BUF_LEN,"sgx_unseal_data - encrypted_poly failed with status %d", status);
+    return;
+  }
+
+}
 

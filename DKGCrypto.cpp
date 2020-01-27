@@ -82,7 +82,10 @@ string gen_dkg_poly( int _t){
 
     uint32_t enc_len = 0;
 
-    status = gen_dkg_secret (eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+    if (!is_aes)
+      status = gen_dkg_secret (eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+    else
+      status = gen_dkg_secret_aes (eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     if ( err_status != 0){
         throw RPCException(-666, errMsg.data() ) ;
     }
@@ -168,8 +171,12 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
       throw RPCException(INVALID_HEX, "Invalid encryptedPolyHex");
   }
 
-  status = set_encrypted_dkg_poly(eid, &err_status, errMsg1, encr_dkg_poly);
-  if ( status != SGX_SUCCESS || err_status!=0){
+  if (!is_aes)
+    status = set_encrypted_dkg_poly(eid, &err_status, errMsg1, encr_dkg_poly);
+  else
+    status = set_encrypted_dkg_poly_aes(eid, &err_status, errMsg1, encr_dkg_poly, &enc_len);
+
+  if ( status != SGX_SUCCESS || err_status != 0){
     throw RPCException(-666, errMsg1 );
   }
 

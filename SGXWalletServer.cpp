@@ -466,7 +466,7 @@ Json::Value getVerificationVectorImpl(const string& polyName, int t, int n) {
     for ( int i = 0; i < t; i++){
       vector<string> cur_coef = verifVector.at(i);
       for ( int j = 0; j < 4; j++ ){
-        result["Verification Vector"][i][j] = cur_coef.at(j);
+        result["verificationVector"][i][j] = cur_coef.at(j);
       }
     }
 
@@ -474,7 +474,7 @@ Json::Value getVerificationVectorImpl(const string& polyName, int t, int n) {
     cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
-    result["Verification Vector"] = "";
+    result["verificationVector"] = "";
   }
 
   return result;
@@ -640,7 +640,7 @@ Json::Value getBLSPublicKeyShareImpl(const string & blsKeyName){
       }
       vector<string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
       for ( uint8_t i = 0; i < 4; i++) {
-        result["BLSPublicKeyShare"][i] = public_key_vect.at(i);
+        result["blsPublicKeyShare"][i] = public_key_vect.at(i);
       }
 
     } catch (RPCException &_e) {
@@ -668,7 +668,7 @@ Json::Value complaintResponseImpl(const string& polyName, int ind){
     string DHKey = decrypt_DHKey(polyName, ind);
 
     result["share*G2"] = *shareG2_ptr;
-    result["DHKey"] = DHKey;
+    result["dhKey"] = DHKey;
 
   } catch (RPCException &_e) {
     cerr << " err str " << _e.errString << endl;
@@ -702,11 +702,21 @@ Json::Value multG2Impl(const string& x){
 
 Json::Value isPolyExistsImpl(const string& polyName){
     Json::Value result;
-
-    shared_ptr<string> poly_str_ptr = LevelDB::getLevelDb()->readString(polyName);
+    try {
+    std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(polyName);
     result["IsExist"] = true;
+    result["status"] = 0;
+    result["errorMessage"] = "";
     if (poly_str_ptr == nullptr){
         result["IsExist"] = false;
+        result["status"] = 0;
+        result["errorMessage"] = "";
+    }
+    } catch (RPCException &_e) {
+      std::cerr << " err str " << _e.errString << std::endl;
+      result["status"] = _e.status;
+      result["errorMessage"] = _e.errString;
+      result["IsExist"] = false;
     }
 
     return result;
