@@ -51,7 +51,6 @@ os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
 print("Starting build")
 print("Top directory is:" + topDir)
-dockerExecutable = subprocess.check_output(["which", "docker"])
 
 
 
@@ -63,6 +62,6 @@ dockerExecutable = subprocess.check_output(["which", "docker"])
 assert subprocess.call(["pwd"]) == 0;
 
 
-assert subprocess.call([dockerExecutable, "build", topDir, "--file", topDir + "/DockerfileSimulation", "--tag",
+assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/DockerfileSimulation", "--tag",
                                               "skalenetwork/sgxwalletsim:latest"]) == 0;
 
