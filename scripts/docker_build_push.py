@@ -62,12 +62,12 @@ print(topDir);
 
 
 assert subprocess.call(["docker", "build", topDir, "--file", "DockerfileSimulation", "--tag",
-                                                          "skalenetwork/sgxwalletsim:latest"])
+                                                          "skalenetwork/sgxwalletsim:latest"]) == 0
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
-                        "-d", "--network=host", "skalenetwork/sgxwalletsim:latest"]);
+                        "-d", "--network=host", "skalenetwork/sgxwalletsim:latest"]) == 0
 
 time.sleep(5);
 
-assert subprocess.call(["docker", "push", "skalenetwork/sgxwalletsim:latest"]);
+assert subprocess.call(["docker", "push", "skalenetwork/sgxwalletsim:latest"]) == 0;
 
 print("Build  and push successfull.")
