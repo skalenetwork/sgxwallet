@@ -1,11 +1,7 @@
 name: Build and push sim container
-
 on: [push]
-
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     steps:
     - name: Login to docker
@@ -15,8 +11,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
-    - name: ls
-      run: echo $PWD;
     - name: build
       run: python3 scripts/docker_build.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
     - name: test
