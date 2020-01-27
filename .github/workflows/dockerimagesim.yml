@@ -7,12 +7,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
     steps:
     - name: test
       run: echo ${GITHUB_REF##*/}
-    - name: test2
-      run: if [ ${GITHUB_REF##*/}  = "two_docker_images" ]; then TAG="${GITHUB_REF##*/}"; else  export TAG="haha"; fi;
     - name: test3
       run: echo ${TAG}
     - name: Login to docker
@@ -22,12 +19,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
-    - name: Build the Docker image
-      run: docker build . --file DockerfileSimulation --tag  skalenetwork/sgxwalletsim:latest
-    - name: run docker image
-      run: docker run -v ${PWD}/sgx_data:/usr/src/sdk/sgx_data -d --network=host skalenetwork/sgxwalletsim:latest
-    - name: sleep and check
-      run: sleep 5; scripts/docker_test.py
-    - name: push docker image
-      run:  docker push skalenetwork/sgxwalletsim:latest
+    - name: build and push
+      run: python3 scripts/build_push.py
 
