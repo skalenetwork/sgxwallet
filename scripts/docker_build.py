@@ -41,9 +41,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with skale-consensus.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    @file  docker_build_push.py
+#    @file  docker_build.py
 #    @author Stan Kladko
-#    @date 2018
+#    @date 2020
 #
 
 import sys, os, subprocess, time
