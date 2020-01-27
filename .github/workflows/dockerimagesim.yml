@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: test
-      run: echo ${{${GITHUB_REF##*/}}
+      run: echo ${GITHUB_REF##*/}
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
