@@ -56,12 +56,14 @@ if (BRANCH == "develop") :
    TAG_POSTFIX = "latest";
 else :
     TAG_POSTFIX = "latest_commit"
-   
+
+
+FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
 print("Starting build for branch " + BRANCH, flush=True)
 
 assert subprocess.call(["pwd"]) == 0;
 
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
-                                              "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX]) == 0;
+                                              FULL_IMAGE_NAME]) == 0;
 

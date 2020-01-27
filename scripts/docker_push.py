@@ -61,10 +61,7 @@ if (BRANCH == "develop") :
 else :
     TAG_POSTFIX = "latest_commit"
 
+FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
-
-#print(sys.argv[1]);
-#print(sys.argv[2]);
-
-assert subprocess.call(["docker", "push", "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX]) == 0;
+assert subprocess.call(["docker", "push", FULL_IMAGE_NAME]) == 0;
 
