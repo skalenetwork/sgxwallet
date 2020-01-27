@@ -20,7 +20,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: find
-      run: find / - name DockerfileSimulation
+      run: find / -name DockerfileSimulation
     - name: build
       run: python3 scripts/docker_build.py ${GITHUB_REF##*/}
     - name: test
