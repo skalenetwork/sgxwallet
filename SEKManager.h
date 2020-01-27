@@ -16,26 +16,14 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerInit.h
+    @file SEKManager.h
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXWALLET_SERVERINIT_H
-#define SGXWALLET_SERVERINIT_H
+#ifndef SGXD_SEKMANAGER_H
+#define SGXD_SEKMANAGER_H
 
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
+void generate_SEK();
 
-
-EXTERNC void init_all(bool check_cert, bool sign_automatically);
-
-EXTERNC void init_daemon();
-
-EXTERNC  void init_enclave();
-
-
-#endif //SGXWALLET_SERVERINIT_H
+#endif //SGXD_SEKMANAGER_H

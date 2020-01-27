@@ -7,7 +7,12 @@ services:
       - "1027:1027"
       - "1028:1028"
     volumes:
-      - ./sgx_data:/sgx_data
+      - ./sgx_data:/usr/src/sdk/sgx_data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "4"
     restart: unless-stopped
-    command: -s
+    command: -s -d 
 

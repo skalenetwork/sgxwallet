@@ -16,26 +16,41 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerInit.h
+    @file SEKManager.cpp
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXWALLET_SERVERINIT_H
-#define SGXWALLET_SERVERINIT_H
+#include "SEKManager.h"
+#include "RPCException.h"
+#include "BLSCrypto.h"
+#include "LevelDB.h"
 
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
+#include <iostream>
 
+#include "sgxwallet_common.h"
+#include "common.h"
+#include "sgxwallet.h"
 
-EXTERNC void init_all(bool check_cert, bool sign_automatically);
+void generate_SEK(){
 
-EXTERNC void init_daemon();
+  vector<char> errMsg(1024,0);
+  int err_status = 0;
+  vector<uint8_t> encr_SEK(1024, 0);
+  uint32_t enc_len = 0;
 
-EXTERNC  void init_enclave();
+  status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len);
+  if ( err_status != 0 ){
+    cerr << "RPCException thrown" << endl;
+    throw RPCException(-666, errMsg.data()) ;
+  }
 
+  vector<char> hexEncrKey(2*enc_len + 1, 0);
 
-#endif //SGXWALLET_SERVERINIT_H
+  carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
+
+  cerr << "key is " << errMsg.data() << endl;
+
+  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
+
+}

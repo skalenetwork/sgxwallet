@@ -4,13 +4,52 @@
 
 ## Intro
 
-**sgxwallet** is a next generation hardware secure crypto wallet that  is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
+**sgxwallet** is a next generation hardware secure crypto wallet that is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
+
+**sgxwallet** runs as a network server.  Clients connect to the server, authenticate to it using 
+TLS 1.0 protocol with client certificates, and then issue requests to the server to generate crypto 
+keys and perform cryptographic operations. The keys are generated inside the secure SGX enclave and never
+leave the enclave unencrypted.  
+
+The server provides an initial registration service to issue client certificates to the clients.
+The administrator manually approves each registration.
 
 **sgxwallet** has been tested on **Ubuntu Linux 18.04**.
 
 ## An important note about production readiness
 
-This sgxwallet library is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This library has not yet been reviewed or audited for security.**
+The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security.**
+
+Table of Contents
+=================
+
+
+   * [Running sgxwallet](#running-sgxwallet)
+      * [Clone this repository and its submodules](#clone-this-repository-and-its-submodules)
+      * [Try instantly in simulation mode](#try-instantly-in-simulation-mode)
+      * [Start, stop and upgrade sgxwallet](#start-stop-and-upgrade-sgxwallet)
+      * [Configure logging](#configure-logging)
+      * [Enable SGX on your machine](#enable-sgx-on-your-machine)
+      * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
+      * [Install SGX driver](#install-sgx-driver)
+      * [Run sgxwallet in secure SGX mode](#run-the-latest-sgxwallet-docker-container-from-dockerhub)
+   * [Development](#development)
+      * [Install Prerequisites](#install-prerequisites)
+      * [Install SGX sdk](#install-sgx-sdk)
+      * [Install required debian packages](#install-required-debian-packages)
+      * [Build dependencies](#build-dependencies)
+      * [Configure and build sgxwallet](#configure-and-build-sgxwallet)
+      * [Run sgxwallet](#run-sgxwallet)
+      * [Build Docker container](#build-docker-container)
+      * [Build Docker container in simulation mode](#build-docker-container-in-simulation-mode)
+      * [Run Docker container](#run-docker-container)
+      * [Run Docker container in simulation mode](#run-docker-container-in-simulation-mode)
+      * [Adding new source files](#adding-new-source-files)
+      * [Example of client certificate instantiation](#example-of-client-certificate-instantiation)
+      * [Libraries](#libraries)
+      * [License](#license)
+
+
 
 # Running sgxwallet 
 
@@ -18,11 +57,97 @@ This sgxwallet library is still in active development and therefore should be re
 
 `git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
 
+## Try instantly in simulation mode
+
+
+The easiest way to try the sgxwallet server is to run it in  
+insecure simulation mode that emulates an SGX processor. Once you are familiar with the server,
+you can enable sgx on your machine and run it in secure production mode.
+
+To try the server:
+
+Install docker-compose if you do not have it.
+
+```
+sudo apt-get install docker.io docker-compose
+```
+
+And then do 
+
+ ```
+cd run_sgx_sim; 
+sudo docker-compose up
+``` 
+
+Voila! You should see the "SGX Server started" message.
+
+
+## Start, stop and upgrade sgxwallet
+
+As any docker-compose application sgxwallet is super easy to use. 
+
+To run the server as a daemon, do
+
+``` 
+sudo docker-compose up -d
+```
+
+To stop/start the server do 
+
+``` 
+sudo docker-compose stop
+sudo docker-compose start
+```
+
+To view server logs do 
+
+``` 
+sudo docker-compose logs
+```
+
+To upgrade sgxwallet to the latest version do 
+
+``` 
+sudo docker-compose stop
+sudo docker-compose pull
+sudo docker-compose up
+```
+
+Note: all docker-compose commands need to be issued from run_sgx_sim directory.
+
+Note: sgxwallet places all its data into the sgx_data directory, which is created the first time you run sgxwallet.
+Do not remove this directory!
+
+Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initial registration). 
+If you have a firewall on your network, please make sure these ports are open so clients are able to
+connect to the server. 
+
+## Configure logging
+
+By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
+To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as 
+
+```
+logging:
+  driver: syslog
+  options:
+    syslog-address: "tcp://SYSLOG_SERVER_IP:PORT"
+``` 
+
+See docker-compose documentation for more options.
+
 ## Enable SGX on your machine
 
-To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
+Once your tried sgxwallet in the simulation mode, you can enable sgx on your machine, and run the server in production
+mode.  First, remove the simulation mode wallet by doing 
 
--   Enter **BIOS** of you machine by pressing and holding **Del** or **F2** on boot-up and verify that **BIOS** includes **SGX options**.
+``` 
+sudo docker-compose rm
+```
+
+You'll need **Intel SGX** capable hardware. Most Intel chips that were produced after 2015 support **SGX**.
+
+-   Enter **BIOS** of your machine by pressing and holding **Del** or **F2** on boot-up and verify that **BIOS** includes **SGX options**.
     If not, your machine cant run **SGX**.
 -   Set SGX in BIOS as `enabled` or `software-controlled`.
 -   If you can set SGX to `enabled` you are done! Proceed with "Install SGX Driver" section
@@ -30,10 +155,20 @@ To build and run **sgxd**, you'll need **Intel SGX** capable hardware. Most Inte
 
 ## Enable "software-controlled" SGX
 
-To enable SGX using a software utility:
+This repo includes the ***sgx_enable*** utility. To enable SGX run:
 
--   Build `sgx-enable` utility by typing `cd  sgx-software-enable; make`
--   Run `./sgx_enable`.  Verify that it says that **SGX** is successfully enabled
+```bash
+sudo ./sgx_enable
+```
+
+Note: if you are not using Ubuntu 18.04 (something that we do not recommend), you may need
+to rebuild the sgx-software-enable utility before use by typing:
+
+```bash
+cd sgx-software-enable;
+make
+```
+
 
 ## Install SGX driver
 
@@ -44,17 +179,22 @@ cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
-## Install docker and docker-compose
+
+
+## Run sgxwallet in secure SGX mode
+
+Run the latest sgxwallet docker container image in SGX mode
 
 ```
-sudo apt-get install docker.io docker-compose
-```
-
-## Run the latest sgxwallet docker container from dockerhub
-
-```
+cd run_sgx; 
 sudo docker-compose up -d
 ```
+
+You should see "SGX Server started message".
+
+Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
+as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
+device to use. 
 
 # Development
 
@@ -68,14 +208,12 @@ sudo apt-get install build-essential make cmake gcc g++ yasm  python libprotobuf
 
 ```bash
 cd scripts; sudo ./sgx_linux_x64_sdk_2.5.100.49891.bin; cd ..
-
 ```
 
 ## Install required debian packages
 
 ```bash
 cd scripts; sudo ./install_packages.sh; cd ..
-
 ```
 
 ## Build dependencies
@@ -84,7 +222,6 @@ Dependencies only need to be built once.
 
 ```bash
 cd scripts; ./build.py; cd ..
-
 ```
 
 ## Configure and build sgxwallet
@@ -112,6 +249,7 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 Type:
 
 ```bash
+source sgx-sdk-build/sgxsdk/environment;
 ./sgxwallet
 ```
 
@@ -181,7 +319,7 @@ Example:
 
 ```bash
 export URL_SGX_WALLET="http://127.0.0.1:1027"
-curl -X POST --data '{ "jsonrpc": "2.0", "id": 2, "method": "SignCertificate", "params": { "certificate": "-----BEGIN CERTIFICATE REQUEST-----\nMIICYjCCAUoCAQAwHTEbMBkGA1UEAwwSc29tZVZlcnlVbmlxdWVOYW1lMIIBIjAN\nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B\ncPydIeiqs1dieuuvVETJqbXAcOENNsGA+AdXjZwFkDuIS24p2yZ8AwuIMAwdMsGa\n5Hzk0ugOy52iPyGEuooqV94nnL6eWw/zryTvkk7j239wMWn5our5Ia1/CBQlXXo2\n4IWTWfWYOz26SWUh4DuvzMOheMVSxg3KLaxpx7Bq09p32lR9xpl53+HqxSDIMYh9\nC3y3kA6NdkKsGE/Jt4WoZ5S5LlrhYjw+PFTeX2lbGDZpn/sxQIM16Pxo2LCfefIa\nik+aZBEAlpn22ljLZ5sEcVgBmOlL+v3waq9u0AaSYzdGFRA+0ceVwU/QTQIDAQAB\noAAwDQYJKoZIhvcNAQELBQADggEBAJXodL69Q/8zDt24AySXK0ksV3C3l5l10Hno\nfF6zKypsYev33CFbZu6HweSgK2f21+DeI9TsGKJxI7K6MUqyH0pJhwlFSeMB5/qP\nJueqXMuvStZSp0GGTaNy7Al/jzOKYNf0ePsv/Rx8NcOdy7RCZE0gW998B5jKb66x\nPgy6QvD8CkZULiRScYlOC8Ex6nc+1Z54pRC1NFWs/ugGyFgLJHy0J2gNkOv6yfsl\nH3V/ocCYSoF4ToUQAxwx+dcy4PXrL9vKzRNJgWzsI/LzCZkglo8iis9YZQawDOUf\nGmDMDkr0Fx1W1tSEpvkw0flkAXZ8PhIGCC0320jkuPeClt7OWNs=\n-----END CERTIFICATE REQUEST-----\n" } }' -H 'content-type:application/json;' $URL_SGX_WALLET
+curl -X POST --data '{ "jsonrpc": "2.0", "id": 2, "method": "signCertificate", "params": { "certificate": "-----BEGIN CERTIFICATE REQUEST-----\nMIICYjCCAUoCAQAwHTEbMBkGA1UEAwwSc29tZVZlcnlVbmlxdWVOYW1lMIIBIjAN\nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B\ncPydIeiqs1dieuuvVETJqbXAcOENNsGA+AdXjZwFkDuIS24p2yZ8AwuIMAwdMsGa\n5Hzk0ugOy52iPyGEuooqV94nnL6eWw/zryTvkk7j239wMWn5our5Ia1/CBQlXXo2\n4IWTWfWYOz26SWUh4DuvzMOheMVSxg3KLaxpx7Bq09p32lR9xpl53+HqxSDIMYh9\nC3y3kA6NdkKsGE/Jt4WoZ5S5LlrhYjw+PFTeX2lbGDZpn/sxQIM16Pxo2LCfefIa\nik+aZBEAlpn22ljLZ5sEcVgBmOlL+v3waq9u0AaSYzdGFRA+0ceVwU/QTQIDAQAB\noAAwDQYJKoZIhvcNAQELBQADggEBAJXodL69Q/8zDt24AySXK0ksV3C3l5l10Hno\nfF6zKypsYev33CFbZu6HweSgK2f21+DeI9TsGKJxI7K6MUqyH0pJhwlFSeMB5/qP\nJueqXMuvStZSp0GGTaNy7Al/jzOKYNf0ePsv/Rx8NcOdy7RCZE0gW998B5jKb66x\nPgy6QvD8CkZULiRScYlOC8Ex6nc+1Z54pRC1NFWs/ugGyFgLJHy0J2gNkOv6yfsl\nH3V/ocCYSoF4ToUQAxwx+dcy4PXrL9vKzRNJgWzsI/LzCZkglo8iis9YZQawDOUf\nGmDMDkr0Fx1W1tSEpvkw0flkAXZ8PhIGCC0320jkuPeClt7OWNs=\n-----END CERTIFICATE REQUEST-----\n" } }' -H 'content-type:application/json;' $URL_SGX_WALLET
 
 ```
 

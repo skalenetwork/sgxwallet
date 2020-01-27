@@ -39,7 +39,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
 
 std::string decrypt_DHKey(const std::string& polyName, int ind);
 
-bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex);
+bool CreateBLSShare( const std::string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 
 std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex);
 

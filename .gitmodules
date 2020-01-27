@@ -16,3 +16,6 @@
 [submodule "sgx-software-enable"]
 	path = sgx-software-enable
 	url = https://github.com/intel/sgx-software-enable
+[submodule "github-markdown-toc"]
+	path = github-markdown-toc
+	url = https://github.com/ekalinin/github-markdown-toc.git

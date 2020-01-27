@@ -51,6 +51,7 @@
 #include "RPCException.h"
 
 #include "spdlog/spdlog.h"
+#include "common.h"
 
 int char2int(char _input) {
   if (_input >= '0' && _input <= '9')
@@ -135,11 +136,11 @@ bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
 bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
     char* _sig) {
 
-  //std::cerr << "ENTER SIGN" << std::endl;
+  //cerr << "ENTER SIGN" << endl;
 
-  auto keyStr = std::make_shared<std::string>(_encryptedKeyHex);
+  auto keyStr = make_shared<string>(_encryptedKeyHex);
 
-  auto hash = std::make_shared<std::array<uint8_t, 32>>();
+  auto hash = make_shared<array<uint8_t, 32>>();
 
   uint64_t binLen;
 
@@ -150,9 +151,9 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
 
 
-  auto keyShare = std::make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
+  auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
-  //std::cerr << "keyShare created" << std::endl;
+  //cerr << "keyShare created" << endl;
  // {
     auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
  // }
@@ -161,14 +162,14 @@ bool sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t 
 
   strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
 
-  //std::string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
+  //string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
   //strncpy(_sig, sigShareStr.c_str(), BUF_LEN);
 
- // std::string test_sig = "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855:9810286616503120081238481858289626967170509983220853777870754480048381194141:5";
- // auto sig_ptr = std::make_shared<std::string>(test_sig);
+ // string test_sig = "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855:9810286616503120081238481858289626967170509983220853777870754480048381194141:5";
+ // auto sig_ptr = make_shared<string>(test_sig);
  // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
 
-  //std::cerr<< "sig " << _sig <<std::endl;
+  //cerr<< "sig " << _sig <<endl;
 
   return true;
 
@@ -185,10 +186,12 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 
     unsigned int encryptedLen = 0;
 
-    status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+    //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+    status = encrypt_key_aes(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
 
     if (DEBUG_PRINT) {
-      spdlog::info("errStatus is {}",*errStatus, " errMsg is ", errMsg );
+      spdlog::info("errStatus is {}",*errStatus);
+      spdlog::info(" errMsg is ", errMsg );
     }
 
     if (status != SGX_SUCCESS) {
@@ -224,7 +227,8 @@ char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encry
 
     char *plaintextKey = (char *) calloc(BUF_LEN, 1);
 
-    status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+    //status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+     status = decrypt_key_aes(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
 
     if (status != SGX_SUCCESS) {
         return nullptr;

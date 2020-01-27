@@ -37,6 +37,7 @@
 
 extern int DEBUG_PRINT;
 extern int is_sgx_https;
+extern int is_aes;
 
 #define BUF_LEN 1024
 
@@ -57,7 +58,7 @@ extern int is_sgx_https;
 
 #define ECDSA_SKEY_LEN 65
 #define ECDSA_SKEY_BASE 16
-#define ECDSA_ENCR_LEN 625
+#define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
 
 #define UNKNOWN_ERROR -1
