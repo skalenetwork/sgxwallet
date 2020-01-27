@@ -1,13 +1,8 @@
-name: Build, test and push sgxwallet container
-
+name: Build, test and push SGX container
 on: [push]
-
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Login to docker
         env:
@@ -16,8 +11,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: submodule update
         run: git submodule update --init --recursive
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag  skalenetwork/sgxwallet:latest
-      - name: push docker image
-        run:  docker push skalenetwork/sgxwallet:latest
+      - name: build
+        run: python3 scripts/docker_build.py ${GITHUB_REF##*/} Dockerfile sgxwallet
+      - name: push
+        run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet
 
