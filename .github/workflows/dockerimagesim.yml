@@ -1,10 +1,13 @@
 name: Build and push sim container
-on: push
-  branches:
-    - develop
+
+on: [push]
+
 jobs:
+
   build:
+
     runs-on: ubuntu-latest
+
     steps:
     - name: test
       run: echo ${{${GITHUB_REF##*/}}
