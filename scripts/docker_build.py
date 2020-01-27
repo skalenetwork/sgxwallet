@@ -49,10 +49,10 @@
 import sys, os, subprocess, time
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build")
-print("Top directory is:" + topDir)
+print("Starting build", flush=True)
+print("Top directory is:" + topDir, flush=True)
 
-print(sys.argv[1]);
+print(sys.argv[1], flush=True);
 #print(sys.argv[2]);
 
 
