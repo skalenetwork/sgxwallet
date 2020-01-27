@@ -53,9 +53,16 @@ print("Starting build push")
 print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 
+BRANCH = sys.argv[1];
+if (BRANCH == "develop") :
+    TAG_POSTFIX = "latest";
+else :
+    TAG_POSTFIX = "latest_commit"
+
+
 
 #print(sys.argv[1]);
 #print(sys.argv[2]);
 
-assert subprocess.call(["docker", "push", "skalenetwork/sgxwalletsim:latest"]) == 0;
+assert subprocess.call(["docker", "push", "skalenetwork/sgxwalletsim:" + TAG_POSTFIX]) == 0;
 
