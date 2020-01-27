@@ -55,7 +55,7 @@ print("Top directory is:" + topDir)
 
 
 
-#print(sys.argv[1]);
+print(sys.argv[1]);
 #print(sys.argv[2]);
 
 
