@@ -12,7 +12,7 @@ jobs:
     - name: test
       run: echo ${GITHUB_REF##*/}
     - name: test2
-      run: if [ ${GITHUB_REF##*/}  = "two_docker_images" ]; then TAG="${GITHUB_REF##*/}"; else  TAG="haha"; fi;
+      run: if [ ${GITHUB_REF##*/}  = "two_docker_images" ]; then TAG="${GITHUB_REF##*/}"; else  export TAG="haha"; fi;
     - name: test3
       run: echo ${TAG}
     - name: Login to docker
