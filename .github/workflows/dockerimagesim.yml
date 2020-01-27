@@ -20,7 +20,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: ls
-      run: ls -l
+      run: echo $PWD; $ls -l scripts
     - name: build
       run: python3 scripts/docker_build.py ${GITHUB_REF##*/}
     - name: test
