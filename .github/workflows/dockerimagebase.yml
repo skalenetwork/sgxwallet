@@ -1,4 +1,4 @@
-name: Build base container
+name: Build and push base container
 on:
   push:
     tags:
