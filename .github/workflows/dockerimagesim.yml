@@ -12,7 +12,8 @@ jobs:
     - name: test
       run: echo ${GITHUB_REF##*/}
     - name: test2
-      run: python3 -c "return ('${GITHUB_REF##*/}' == 'two_docker_images')"; echo $?
+      run: if [ ${GITHUB_REF##*/} -eq  "two_docker_images" ]; then echo "haha"; fi";
+
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
