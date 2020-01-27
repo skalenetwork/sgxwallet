@@ -59,6 +59,7 @@ SCRIPTS_DIR = topDir + "/scripts"
 #print(sys.argv[2]);
 
 
+assert subprocess.call(["echo", "$PWD"]) == 0;
 
 
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/DockerfileSimulation", "--tag",
