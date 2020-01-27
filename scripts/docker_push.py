@@ -48,10 +48,9 @@
 
 import sys, os, subprocess, time
 os.chdir("..")
-topDir = os.getcwd()
+topDir = os.getcwd() + "/sgxwallet"
 print("Starting build push")
 print("Top directory is:" + topDir)
-dockerExecutable = subprocess.check_output(["which", "docker"])
 SCRIPTS_DIR = topDir + "/scripts"
 
 
