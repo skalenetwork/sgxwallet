@@ -1,14 +1,13 @@
 name: Build and push sim container
-
-on: [push]
-
+on: push
+  branches:
+    - develop
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
+    - name: test
+      run: echo ${{${GITHUB_REF##*/}}
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
