@@ -28,6 +28,7 @@ Table of Contents
       * [Clone this repository and its submodules](#clone-this-repository-and-its-submodules)
       * [Try instantly in simulation mode](#try-instantly-in-simulation-mode)
       * [Start, stop and upgrade sgxwallet](#start-stop-and-upgrade-sgxwallet)
+      * [Configure logging](#configure-logging)
       * [Enable SGX on your machine](#enable-sgx-on-your-machine)
       * [Enable "software-controlled" SGX](#enable-software-controlled-sgx)
       * [Install SGX driver](#install-sgx-driver)
@@ -80,6 +81,7 @@ sudo docker-compose up
 
 Voila! You should see the "SGX Server started" message.
 
+
 ## Start, stop and upgrade sgxwallet
 
 As any docker-compose application sgxwallet is super easy to use. 
@@ -120,6 +122,19 @@ Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initia
 If you have a firewall on your network, please make sure these ports are open so clients are able to
 connect to the server. 
 
+## Configure logging
+
+By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
+To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as 
+
+```
+logging:
+  driver: syslog
+  options:
+    syslog-address: "tcp://SYSLOG_SERVER_IP:PORT"
+``` 
+
+See docker-compose documentation for more options.
 
 ## Enable SGX on your machine
 
@@ -165,6 +180,7 @@ Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx`
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
 
+
 ## Run sgxwallet in secure SGX mode
 
 Run the latest sgxwallet docker container image in SGX mode
@@ -175,6 +191,10 @@ sudo docker-compose up -d
 ```
 
 You should see "SGX Server started message".
+
+Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
+as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
+device to use. 
 
 # Development
 
@@ -229,6 +249,7 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 Type:
 
 ```bash
+source sgx-sdk-build/sgxsdk/environment;
 ./sgxwallet
 ```
 
@@ -298,7 +319,7 @@ Example:
 
 ```bash
 export URL_SGX_WALLET="http://127.0.0.1:1027"
-curl -X POST --data '{ "jsonrpc": "2.0", "id": 2, "method": "SignCertificate", "params": { "certificate": "-----BEGIN CERTIFICATE REQUEST-----\nMIICYjCCAUoCAQAwHTEbMBkGA1UEAwwSc29tZVZlcnlVbmlxdWVOYW1lMIIBIjAN\nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B\ncPydIeiqs1dieuuvVETJqbXAcOENNsGA+AdXjZwFkDuIS24p2yZ8AwuIMAwdMsGa\n5Hzk0ugOy52iPyGEuooqV94nnL6eWw/zryTvkk7j239wMWn5our5Ia1/CBQlXXo2\n4IWTWfWYOz26SWUh4DuvzMOheMVSxg3KLaxpx7Bq09p32lR9xpl53+HqxSDIMYh9\nC3y3kA6NdkKsGE/Jt4WoZ5S5LlrhYjw+PFTeX2lbGDZpn/sxQIM16Pxo2LCfefIa\nik+aZBEAlpn22ljLZ5sEcVgBmOlL+v3waq9u0AaSYzdGFRA+0ceVwU/QTQIDAQAB\noAAwDQYJKoZIhvcNAQELBQADggEBAJXodL69Q/8zDt24AySXK0ksV3C3l5l10Hno\nfF6zKypsYev33CFbZu6HweSgK2f21+DeI9TsGKJxI7K6MUqyH0pJhwlFSeMB5/qP\nJueqXMuvStZSp0GGTaNy7Al/jzOKYNf0ePsv/Rx8NcOdy7RCZE0gW998B5jKb66x\nPgy6QvD8CkZULiRScYlOC8Ex6nc+1Z54pRC1NFWs/ugGyFgLJHy0J2gNkOv6yfsl\nH3V/ocCYSoF4ToUQAxwx+dcy4PXrL9vKzRNJgWzsI/LzCZkglo8iis9YZQawDOUf\nGmDMDkr0Fx1W1tSEpvkw0flkAXZ8PhIGCC0320jkuPeClt7OWNs=\n-----END CERTIFICATE REQUEST-----\n" } }' -H 'content-type:application/json;' $URL_SGX_WALLET
+curl -X POST --data '{ "jsonrpc": "2.0", "id": 2, "method": "signCertificate", "params": { "certificate": "-----BEGIN CERTIFICATE REQUEST-----\nMIICYjCCAUoCAQAwHTEbMBkGA1UEAwwSc29tZVZlcnlVbmlxdWVOYW1lMIIBIjAN\nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B\ncPydIeiqs1dieuuvVETJqbXAcOENNsGA+AdXjZwFkDuIS24p2yZ8AwuIMAwdMsGa\n5Hzk0ugOy52iPyGEuooqV94nnL6eWw/zryTvkk7j239wMWn5our5Ia1/CBQlXXo2\n4IWTWfWYOz26SWUh4DuvzMOheMVSxg3KLaxpx7Bq09p32lR9xpl53+HqxSDIMYh9\nC3y3kA6NdkKsGE/Jt4WoZ5S5LlrhYjw+PFTeX2lbGDZpn/sxQIM16Pxo2LCfefIa\nik+aZBEAlpn22ljLZ5sEcVgBmOlL+v3waq9u0AaSYzdGFRA+0ceVwU/QTQIDAQAB\noAAwDQYJKoZIhvcNAQELBQADggEBAJXodL69Q/8zDt24AySXK0ksV3C3l5l10Hno\nfF6zKypsYev33CFbZu6HweSgK2f21+DeI9TsGKJxI7K6MUqyH0pJhwlFSeMB5/qP\nJueqXMuvStZSp0GGTaNy7Al/jzOKYNf0ePsv/Rx8NcOdy7RCZE0gW998B5jKb66x\nPgy6QvD8CkZULiRScYlOC8Ex6nc+1Z54pRC1NFWs/ugGyFgLJHy0J2gNkOv6yfsl\nH3V/ocCYSoF4ToUQAxwx+dcy4PXrL9vKzRNJgWzsI/LzCZkglo8iis9YZQawDOUf\nGmDMDkr0Fx1W1tSEpvkw0flkAXZ8PhIGCC0320jkuPeClt7OWNs=\n-----END CERTIFICATE REQUEST-----\n" } }' -H 'content-type:application/json;' $URL_SGX_WALLET
 
 ```
 

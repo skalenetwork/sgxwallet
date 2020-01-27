@@ -72,37 +72,10 @@ void init_daemon() {
     libff::init_alt_bn128_params();
 
 
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        spdlog::error("could not get cwd");
-        exit(-1);
-    }
+    LevelDB::initDataFolderAndDBs();
 
 
-    std::string sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
-    struct stat info;
-    if (stat(sgx_data_folder.c_str(), &info) !=0 ){
-      spdlog::info("going to create sgx_data folder");
-      std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
-      if (system(make_sgx_data_folder.c_str()) == 0){
-        spdlog::info("sgx_data folder was created");
-      }
-      else{
-        spdlog::error("creating sgx_data folder failed");
-        exit(-1);
-      }
-    }
-
-    static std::string dbName = sgx_data_folder +  WALLETDB_NAME;
-    levelDb = new LevelDB(dbName);
-
-    static std::string csr_dbname = sgx_data_folder + "CSR_DB";
-    csrDb = new LevelDB(csr_dbname);
-
-    static std::string csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
-    csrStatusDb = new LevelDB(csr_status_dbname);
-
-    std::shared_ptr<std::string> encr_SEK_ptr = levelDb->readString("SEK");
+    std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
     if (encr_SEK_ptr == nullptr){
       spdlog::info("SEK was not created yet");
       generate_SEK();
@@ -116,9 +89,10 @@ void init_enclave() {
     eid = 0;
     updated = 0;
 
-    unsigned long support;
+
 
 #ifndef SGX_HW_SIM
+    unsigned long support;
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
@@ -169,8 +143,6 @@ void init_all(bool check_cert, bool sign_automatically) {
     init_daemon();
 
     sgxServerInited = 1;
-
-    init_daemon();
 
     if (is_sgx_https) {
       init_https_server(check_cert);

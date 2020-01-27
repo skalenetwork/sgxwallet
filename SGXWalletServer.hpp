@@ -56,13 +56,12 @@ public:
     virtual Json::Value generateDKGPoly(const std::string& polyName, int t);
     virtual Json::Value getVerificationVector(const std::string& polyName, int t, int n);
     virtual Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n);
-    virtual Json::Value DKGVerification(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
-    virtual Json::Value CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
-    virtual Json::Value GetBLSPublicKeyShare(const std::string & BLSKeyName);
-    virtual Json::Value ComplaintResponse(const std::string& polyName, int ind);
-    virtual Json::Value MultG2(const std::string & x);
-    virtual Json::Value IsPolyExists(const std::string& polyName);
-
+    virtual Json::Value dkgVerification(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index);
+    virtual Json::Value createBLSPrivateKey(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+    virtual Json::Value getBLSPublicKeyShare(const std::string & blsKeyName);
+    virtual Json::Value complaintResponse(const std::string& polyName, int ind);
+    virtual Json::Value multG2(const std::string & x);
+    virtual Json::Value isPolyExists(const std::string& polyName);
     virtual Json::Value getServerStatus();
 
 };
@@ -85,12 +84,12 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName);
 Json::Value generateDKGPolyImpl(const std::string& polyName, int t);
 Json::Value getVerificationVectorImpl(const std::string& polyName, int t, int n);
 Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& publicKeys, int t, int n);
-Json::Value DKGVerificationImpl(const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index);
-Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
-Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName);
-Json::Value ComplaintResponseImpl(const std::string& polyName, int ind);
-Json::Value MultG2Impl(const std::string & x);
-Json::Value IsPolyExistsImpl(const std::string& polyName);
+Json::Value dkgVerificationImpl(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index);
+Json::Value createBLSPrivateKeyImpl(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+Json::Value getBLSPublicKeyShareImpl(const std::string & blsKeyName);
+Json::Value complaintResponseImpl(const std::string& polyName, int ind);
+Json::Value multG2Impl(const std::string & x);
+Json::Value isPolyExistsImpl(const std::string& polyName);
 
 Json::Value getServerStatusImpl();
 

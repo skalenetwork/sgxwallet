@@ -13,7 +13,7 @@ int print_hashes(){
   jsonrpc::HttpClient client("http://localhost:1028");
   StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
   std::cout << "Client inited" << std::endl;
-  std::cout << c.GetUnsignedCSRs() << std::endl;
+  std::cout << c.getUnsignedCSRs() << std::endl;
   exit(0);
 }
 
@@ -21,7 +21,7 @@ void sign_by_hash(std::string & hash, int status){
   jsonrpc::HttpClient client("http://localhost:1028");
   StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
   std::cout << "Client inited" << std::endl;
-  std::cout << c.SignByHash(hash, status) << std::endl;
+  std::cout << c.signByHash(hash, status) << std::endl;
   exit(0);
 }
 

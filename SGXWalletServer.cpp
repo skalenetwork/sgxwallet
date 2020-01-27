@@ -43,17 +43,13 @@
 
 #include "spdlog/spdlog.h"
 
-//#if __cplusplus < 201412L
-//#error expecting C++17 standard
-//#endif
-
-//#include <boost/filesystem.hpp>
+#include "common.h"
 
 
 
-bool isStringDec( std::string & str){
-  auto res = std::find_if_not(str.begin(), str.end(), [](char c)->bool{
-    return std::isdigit(c);
+bool isStringDec( string & str){
+  auto res = find_if_not(str.begin(), str.end(), [](char c)->bool{
+    return isdigit(c);
   });
   return !str.empty() && res == str.end();
 }
@@ -67,29 +63,29 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &connector,
         : AbstractStubServer(connector, type) {}
 
 void debug_print(){
-  std::cout << "HERE ARE YOUR KEYS: " << std::endl;
+  cout << "HERE ARE YOUR KEYS: " << endl;
   class MyVisitor: public LevelDB::KeyVisitor {
   public:
     virtual void visitDBKey(const char* _data){
-      std::cout << _data << std::endl;
+      cout << _data << endl;
     }
   };
 
   MyVisitor v;
 
-  levelDb->visitKeys(&v, 100000000);
+  LevelDB::getLevelDb()->visitKeys(&v, 100000000);
 }
 
 int init_https_server(bool check_certs) {
 
-  std::string rootCAPath = std::string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
-  std::string keyCAPath = std::string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
+  string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+  string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
   if (access(rootCAPath.c_str(), F_OK) != 0 || access(keyCAPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE ROOT CA CERTIFICATE");
     spdlog::info("ROOT CA CERTIFICATE IS GOING TO BE CREATED");
 
-    std::string genRootCACert = "cd cert && ./create_CA";
+    string genRootCACert = "cd cert && ./create_CA";
 
     if (system(genRootCACert.c_str()) == 0){
       spdlog::info("ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED");
@@ -100,14 +96,14 @@ int init_https_server(bool check_certs) {
     }
   }
 
-  std::string certPath = std::string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
-  std::string keyPath = std::string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
+  string certPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
+  string keyPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
 
   if (access(certPath.c_str(), F_OK) != 0 || access(certPath.c_str(), F_OK) != 0){
     spdlog::info("YOU DO NOT HAVE SERVER CERTIFICATE");
     spdlog::info("SERVER CERTIFICATE IS GOING TO BE CREATED");
 
-    std::string genCert = "cd cert && ./create_server_cert";
+    string genCert = "cd cert && ./create_server_cert";
 
     if (system(genCert.c_str()) == 0){
       spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
@@ -146,7 +142,7 @@ int init_http_server() { //without ssl
 }
 
 Json::Value
-importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShareName, int t, int n, int index) {
+importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int index) {
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
@@ -182,7 +178,7 @@ importBLSKeyShareImpl(const std::string &_keyShare, const std::string &_keyShare
     return result;
 }
 
-Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash,int t, int n, int signerIndex) {
+Json::Value blsSignMessageHashImpl(const string &keyShareName, const string &messageHash,int t, int n, int signerIndex) {
     Json::Value result;
     result["status"] = -1;
     result["errorMessage"] = "Unknown server error";
@@ -190,13 +186,13 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
 
     char *signature = (char *) calloc(BUF_LEN, 1);
 
-    shared_ptr <std::string> value = nullptr;
+    shared_ptr <string> value = nullptr;
 
     try {
       if ( !checkName(keyShareName, "BLS_KEY")){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
       }
-      std::string cutHash = messageHash;
+      string cutHash = messageHash;
       if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
         cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
       }
@@ -214,7 +210,7 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
         result["errorMessage"] = _e.errString;
         return result;
     } catch (...) {
-        std::exception_ptr p = std::current_exception();
+        exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         result["status"] = -1;
         result["errorMessage"] = "Read key share has thrown exception:";
@@ -240,7 +236,7 @@ Json::Value blsSignMessageHashImpl(const std::string &keyShareName, const std::s
 }
 
 
-Json::Value importECDSAKeyImpl(const std::string &key, const std::string &keyName) {
+Json::Value importECDSAKeyImpl(const string &key, const string &keyName) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -258,7 +254,7 @@ Json::Value generateECDSAKeyImpl() {
 
     spdlog::info("Calling method generateECDSAKey");
 
-    std::vector<std::string>keys;
+    vector<string>keys;
 
     try {
         keys = gen_ecdsa_key();
@@ -267,7 +263,7 @@ Json::Value generateECDSAKeyImpl() {
             throw RPCException(UNKNOWN_ERROR, "key was not generated");
         }
 
-        std::string keyName = "NEK:" + keys.at(2);
+        string keyName = "NEK:" + keys.at(2);
 
         if (DEBUG_PRINT) {
           spdlog::info("write encr key {}", keys.at(0));
@@ -278,11 +274,11 @@ Json::Value generateECDSAKeyImpl() {
         writeDataToDB(keyName, keys.at(0));
 
         result["encryptedKey"] = keys.at(0);
-        result["PublicKey"] = keys.at(1);
-        result["KeyName"] = keyName;
+        result["publicKey"] = keys.at(1);
+        result["keyName"] = keyName;
 
     } catch (RPCException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
+        cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -290,7 +286,7 @@ Json::Value generateECDSAKeyImpl() {
     return result;
 }
 
-Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& tempKeyName){
+Json::Value renameECDSAKeyImpl(const string& KeyName, const string& tempKeyName){
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -298,7 +294,7 @@ Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& te
 
   try {
 
-    std::string prefix = tempKeyName.substr(0,8);
+    string prefix = tempKeyName.substr(0,8);
     if (prefix != "tmp_NEK:") {
      throw RPCException(UNKNOWN_ERROR, "wrong temp key name");
     }
@@ -306,18 +302,18 @@ Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& te
     if (prefix != "NEK_NODE_ID:") {
       throw RPCException(UNKNOWN_ERROR, "wrong key name");
     }
-    std::string postfix = KeyName.substr(12, KeyName.length());
+    string postfix = KeyName.substr(12, KeyName.length());
     if (!isStringDec(postfix)){
       throw RPCException(UNKNOWN_ERROR, "wrong key name");
     }
 
-    std::shared_ptr<std::string> key_ptr = readFromDb(tempKeyName);
-    std::cerr << "new key name is " << KeyName <<std::endl;
+    shared_ptr<string> key_ptr = readFromDb(tempKeyName);
+    cerr << "new key name is " << KeyName <<endl;
     writeDataToDB(KeyName, *key_ptr);
-    levelDb->deleteTempNEK(tempKeyName);
+    LevelDB::getLevelDb()->deleteTempNEK(tempKeyName);
 
   } catch (RPCException &_e) {
-    std::cerr << " err str " << _e.errString << std::endl;
+    cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
   }
@@ -326,7 +322,7 @@ Json::Value renameECDSAKeyImpl(const std::string& KeyName, const std::string& te
 }
 
 
-Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, const std::string &messageHash) {
+Json::Value ecdsaSignMessageHashImpl(int base, const string &_keyName, const string &messageHash) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -334,7 +330,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     result["signature_r"] = "";
     result["signature_s"] = "";
 
-    std::vector<std::string> sign_vect(3);
+    vector<string> sign_vect(3);
 
     if (DEBUG_PRINT) {
       spdlog::info("entered ecdsaSignMessageHashImpl {}", messageHash, "length {}", messageHash.length());
@@ -342,7 +338,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
 
     try {
 
-      std::string cutHash = messageHash;
+      string cutHash = messageHash;
       if (cutHash[0] == '0' && (cutHash[1] == 'x'||cutHash[1] == 'X')){
         cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
       }
@@ -364,7 +360,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
         throw RPCException(-22, "Invalid base");
       }
 
-      std::shared_ptr<std::string> key_ptr = readFromDb(_keyName,"");
+      shared_ptr<string> key_ptr = readFromDb(_keyName,"");
 
       sign_vect = ecdsa_sign_hash(key_ptr->c_str(), cutHash.c_str(), base);
       if (sign_vect.size() != 3 ){
@@ -380,7 +376,7 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
       result["signature_s"] = sign_vect.at(2);
 
     } catch (RPCException &_e) {
-        std::cerr << "err str " << _e.errString << std::endl;
+        cerr << "err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -388,27 +384,27 @@ Json::Value ecdsaSignMessageHashImpl(int base, const std::string &_keyName, cons
     return result;
 }
 
-Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
+Json::Value getPublicECDSAKeyImpl(const string& keyName){
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["PublicKey"] = "";
+    result["publicKey"] = "";
 
     spdlog::info("Calling method getPublicECDSAKey");
 
-    std::string Pkey;
+    string Pkey;
 
     try {
          if ( !checkECDSAKeyName(keyName)){
            throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
          }
-         std::shared_ptr<std::string> key_ptr = readFromDb(keyName);
+         shared_ptr<string> key_ptr = readFromDb(keyName);
          Pkey = get_ecdsa_pubkey( key_ptr->c_str());
          if (DEBUG_PRINT) {
            spdlog::info("PublicKey {}", Pkey);
            spdlog::info("PublicKey length {}", Pkey.length());
          }
-         result["PublicKey"] = Pkey;
+         result["publicKey"] = Pkey;
 
     } catch (RPCException &_e) {
         result["status"] = _e.status;
@@ -418,14 +414,14 @@ Json::Value getPublicECDSAKeyImpl(const std::string& keyName){
     return result;
 }
 
-Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
+Json::Value generateDKGPolyImpl(const string& polyName, int t) {
 
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     //result["encryptedPoly"] = "";
 
-    std::string encrPolyHex;
+    string encrPolyHex;
 
     try {
       if ( !checkName(polyName, "POLY")){
@@ -439,7 +435,7 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
 
       //result["encryptedPoly"] = encrPolyHex;
     } catch (RPCException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
+        cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -447,13 +443,13 @@ Json::Value generateDKGPolyImpl(const std::string& polyName, int t) {
     return result;
 }
 
-Json::Value getVerificationVectorImpl(const std::string& polyName, int t, int n) {
+Json::Value getVerificationVectorImpl(const string& polyName, int t, int n) {
 
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
 
-  std::vector <std::vector<std::string>> verifVector;
+  vector <vector<string>> verifVector;
   try {
     if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
@@ -462,20 +458,20 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int t, int n)
       throw RPCException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
     }
 
-    std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName);
+    shared_ptr<string> encr_poly_ptr = readFromDb(polyName);
 
     verifVector = get_verif_vect(encr_poly_ptr->c_str(), t, n);
-    //std::cerr << "verif vect size " << verifVector.size() << std::endl;
+    //cerr << "verif vect size " << verifVector.size() << endl;
 
     for ( int i = 0; i < t; i++){
-      std::vector<std::string> cur_coef = verifVector.at(i);
+      vector<string> cur_coef = verifVector.at(i);
       for ( int j = 0; j < 4; j++ ){
         result["Verification Vector"][i][j] = cur_coef.at(j);
       }
     }
 
   } catch (RPCException &_e) {
-    std::cerr << " err str " << _e.errString << std::endl;
+    cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
     result["Verification Vector"] = "";
@@ -484,7 +480,7 @@ Json::Value getVerificationVectorImpl(const std::string& polyName, int t, int n)
   return result;
 }
 
-Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& publicKeys, int t, int n){
+Json::Value getSecretShareImpl(const string& polyName, const Json::Value& publicKeys, int t, int n){
     spdlog::info("enter getSecretShareImpl");
     Json::Value result;
     result["status"] = 0;
@@ -501,9 +497,9 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
           throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
 
-        std::shared_ptr<std::string> encr_poly_ptr = readFromDb(polyName);
+        shared_ptr<string> encr_poly_ptr = readFromDb(polyName);
 
-        std::vector<std::string> pubKeys_vect;
+        vector<string> pubKeys_vect;
         for ( int i = 0; i < n ; i++) {
             if ( !checkHex(publicKeys[i].asString(), 64)){
               throw RPCException(INVALID_HEX, "Invalid public key");
@@ -511,24 +507,24 @@ Json::Value getSecretShareImpl(const std::string& polyName, const Json::Value& p
             pubKeys_vect.push_back(publicKeys[i].asString());
         }
 
-        std::string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), pubKeys_vect, t, n);
-        //std::cerr << "result is " << s << std::endl;
-        result["SecretShare"] = s;
+        string s = get_secret_shares(polyName, encr_poly_ptr->c_str(), pubKeys_vect, t, n);
+        //cerr << "result is " << s << endl;
+        result["secretShare"] = s;
 
     } catch (RPCException &_e) {
-        //std::cerr << " err str " << _e.errString << std::endl;
+        //cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
-        result["SecretShare"] = "";
+        result["secretShare"] = "";
     }
 
     return result;
 }
 
-Json::Value DKGVerificationImpl(const std::string& publicShares, const std::string& EthKeyName,
-                                  const std::string& SecretShare, int t, int n, int ind){
+Json::Value dkgVerificationImpl(const string& publicShares, const string& ethKeyName,
+                                  const string& SecretShare, int t, int n, int ind){
 
-  spdlog::info("enter DKGVerificationImpl");
+  spdlog::info("enter dkgVerificationImpl");
 
   Json::Value result;
   result["status"] = 0;
@@ -537,7 +533,7 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
 
   try {
 
-    if ( !checkECDSAKeyName(EthKeyName)){
+    if ( !checkECDSAKeyName(ethKeyName)){
       throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
     }
     if( !check_n_t(t, n) || ind > n || ind < 0){
@@ -550,14 +546,14 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
       throw RPCException(INVALID_DKG_PARAMS, "Invalid length of public shares");
     }
 
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
+    shared_ptr<string> encryptedKeyHex_ptr = readFromDb(ethKeyName);
 
     if ( !VerifyShares(publicShares.c_str(), SecretShare.c_str(), encryptedKeyHex_ptr->c_str(), t, n, ind )){
       result["result"] = false;
     }
 
   } catch (RPCException &_e) {
-    //std::cerr << " err str " << _e.errString << std::endl;
+    //cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
     result["result"] = false;
@@ -566,9 +562,9 @@ Json::Value DKGVerificationImpl(const std::string& publicShares, const std::stri
   return result;
 }
 
-Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n){
+Json::Value createBLSPrivateKeyImpl(const string & blsKeyName, const string& ethKeyName, const string& polyName, const string & SecretShare, int t, int n){
 
-  spdlog::info("CreateBLSPrivateKeyImpl entered");
+  spdlog::info("createBLSPrivateKeyImpl entered");
 
   Json::Value result;
   result["status"] = 0;
@@ -581,26 +577,26 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
       spdlog::info("secret shares - {}", SecretShare);
       throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
     }
-    if ( !checkECDSAKeyName(EthKeyName)){
+    if ( !checkECDSAKeyName(ethKeyName)){
       throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
     }
     if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
     }
-    if ( !checkName(BLSKeyName, "BLS_KEY")){
+    if ( !checkName(blsKeyName, "BLS_KEY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid BLS key name");
     }
     if( !check_n_t(t, n)){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
     }
-    std::vector<std::string> sshares_vect;
+    vector<string> sshares_vect;
     if (DEBUG_PRINT) {
       spdlog::info("secret shares from json are - {}", SecretShare);
     }
 
-    std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(EthKeyName);
+    shared_ptr<string> encryptedKeyHex_ptr = readFromDb(ethKeyName);
 
-    bool res = CreateBLSShare(BLSKeyName, SecretShare.c_str(), encryptedKeyHex_ptr->c_str());
+    bool res = CreateBLSShare(blsKeyName, SecretShare.c_str(), encryptedKeyHex_ptr->c_str());
      if (res){
          spdlog::info("BLS KEY SHARE CREATED ");
      }
@@ -609,14 +605,14 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
      }
 
      for ( int i = 0; i < n; i++){
-       std::string name = polyName + "_" + std::to_string(i) + ":";
-       levelDb -> deleteDHDKGKey(name);
-       std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(i) + ":";
-       levelDb -> deleteKey(shareG2_name);
+       string name = polyName + "_" + to_string(i) + ":";
+       LevelDB::getLevelDb() -> deleteDHDKGKey(name);
+       string shareG2_name = "shareG2_" + polyName + "_" + to_string(i) + ":";
+       LevelDB::getLevelDb() -> deleteKey(shareG2_name);
      }
 
   } catch (RPCException &_e) {
-    //std::cerr << " err str " << _e.errString << std::endl;
+    //cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
 
@@ -625,30 +621,30 @@ Json::Value CreateBLSPrivateKeyImpl(const std::string & BLSKeyName, const std::s
   return result;
 }
 
-Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
+Json::Value getBLSPublicKeyShareImpl(const string & blsKeyName){
 
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
 
     try {
-      if ( !checkName(BLSKeyName, "BLS_KEY")){
+      if ( !checkName(blsKeyName, "BLS_KEY")){
         throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
       }
-      std::shared_ptr<std::string> encryptedKeyHex_ptr = readFromDb(BLSKeyName);
+      shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
       if (DEBUG_PRINT) {
         spdlog::info("encr_bls_key_share is {}", *encryptedKeyHex_ptr);
         spdlog::info("length is {}", encryptedKeyHex_ptr->length());
-       //std::cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << std::endl;
-       // std::cerr << "length is " << encryptedKeyHex_ptr->length() << std::endl;
+       //cerr << "encr_bls_key_share is " << *encryptedKeyHex_ptr << endl;
+       // cerr << "length is " << encryptedKeyHex_ptr->length() << endl;
       }
-      std::vector<std::string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+      vector<string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
       for ( uint8_t i = 0; i < 4; i++) {
         result["BLSPublicKeyShare"][i] = public_key_vect.at(i);
       }
 
     } catch (RPCException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
+        cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -658,7 +654,7 @@ Json::Value GetBLSPublicKeyShareImpl(const std::string & BLSKeyName){
     return result;
 }
 
-Json::Value ComplaintResponseImpl(const std::string& polyName, int ind){
+Json::Value complaintResponseImpl(const string& polyName, int ind){
   Json::Value result;
   result["status"] = 0;
   result["errorMessage"] = "";
@@ -666,16 +662,16 @@ Json::Value ComplaintResponseImpl(const std::string& polyName, int ind){
     if ( !checkName(polyName, "POLY")){
       throw RPCException(INVALID_POLY_NAME, "Invalid polynomial name");
     }
-    std::string shareG2_name = "shareG2_" + polyName + "_" + std::to_string(ind) + ":";
-    std::shared_ptr<std::string> shareG2_ptr = readFromDb(shareG2_name);
+    string shareG2_name = "shareG2_" + polyName + "_" + to_string(ind) + ":";
+    shared_ptr<string> shareG2_ptr = readFromDb(shareG2_name);
 
-    std::string DHKey = decrypt_DHKey(polyName, ind);
+    string DHKey = decrypt_DHKey(polyName, ind);
 
     result["share*G2"] = *shareG2_ptr;
     result["DHKey"] = DHKey;
 
   } catch (RPCException &_e) {
-    std::cerr << " err str " << _e.errString << std::endl;
+    cerr << " err str " << _e.errString << endl;
     result["status"] = _e.status;
     result["errorMessage"] = _e.errString;
   }
@@ -684,19 +680,19 @@ Json::Value ComplaintResponseImpl(const std::string& polyName, int ind){
 
 }
 
-Json::Value MultG2Impl(const std::string& x){
+Json::Value multG2Impl(const string& x){
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     try {
-        spdlog::info("MultG2Impl try ");
-        std::vector<std::string> xG2_vect = mult_G2(x);
+        spdlog::info("multG2Impl try ");
+        vector<string> xG2_vect = mult_G2(x);
         for ( uint8_t i = 0; i < 4; i++) {
             result["x*G2"][i] = xG2_vect.at(i);
         }
 
     } catch (RPCException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
+        cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
@@ -704,10 +700,10 @@ Json::Value MultG2Impl(const std::string& x){
     return result;
 }
 
-Json::Value IsPolyExistsImpl(const std::string& polyName){
+Json::Value isPolyExistsImpl(const string& polyName){
     Json::Value result;
     try {
-    std::shared_ptr<std::string> poly_str_ptr = levelDb->readString(polyName);
+    std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(polyName);
     result["IsExist"] = true;
     result["status"] = 0;
     result["errorMessage"] = "";
@@ -736,35 +732,35 @@ Json::Value getServerStatusImpl() {
 }
 
 
-Json::Value SGXWalletServer::generateDKGPoly(const std::string& polyName, int t){
+Json::Value SGXWalletServer::generateDKGPoly(const string& polyName, int t){
   spdlog::info("entered generateDKGPoly");
   lock_guard<recursive_mutex> lock(m);
   return generateDKGPolyImpl(polyName, t);
 }
 
-Json::Value SGXWalletServer::getVerificationVector(const std::string& polyName, int t, int n){
+Json::Value SGXWalletServer::getVerificationVector(const string& polyName, int t, int n){
   lock_guard<recursive_mutex> lock(m);
   return getVerificationVectorImpl(polyName, t, n);
 }
 
-Json::Value SGXWalletServer::getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n){
+Json::Value SGXWalletServer::getSecretShare(const string& polyName, const Json::Value& publicKeys, int t, int n){
     lock_guard<recursive_mutex> lock(m);
     return getSecretShareImpl(polyName, publicKeys, t, n);
 }
 
-Json::Value  SGXWalletServer::DKGVerification( const std::string& publicShares, const std::string& EthKeyName, const std::string& SecretShare, int t, int n, int index){
+Json::Value  SGXWalletServer::dkgVerification( const string& publicShares, const string& ethKeyName, const string& SecretShare, int t, int n, int index){
   lock_guard<recursive_mutex> lock(m);
-  return DKGVerificationImpl(publicShares, EthKeyName, SecretShare, t, n, index);
+  return dkgVerificationImpl(publicShares, ethKeyName, SecretShare, t, n, index);
 }
 
-Json::Value SGXWalletServer::CreateBLSPrivateKey(const std::string & BLSKeyName, const std::string& EthKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n){
+Json::Value SGXWalletServer::createBLSPrivateKey(const string & blsKeyName, const string& ethKeyName, const string& polyName, const string& SecretShare, int t, int n){
   lock_guard<recursive_mutex> lock(m);
-  return CreateBLSPrivateKeyImpl(BLSKeyName, EthKeyName, polyName, SecretShare, t, n);
+  return createBLSPrivateKeyImpl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
-Json::Value SGXWalletServer::GetBLSPublicKeyShare(const std::string & BLSKeyName){
+Json::Value SGXWalletServer::getBLSPublicKeyShare(const string & blsKeyName){
     lock_guard<recursive_mutex> lock(m);
-    return GetBLSPublicKeyShareImpl(BLSKeyName);
+    return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
 
@@ -774,18 +770,18 @@ Json::Value SGXWalletServer::generateECDSAKey() {
     return generateECDSAKeyImpl();
 }
 
-Json::Value SGXWalletServer::renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName){
+Json::Value SGXWalletServer::renameECDSAKey(const string& KeyName, const string& tempKeyName){
   lock_guard<recursive_mutex> lock(m);
   return renameECDSAKeyImpl(KeyName, tempKeyName);
 }
 
-Json::Value SGXWalletServer::getPublicECDSAKey(const std::string &_keyName) {
+Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
   lock_guard<recursive_mutex> lock(m);
   return getPublicECDSAKeyImpl(_keyName);
 }
 
 
-Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_keyName, const std::string &messageHash ) {
+Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const string &_keyName, const string &messageHash ) {
   lock_guard<recursive_mutex> lock(m);
   spdlog::info("entered ecdsaSignMessageHash");
   if (DEBUG_PRINT) {
@@ -796,36 +792,36 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const std::string &_
 
 
 Json::Value
-SGXWalletServer::importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int t, int n,
+SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int t, int n,
                                     int index) {
     lock_guard<recursive_mutex> lock(m);
     return importBLSKeyShareImpl(_keyShare, _keyShareName, t, n, index );
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n,
+Json::Value SGXWalletServer::blsSignMessageHash(const string &keyShareName, const string &messageHash, int t, int n,
                                         int signerIndex) {
     lock_guard<recursive_mutex> lock(m);
     return blsSignMessageHashImpl(keyShareName, messageHash, t, n, signerIndex);
 }
 
-Json::Value SGXWalletServer::importECDSAKey(const std::string &key, const std::string &keyName) {
+Json::Value SGXWalletServer::importECDSAKey(const string &key, const string &keyName) {
   lock_guard<recursive_mutex> lock(m);
   return importECDSAKeyImpl(key, keyName);
 }
 
-Json::Value SGXWalletServer::ComplaintResponse(const std::string& polyName, int ind){
+Json::Value SGXWalletServer::complaintResponse(const string& polyName, int ind){
   lock_guard<recursive_mutex> lock(m);
-  return ComplaintResponseImpl(polyName, ind);
+  return complaintResponseImpl(polyName, ind);
 }
 
-Json::Value SGXWalletServer::MultG2(const std::string& x){
+Json::Value SGXWalletServer::multG2(const string& x){
     lock_guard<recursive_mutex> lock(m);
-    return MultG2Impl(x);
+    return multG2Impl(x);
 }
 
-Json::Value SGXWalletServer::IsPolyExists(const std::string& polyName){
+Json::Value SGXWalletServer::isPolyExists(const string& polyName){
     lock_guard<recursive_mutex> lock(m);
-    return IsPolyExistsImpl(polyName);
+    return isPolyExistsImpl(polyName);
 }
 
 Json::Value SGXWalletServer::getServerStatus() {
@@ -835,7 +831,7 @@ Json::Value SGXWalletServer::getServerStatus() {
 
 shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
-  auto dataStr = levelDb->readString(prefix + name);
+  auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
 
   if (dataStr == nullptr) {
     throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
@@ -846,7 +842,7 @@ shared_ptr<string> readFromDb(const string & name, const string & prefix) {
 
 shared_ptr<string> readKeyShare(const string &_keyShareName) {
 
-    auto keyShareStr = levelDb->readString("BLSKEYSHARE:" + _keyShareName);
+    auto keyShareStr = LevelDB::getLevelDb()->readString("BLSKEYSHARE:" + _keyShareName);
 
     if (keyShareStr == nullptr) {
         throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exist");
@@ -866,15 +862,15 @@ void writeKeyShare(const string &_keyShareName, const string &value, int index, 
     val["index"] = index;
     val["n'"] = n;
 
-    std::string json = writer.write(val);
+    string json = writer.write(val);
 
     auto key = "BLSKEYSHARE:" + _keyShareName;
 
-    if (levelDb->readString(_keyShareName) != nullptr) {
+    if (LevelDB::getLevelDb()->readString(_keyShareName) != nullptr) {
         throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
-    levelDb->writeString(key, value);
+    LevelDB::getLevelDb()->writeString(key, value);
 }
 
 void writeDataToDB(const string & Name, const string &value) {
@@ -882,16 +878,16 @@ void writeDataToDB(const string & Name, const string &value) {
   Json::FastWriter writer;
 
   val["value"] = value;
-  std::string json = writer.write(val);
+  string json = writer.write(val);
 
   auto key = Name;
 
-  if (levelDb->readString(Name) != nullptr) {
+  if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
     spdlog::info("name {}", Name, " already exists");
     throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
-  levelDb->writeString(key, value);
+  LevelDB::getLevelDb()->writeString(key, value);
   if (DEBUG_PRINT) {
     spdlog::info("{} ", Name, " is written to db ");
   }
