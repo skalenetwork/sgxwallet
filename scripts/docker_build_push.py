@@ -54,8 +54,14 @@ print("Top directory is:" + topDir)
 dockerExecutable = subprocess.check_output(["which", "docker"])
 SCRIPTS_DIR = topDir + "/scripts"
 
+print(topDir);
 
-assert subprocess.call(["docker", "build", ".", "--file", "DockerfileSimulation", "--tag",
+#print(sys.argv[1]);
+#print(sys.argv[2]);
+
+
+
+assert subprocess.call(["docker", "build", topDir, "--file", "DockerfileSimulation", "--tag",
                                                           "skalenetwork/sgxwalletsim:latest"])
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
                         "-d", "--network=host", "skalenetwork/sgxwalletsim:latest"]);
