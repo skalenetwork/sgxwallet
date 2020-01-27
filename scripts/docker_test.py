@@ -66,7 +66,8 @@ print("Running tests for branch " + BRANCH);
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
                         "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
-time.sleep(5);
+time.sleep(10);
+
 
 assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
 assert os.path.isdir(topDir + '/sgx_data/cert_data');
@@ -88,9 +89,3 @@ s3.connect((address, 1028))
 s1.close()
 s2.close()
 s3.close()
-
-
-
-
-
-
