@@ -47,6 +47,7 @@
 
 int DEBUG_PRINT = 0;
 int is_sgx_https = 1;
+int is_aes = 0;
 
 SGXRegistrationServer *regs = nullptr;
 HttpServer *hs2 = nullptr;

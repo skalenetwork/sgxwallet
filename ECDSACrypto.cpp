@@ -51,8 +51,10 @@ std::vector<std::string> gen_ecdsa_key(){
   char *pub_key_y = (char *)calloc(1024, 1);
   uint32_t enc_len = 0;
 
-  //status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
-  status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  if ( !is_aes)
+     status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+  else status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
+
   if ( err_status != 0 ){
     std::cerr << "RPCException thrown" << std::endl;
     throw RPCException(-666, errMsg) ;
@@ -65,7 +67,7 @@ std::vector<std::string> gen_ecdsa_key(){
 //    for(int i = 0 ; i < 1024; i++)
 //      std::cerr << (int)encr_pr_key[i] << " " ;
   }
-  char *hexEncrKey = (char *) calloc(BUF_LEN, 1);
+  char *hexEncrKey = (char *) calloc(BUF_LEN * 2, 1);
   carray2Hex(encr_pr_key, enc_len, hexEncrKey);
   keys.at(0) = hexEncrKey;
   keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
@@ -119,8 +121,9 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
     throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
 
-  //status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
-  status = get_public_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  if ( !is_aes)
+   status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
+  else status = get_public_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   if (err_status != 0){
     throw RPCException(-666, errMsg) ;
   }
@@ -164,8 +167,9 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
     spdlog::info("encrypted len: {}", dec_len);
   }
 
-  //status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
-  status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
+  if (!is_aes)
+   status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
+  else status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
   if ( err_status != 0){
     throw RPCException(-666, errMsg ) ;
   }

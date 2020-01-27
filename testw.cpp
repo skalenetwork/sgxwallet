@@ -763,7 +763,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   reset_db();
 
 
-  int n = 4, t = 4;
+  int n = 16, t = 16;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
@@ -1071,6 +1071,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
   DEBUG_PRINT = 1;
   is_sgx_https = 0;
+  is_aes = 0;
 
   cerr << "ecdsa_api_test started" << endl;
   init_all(false, false);

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0")) != -1) {
+  while ((opt = getopt(argc, argv, "cshd0a")) != -1) {
     switch (opt) {
     case 'h':
       if (strlen(argv[1]) == 2 ) {
@@ -87,6 +87,8 @@ int main(int argc, char *argv[]) {
     case '0':
       is_sgx_https = 0;
      break;
+    case 'a':
+      is_aes = 1;
     case '?': // fprintf(stderr, "unknown flag\n");
       exit(1);
     default:
