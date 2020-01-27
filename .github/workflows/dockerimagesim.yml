@@ -1,4 +1,4 @@
-name: Build and push sim container
+name: Build, test and push sim mode container
 on: [push]
 jobs:
   build:
