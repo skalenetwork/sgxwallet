@@ -68,7 +68,6 @@ assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/
 
 time.sleep(10);
 
-
 assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
 assert os.path.isdir(topDir + '/sgx_data/cert_data');
 assert os.path.isdir(topDir + '/sgx_data/CSR_DB');
