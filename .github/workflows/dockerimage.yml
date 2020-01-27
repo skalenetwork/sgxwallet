@@ -1,4 +1,4 @@
-name: Build and push SGX container
+name: Build, test and push sgxwallet container
 
 on: [push]
 
