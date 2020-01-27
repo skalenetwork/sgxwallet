@@ -12,7 +12,7 @@ jobs:
     - name: test
       run: echo ${GITHUB_REF##*/}
     - name: test2
-      run: if [ ${GITHUB_REF##*/} -eq  "two_docker_images" ]; then echo "haha"; fi";
+      run: if [ ${GITHUB_REF##*/} -eq  "two_docker_images" ]; then echo "haha"; fi;
 
     - name: Login to docker
       env:
