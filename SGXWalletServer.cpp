@@ -114,7 +114,7 @@ int init_https_server(bool check_certs) {
     }
   }
 
-  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 10);
+  hs = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, check_certs, 64);
   s = new SGXWalletServer(*hs,
                       JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 

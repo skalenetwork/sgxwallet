@@ -165,7 +165,7 @@ class StubClient : public jsonrpc::Client
           p["secretShare"] = SecretShare;
           p["n"] = n;
           p["t"] = t;
-          Json::Value result = this->CallMethod("reateBLSPrivateKey",p);
+          Json::Value result = this->CallMethod("createBLSPrivateKey",p);
           if (result.isObject())
            return result;
           else
