@@ -22,7 +22,12 @@ if (BRANCH == "develop") :
 else :
     TAG_POSTFIX = "latest_commit"
 
+FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
+
 print("Running tests for branch " + BRANCH);
+
+assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
+
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
                         "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
