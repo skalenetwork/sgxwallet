@@ -1261,7 +1261,8 @@ void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted
 
 
   char key[BUF_LEN];
-  char sig[BUF_LEN];// = (char*) calloc(BUF_LEN, 1);
+  char sig[BUF_LEN];
+  //char* sig = (char*) calloc(BUF_LEN, 1);
 
   init();
 
@@ -1282,6 +1283,7 @@ void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted
     *err_status = -1;
     return;
   }
+  //free(sig);
 }
 
 void gen_dkg_secret_aes (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){

@@ -81,7 +81,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include "common.h"
 
-
+default_random_engine rand_gen((unsigned int) time(0));
 
 string stringFromFr(libff::alt_bn128_Fr& el) {
 
@@ -698,12 +698,16 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   vector<string> pubShares(n);
   vector<string> poly_names(n);
 
+  int schain_id = rand_gen();
+  int dkg_id = rand_gen();
   for ( uint8_t i = 0; i < n; i++){
     EthKeys[i] = c.generateECDSAKey();
-    string polyName = "POLY:SCHAIN_ID:1:NODE_ID:" + to_string(i) + ":DKG_ID:0";
+    string polyName = "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
+
     c.generateDKGPoly(polyName, t);
     poly_names[i] = polyName;
     VerifVects[i] = c.getVerificationVector(polyName, t, n);
+    REQUIRE(VerifVects[i]["status"] == 0);
     cout << "VV " << i <<  " " << VerifVects[i] << endl;
     pubEthKeys.append(EthKeys[i]["publicKey"]);
   }
@@ -711,9 +715,12 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
   for ( uint8_t i = 0; i < n; i++){
     secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+    cout << secretShares[i] << std::endl;
+    REQUIRE(secretShares[i]["status"] == 0);
     for ( uint8_t k = 0; k < t; k++ ) {
       for (uint8_t j = 0; j < 4; j++) {
         string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
+        REQUIRE(pubShare.length() > 60 );
         pubShares[i] += ConvertDecToHex(pubShare);
       }
     }
@@ -721,9 +728,9 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 //    cerr << "length is" << pubShares[i].length() << endl;
   }
 
-  Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
-  cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
-  cerr << "DHKey is " << complaintResponse["dhKey"].asString();
+//  Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
+//  cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
+//  cerr << "DHKey is " << complaintResponse["dhKey"].asString();
 
   int k = 0;
 
@@ -737,6 +744,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
        cerr << "secretShare length is " << secretShares[i]["secretShare"].asString().length() << endl;
        string secretShare = secretShares[i]["secretShare"].asString().substr(192*j, 192);
        secShares_vect[i] +=  secretShares[j]["secretShare"].asString().substr(192*i, 192);
+       cerr << "pubShare is " << pubShares[i] << std::endl;
        bool res = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j)["result"].asBool();
        k++;
        cerr << "NOW K IS " << k << " i is " << i << " j is " << j << endl;
@@ -909,7 +917,7 @@ TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
   sgx_destroy_enclave(eid);
 }
 
-default_random_engine rand_gen((unsigned int) time(0));
+
 
 void SendRPCRequest(){
     cout << "Hello from thread " << this_thread::get_id() << endl;
@@ -918,7 +926,7 @@ void SendRPCRequest(){
     reset_db();
 
 
-  int n = 8, t = 8;
+  int n = 16, t = 16;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
@@ -996,7 +1004,7 @@ void SendRPCRequest(){
     cout << c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t, n);
     pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
     cerr << "BLS KEY SHARE NAME IS " << blsName << endl;
-    //string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
     BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
     REQUIRE(BLSSigShares[i]["status"] == 0);
     cerr << i << " sig share is created " << endl;
@@ -1004,20 +1012,20 @@ void SendRPCRequest(){
     BLSSigShare sig(sig_share_ptr, i + 1, t, n);
     sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
 
-    vector<string> pubKey_vect;
-    for ( uint8_t j = 0; j < 4; j++){
-        pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
-    }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
-    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
+//    vector<string> pubKey_vect;
+//    for ( uint8_t j = 0; j < 4; j++){
+//        pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
+//    }
+//    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
+//    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
 
-    koefs_pkeys_map[i+1] = make_shared<BLSPublicKeyShare>(pubKey);
+    //koefs_pkeys_map[i+1] = make_shared<BLSPublicKeyShare>(pubKey);
 
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-  BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
-  REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
+    shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+//  BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
+//  REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
 
 
  }
@@ -1029,7 +1037,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
   init_all( false, false );
 
   vector<thread> threads;
-  int num_threads = 1;
+  int num_threads = 4;
   for (int i = 0; i < num_threads; i++){
     threads.push_back(thread(SendRPCRequest));
   }
