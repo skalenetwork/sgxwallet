@@ -72,6 +72,8 @@ bool checkECDSAKeyName(const string& keyName) {
 
 bool checkHex(const string& hex, const uint32_t sizeInBytes){
   if ( hex.length() > sizeInBytes * 2 || hex.length() == 0){
+    spdlog::error("public key is too long or zero - ", hex.length());
+    std::cerr << "public key length is " << hex.length() << std::endl;
     return false;
   }
 
@@ -79,6 +81,7 @@ bool checkHex(const string& hex, const uint32_t sizeInBytes){
   mpz_init(num);
 
   if ( mpz_set_str(num, hex.c_str(), 16) == -1){
+    spdlog::error("public key is not hex {}", hex);
     mpz_clear(num);
     return false;
   }
