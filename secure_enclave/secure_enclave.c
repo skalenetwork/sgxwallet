@@ -1413,13 +1413,7 @@ void get_public_shares_aes(int *err_status, char* err_string, uint8_t* encrypted
   char* decrypted_dkg_secret = (char*)calloc(DKG_MAX_SEALED_LEN, 1);
   //char decrypted_dkg_secret[DKG_MAX_SEALED_LEN];
 
-
-  decrypt_dkg_secret_aes(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
-  if(  *err_status != 0 ){
-    snprintf(err_string, BUF_LEN,"decrypt_dkg_secret failed with status %d", *err_status);
-    return;
-  }
-    int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret);
+  int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret);
 
 
   if (status != SGX_SUCCESS) {
@@ -1437,7 +1431,6 @@ void get_public_shares_aes(int *err_status, char* err_string, uint8_t* encrypted
   }
 
   free(decrypted_dkg_secret);
-  *err_status = 1;
 }
 
 

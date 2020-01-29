@@ -1240,13 +1240,13 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
   }
 
 //  for ( uint8_t i = 0; i < n; i++){
-    //secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
-    //cout << secretShares[i] << std::endl;
+//    secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+//    cout << secretShares[i] << std::endl;
 //    REQUIRE(secretShares[i]["status"] == 0);
 //    for ( uint8_t k = 0; k < t; k++ ) {
 //      for (uint8_t j = 0; j < 4; j++) {
 //        string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
 //        pubShares[i] += ConvertDecToHex(pubShare);
 //      }
-//    }
+//  }
 }
