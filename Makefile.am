@@ -43,8 +43,9 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 ## Additional automake variables
 ##
 #AM_CPPFLAGS += -g -Og
-#AM_CFLAGS = -g -Og
-#AM_CXXFLAGS = ${AM_CPPFLAGS}
+
+AM_CFLAGS = -g -Og -rdynamic -Wl,--no-as-needed -lSegFault
+AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault
 
 AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
 
