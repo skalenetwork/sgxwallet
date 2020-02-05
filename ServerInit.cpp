@@ -71,14 +71,16 @@ void init_daemon() {
 
     libff::init_alt_bn128_params();
 
-
     LevelDB::initDataFolderAndDBs();
-
 
     std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
     if (encr_SEK_ptr == nullptr){
       spdlog::info("SEK was not created yet");
       generate_SEK();
+    }
+    else{
+      spdlog::info("SEK was created");
+      setSEK(encr_SEK_ptr);
     }
 }
 

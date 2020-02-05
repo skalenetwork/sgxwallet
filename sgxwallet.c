@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
      break;
     case 'a':
       is_aes = 1;
+      break;
     case '?': // fprintf(stderr, "unknown flag\n");
       exit(1);
     default:

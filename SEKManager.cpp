@@ -54,3 +54,24 @@ void generate_SEK(){
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
 }
+
+void setSEK(std::shared_ptr<std::string> hex_encr_SEK){
+  vector<char> errMsg(1024,0);
+  int err_status = 0;
+  //vector<uint8_t> encr_SEK(1024, 0);
+
+  uint8_t encr_SEK [BUF_LEN];
+
+  uint64_t len;
+
+  if (!hex2carray(hex_encr_SEK->c_str(), &len, encr_SEK)){
+    throw RPCException(INVALID_HEX, "Invalid encrypted SEK Hex");
+  }
+
+  status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK );
+  if ( err_status != 0 ){
+    cerr << "RPCException thrown" << endl;
+    throw RPCException(-666, errMsg.data()) ;
+  }
+
+}

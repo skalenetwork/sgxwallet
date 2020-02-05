@@ -24,6 +24,11 @@
 #ifndef SGXD_SEKMANAGER_H
 #define SGXD_SEKMANAGER_H
 
+#include <string>
+#include <memory>
+
 void generate_SEK();
+
+void setSEK(std::shared_ptr<std::string> hex_encr_SEK);
 
 #endif //SGXD_SEKMANAGER_H

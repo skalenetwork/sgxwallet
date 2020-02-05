@@ -25,7 +25,8 @@
 
 #include <string.h>
 #include <cstdint>
-#include "../sgxwallet_common.h"
+//#include "../sgxwallet_common.h"
+#include "enclave_common.h"
 
 
 #include "BLSEnclave.h"

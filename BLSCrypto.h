@@ -36,7 +36,7 @@
 //
 //EXTERNC  void init_enclave();
 
-EXTERNC bool sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
+EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
         size_t signerIndex, char* _sig);
 
 EXTERNC int char2int(char _input);

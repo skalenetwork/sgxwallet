@@ -30,7 +30,8 @@
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 
-#include "../sgxwallet_common.h"
+//#include "../sgxwallet_common.h"
+#include "enclave_common.h"
 #include <cstdio>
 #include <stdio.h>
 
@@ -313,27 +314,31 @@ int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int in
 
   char arr[mpz_sizeinbase (decr_secret_share, 10) + 2];
   char * tmp = mpz_get_str(arr, 10, decr_secret_share);
+
   libff::alt_bn128_Fr sshare(tmp);
 
  // strncpy(public_shares, tmp, strlen(tmp));
 //  std::string res = ConvertHexToDec("fe43567238abcdef98760");
 //  strncpy(public_shares, res.c_str(), res.length());
 
+
+
   libff::alt_bn128_G2  val2 = sshare * libff::alt_bn128_G2::one();
 
    memset(public_shares, 0, strlen(public_shares));
-   strncpy(public_shares, ConvertToString(val2.X.c0).c_str(), ConvertToString(val2.X.c0).length());
-   strncpy(public_shares + ConvertToString(val2.X.c0).length(), ":", 1);
-  strncpy(public_shares + ConvertToString(val2.X.c0).length() + 1, ConvertToString(val2.X.c1).c_str(), 77);
+  strncpy(public_shares, tmp, strlen(tmp));
+//   strncpy(public_shares, ConvertToString(val2.X.c0).c_str(), ConvertToString(val2.X.c0).length());
+//   strncpy(public_shares + ConvertToString(val2.X.c0).length(), ":", 1);
+//  strncpy(public_shares + ConvertToString(val2.X.c0).length() + 1, ConvertToString(val2.X.c1).c_str(), 77);
 
 
 
   val.to_affine_coordinates();
   val2.to_affine_coordinates();
 //  strncpy(public_shares + strlen(tmp), ":", 1);
-//  strncpy(public_shares + 77 + 1, ConvertToString(val.X.c0).c_str(), 77);
-//  strncpy(public_shares + 77 + 78, ":", 1);
-//  strncpy(public_shares + 77 + 79, ConvertToString(val2.X.c0).c_str(), 77);
+  strncpy(public_shares, ConvertToString(val.X.c0).c_str(), ConvertToString(val.X.c0).length());
+  strncpy(public_shares + ConvertToString(val.X.c0).length(), ":", 1);
+  strncpy(public_shares + ConvertToString(val.X.c0).length() + 1, ConvertToString(val2.X.c0).c_str(), ConvertToString(val2.X.c0).length());
   /*strncpy(public_shares + 77 + 77 + 79, "\n", 1);
   strncpy(public_shares + 144 + 79, ConvertToString(val2.X.c0).c_str(), 77);
   strncpy(public_shares + 144 + 78, ":", 1);

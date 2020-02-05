@@ -218,7 +218,7 @@ Json::Value blsSignMessageHashImpl(const string &keyShareName, const string &mes
     }
 
     try {
-        if (!sign(value->c_str(), messageHash.c_str(), t, n, signerIndex, signature)) {
+        if (!bls_sign(value->c_str(), messageHash.c_str(), t, n, signerIndex, signature)) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
@@ -501,6 +501,7 @@ Json::Value getSecretShareImpl(const string& polyName, const Json::Value& public
 
         vector<string> pubKeys_vect;
         for ( int i = 0; i < n ; i++) {
+            std::cerr << "publicKeys " << i << " is " << publicKeys[i].asString() <<std::endl;
             if ( !checkHex(publicKeys[i].asString(), 64)){
               throw RPCException(INVALID_HEX, "Invalid public key");
             }

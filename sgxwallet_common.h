@@ -93,7 +93,7 @@ extern int is_aes;
 
 #define BASE_PORT 1026
 
-#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"//
+#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
 

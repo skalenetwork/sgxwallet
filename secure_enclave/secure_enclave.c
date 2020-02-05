@@ -596,7 +596,7 @@ void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg
 
 
 void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t* encrypted_poly){
-
+  memset(Decrypted_dkg_poly, 0, DKG_BUFER_LENGTH);
   uint32_t decr_len;
   sgx_status_t status = sgx_unseal_data(
       (const sgx_sealed_data_t *)encrypted_poly, NULL, 0, Decrypted_dkg_poly, &decr_len);
@@ -923,8 +923,6 @@ void generate_SEK(int *err_status, char *err_string,
     AES_key[i] = SEK_raw[i];
   }
 
-
-
   sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, SEK, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN, "seal SEK failed");
@@ -934,6 +932,19 @@ void generate_SEK(int *err_status, char *err_string,
 
   *enc_len = sealedLen;
   //free(rand_char);
+}
+
+void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK){
+
+  uint32_t len;
+
+  sgx_status_t status = sgx_unseal_data(
+      (const sgx_sealed_data_t *)encrypted_SEK, NULL, 0, (uint8_t *)AES_key, &len);
+  if (status != SGX_SUCCESS) {
+    *err_status = 1;
+    snprintf(err_string, BUF_LEN,"sgx unseal SEK failed with status %d", status);
+    return;
+  }
 }
 
 void generate_ecdsa_key_aes(int *err_status, char *err_string,
@@ -1224,7 +1235,6 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
 
   int status = AES_decrypt(encrypted_key, enc_len, key);
 
-
   if (status != 0) {
     *err_status = status;
     snprintf(err_string, BUF_LEN, "aes decrypt failed with status %d", status);
@@ -1254,14 +1264,14 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 }
 
-void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted_key,
+void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
                       uint32_t enc_len, char *_hashX,
                       char *_hashY, char *signature) {
 
-
-
   char key[BUF_LEN];
+  memset(key, 0, BUF_LEN);
   char sig[BUF_LEN];
+  memset(sig, 0, BUF_LEN);
   //char* sig = (char*) calloc(BUF_LEN, 1);
 
   init();
@@ -1289,6 +1299,7 @@ void bls_sign_message_test(int *err_status, char *err_string, uint8_t *encrypted
 void gen_dkg_secret_aes (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
 
   char dkg_secret[DKG_BUFER_LENGTH];// = (char*)calloc(DKG_BUFER_LENGTH, 1);
+  memset(dkg_secret, 0, DKG_BUFER_LENGTH);
 
   if (gen_dkg_poly(dkg_secret, _t) != 0 ){
     *err_status = - 1;
@@ -1306,6 +1317,24 @@ void gen_dkg_secret_aes (int *err_status, char *err_string, uint8_t *encrypted_d
   }
 
   *enc_len = strlen(dkg_secret) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
+
+  char decr_dkg_secret[DKG_BUFER_LENGTH];
+  memset(decr_dkg_secret, 0, DKG_BUFER_LENGTH);
+
+  status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret);
+  if(status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"aes decrypt  dkg poly failed");
+    *err_status = status;
+    return;
+  }
+
+  if ( strcmp(dkg_secret, decr_dkg_secret) != 0){
+    snprintf(err_string, BUF_LEN,"poly is %s ", dkg_secret);
+    snprintf(err_string + strlen(dkg_secret) + 8, BUF_LEN - strlen(dkg_secret) - 8,"encrypted poly is not equal to decrypted poly");
+    *err_status = -333;
+  }
+
  // free(dkg_secret);
 }
 
@@ -1318,12 +1347,11 @@ void decrypt_dkg_secret_aes (int *err_status, char* err_string, uint8_t* encrypt
     *err_status = status;
     return;
   }
-
   //*dec_len = decr_len;
 }
 
 void set_encrypted_dkg_poly_aes(int *err_status, char *err_string, uint8_t* encrypted_poly,  uint64_t* enc_len){
-
+  memset(Decrypted_dkg_poly, 0, DKG_BUFER_LENGTH);
   int status = AES_decrypt(encrypted_poly, *enc_len, Decrypted_dkg_poly);
 
   if (status != SGX_SUCCESS) {
@@ -1337,6 +1365,7 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
                      char* result_str, char * s_shareG2, char* pub_keyB, uint8_t _t, uint8_t _n, uint8_t ind ){
 
   char skey[ECDSA_SKEY_LEN];
+  memset(skey, 0, BUF_LEN);
   char pub_key_x[BUF_LEN];
   memset(pub_key_x, 0, BUF_LEN);
   char pub_key_y[BUF_LEN];
@@ -1362,6 +1391,8 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
   }
   snprintf(err_string, BUF_LEN,"unsealed random skey is %s\n", skey);
 
+  *dec_len = enc_len;// + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
   char * common_key[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
   gen_session_key(skey, pub_keyB, common_key);
   //snprintf(err_string + 81, BUF_LEN,"pub_key_B is %s length is %d", pub_keyB, strlen(pub_keyB));
@@ -1372,14 +1403,15 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
 
   if (calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind) != 0){
     *err_status = -1;
-    snprintf(err_string, BUF_LEN,"\nt does not match poly degree\n");
+   // snprintf(err_string, BUF_LEN,"t does not match poly degree");
+    snprintf(err_string, BUF_LEN, Decrypted_dkg_poly);
     return;
   }
   snprintf(err_string + 88, BUF_LEN,"\nsecret share is %s", s_share);
 
   if (calc_secret_shareG2(s_share, s_shareG2) != 0){
     *err_status = -1;
-    snprintf(err_string, BUF_LEN,"invalid decr secret share\n");
+    snprintf(err_string, BUF_LEN,"invalid decr secret share");
     return;
   }
 
@@ -1405,13 +1437,15 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
   //free(pub_key_y);
   //free(s_share);
   //free(cypher);
+
 }
 
 void get_public_shares_aes(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* public_shares,
                        unsigned _t, unsigned _n){
 
   char* decrypted_dkg_secret = (char*)calloc(DKG_MAX_SEALED_LEN, 1);
-  //char decrypted_dkg_secret[DKG_MAX_SEALED_LEN];
+  memset(decrypted_dkg_secret, 0, DKG_MAX_SEALED_LEN);
+  //char decrypted_dkg_secret[ DKG_MAX_SEALED_LEN];
 
   int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret);
 
@@ -1430,9 +1464,200 @@ void get_public_shares_aes(int *err_status, char* err_string, uint8_t* encrypted
     return;
   }
 
-  free(decrypted_dkg_secret);
+  //free(decrypted_dkg_secret);
 }
 
+void dkg_verification_aes(int *err_status, char* err_string, const char * public_shares, const char* s_share,
+                      uint8_t* encrypted_key, uint64_t enc_len, unsigned _t, int _ind, int * result){
+
+  //uint32_t dec_len = 625;
+  char skey[ECDSA_SKEY_LEN];
+  memset(skey, 0, ECDSA_SKEY_LEN);
+  int status = AES_decrypt(encrypted_key, enc_len, skey);
+  //skey[ECDSA_SKEY_LEN - 1] = 0;
+
+  if (status != SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN,"AES_decrypt failed (in dkg_verification_aes)  with status %d", status);
+    *err_status = status;
+    return;
+  }
+
+  char encr_sshare[ECDSA_SKEY_LEN];
+  memset(encr_sshare, 0, ECDSA_SKEY_LEN);
+  strncpy(encr_sshare, s_share, ECDSA_SKEY_LEN - 1 );
+  //encr_sshare[ECDSA_SKEY_LEN - 1] = 0;
+
+  char common_key[ECDSA_SKEY_LEN];
+  memset(common_key, 0, ECDSA_SKEY_LEN);
+
+  session_key_recover(skey, s_share, common_key);
+  //common_key[ECDSA_SKEY_LEN - 1] = 0;
+  if (common_key == NULL || strlen(common_key) == 0 ){
+    *err_status = 1;
+    snprintf(err_string, BUF_LEN ,"invalid common_key");
+    return;
+  }
+
+  char decr_sshare[ECDSA_SKEY_LEN];
+  memset(decr_sshare, 0, ECDSA_SKEY_LEN);
+  xor_decrypt(common_key, encr_sshare, decr_sshare);
+  if (decr_sshare == NULL){
+    *err_status = 1;
+    snprintf(err_string, BUF_LEN ,"invalid common_key");
+    return;
+  }
+  //decr_sshare[ECDSA_SKEY_LEN - 1] = 0;
+
+  //snprintf(err_string, BUF_LEN,"encr_share is %s length is %d", encr_sshare, strlen(encr_sshare));
+  //snprintf(err_string, BUF_LEN,"s_share is %s length is %d", s_share, strlen(s_share));
+
+//  snprintf(err_string, BUF_LEN,"sshare is %s\n", decr_sshare);
+//  snprintf(err_string + 75, BUF_LEN - 75,"common_key is %s\n", common_key);
+//  snprintf(err_string + 153, BUF_LEN - 153," s_key is %s", skey);
+
+
+  mpz_t s;
+  mpz_init(s);
+  if (mpz_set_str(s, decr_sshare, 16) == -1){
+    *err_status = 1;
+    snprintf(err_string, BUF_LEN ,"invalid decr secret share");
+    mpz_clear(s);
+    return;
+  }
+
+  *result = Verification(public_shares, s, _t, _ind);
+
+  snprintf(err_string, BUF_LEN,"secret share dec %s", public_shares);
+
+}
+
+void create_bls_key_aes(int *err_status, char* err_string, const char* s_shares,
+                    uint8_t* encrypted_key, uint64_t key_len, uint8_t * encr_bls_key, uint32_t *enc_bls_key_len){
+
+  char skey[ECDSA_SKEY_LEN];
+  int status = AES_decrypt(encrypted_key, key_len, skey);
+  if (status != SGX_SUCCESS) {
+    *err_status = status;
+    snprintf(err_string, BUF_LEN,"aes decrypt failed with status %d", status);
+    return;
+  }
+  skey[ECDSA_SKEY_LEN - 1] = 0;
+
+  int num_shares = strlen(s_shares)/192;
+
+  mpz_t sum;
+  mpz_init(sum);
+  mpz_set_ui(sum, 0);
+
+
+  //snprintf(err_string, BUF_LEN,"comon0 is %s len is %d\n", common_key, strlen(common_key));
+
+
+  for ( int i = 0; i < num_shares; i++) {
+    char encr_sshare[65];
+    strncpy(encr_sshare, s_shares + 192 * i, 64);
+    encr_sshare[64] = 0;
+
+    char s_share[193];
+    strncpy(s_share, s_shares + 192 * i, 192);
+    s_share[192] = 0;
+
+    char common_key[65];
+    session_key_recover(skey, s_share, common_key);
+    common_key[64] = 0;
+
+    if (common_key == NULL){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid common_key");
+      mpz_clear(sum);
+      return;
+    }
+
+    //snprintf(err_string + 85*(i+1) , BUF_LEN,"common is %s len is %d\n", common_key, strlen(common_key));
+
+    //snprintf(err_string + 201*i , BUF_LEN,"secret is %s",s_share);
+
+    char decr_sshare[65];
+    xor_decrypt(common_key, encr_sshare, decr_sshare);
+    if (decr_sshare == NULL){
+      *err_status = 1;
+      snprintf(err_string, BUF_LEN ,"invalid common_key");
+      mpz_clear(sum);
+      return;
+    }
+    decr_sshare[64] = 0;
+
+    //snprintf(err_string + 158 * i, BUF_LEN,"decr sshare is %s", decr_sshare);
+    //snprintf(err_string + 158 * i + 79, BUF_LEN," common_key is %s", common_key);
+
+
+    mpz_t decr_secret_share;
+    mpz_init(decr_secret_share);
+    if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1){
+      *err_status = 111;
+      //snprintf(err_string, BUF_LEN ,"invalid decrypted secret share");
+      snprintf(err_string, BUF_LEN ,decr_sshare);
+      mpz_clear(decr_secret_share);
+      return;
+    }
+
+    mpz_addmul_ui(sum, decr_secret_share, 1);
+    mpz_clear(decr_secret_share);
+  }
+
+  mpz_t q;
+  mpz_init(q);
+  mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+  mpz_t bls_key;
+  mpz_init(bls_key);
+
+  mpz_mod(bls_key, sum, q);
+
+  char key_share[mpz_sizeinbase(bls_key, 16) + 2];
+  char *key = mpz_get_str(key_share, 16, bls_key);
+  snprintf(err_string, BUF_LEN," bls private key is %s", key_share);
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
+
+
+  status = AES_encrypt(key_share, encr_bls_key);
+
+  if( status !=  SGX_SUCCESS) {
+    *err_status= -1;
+    snprintf(err_string, BUF_LEN,"aes encrypt bls private key failed with status %d ", status);
+    mpz_clear(bls_key);
+    mpz_clear(sum);
+    mpz_clear(q);
+    return;
+  }
+  *enc_bls_key_len = strlen(key_share) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
+  mpz_clear(bls_key);
+  mpz_clear(sum);
+  mpz_clear(q);
+}
+
+void get_bls_pub_key_aes(int *err_status, char* err_string, uint8_t* encrypted_key, uint64_t key_len, char* bls_pub_key){
+
+    char skey_hex[ECDSA_SKEY_LEN];
+
+    uint32_t len = key_len;
+
+    int status = AES_decrypt(encrypted_key, key_len, skey_hex);
+    if (status != SGX_SUCCESS) {
+        *err_status = 1;
+        snprintf(err_string, BUF_LEN,"aes_decrypt failed with status %d", status);
+        return;
+    }
+
+    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
+
+    if (calc_bls_public_key(skey_hex, bls_pub_key) != 0){
+        *err_status = -1;
+        snprintf(err_string, BUF_LEN,"could not calculate bls public key");
+        return;
+    }
+}
 
 
 

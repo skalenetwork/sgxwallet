@@ -63,7 +63,7 @@ std::vector<std::string> gen_ecdsa_key(){
   if (DEBUG_PRINT) {
     std::cerr << "account key is " << errMsg << std::endl;
     std::cerr << "enc_len is " << enc_len << std::endl;
-    std::cerr << "enc_key is "  << std::endl;
+   // std::cerr << "enc_key is "  << std::endl;
 //    for(int i = 0 ; i < 1024; i++)
 //      std::cerr << (int)encr_pr_key[i] << " " ;
   }
