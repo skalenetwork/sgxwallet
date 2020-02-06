@@ -113,6 +113,7 @@ int updated;
 #define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
 
 void reset_db() {
+    //std::string db_name = SGXDATA_FOLDER + WALLETDB_NAME;
     REQUIRE(system("rm -rf " WALLETDB_NAME) == 0);
 }
 
@@ -1207,6 +1208,8 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
   DEBUG_PRINT = 1;
   is_aes = 1;
 
+  reset_db();
+
   std::cerr << "test started" << std::endl;
   init_all(false, false);
   cerr << "Server inited" << endl;
@@ -1214,9 +1217,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
   StubClient c(client, JSONRPC_CLIENT_V2);
   cerr << "Client inited" << endl;
 
-  reset_db();
-
-  int n = 16, t = 16;
+  int n = 2, t = 2;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
@@ -1230,6 +1231,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
   int dkg_id = rand_gen();
   for ( uint8_t i = 0; i < n; i++){
     EthKeys[i] = c.generateECDSAKey();
+    std::cerr << "after gen key" << std::endl;
     string polyName = "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
     REQUIRE(EthKeys[i]["status"] == 0);
     cout << c.generateDKGPoly(polyName, t);
@@ -1275,9 +1277,6 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
       // }
     }
 
-  std::cerr << "before exit " << std::endl;
-  exit(0);
-  std::cerr << "after exit " << std::endl;
 
   Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
   cout << complaintResponse << endl;

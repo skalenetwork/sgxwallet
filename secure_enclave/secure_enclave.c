@@ -907,44 +907,52 @@ void get_bls_pub_key(int *err_status, char* err_string, uint8_t* encrypted_key, 
 }
 
 void generate_SEK(int *err_status, char *err_string,
-                        uint8_t *encrypted_SEK, uint32_t *enc_len){
+                        uint8_t *encrypted_SEK, uint32_t *enc_len, char* SEK_hex){
   uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
   //unsigned char* rand_char = (unsigned char*)malloc(16);
-  sgx_read_rand( SEK_raw, SGX_AESGCM_KEY_SIZE);
+  sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
+
   uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
   uint8_t SEK[hex_aes_key_length];
-  carray2Hex(SEK_raw, SGX_AESGCM_KEY_SIZE, SEK);
-
+  carray2Hex(SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
 
   uint32_t sealedLen = sgx_calc_sealed_data_size(0, hex_aes_key_length + 1);
-  memcpy(err_string, SEK, BUF_LEN);
 
-  for ( uint8_t i = 0; i < SGX_AESGCM_KEY_SIZE; i++){
+  for ( uint8_t i = 0; i < 16; i++){
     AES_key[i] = SEK_raw[i];
   }
 
-  sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, SEK, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
+  sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, SEK_hex, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
   if( status !=  SGX_SUCCESS) {
     snprintf(err_string, BUF_LEN, "seal SEK failed");
     *err_status = status;
     return;
   }
 
+  //strncpy(SEK_hex, SEK, hex_aes_key_length);
+
   *enc_len = sealedLen;
   //free(rand_char);
 }
 
-void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK){
+void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK, uint64_t encr_len){
 
-  uint32_t len;
+  //memset(AES_key, 0, SGX_AESGCM_KEY_SIZE);
+
+  uint8_t aes_key_hex[SGX_AESGCM_KEY_SIZE * 2];
+  memset(aes_key_hex, 0, SGX_AESGCM_KEY_SIZE * 2);
 
   sgx_status_t status = sgx_unseal_data(
-      (const sgx_sealed_data_t *)encrypted_SEK, NULL, 0, (uint8_t *)AES_key, &len);
+      (const sgx_sealed_data_t *)encrypted_SEK, NULL, 0, aes_key_hex, &encr_len);
   if (status != SGX_SUCCESS) {
-    *err_status = 1;
+    *err_status = status;
     snprintf(err_string, BUF_LEN,"sgx unseal SEK failed with status %d", status);
     return;
   }
+
+  uint64_t len;
+  hex2carray(aes_key_hex, &len, (uint8_t* )AES_key);
+
 }
 
 void generate_ecdsa_key_aes(int *err_status, char *err_string,

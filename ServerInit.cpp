@@ -79,8 +79,8 @@ void init_daemon() {
       generate_SEK();
     }
     else{
-      spdlog::info("SEK was created");
-      setSEK(encr_SEK_ptr);
+      std::cerr << "going to set SEK from db" << std::endl;
+      set_SEK(encr_SEK_ptr);
     }
 }
 
@@ -141,8 +141,9 @@ void init_all(bool check_cert, bool sign_automatically) {
     //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
-
+    init_enclave();
     init_daemon();
+
 
     sgxServerInited = 1;
 
@@ -154,7 +155,7 @@ void init_all(bool check_cert, bool sign_automatically) {
     else {
       init_http_server();
     }
-    init_enclave();
+
     //std::cerr << "enclave inited" << std::endl;
 
 }

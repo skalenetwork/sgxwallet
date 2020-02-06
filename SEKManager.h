@@ -29,6 +29,6 @@
 
 void generate_SEK();
 
-void setSEK(std::shared_ptr<std::string> hex_encr_SEK);
+void set_SEK(std::shared_ptr<std::string> hex_encr_SEK);
 
 #endif //SGXD_SEKMANAGER_H

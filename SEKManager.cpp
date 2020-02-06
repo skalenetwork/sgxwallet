@@ -27,10 +27,18 @@
 #include "LevelDB.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "sgxwallet.h"
+
+bool case_insensitive_match(string s1, string s2) {
+  //convert s1 and s2 into lower case strings
+  transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+  transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
+  return s1.compare(s2);
+}
 
 void generate_SEK(){
 
@@ -39,28 +47,41 @@ void generate_SEK(){
   vector<uint8_t> encr_SEK(1024, 0);
   uint32_t enc_len = 0;
 
-  status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len);
-  if ( err_status != 0 ){
-    cerr << "RPCException thrown" << endl;
-    throw RPCException(-666, errMsg.data()) ;
+  //vector<char> SEK(65, 0);
+  char SEK[65];
+  memset(SEK, 0, 65);
+
+  status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
+  if (status != SGX_SUCCESS ||  err_status != 0  ){
+    throw RPCException(status, errMsg.data()) ;
   }
 
   vector<char> hexEncrKey(2*enc_len + 1, 0);
 
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
-  cerr << "key is " << errMsg.data() << endl;
+  cout << "ATTENTION! THIS IS YOUR KEY FOR BACK UP. PLEASE COPY IT TO THE SAFE PLACE" << endl;
+  cout << "key is " << SEK << endl;
 
+  std::string confirm_str = "I confirm";
+  std::string buffer;
+  do{
+    std::cout << " DO YOU CONFIRM THAT YOU COPIED THE KEY? (if you confirm type - I confirm)" << std::endl;
+    std::getline(std::cin, buffer);
+  } while (case_insensitive_match(confirm_str, buffer)); //(strcmp(confirm_str.c_str(), buffer.c_str()) != 0);
+
+  system("reset");
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
 }
 
-void setSEK(std::shared_ptr<std::string> hex_encr_SEK){
+void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
   vector<char> errMsg(1024,0);
   int err_status = 0;
   //vector<uint8_t> encr_SEK(1024, 0);
 
-  uint8_t encr_SEK [BUF_LEN];
+  uint8_t encr_SEK[BUF_LEN];
+  memset(encr_SEK, 0, BUF_LEN);
 
   uint64_t len;
 
@@ -68,10 +89,17 @@ void setSEK(std::shared_ptr<std::string> hex_encr_SEK){
     throw RPCException(INVALID_HEX, "Invalid encrypted SEK Hex");
   }
 
-  status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK );
-  if ( err_status != 0 ){
+//  std::cerr << "encr hex key is " << *hex_encr_SEK << std::endl;
+  std::cerr << "len is " << len << std::endl;
+
+  status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK, len );
+  if ( status != SGX_SUCCESS || err_status != 0 ){
     cerr << "RPCException thrown" << endl;
-    throw RPCException(-666, errMsg.data()) ;
+    throw RPCException(status, errMsg.data()) ;
   }
 
+  std::cerr << "status is " << status << std::endl;
+  std::cerr << " aes key is " << errMsg.data() << std::endl;
+//  for ( uint32_t i = 0; i < 1024; i++)
+//     printf("%d ", errMsg[i]);
 }
