@@ -52,7 +52,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include "SEKManager.h"
+
 
 #include <iostream>
 
@@ -67,21 +67,13 @@
 
 //#include <system>
 
+
+
 void init_daemon() {
 
     libff::init_alt_bn128_params();
 
     LevelDB::initDataFolderAndDBs();
-
-    std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
-    if (encr_SEK_ptr == nullptr){
-      spdlog::info("SEK was not created yet");
-      generate_SEK();
-    }
-    else{
-      std::cerr << "going to set SEK from db" << std::endl;
-      set_SEK(encr_SEK_ptr);
-    }
 }
 
 
@@ -137,13 +129,14 @@ void init_enclave() {
 
 int sgxServerInited = 0;
 
-void init_all(bool check_cert, bool sign_automatically) {
+void init_all(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
     //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
     init_enclave();
     init_daemon();
-
+    //init_SEK();
+    SEK_func();
 
     sgxServerInited = 1;
 

@@ -30,12 +30,12 @@
 #define EXTERNC
 #endif
 
-
-EXTERNC void init_all(bool check_cert, bool sign_automatically);
+EXTERNC void init_all(bool check_cert, bool sign_automatically, void (*func)());
 
 EXTERNC void init_daemon();
 
-EXTERNC  void init_enclave();
+EXTERNC void init_enclave();
+
 
 
 #endif //SGXWALLET_SERVERINIT_H

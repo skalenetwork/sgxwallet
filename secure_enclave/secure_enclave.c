@@ -955,6 +955,26 @@ void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK, uint64_t
 
 }
 
+void set_SEK_backup(int *err_status, char *err_string,
+                    uint8_t *encrypted_SEK, uint32_t *enc_len, const char* SEK_hex){
+
+  uint64_t len;
+  hex2carray(SEK_hex, &len, (uint8_t* )AES_key);
+
+  uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(SEK_hex) + 1);
+
+  sgx_status_t status = sgx_seal_data(0, NULL, strlen(SEK_hex) + 1, SEK_hex, sealedLen,(sgx_sealed_data_t*)encrypted_SEK);
+  if( status !=  SGX_SUCCESS) {
+    snprintf(err_string, BUF_LEN, "seal SEK failed with status %d", status);
+    *err_status = status;
+    return;
+  }
+
+  //strncpy(SEK_hex, SEK, hex_aes_key_length);
+
+  *enc_len = sealedLen;
+}
+
 void generate_ecdsa_key_aes(int *err_status, char *err_string,
                         uint8_t *encrypted_key, uint32_t *enc_len, char * pub_key_x, char * pub_key_y) {
 

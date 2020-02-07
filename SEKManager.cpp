@@ -33,6 +33,9 @@
 #include "common.h"
 #include "sgxwallet.h"
 
+#include "ServerDataChecker.h"
+#include "spdlog/spdlog.h"
+
 bool case_insensitive_match(string s1, string s2) {
   //convert s1 and s2 into lower case strings
   transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
@@ -40,7 +43,7 @@ bool case_insensitive_match(string s1, string s2) {
   return s1.compare(s2);
 }
 
-void generate_SEK(){
+void gen_SEK(){
 
   vector<char> errMsg(1024,0);
   int err_status = 0;
@@ -56,7 +59,7 @@ void generate_SEK(){
     throw RPCException(status, errMsg.data()) ;
   }
 
-  vector<char> hexEncrKey(2*enc_len + 1, 0);
+  vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
@@ -102,4 +105,48 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
   std::cerr << " aes key is " << errMsg.data() << std::endl;
 //  for ( uint32_t i = 0; i < 1024; i++)
 //     printf("%d ", errMsg[i]);
+}
+
+void enter_SEK(){
+  vector<char> errMsg(1024,0);
+  int err_status = 0;
+  vector<uint8_t> encr_SEK(BUF_LEN, 0);
+  uint32_t enc_len;
+
+  std::string SEK;
+  std::cout << "ENTER BACKUP KEY" << std::endl;
+  std::cin >> SEK;
+  while (!checkHex(SEK, 16)){
+    std::cout << "KEY IS INVALID.TRY ONCE MORE" << std::endl;
+    SEK = "";
+    std::cin >> SEK;
+  }
+  if (DEBUG_PRINT)
+    std::cerr << "your key is " << SEK << std::endl;
+
+  status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
+  if (status != SGX_SUCCESS){
+    cerr << "RPCException thrown with status " << status << endl;
+    throw RPCException(status, errMsg.data()) ;
+  }
+
+  vector<char> hexEncrKey(2 * enc_len + 1, 0);
+
+  carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
+
+  LevelDB::getLevelDb() -> deleteKey("SEK");
+  LevelDB::getLevelDb() -> writeDataUnique("SEK", hexEncrKey.data());
+}
+
+void init_SEK(){
+  std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+  if (encr_SEK_ptr == nullptr){
+    spdlog::info("SEK was not created yet. Going to create SEK");
+    gen_SEK();
+  }
+  else{
+    if (DEBUG_PRINT)
+      spdlog::info("going to set SEK from db" );
+    set_SEK(encr_SEK_ptr);
+  }
 }

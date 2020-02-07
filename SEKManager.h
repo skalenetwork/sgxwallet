@@ -24,11 +24,29 @@
 #ifndef SGXD_SEKMANAGER_H
 #define SGXD_SEKMANAGER_H
 
+
+#ifdef __cplusplus
 #include <string>
 #include <memory>
+#endif
 
-void generate_SEK();
 
+
+void gen_SEK();
+
+#ifdef __cplusplus
 void set_SEK(std::shared_ptr<std::string> hex_encr_SEK);
+#endif
+
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
+
+EXTERNC void enter_SEK();
+
+EXTERNC void init_SEK();
+
 
 #endif //SGXD_SEKMANAGER_H
