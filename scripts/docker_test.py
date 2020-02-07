@@ -33,6 +33,11 @@ assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/
 
 time.sleep(5);
 
+obj = subprocess.Popen(stdin=PIPE)
+obj.communicate(input="i confirm", timeout=1)
+obj.terminate()
+obj.wait()
+
 assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
 assert os.path.isdir(topDir + '/sgx_data/cert_data');
 assert os.path.isdir(topDir + '/sgx_data/CSR_DB');

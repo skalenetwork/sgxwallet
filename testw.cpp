@@ -1347,7 +1347,7 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
   StubClient c(client, JSONRPC_CLIENT_V2);
   cerr << "Client inited" << endl;
   string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
-  string blsName = "BLS_KEY:SCHAIN_ID:1031067889:NODE_ID:0:DKG_ID:1112462780";
+  string blsName = "BLS_KEY:SCHAIN_ID:323669558:NODE_ID:1:DKG_ID:338183455";
   int n = 4, t = 4;
 
   Json::Value pubBLSKey = c.getBLSPublicKeyShare(blsName);
@@ -1368,3 +1368,5 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
 //    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
 
 }
+
+//BLS_KEY:SCHAIN_ID:323669558:NODE_ID:1:DKG_ID:338183455
