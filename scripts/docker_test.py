@@ -33,7 +33,7 @@ assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/
 
 time.sleep(5);
 
-obj = subprocess.Popen(stdin=PIPE)
+obj = subprocess.Popen(stdin=subprocess.PIPE)
 obj.communicate(input="i confirm", timeout=1)
 obj.terminate()
 obj.wait()
