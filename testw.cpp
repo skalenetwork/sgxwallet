@@ -1369,4 +1369,40 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
 
 }
 
-//BLS_KEY:SCHAIN_ID:323669558:NODE_ID:1:DKG_ID:338183455
+TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
+    {
+
+        DEBUG_PRINT = 1;
+        is_sgx_https = 0;
+
+        init_all(false, false, init_SEK);
+        //init_enclave();
+
+        int errStatus =  -1;
+        char* errMsg = (char*) calloc(BUF_LEN, 1);
+        uint32_t enc_len;
+
+        std::string key = "123456789";
+        uint8_t encrypted_key[BUF_LEN];
+        memset(encrypted_key, 0, BUF_LEN);
+
+        status = encrypt_key_aes(eid, &errStatus, errMsg, key.c_str(), encrypted_key, &enc_len);
+
+        REQUIRE(status == 0);
+        std::cerr << "key encrypted with status " << status << " err msg " << errMsg << std::endl;
+
+        char decr_key[BUF_LEN];
+        memset(decr_key, 0, BUF_LEN);
+        status = decrypt_key_aes(eid, &errStatus, errMsg, encrypted_key, enc_len, decr_key);
+
+        REQUIRE(status == 0);
+        std::cerr << "key encrypted with status " << status << " err msg " << errMsg << std::endl;
+        std::cerr << "decrypted key is " << decr_key << std::endl;
+
+        REQUIRE( key.compare(decr_key) == 0);
+
+        sgx_destroy_enclave(eid);
+
+
+    }
+}

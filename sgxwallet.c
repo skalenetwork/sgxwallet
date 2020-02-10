@@ -67,7 +67,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0ab")) != -1) {
+  
+
+  while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
     switch (opt) {
     case 'h':
       if (strlen(argv[1]) == 2 ) {
@@ -99,6 +101,9 @@ int main(int argc, char *argv[]) {
     case 'b':
       SEK_initializer = enter_SEK;
       break;
+    case 'y':
+       autoconfirm = true;
+       break;
     case '?': // fprintf(stderr, "unknown flag\n");
       exit(1);
     default:

@@ -43,6 +43,88 @@ bool case_insensitive_match(string s1, string s2) {
   return s1.compare(s2);
 }
 
+void create_test_key(){
+  int errStatus =  0;
+  vector<char> errMsg(1024,0);
+  uint32_t enc_len;
+
+  uint8_t encrypted_key[BUF_LEN];
+  memset(encrypted_key, 0, BUF_LEN);
+
+  std::string key = TEST_VALUE;
+
+  status = encrypt_key_aes(eid, &errStatus, errMsg.data(),key.c_str(), encrypted_key, &enc_len);
+  if ( status != 0){
+    throw RPCException(status, errMsg.data()) ;
+  }
+
+  vector<char> hexEncrKey(2 * enc_len + 1, 0);
+
+  carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
+
+  LevelDB::getLevelDb() -> writeDataUnique("TEST_KEY", hexEncrKey.data());
+}
+
+bool check_SEK(std::string SEK){
+   std::shared_ptr <std::string> test_key_ptr = LevelDB::getLevelDb() -> readString("TEST_KEY");
+//  if (test_key_ptr == nullptr){
+//    spdlog::error("empty db" );
+//    exit(-1);
+//  }
+//  else{
+    vector<uint8_t> encr_test_key(BUF_LEN, 0);
+    uint64_t len;
+    if ( !hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data())){
+      spdlog::error("wrong test key" );
+      exit(-1);
+    }
+//    std::cerr << "encr test key is " << std::endl;
+//    for ( int i = 0; i < BUF_LEN; i++ ){
+//      std::cerr << (int)encr_test_key[i] << " ";
+//    }
+
+    vector<char> decr_key(1024,0);
+    vector<char> errMsg(1024,0);
+    int err_status = 0;
+
+    vector<uint8_t> encr_SEK(1024,0);
+
+    uint32_t l = len;
+    std::cerr << " l is " << l << std::endl;
+
+    status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), (uint32_t*)&len, SEK.c_str() );
+    if (status != SGX_SUCCESS){
+      cerr << "RPCException thrown with status " << status << endl;
+      throw RPCException(status, errMsg.data());
+    }
+
+//    std::cerr << "encr SEK  is " << std::endl;
+//    for ( int i = 0; i < BUF_LEN; i++ ){
+//      std::cerr << (int)encr_SEK[i] << " ";
+//    }
+
+    status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    if (status != 0){
+      spdlog::error("failed to decrypt test key" );
+      exit(-1);
+    }
+
+    std::cerr << "decr test key is " << std::endl;
+    for ( int i = 0; i < BUF_LEN; i++ ){
+      std::cerr << (int)decr_key[i] << " ";
+    }
+
+    std::string test_key = TEST_VALUE;
+    std::cerr << "test key is " << test_key << std::endl;
+    if (test_key.compare(decr_key.data())!= 0){
+      std::cerr << "decrypted key is " << decr_key.data() << std::endl;
+      spdlog::error("Invalid SEK" );
+      return false;
+    }
+    return true;
+ // }
+}
+
 void gen_SEK(){
 
   vector<char> errMsg(1024,0);
@@ -66,16 +148,19 @@ void gen_SEK(){
   cout << "ATTENTION! THIS IS YOUR KEY FOR BACK UP. PLEASE COPY IT TO THE SAFE PLACE" << endl;
   cout << "key is " << SEK << endl;
 
-  std::string confirm_str = "I confirm";
-  std::string buffer;
-  do{
-    std::cout << " DO YOU CONFIRM THAT YOU COPIED THE KEY? (if you confirm type - I confirm)" << std::endl;
-    std::getline(std::cin, buffer);
-  } while (case_insensitive_match(confirm_str, buffer)); //(strcmp(confirm_str.c_str(), buffer.c_str()) != 0);
-
+  if (!autoconfirm) {
+    std::string confirm_str = "I confirm";
+    std::string buffer;
+    do {
+      std::cout << " DO YOU CONFIRM THAT YOU COPIED THE KEY? (if you confirm type - I confirm)"
+                << std::endl;
+      std::getline(std::cin, buffer);
+    } while (case_insensitive_match(confirm_str, buffer)); //(strcmp(confirm_str.c_str(), buffer.c_str()) != 0);
+  }
   system("reset");
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
+  create_test_key();
 }
 
 void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
@@ -102,7 +187,7 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
   }
 
   std::cerr << "status is " << status << std::endl;
-  std::cerr << " aes key is " << errMsg.data() << std::endl;
+ // std::cerr << " aes key is " << errMsg.data() << std::endl;
 //  for ( uint32_t i = 0; i < 1024; i++)
 //     printf("%d ", errMsg[i]);
 }
@@ -113,21 +198,28 @@ void enter_SEK(){
   vector<uint8_t> encr_SEK(BUF_LEN, 0);
   uint32_t enc_len;
 
+  std::shared_ptr <std::string> test_key_ptr = LevelDB::getLevelDb() -> readString("TEST_KEY");
+  if (test_key_ptr == nullptr){
+    spdlog::error("empty db" );
+    exit(-1);
+  }
+
   std::string SEK;
   std::cout << "ENTER BACKUP KEY" << std::endl;
   std::cin >> SEK;
-  while (!checkHex(SEK, 16)){
+  while (!checkHex(SEK, 16) /*|| !check_SEK(SEK)*/){
     std::cout << "KEY IS INVALID.TRY ONCE MORE" << std::endl;
     SEK = "";
     std::cin >> SEK;
   }
   if (DEBUG_PRINT)
-    std::cerr << "your key is " << SEK << std::endl;
+   std::cerr << "your key is " << SEK << std::endl;
+
 
   status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
   if (status != SGX_SUCCESS){
     cerr << "RPCException thrown with status " << status << endl;
-    throw RPCException(status, errMsg.data()) ;
+    throw RPCException(status, errMsg.data());
   }
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
@@ -150,3 +242,7 @@ void init_SEK(){
     set_SEK(encr_SEK_ptr);
   }
 }
+
+//ef6fdc31d93f9ec926f64c42278f34cc
+
+

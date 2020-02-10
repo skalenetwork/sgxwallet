@@ -1196,7 +1196,7 @@ void ecdsa_sign_aes(int *err_status, char *err_string, uint8_t *encrypted_key, u
 
 }
 
-void encrypt_key_aes(int *err_status, char *err_string, char *key,
+void encrypt_key_aes(int *err_status, char *err_string, const char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
   //init();
@@ -1205,12 +1205,12 @@ void encrypt_key_aes(int *err_status, char *err_string, char *key,
 
   memset(err_string, 0, BUF_LEN);
 
-  checkKey(err_status, err_string, key);
-
-  if (*err_status != 0) {
-    snprintf(err_string + strlen(err_string), BUF_LEN, "check_key failed");
-    return;
-  }
+//  checkKey(err_status, err_string, key);
+//
+//  if (*err_status != 0) {
+//    snprintf(err_string + strlen(err_string), BUF_LEN, "check_key failed");
+//    return;
+//  }
 
   memset(encrypted_key, 0, BUF_LEN);
 

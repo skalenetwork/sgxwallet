@@ -215,7 +215,7 @@ enclave {
                 public void encrypt_key_aes (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
-                                [in, count = 1024] char* key,
+                                [in, count = 1024] const char* key,
                                 [out, count = 1024] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len);
 

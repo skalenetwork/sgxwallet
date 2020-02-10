@@ -38,6 +38,7 @@
 extern int DEBUG_PRINT;
 extern int is_sgx_https;
 extern int is_aes;
+extern bool autoconfirm;
 
 #define BUF_LEN 1024
 
@@ -97,7 +98,7 @@ extern int is_aes;
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
 
-
+#define TEST_VALUE "1234567890"
 
 
 
