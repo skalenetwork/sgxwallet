@@ -28,15 +28,17 @@ print("Running tests for branch " + BRANCH);
 
 assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 
-assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
-                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
+#assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
+#                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
-time.sleep(5);
 
-obj = subprocess.Popen(stdin=subprocess.PIPE)
-obj.communicate(input="i confirm", timeout=1)
+
+obj = subprocess.Popen(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX], stdin=subprocess.PIPE)
+obj.communicate(input="i confirm", timeout=5)
 obj.terminate()
 obj.wait()
+
+time.sleep(5);
 
 assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
 assert os.path.isdir(topDir + '/sgx_data/cert_data');
