@@ -55,16 +55,21 @@ void create_test_key(){
 
   status = encrypt_key_aes(eid, &errStatus, errMsg.data(),key.c_str(), encrypted_key, &enc_len);
   if ( status != 0){
+    std::cerr << "encrypt test key failed with status " << status << std::endl;
     throw RPCException(status, errMsg.data()) ;
   }
+
+  //std::cerr << "enc len is " << enc_len << std::endl;
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
   carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
 
-  std::cerr << "encr test key is " << std::endl;
-  for (int i = 0; i < 2 * enc_len + 1; i++)
-    std::cerr << (int)hexEncrKey[i] << " ";
+//  std::cerr << "encr test key is " << std::endl;
+//  for (int i = 0; i < 2 * enc_len + 1; i++)
+//    std::cerr << (int)hexEncrKey[i] << " ";
+
+
 
   LevelDB::getLevelDb() -> writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
@@ -107,16 +112,17 @@ bool check_SEK(std::string SEK){
 //      std::cerr << (int)encr_SEK[i] << " ";
 //    }
 
+
     status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     if (status != 0){
       spdlog::error("failed to decrypt test key" );
       exit(-1);
     }
 
-    std::cerr << "decr test key is " << std::endl;
-    for ( int i = 0; i < BUF_LEN; i++ ){
-      std::cerr << (int)decr_key[i] << " ";
-    }
+ //   std::cerr << "decr test key is " << std::endl;
+//    for ( int i = 0; i < BUF_LEN; i++ ){
+//      std::cerr << (int)decr_key[i] << " ";
+//    }
 
     std::string test_key = TEST_VALUE;
     std::cerr << "test key is " << test_key << std::endl;
@@ -247,6 +253,6 @@ void init_SEK(){
   }
 }
 
-//ef6fdc31d93f9ec926f64c42278f34cc
 
 
+//1e6a4c0bcc1ddad3508b7182a0d893d5
