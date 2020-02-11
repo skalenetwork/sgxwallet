@@ -53,7 +53,7 @@ void create_test_key(){
 
   std::string key = TEST_VALUE;
 
-  status = encrypt_key_aes(eid, &errStatus, errMsg.data(),key.c_str(), encrypted_key, &enc_len);
+  status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
   if ( status != 0){
     std::cerr << "encrypt test key failed with status " << status << std::endl;
     throw RPCException(status, errMsg.data()) ;
@@ -65,10 +65,11 @@ void create_test_key(){
 
   carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
 
-//  std::cerr << "encr test key is " << std::endl;
-//  for (int i = 0; i < 2 * enc_len + 1; i++)
-//    std::cerr << (int)hexEncrKey[i] << " ";
-
+  uint64_t test_len;
+  vector<uint8_t>test_encr_key(1024, 0);
+  if (!hex2carray(hexEncrKey.data(), &test_len, test_encr_key.data())){
+    std::cerr << "wrong encrypted test key" << std::endl;
+  }
 
 
   LevelDB::getLevelDb() -> writeDataUnique("TEST_KEY", hexEncrKey.data());
@@ -87,10 +88,6 @@ bool check_SEK(std::string SEK){
       spdlog::error("wrong test key" );
       exit(-1);
     }
-//    std::cerr << "encr test key is " << std::endl;
-//    for ( int i = 0; i < BUF_LEN; i++ ){
-//      std::cerr << (int)encr_test_key[i] << " ";
-//    }
 
     vector<char> decr_key(1024,0);
     vector<char> errMsg(1024,0);
@@ -101,31 +98,21 @@ bool check_SEK(std::string SEK){
     uint32_t l = len;
     std::cerr << " l is " << l << std::endl;
 
-    status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), (uint32_t*)&len, SEK.c_str() );
+    status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
     if (status != SGX_SUCCESS){
       cerr << "RPCException thrown with status " << status << endl;
       throw RPCException(status, errMsg.data());
     }
 
-//    std::cerr << "encr SEK  is " << std::endl;
-//    for ( int i = 0; i < BUF_LEN; i++ ){
-//      std::cerr << (int)encr_SEK[i] << " ";
-//    }
-
-
     status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
-    if (status != 0){
+    if (status != SGX_SUCCESS || err_status != 0){
       spdlog::error("failed to decrypt test key" );
+      spdlog::error(errMsg.data());
       exit(-1);
     }
 
- //   std::cerr << "decr test key is " << std::endl;
-//    for ( int i = 0; i < BUF_LEN; i++ ){
-//      std::cerr << (int)decr_key[i] << " ";
-//    }
 
     std::string test_key = TEST_VALUE;
-    std::cerr << "test key is " << test_key << std::endl;
     if (test_key.compare(decr_key.data())!= 0){
       std::cerr << "decrypted key is " << decr_key.data() << std::endl;
       spdlog::error("Invalid SEK" );
@@ -187,19 +174,12 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
     throw RPCException(INVALID_HEX, "Invalid encrypted SEK Hex");
   }
 
-//  std::cerr << "encr hex key is " << *hex_encr_SEK << std::endl;
-  std::cerr << "len is " << len << std::endl;
-
   status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK, len );
   if ( status != SGX_SUCCESS || err_status != 0 ){
     cerr << "RPCException thrown" << endl;
     throw RPCException(status, errMsg.data()) ;
   }
 
-  std::cerr << "status is " << status << std::endl;
- // std::cerr << " aes key is " << errMsg.data() << std::endl;
-//  for ( uint32_t i = 0; i < 1024; i++)
-//     printf("%d ", errMsg[i]);
 }
 
 void enter_SEK(){
@@ -217,13 +197,13 @@ void enter_SEK(){
   std::string SEK;
   std::cout << "ENTER BACKUP KEY" << std::endl;
   std::cin >> SEK;
-  while (!checkHex(SEK, 16) /*|| !check_SEK(SEK)*/){
+  while (!checkHex(SEK, 16) || !check_SEK(SEK)){
     std::cout << "KEY IS INVALID.TRY ONCE MORE" << std::endl;
     SEK = "";
     std::cin >> SEK;
   }
-  if (DEBUG_PRINT)
-   std::cerr << "your key is " << SEK << std::endl;
+//  if (DEBUG_PRINT)
+//   std::cerr << "your key is " << SEK << std::endl;
 
 
   status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
@@ -253,6 +233,4 @@ void init_SEK(){
   }
 }
 
-
-
-//1e6a4c0bcc1ddad3508b7182a0d893d5
+//a002e7ca685d46a32771d16fe2518e58

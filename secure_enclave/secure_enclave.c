@@ -1272,6 +1272,7 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
   //snprintf(err_string, BUF_LEN, "decr key is %s", key);
 
   if (decLen > MAX_KEY_LENGTH) {
+    *err_status = 1;
     snprintf(err_string, BUF_LEN, "wrong decLen");//"decLen != MAX_KEY_LENGTH");
     return;
   }
@@ -1288,7 +1289,7 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
   }
 
   *err_status = 0;
-  return;
+  memcpy(err_string, AES_key, 1024);
 
 }
 
