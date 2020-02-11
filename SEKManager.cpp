@@ -62,6 +62,10 @@ void create_test_key(){
 
   carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
 
+  std::cerr << "encr test key is " << std::endl;
+  for (int i = 0; i < 2 * enc_len + 1; i++)
+    std::cerr << (int)hexEncrKey[i] << " ";
+
   LevelDB::getLevelDb() -> writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
 

@@ -31,9 +31,7 @@ assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 #assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
 #                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
-
-
-obj = subprocess.Popen(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d","-y","--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+obj = subprocess.Popen(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d","-f","-y","--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 obj.communicate(input=b"i confirm", timeout=5)
 obj.terminate()
 obj.wait()
