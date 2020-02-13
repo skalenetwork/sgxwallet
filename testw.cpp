@@ -78,6 +78,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BLSPublicKeyShare.h"
 #include "BLSPublicKey.h"
 
+#include "SEKManager.h"
+
 #include <thread>
 #include "common.h"
 
@@ -113,6 +115,7 @@ int updated;
 #define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
 
 void reset_db() {
+    //std::string db_name = SGXDATA_FOLDER + WALLETDB_NAME;
     REQUIRE(system("rm -rf " WALLETDB_NAME) == 0);
 }
 
@@ -142,7 +145,7 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
 
    DEBUG_PRINT = 1;
    is_sgx_https = 0;
-    init_all(false, false);
+    init_all(false, false, init_SEK);
     char* key = encryptTestKey();
     REQUIRE(key != nullptr);
 
@@ -155,7 +158,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
       DEBUG_PRINT = 1;
       is_sgx_https = 0;
 
-      init_all(false, false);
+      init_all(false, false, init_SEK);
         //init_enclave();
 
         int errStatus =  -1;
@@ -679,7 +682,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   is_sgx_https = 0;
   DEBUG_PRINT = 1;
   cerr<< "test started" << endl;
-  init_all(false, false);
+  init_all(false, false, init_SEK);
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1029");
   StubClient c(client, JSONRPC_CLIENT_V2);
@@ -801,8 +804,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
   BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
   REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
 
-  cout << "try to get bls public key" << endl;
-  cout << c.getBLSPublicKeyShare("BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:0");
+
 }
 
 TEST_CASE("API test", "[api_test]") {
@@ -810,7 +812,7 @@ TEST_CASE("API test", "[api_test]") {
     is_sgx_https = 0;
   //cerr << __GNUC__ << endl;
     cerr << "API test started" << endl;
-    init_all(false, false);
+    init_all(false, false, init_SEK);
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -910,7 +912,7 @@ TEST_CASE("API test", "[api_test]") {
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
   is_sgx_https = 0;
-  init_all( false, false );
+  init_all( false, false, init_SEK );
   HttpClient client("http://localhost:1029");
   StubClient c(client, JSONRPC_CLIENT_V2);
   REQUIRE(c.getServerStatus()["status"] == 0);
@@ -1033,8 +1035,9 @@ void SendRPCRequest(){
 TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
   is_sgx_https = 0;
   DEBUG_PRINT = 1;
+  is_aes = 1;
 
-  init_all( false, false );
+  init_all( false, false, init_SEK );
 
   vector<thread> threads;
   int num_threads = 4;
@@ -1055,7 +1058,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
   is_aes = 1;
 
   cerr << "ecdsa_api_test started" << endl;
-  init_all(false, false);
+  init_all(false, false, init_SEK);
 
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1029");
@@ -1104,7 +1107,7 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
   is_sgx_https = 0;
 
   cerr << "dkg_api_test started" << endl;
-  init_all(false, false);
+  init_all(false, false, init_SEK);
 
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1029");
@@ -1178,7 +1181,7 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
   is_sgx_https = 0;
 
   cerr << "is_poly_test started" << endl;
-  init_all(false, false);
+  init_all(false, false, init_SEK);
 
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1029");
@@ -1202,51 +1205,204 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
 }
 
 TEST_CASE("AES_DKG test", "[aes_dkg]") {
+
   is_sgx_https = 0;
   DEBUG_PRINT = 1;
   is_aes = 1;
 
+  reset_db();
+
   std::cerr << "test started" << std::endl;
-  init_all(false, false);
+  init_all(false, false, init_SEK);
   cerr << "Server inited" << endl;
   HttpClient client("http://localhost:1029");
   StubClient c(client, JSONRPC_CLIENT_V2);
   cerr << "Client inited" << endl;
 
-  reset_db();
-
-  int n = 4, t = 4;
+  int n = 2, t = 2;
   Json::Value EthKeys[n];
   Json::Value VerifVects[n];
   Json::Value pubEthKeys;
   Json::Value secretShares[n];
   Json::Value pubBLSKeys[n];
   Json::Value BLSSigShares[n];
-  std::vector<std::string> pubShares(n);
-  std::vector<std::string> poly_names(n);
+  vector<string> pubShares(n);
+  vector<string> poly_names(n);
 
-  for (uint8_t i = 0; i < n; i++) {
+  int schain_id = rand_gen();
+  int dkg_id = rand_gen();
+  for ( uint8_t i = 0; i < n; i++){
     EthKeys[i] = c.generateECDSAKey();
+    std::cerr << "after gen key" << std::endl;
+    string polyName = "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
     REQUIRE(EthKeys[i]["status"] == 0);
-    std::string polyName =
-        "POLY:SCHAIN_ID:1:NODE_ID:" + std::to_string(i) + ":DKG_ID:0";
     cout << c.generateDKGPoly(polyName, t);
-
-
     poly_names[i] = polyName;
     VerifVects[i] = c.getVerificationVector(polyName, t, n);
     cout << "VV " << i << " " << VerifVects[i] << std::endl;
-    pubEthKeys.append(EthKeys[i]["PublicKey"]);
+    pubEthKeys.append(EthKeys[i]["publicKey"]);
   }
 
-//  for ( uint8_t i = 0; i < n; i++){
-//    secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
-//    cout << secretShares[i] << std::endl;
-//    REQUIRE(secretShares[i]["status"] == 0);
-//    for ( uint8_t k = 0; k < t; k++ ) {
-//      for (uint8_t j = 0; j < 4; j++) {
-//        string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
-//        pubShares[i] += ConvertDecToHex(pubShare);
-//      }
+  for ( uint8_t i = 0; i < n; i++){
+    secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+    cout << secretShares[i] << std::endl;
+    REQUIRE(secretShares[i]["status"] == 0);
+    for ( uint8_t k = 0; k < t; k++ )
+      for (uint8_t j = 0; j < 4; j++){
+        string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
+        pubShares[i] += ConvertDecToHex(pubShare);
+      }
+
+//      pSharesBad[i][0] = 'q';
+//      Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
+//      res = wrongVerif["result"].asBool();
+//      REQUIRE(!res);
+//      cerr << "wrong verification " << wrongVerif << endl;
+      //  }
+    }
+
+  int k = 0;
+  vector <string> secShares_vect(n);
+
+  for ( int i = 0; i < n; i++)
+    for ( int j = 0; j < n; j++){
+      // if ( i != j ){
+      cerr << "SecretShare length is " << secretShares[i]["secretShare"].asString().length() << endl;
+      string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192 );
+      secShares_vect[i] +=  secretShares[j]["secretShare"].asString().substr(192 * i, 192 );
+      Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
+      cout << verif;
+      bool res = verif["result"].asBool();
+      k++;
+      cerr << "NOW K IS " << k << " i is " << i << " j is " << j << endl;
+      REQUIRE( res );
+      // }
+    }
+
+
+  Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
+  cout << complaintResponse << endl;
+  REQUIRE(complaintResponse["status"] == 0);
+  cerr << "share * G2 is " << complaintResponse["share*G2"].asString();
+  cerr << "DHKey is " << complaintResponse["dhKey"].asString();
+
+  BLSSigShareSet sigShareSet(t, n);
+
+  string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+
+  auto hash_arr = make_shared<array<uint8_t, 32>>();
+  uint64_t binLen;
+  if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())){
+    throw RPCException(INVALID_HEX, "Invalid hash");
+  }
+
+
+  map<size_t, shared_ptr<BLSPublicKeyShare>> koefs_pkeys_map;
+
+  for ( int i = 0; i < t; i++){
+    string endName = poly_names[i].substr(4);
+    string blsName = "BLS_KEY" + poly_names[i].substr(4);
+    cout << c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t, n);
+    pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+    cout << pubBLSKeys[i] << endl;
+    REQUIRE(pubBLSKeys[i]["status"] == 0);
+    cerr << "BLS KEY SHARE NAME IS" << blsName << endl;
+    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+    BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+    cout << BLSSigShares[i] << std::endl;
+    REQUIRE( BLSSigShares[i]["status"] == 0);
+    cerr << i << " sig share is created " << endl;
+    shared_ptr<string> sig_share_ptr = make_shared<string>(BLSSigShares[i]["signatureShare"].asString());
+    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+
+    vector<string> pubKey_vect;
+    for ( uint8_t j = 0; j < 4; j++){
+      pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
+    }
+    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
+    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
+
+    koefs_pkeys_map[i+1] = make_shared<BLSPublicKeyShare>(pubKey);
+
+  }
+
+  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+  BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
+  REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
+
+  sgx_destroy_enclave(eid);
+}
+
+TEST_CASE("bls_sign_api test", "[bls_sign]") {
+
+  is_sgx_https = 0;
+  DEBUG_PRINT = 1;
+  is_aes = 1;
+
+  std::cerr << "test started" << std::endl;
+  init_all(false, false, init_SEK);
+  cerr << "Server inited" << endl;
+  HttpClient client("http://localhost:1029");
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  cerr << "Client inited" << endl;
+  string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+  string blsName = "BLS_KEY:SCHAIN_ID:323669558:NODE_ID:1:DKG_ID:338183455";
+  int n = 4, t = 4;
+
+  Json::Value pubBLSKey = c.getBLSPublicKeyShare(blsName);
+  REQUIRE(pubBLSKey["status"] == 0);
+  cout << pubBLSKey << endl;
+
+
+
+  Json::Value sign = c.blsSignMessageHash(blsName, hash, t, n, 1);
+  cout << sign << endl;
+  REQUIRE(sign["status"] == 0);
+
+//      vector<string> pubKey_vect;
+//    for ( uint8_t j = 0; j < 4; j++){
+//      pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
 //    }
+//    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
+//    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
+
+}
+
+TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
+    {
+
+        DEBUG_PRINT = 1;
+        is_sgx_https = 0;
+
+        init_all(false, false, init_SEK);
+        //init_enclave();
+
+        int errStatus =  -1;
+        char* errMsg = (char*) calloc(BUF_LEN, 1);
+        uint32_t enc_len;
+
+        std::string key = "123456789";
+        uint8_t encrypted_key[BUF_LEN];
+        memset(encrypted_key, 0, BUF_LEN);
+
+        status = encrypt_key_aes(eid, &errStatus, errMsg, key.c_str(), encrypted_key, &enc_len);
+
+        REQUIRE(status == 0);
+        std::cerr << "key encrypted with status " << status << " err msg " << errMsg << std::endl;
+
+        char decr_key[BUF_LEN];
+        memset(decr_key, 0, BUF_LEN);
+        status = decrypt_key_aes(eid, &errStatus, errMsg, encrypted_key, enc_len, decr_key);
+
+        REQUIRE(status == 0);
+        std::cerr << "key encrypted with status " << status << " err msg " << errMsg << std::endl;
+        std::cerr << "decrypted key is " << decr_key << std::endl;
+
+        REQUIRE( key.compare(decr_key) == 0);
+
+        sgx_destroy_enclave(eid);
+
+
+    }
 }

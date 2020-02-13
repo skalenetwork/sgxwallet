@@ -38,7 +38,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
+#include "SEKManager.h"
+
+
 #include <stdbool.h>
+
 
 
 void usage() {
@@ -52,7 +56,8 @@ sgx_status_t status;
 int updated;
 
 int main(int argc, char *argv[]) {
-
+  void (*SEK_initializer)();
+  SEK_initializer = init_SEK;
   bool check_client_cert = true;
   bool sign_automatically = false;
   int opt;
@@ -62,7 +67,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0a")) != -1) {
+  
+
+  while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
     switch (opt) {
     case 'h':
       if (strlen(argv[1]) == 2 ) {
@@ -70,6 +77,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "-s  client certificate will be signed automatically\n");
         fprintf(stderr, "-d  turn on debug output\n");
         fprintf(stderr, "-0  SGXWalletServer will be launched on http (not https)\n");
+        fprintf(stderr, "-b  Enter backup key\n");
         exit(0);
       } else {
         fprintf(stderr, "unknown flag %s\n", argv[1]);
@@ -88,14 +96,21 @@ int main(int argc, char *argv[]) {
       is_sgx_https = 0;
      break;
     case 'a':
-      is_aes = 1;
+      is_aes = 0;
+      break;
+    case 'b':
+      SEK_initializer = enter_SEK;
+      break;
+    case 'y':
+       autoconfirm = true;
+       break;
     case '?': // fprintf(stderr, "unknown flag\n");
       exit(1);
     default:
       break;
     }
   }
-  init_all(check_client_cert, sign_automatically);
+  init_all(check_client_cert, sign_automatically, SEK_initializer);
 
   while (true) {
       sleep(10);

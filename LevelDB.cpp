@@ -282,7 +282,6 @@ void LevelDB::initDataFolderAndDBs() {
         exit(-1);
     }
 
-
     sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
 
     struct stat info;
@@ -297,7 +296,6 @@ void LevelDB::initDataFolderAndDBs() {
             exit(-1);
         }
     }
-
 
     auto dbName = sgx_data_folder +  WALLETDB_NAME;
     levelDb = make_shared<LevelDB>(dbName);
