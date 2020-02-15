@@ -146,7 +146,8 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
 //      printf(" %d ", encr_dkg_poly[i] );
   }
 
-  uint32_t len;
+  uint32_t len = 0;
+
   if (!is_aes)
     status = get_public_shares(eid, &err_status, errMsg1, encr_dkg_poly, len, public_shares, t, n);
   else {
@@ -170,7 +171,7 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
 
   vector <string> G2_strings = SplitString( public_shares, ',');
   vector <vector <string>> pub_shares_vect;
-  for ( int i = 0; i < G2_strings.size(); i++){
+  for ( uint64_t i = 0; i < G2_strings.size(); i++){
     vector <string> koef_str = SplitString(G2_strings.at(i).c_str(), ':');
     pub_shares_vect.push_back(koef_str);
   }
@@ -382,7 +383,6 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex){
     int err_status = 0;
 
     uint64_t dec_key_len ;
-    uint8_t encr_bls_key[BUF_LEN];
     uint8_t encr_key[BUF_LEN];
     if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)){
         throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");

@@ -124,8 +124,9 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
     init_all(false, false, init_SEK);
-    auto key = shared_ptr<char>(encryptTestKey());
+    auto key = encryptTestKey();
     REQUIRE(key != nullptr);
+    free(key);
 }
 
 
@@ -146,7 +147,6 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         char *encryptedKey = encryptTestKey();
         REQUIRE(encryptedKey != nullptr);
         char *plaintextKey = decryptBLSKeyShareFromHex(&errStatus, errMsg.data(), encryptedKey);
-
         free(encryptedKey);
 
         REQUIRE(errStatus == 0);
@@ -155,6 +155,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg.data());
         printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
         printf("Decrypted key: %s\n", plaintextKey);
+        free(plaintextKey);
 
         sgx_destroy_enclave(eid);
 

@@ -154,7 +154,11 @@ void gen_SEK(){
       std::getline(std::cin, buffer);
     } while (case_insensitive_match(confirm_str, buffer)); //(strcmp(confirm_str.c_str(), buffer.c_str()) != 0);
   }
-  system("reset");
+
+  if (system("reset") != 0) {
+      cerr << "Could not execute reset" << endl;
+  }
+
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
   create_test_key();

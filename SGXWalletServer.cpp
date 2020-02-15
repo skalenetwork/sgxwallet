@@ -493,7 +493,7 @@ Json::Value getSecretShareImpl(const string& polyName, const Json::Value& public
     result["errorMessage"] = "";
 
     try {
-        if (publicKeys.size() != n){
+        if (publicKeys.size() != (uint64_t) n){
           throw RPCException(INVALID_DKG_PARAMS, "wrong number of public keys");
         }
         if ( !checkName(polyName, "POLY")){
@@ -549,7 +549,7 @@ Json::Value dkgVerificationImpl(const string& publicShares, const string& ethKey
     if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
       throw RPCException(INVALID_HEX, "Invalid Secret share");
     }
-    if (publicShares.length() != 256 * t){
+    if (publicShares.length() != (uint64_t ) 256 * t){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid length of public shares");
     }
 
@@ -579,7 +579,7 @@ Json::Value createBLSPrivateKeyImpl(const string & blsKeyName, const string& eth
 
   try {
 
-    if (SecretShare.length() != n * 192){
+    if (SecretShare.length() != (uint64_t ) n * 192){
       spdlog::info("wrong length of secret shares - {}", SecretShare.length());
       spdlog::info("secret shares - {}", SecretShare);
       throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
