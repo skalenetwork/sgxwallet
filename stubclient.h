@@ -12,7 +12,7 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) throw (jsonrpc::JsonRpcException)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index)
         {
             Json::Value p;
             p["index"] = index;
@@ -27,7 +27,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) throw (jsonrpc::JsonRpcException)
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) 
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
@@ -42,7 +42,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value importECDSAKey(const std::string& key, const std::string& keyName) throw (jsonrpc::JsonRpcException)
+        Json::Value importECDSAKey(const std::string& key, const std::string& keyName) 
         {
             Json::Value p;
             p["key"] = key;
@@ -54,7 +54,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value generateECDSAKey() throw (jsonrpc::JsonRpcException)
+        Json::Value generateECDSAKey() 
         {
           Json::Value p;
           p = Json::nullValue;
@@ -65,7 +65,7 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) throw (jsonrpc::JsonRpcException)
+        Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) 
         {
           Json::Value p;
           p["keyName"] = KeyName;
@@ -77,7 +77,7 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getPublicECDSAKey(const std::string& keyName) throw (jsonrpc::JsonRpcException)
+        Json::Value getPublicECDSAKey(const std::string& keyName) 
         {
             Json::Value p;
             p["keyName"] = keyName;
@@ -88,7 +88,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) throw (jsonrpc::JsonRpcException)
+        Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) 
         {
             Json::Value p;
             p["base"] = base;
@@ -101,7 +101,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value generateDKGPoly(const std::string& polyName, int t) throw (jsonrpc::JsonRpcException)
+        Json::Value generateDKGPoly(const std::string& polyName, int t) 
         {
             Json::Value p;
             p["polyName"] = polyName;
@@ -113,7 +113,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getVerificationVector(const std::string& polyName, int t, int n) throw (jsonrpc::JsonRpcException)
+        Json::Value getVerificationVector(const std::string& polyName, int t, int n) 
         {
             Json::Value p;
             p["polyName"] = polyName;
@@ -126,7 +126,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) throw (jsonrpc::JsonRpcException)
+        Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) 
         {
             Json::Value p;
             p["polyName"] = polyName;
@@ -140,7 +140,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value dkgVerification(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) throw (jsonrpc::JsonRpcException)
+        Json::Value dkgVerification(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) 
         {
             Json::Value p;
             p["ethKeyName"] = ethKeyName;
@@ -156,7 +156,7 @@ class StubClient : public jsonrpc::Client
               throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value createBLSPrivateKey(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) throw (jsonrpc::JsonRpcException)
+        Json::Value createBLSPrivateKey(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) 
         {
           Json::Value p;
           p["blsKeyName"] = blsKeyName;
@@ -172,7 +172,7 @@ class StubClient : public jsonrpc::Client
            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getBLSPublicKeyShare(const std::string & blsKeyName) throw (jsonrpc::JsonRpcException)
+        Json::Value getBLSPublicKeyShare(const std::string & blsKeyName) 
         {
             Json::Value p;
             p["blsKeyName"] = blsKeyName;
@@ -184,7 +184,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value complaintResponse(const std::string& polyName, int ind) throw (jsonrpc::JsonRpcException)
+        Json::Value complaintResponse(const std::string& polyName, int ind) 
         {
           Json::Value p;
           p["polyName"] = polyName;
@@ -196,7 +196,7 @@ class StubClient : public jsonrpc::Client
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value multG2(const std::string & x) throw (jsonrpc::JsonRpcException)
+        Json::Value multG2(const std::string & x) 
         {
             Json::Value p;
             p["x"] = x;
@@ -208,7 +208,7 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value isPolyExists(const std::string & polyName) throw (jsonrpc::JsonRpcException)
+        Json::Value isPolyExists(const std::string & polyName) 
         {
             Json::Value p;
             p["polyName"] = polyName;
@@ -223,7 +223,7 @@ class StubClient : public jsonrpc::Client
 
     ////CSRManagerServer
 
-  Json::Value getUnsignedCSRs() throw (jsonrpc::JsonRpcException)
+  Json::Value getUnsignedCSRs() 
   {
     Json::Value p;
     p = Json::nullValue;
@@ -236,7 +236,7 @@ class StubClient : public jsonrpc::Client
 
 
 
-    Json::Value signByHash(const std::string& hash, int status) throw (jsonrpc::JsonRpcException)
+    Json::Value signByHash(const std::string& hash, int status) 
     {
         Json::Value p;
         p["hash"] = hash;
@@ -249,7 +249,7 @@ class StubClient : public jsonrpc::Client
     }
 
 
-        Json::Value getServerStatus() throw (jsonrpc::JsonRpcException)
+        Json::Value getServerStatus() 
         {
             Json::Value p;
             p = Json::nullValue;

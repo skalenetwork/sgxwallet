@@ -124,9 +124,8 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
     init_all(false, false, init_SEK);
-    char *key = encryptTestKey();
+    auto key = shared_ptr<char>(encryptTestKey());
     REQUIRE(key != nullptr);
-    /*free*/(key);
 }
 
 
@@ -137,6 +136,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         is_sgx_https = 0;
 
         init_all(false, false, init_SEK);
+
         //init_enclave();
 
         int errStatus = -1;
@@ -152,7 +152,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         REQUIRE(errStatus == 0);
         REQUIRE(strcmp(plaintextKey, TEST_BLS_KEY_SHARE) == 0);
 
-        printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg);
+        printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg.data());
         printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
         printf("Decrypted key: %s\n", plaintextKey);
 
@@ -189,7 +189,7 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
 
     printf("\ndecrypt_dkg_secret completed with status: %d %s \n", err_status, errMsg1.data());
     printf("decrypted secret %s \n\n", secret.data());
-    printf("secret length %d \n", strlen(secret.data()));
+    printf("secret length %d \n", (int) strlen(secret.data()));
     printf("decr length %d \n", dec_len);
 
     sgx_destroy_enclave(eid);
@@ -276,14 +276,14 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
                                encrypted_dkg_secret.data(), enc_len, public_shares.data(), t, n);
     REQUIRE(status == SGX_SUCCESS);
     printf("\nget_public_shares status: %d error %s \n\n", err_status, errMsg1.data());
-    printf(" LEN: %d \n", strlen(public_shares.data()));
+    printf(" LEN: %d \n", (int) strlen(public_shares.data()));
     printf(" result: %s \n", public_shares.data());
 
     vector<string> G2_strings = SplitString(public_shares.data(), ',');
     vector<libff::alt_bn128_G2> pub_shares_G2;
-    for (int i = 0; i < G2_strings.size(); i++) {
+    for (u_int64_t i = 0; i < G2_strings.size(); i++) {
         vector<string> koef_str = SplitString(G2_strings.at(i).c_str(), ':');
-        libff::alt_bn128_G2 el = VectStringToG2(koef_str);
+        //libff::alt_bn128_G2 el = VectStringToG2(koef_str);
         //cerr << "pub_share G2 " << i+1 << " : " << endl;
         //el.print_coordinates();
         pub_shares_G2.push_back(VectStringToG2(koef_str));
@@ -422,7 +422,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
     string hex = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
     // char* hex = "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
-    printf("hash length %d ", hex.size());
+    printf("hash length %d ", (int) hex.size());
     vector<char> signature_r(1024, 0);
     vector<char> signature_s(1024, 0);
     uint8_t signature_v = 0;
@@ -488,8 +488,8 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     printf("\nerrMsg %s\n", errMsg.data());
     REQUIRE(status == SGX_SUCCESS);
 
-    printf("\nwas pub_key_x %s length %d: \n", pub_key_x.data(), strlen(pub_key_x.data()));
-    printf("\nwas pub_key_y %s length %d: \n", pub_key_y.data(), strlen(pub_key_y.data()));
+    printf("\nwas pub_key_x %s length %d: \n", pub_key_x.data(), (int) strlen(pub_key_x.data()));
+    printf("\nwas pub_key_y %s length %d: \n", pub_key_y.data(), (int) strlen(pub_key_y.data()));
 
     /*printf("\nencr priv_key %s: \n");
     for ( int i = 0; i < 1024 ; i++)
