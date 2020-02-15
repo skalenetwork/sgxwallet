@@ -314,22 +314,21 @@ bool bls_sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, siz
   }
 }
 
-char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
-    char *keyArray = (char *) calloc(BUF_LEN, 1);
-    uint8_t *encryptedKey = (uint8_t *) calloc(BUF_LEN, 1);
-    char *errMsg = (char *) calloc(BUF_LEN, 1);
-    strncpy((char *) keyArray, (char *) _key, BUF_LEN);
-
+char* encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+    auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
+    auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
+    auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
+    strncpy(keyArray->data(), _key, BUF_LEN);
     *errStatus = -1;
 
     unsigned int encryptedLen = 0;
 
     //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
-    status = encrypt_key_aes(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+    status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     if (DEBUG_PRINT) {
       spdlog::info("errStatus is {}",*errStatus);
-      spdlog::info(" errMsg is ", errMsg );
+      spdlog::info(" errMsg is ", errMsg->data() );
     }
 
     if (status != SGX_SUCCESS) {
@@ -339,13 +338,13 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     }
 
     if (*errStatus != 0) {
-        throw RPCException(-666, errMsg);
+        throw RPCException(-666, errMsg->data());
     }
 
 
     char *result = (char *) calloc(2 * BUF_LEN, 1);
 
-    carray2Hex(encryptedKey, encryptedLen, result);
+    carray2Hex(encryptedKey->data(), encryptedLen, result);
 
     return result;
 }

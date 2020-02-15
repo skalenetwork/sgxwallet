@@ -152,11 +152,13 @@ importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int 
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
+    char *encryptedKeyShareHex = nullptr;
+
     try {
 //        if ( !checkName(_keyShare, "BLS_KEY")){
 //          throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
 //        }
-        char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
+        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
         if (encryptedKeyShareHex == nullptr) {
             throw RPCException(UNKNOWN_ERROR, "");
@@ -166,13 +168,17 @@ importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int 
             throw RPCException(errStatus, errMsg);
         }
 
-        result["encryptedKeyShare"] = encryptedKeyShareHex;
+        result["encryptedKeyShare"] = string(encryptedKeyShareHex);
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex, index, n , t);
 
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
+    }
+
+    if (encryptedKeyShareHex != nullptr) {
+        free(encryptedKeyShareHex);
     }
 
     return result;

@@ -49,8 +49,8 @@ EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
 
 
 
-EXTERNC  char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
+char * encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
 
-EXTERNC char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
 
 #endif //SGXWALLET_BLSCRYPTO_H
