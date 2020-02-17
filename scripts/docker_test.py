@@ -23,7 +23,11 @@
 #
 
 import sys, os, subprocess, socket, time
-from executor import execute
+
+
+
+
+
 
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
@@ -46,8 +50,15 @@ print("Running tests for branch " + BRANCH);
 
 assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 
-assert execute("docker run -ti -v "  + topDir + "/sgx_data:/usr/src/sdk/sgx_data" +
-            " --name sgxwallet --network=host skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX + " -t") == 0
+completedProcess = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-ti",
+                        "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"],
+                                  capture_output=True)
+
+print(completedProcess.stdout)
+print(completedProcess.stderr)
+assert completedProcess.returncode == 0
+
+
 assert subprocess.call(["docker", "kill", "sgxwallet"]) == 0
 assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
 
