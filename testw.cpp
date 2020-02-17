@@ -123,7 +123,7 @@ char *encryptTestKey() {
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
-    init_all(false, false, init_SEK);
+    init_all(false, true, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
     free(key);
