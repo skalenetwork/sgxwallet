@@ -44,8 +44,10 @@ print("Running tests for branch " + BRANCH);
 
 assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 
-#assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
-#                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
+assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-ti",
+                        "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"]) == 0
+assert subprocess.call(["docker", "kill", "sgxwallet"]) == 0
+assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
 
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d",
                         "--name", "sgxwallet",
@@ -73,7 +75,3 @@ s3.connect((address, 1028))
 s1.close()
 s2.close()
 s3.close()
-assert subprocess.call(["docker", "kill", "sgxwallet"]) == 0
-assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
-assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-ti",
- "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"]) == 0
