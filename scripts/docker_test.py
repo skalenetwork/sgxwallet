@@ -48,6 +48,7 @@ assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 #                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d",
+                        "--name", "sgxwallet",
                     "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"]) == 0
 
 time.sleep(5);
