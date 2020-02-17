@@ -18,7 +18,7 @@
 
     @file SEKManager.cpp
     @author Stan Kladko
-    @date 2019
+    @date 2020
 */
 
 #include "SEKManager.h"
