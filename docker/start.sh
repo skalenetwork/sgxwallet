@@ -16,14 +16,14 @@ if [ "$1" = -t ]; then
   ./testw [bls_dkg]
   ./testw [api_test]
   ./testw [getServerStatus_test]
-#./testw [dkg-encr_sshares]
-#./testw [bls_sign]
-#./testw [many_threads_test]
   ./testw [ecdsa_api_test]
   ./testw [dkg_api_test]
   ./testw [is_poly_test]
-  ./testw [aes_dkg]
   ./testw [AES-encrypt-decrypt]
+#./testw [dkg-encr_sshares]
+# ./testw [bls_sign]
+#./testw [many_threads_test]
+#  ./testw [aes_dkg]
 else
    ./sgxwallet $1 $2 $3 $4
 fi
