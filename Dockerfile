@@ -7,7 +7,6 @@ COPY *.txt ./
 COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
-COPY *.sh ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
