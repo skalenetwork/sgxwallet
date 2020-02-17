@@ -152,11 +152,13 @@ importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int 
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
+    char *encryptedKeyShareHex = nullptr;
+
     try {
 //        if ( !checkName(_keyShare, "BLS_KEY")){
 //          throw RPCException(INVALID_POLY_NAME, "Invalid BLSKey name");
 //        }
-        char *encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
+        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
         if (encryptedKeyShareHex == nullptr) {
             throw RPCException(UNKNOWN_ERROR, "");
@@ -166,13 +168,17 @@ importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int 
             throw RPCException(errStatus, errMsg);
         }
 
-        result["encryptedKeyShare"] = encryptedKeyShareHex;
+        result["encryptedKeyShare"] = string(encryptedKeyShareHex);
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex, index, n , t);
 
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
+    }
+
+    if (encryptedKeyShareHex != nullptr) {
+        free(encryptedKeyShareHex);
     }
 
     return result;
@@ -487,7 +493,7 @@ Json::Value getSecretShareImpl(const string& polyName, const Json::Value& public
     result["errorMessage"] = "";
 
     try {
-        if (publicKeys.size() != n){
+        if (publicKeys.size() != (uint64_t) n){
           throw RPCException(INVALID_DKG_PARAMS, "wrong number of public keys");
         }
         if ( !checkName(polyName, "POLY")){
@@ -543,7 +549,7 @@ Json::Value dkgVerificationImpl(const string& publicShares, const string& ethKey
     if ( !checkHex(SecretShare, SECRET_SHARE_NUM_BYTES)){
       throw RPCException(INVALID_HEX, "Invalid Secret share");
     }
-    if (publicShares.length() != 256 * t){
+    if (publicShares.length() != (uint64_t ) 256 * t){
       throw RPCException(INVALID_DKG_PARAMS, "Invalid length of public shares");
     }
 
@@ -573,7 +579,7 @@ Json::Value createBLSPrivateKeyImpl(const string & blsKeyName, const string& eth
 
   try {
 
-    if (SecretShare.length() != n * 192){
+    if (SecretShare.length() != (uint64_t ) n * 192){
       spdlog::info("wrong length of secret shares - {}", SecretShare.length());
       spdlog::info("secret shares - {}", SecretShare);
       throw RPCException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");

@@ -7,7 +7,6 @@ COPY *.txt ./
 COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
-COPY *.sh ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
@@ -34,6 +33,5 @@ RUN ./configure
 RUN make
 
 RUN mkdir /usr/src/sdk/sgx_data
-
 COPY docker/start.sh ./
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
