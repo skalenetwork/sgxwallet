@@ -33,6 +33,6 @@ RUN ./configure
 RUN make
 
 RUN mkdir /usr/src/sdk/sgx_data
-
+RUN pip install executor
 COPY docker/start.sh ./
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
