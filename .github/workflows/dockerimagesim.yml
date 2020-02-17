@@ -3,6 +3,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    steps:
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
