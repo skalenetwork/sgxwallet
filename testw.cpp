@@ -123,6 +123,7 @@ char *encryptTestKey() {
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
+    autoconfirm = true;
     init_all(false, true, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
@@ -135,6 +136,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
         DEBUG_PRINT = 1;
         is_sgx_https = 0;
+        autoconfirm = true;
 
         init_all(false, true, init_SEK);
 
@@ -165,6 +167,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 TEST_CASE("DKG gen test", "[dkg-gen]") {
 
+    autoconfirm = true;
     //init_all();
     init_enclave();
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
@@ -251,7 +254,7 @@ libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
 }
 
 TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
-
+    autoconfirm = true;
     //init_all();
     libff::init_alt_bn128_params();
     init_enclave();
@@ -322,7 +325,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
 }
 
 TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
-
+    autoconfirm = true;
     // init_all();
     init_enclave();
 
@@ -358,7 +361,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 }
 
 TEST_CASE("DKG verification test", "[dkg-verify]") {
-
+    autoconfirm = true;
     // init_all();
     init_enclave();
 
@@ -397,7 +400,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
-
+    autoconfirm = true;
     init_enclave();
 
     vector<char> errMsg(1024, 0);
@@ -442,7 +445,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 }
 
 TEST_CASE("Test test", "[test_test]") {
-
+    autoconfirm = true;
     init_enclave();
 
     vector<char> errMsg(1024, 0);
@@ -471,7 +474,7 @@ TEST_CASE("Test test", "[test_test]") {
 }
 
 TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
-
+    autoconfirm = true;
     //init_all();
     init_enclave();
 
@@ -678,6 +681,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 }
 
 TEST_CASE("API test", "[api_test]") {
+    autoconfirm = true;
     //DEBUG_PRINT = 1;
     is_sgx_https = 0;
     //cerr << __GNUC__ << endl;
@@ -784,6 +788,7 @@ TEST_CASE("API test", "[api_test]") {
 }
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
+    autoconfirm = true;
     is_sgx_https = 0;
     init_all(false, true, init_SEK);
     HttpClient client("http://localhost:1029");
@@ -905,6 +910,7 @@ void SendRPCRequest() {
 }
 
 TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
+    autoconfirm = true;
     is_sgx_https = 0;
     DEBUG_PRINT = 1;
     is_aes = 1;
@@ -925,6 +931,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 }
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
+    autoconfirm = true;
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
     is_aes = 1;
@@ -976,6 +983,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 }
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
+    autoconfirm = true;
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
 
@@ -1053,6 +1061,7 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
 }
 
 TEST_CASE("isPolyExists test", "[is_poly_test]") {
+    autoconfirm = true;
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
 
@@ -1081,7 +1090,7 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
 }
 
 TEST_CASE("AES_DKG test", "[aes_dkg]") {
-
+    autoconfirm = true;
     is_sgx_https = 0;
     DEBUG_PRINT = 1;
     is_aes = 1;
@@ -1213,7 +1222,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
 }
 
 TEST_CASE("bls_sign_api test", "[bls_sign]") {
-
+    autoconfirm = true;
     is_sgx_https = 0;
     DEBUG_PRINT = 1;
     is_aes = 1;
@@ -1248,7 +1257,7 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
 
 TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
     {
-
+        autoconfirm = true;
         DEBUG_PRINT = 1;
         is_sgx_https = 0;
 
