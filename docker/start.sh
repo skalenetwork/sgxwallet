@@ -10,7 +10,8 @@ pid=$!
 sleep 2
 cd /usr/src/sdk;
 
-if [ "$1" -eq "-t" ]; then
+echo $1
+if [ "$1" == "-t" ]; then
   ./testw [bls-key-encrypt]
   ./testw [bls-key-encrypt-decrypt]
   ./testw [dkg-gen]
