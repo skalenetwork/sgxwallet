@@ -3,12 +3,6 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-    - name: install python 3.8
-      run: |
-        sudo apt update; sudo apt install software-properties-common;
-        sudo add-apt-repository ppa:deadsnakes/ppa;
-        sudo apt install python3.8;
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
@@ -17,11 +11,11 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: build
-      run: python3.8 scripts/docker_build.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
+      run: python3 scripts/docker_build.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
     - name: test
-      run: python3.8 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
+      run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
     - name: push
-      run: python3.8 scripts/docker_push.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
+      run: python3 scripts/docker_push.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
 
 
 
