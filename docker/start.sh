@@ -1,22 +1,14 @@
 #!/bin/bash
-
 source /opt/intel/sgxsdk/environment
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/sgxpsw/aesm/
-
-jhid -d
-/opt/intel/sgxpsw/aesm/aesm_service &
-pid=$!
-
-sleep 2
 cd /usr/src/sdk;
 
 echo $1
 if [ "$1" = -t ]; then
+  set -e
   ./testw [bls-key-encrypt]
   ./testw [bls-key-encrypt-decrypt]
   ./testw [dkg-gen]
   ./testw [dkg-pub_shares]
-  ./testw [dkg-encr_sshares]
   ./testw [dkg-verify]
   ./testw [ecdsa_test]
   ./testw [test_test]

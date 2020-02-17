@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 ./testw [bls-key-encrypt]
 ./testw [bls-key-encrypt-decrypt]
 ./testw [dkg-gen]
 ./testw [dkg-pub_shares]
-./testw [dkg-encr_sshares]
+#./testw [dkg-encr_sshares]
 ./testw [dkg-verify]
 ./testw [ecdsa_test]
 ./testw [test_test]
