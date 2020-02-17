@@ -31,10 +31,8 @@ assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 #assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data",
 #                        "-d", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX]) == 0
 
-obj = subprocess.Popen(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d","--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-obj.communicate(input=b"i confirm", timeout=5)
-obj.terminate()
-obj.wait()
+assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d",
+                    "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"]) == 0
 
 time.sleep(5);
 
@@ -58,9 +56,8 @@ s3.connect((address, 1028))
 s1.close()
 s2.close()
 s3.close()
-
-
-
-
-
-
+assert subprocess.call(["docker", "stop", "sgxwallet"]) == 0
+assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
+assert subprocess.call(["rm", "-rf", topDir + "/sgx_data"]) == 0
+assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-ti",
+ "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"]) == 0
