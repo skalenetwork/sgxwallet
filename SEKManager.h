@@ -18,7 +18,7 @@
 
     @file SEKManager.h
     @author Stan Kladko
-    @date 2019
+    @date 2020
 */
 
 #ifndef SGXD_SEKMANAGER_H
