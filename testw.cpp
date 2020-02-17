@@ -123,7 +123,7 @@ char *encryptTestKey() {
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     DEBUG_PRINT = 1;
     is_sgx_https = 0;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
     free(key);
@@ -136,7 +136,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         DEBUG_PRINT = 1;
         is_sgx_https = 0;
 
-        init_all(false, false, init_SEK);
+        init_all(true, false, init_SEK);
 
         //init_enclave();
 
@@ -549,7 +549,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     is_sgx_https = 0;
     DEBUG_PRINT = 1;
     cerr << "test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -682,7 +682,7 @@ TEST_CASE("API test", "[api_test]") {
     is_sgx_https = 0;
     //cerr << __GNUC__ << endl;
     cerr << "API test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -785,7 +785,7 @@ TEST_CASE("API test", "[api_test]") {
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
     is_sgx_https = 0;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -909,7 +909,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
     DEBUG_PRINT = 1;
     is_aes = 1;
 
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
 
     vector<thread> threads;
     int num_threads = 4;
@@ -930,7 +930,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
     is_aes = 1;
 
     cerr << "ecdsa_api_test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -980,7 +980,7 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
     is_sgx_https = 0;
 
     cerr << "dkg_api_test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1057,7 +1057,7 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
     is_sgx_https = 0;
 
     cerr << "is_poly_test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1089,7 +1089,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
     reset_db();
 
     cerr << "test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1219,7 +1219,7 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
     is_aes = 1;
 
     cerr << "test started" << endl;
-    init_all(false, false, init_SEK);
+    init_all(true, false, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1252,7 +1252,7 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
         DEBUG_PRINT = 1;
         is_sgx_https = 0;
 
-        init_all(false, false, init_SEK);
+        init_all(true, false, init_SEK);
         //init_enclave();
 
         int errStatus = -1;
@@ -1281,7 +1281,7 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
 
 //TEST_CASE("BLS key import", "[bls-key-import]") {
 //    reset_db();
-//    init_all(false, false);
+//    init_all(true, false);
 //
 //
 //
@@ -1321,7 +1321,7 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
 //
 //    reset_db();
 //
-//    init_all(false, false);
+//    init_all(true, false);
 //
 //
 //    auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
