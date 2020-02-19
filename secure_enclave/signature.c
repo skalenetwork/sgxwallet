@@ -93,9 +93,9 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     point Q = point_init();
 
     //Initializing variables
-    mpz_t k, x, r, t1, t2, t3, s, n_div_2, rem, neg, seed;
+    mpz_t k, x, r, t1, t2, t3, t4, t5,  s, n_div_2, rem, neg, seed;
     mpz_init(k); mpz_init(x); mpz_init(r); mpz_init(t1); mpz_init(t2); mpz_init(t3); mpz_init(s);
-    mpz_init(n_div_2); mpz_init(rem); mpz_init(neg); mpz_init(seed);
+    mpz_init(t4); mpz_init(t5); mpz_init(n_div_2); mpz_init(rem); mpz_init(neg); mpz_init(seed);
 
     unsigned char *rand_char = (unsigned char *) malloc(32);
 
@@ -132,11 +132,9 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_invert(t1, k, curve->n);
     mpz_mul(t2, private_key, r);    //t2 = d*r
     mpz_add(t3, message, t2);    //t3 = e+t2
-    mpz_clear(t2); mpz_init(t2);
-    mpz_mod(t2, t3, curve->n);    //t2 = t3 mod n
-    mpz_clear(t3); mpz_init(t3);
-    mpz_mul(t3, t2, t1);        //t3 = t2 * t1
-    mpz_mod(s, t3, curve->n);    //s = t3 mod n
+    mpz_mod(t4, t3, curve->n);    //t2 = t3 mod n
+    mpz_mul(t5, t4, t1);        //t3 = t2 * t1
+    mpz_mod(s, t5, curve->n);    //s = t3 mod n
 
     //Calculate v
 
@@ -155,7 +153,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     if (mpz_cmp(s, n_div_2) > 0) {
         mpz_sub(neg, curve->n, s);
-        mpz_clear(s); mpz_init(s);
         mpz_set(s, neg);
     }
 
