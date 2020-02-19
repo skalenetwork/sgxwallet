@@ -6532,7 +6532,7 @@ void signature_copy(signature R, signature sig);
 _Bool signature_cmp(signature sig1, signature sig2);
 
 
-void signature_clear(signature sig);
+void signature_free(signature sig);
 
 
 void signature_generate_key(point public_key, mpz_t private_key, domain_parameters curve);
