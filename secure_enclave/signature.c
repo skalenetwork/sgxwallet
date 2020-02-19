@@ -173,22 +173,14 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 /*Verify the integrity of a message using it's signature*/
 bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve) {
-    //verify r and s are within [1, n-1]
-    mpz_t one;
-    mpz_init(one);
-    mpz_set_ui(one, 1);
 
     //Initialize variables
-    mpz_t w;
-    mpz_init(w);
-    mpz_t u1;
-    mpz_init(u1);
-    mpz_t u2;
-    mpz_init(u2);
-    mpz_t t;
-    mpz_init(t);
-    mpz_t tt2;
-    mpz_init(tt2);
+    mpz_t one, w, u1, u2, t, tt2;
+    mpz_init(one); mpz_init(w); mpz_init(u1);
+    mpz_init(u2); mpz_init(t); mpz_init(tt2);
+
+    mpz_set_ui(one, 1);
+
     point x = point_init();
     point t1 = point_init();
     point t2 = point_init();
@@ -232,11 +224,7 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     point_clear(t1);
     point_clear(t2);
 
-    mpz_clear(one);
-    mpz_clear(w);
-    mpz_clear(u1);
-    mpz_clear(u2);
-    mpz_clear(t);
+    mpz_clear(one); mpz_clear(w); mpz_clear(u1); mpz_clear(u2); mpz_clear(t);
     mpz_clear(tt2);
 
     return result;
