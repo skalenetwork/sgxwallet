@@ -64,6 +64,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "SGXWALLET_VERSION"
 
 //#include <system>
 
@@ -130,6 +131,9 @@ void init_enclave() {
 int sgxServerInited = 0;
 
 void init_all(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
+
+    cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
+
     //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
