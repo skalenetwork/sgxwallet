@@ -1,6 +1,6 @@
 # Contributing
 
-<!-- SPDX-License-Identifier: (AGPL-3.0-or-later OR CC-BY-4.0) -->
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
 Feedback and contributions are very welcome!
 
@@ -84,12 +84,12 @@ is one of the requirement for pull request checks.
 ### License (AGPL)
 
 All (new) contributed material must be released
-under the [AGPL-3.0-or-later license](./LICENSE), with exception to material included
+under the [AGPL-3.0-only license](./LICENSE), with exception to material included
 under the `third_party` directory.
 All new contributed material
 that is not executable, including all text when not executed,
 is also released under the
-[Creative Commons Attribution 3.0 International (CC BY 3.0) license](https://creativecommons.org/licenses/by/3.0/) or later.
+[Creative Commons Attribution 3.0 International (CC BY 4.0) license](https://creativecommons.org/licenses/by/4.0/) or later.
 
 ### We are proactive
 
@@ -176,7 +176,7 @@ upstream, enabling you to sync with upstream.
 
 You can reset this, if something has happened to it, using:
 
-```sh
+```bash
 git remote add upstream \
     https://github.com/skalenetwork/sgxwallet.git
 ```
