@@ -20,7 +20,7 @@ COPY m4 ./m4
 COPY scripts ./scripts
 COPY secure_enclave ./secure_enclave
 COPY spdlog ./spdlog
-
+COPY SGXWALLET_VERSION ./
 
 RUN autoreconf -vif
 RUN libtoolize --force

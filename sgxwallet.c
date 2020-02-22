@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
       is_sgx_https = 0;
      break;
     case 'a':
-      is_aes = 0;
+      is_aes = 1;
       break;
     case 'b':
       SEK_initializer = enter_SEK;

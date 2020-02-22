@@ -53,10 +53,10 @@ void signature_copy(signature R, signature sig);
 bool signature_cmp(signature sig1, signature sig2);
 
 /*Release signature*/
-void signature_clear(signature sig);
+void signature_free(signature sig);
 
 /*Generates a public key for a private key*/
-void signature_generate_key(point public_key, mpz_t private_key, domain_parameters curve);
+void signature_extract_public_key(point public_key, mpz_t private_key, domain_parameters curve);
 
 /*Generate signature for a message*/
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve);
