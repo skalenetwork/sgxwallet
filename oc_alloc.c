@@ -42,6 +42,13 @@ uint64_t oc_realloc (void *optr, size_t osz, size_t nsz)
 	return (uint64_t) nptr;
 }
 
+void oc_printf ()
+{
+    printf("haha\n");
+    fprintf( stderr, "haha\n");
+}
+
+
 void oc_free (void *ptr, size_t sz)
 {
 	free(ptr);
