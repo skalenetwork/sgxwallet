@@ -42,6 +42,15 @@ uint64_t oc_realloc (void *optr, size_t osz, size_t nsz)
 	return (uint64_t) nptr;
 }
 
+void oc_printf (const char *str) {
+
+    /* Proxy/Bridge will check the length and null-terminate
+     * the input string to prevent buffer overflow.
+     * */
+    fprintf(stderr, "***ENCLAVE_LOG***: %s", str);
+}
+
+
 void oc_free (void *ptr, size_t sz)
 {
 	free(ptr);
