@@ -50,6 +50,10 @@ $ docker run -di --network host --name sgxwalletsim skalenetwork/sgxwalletsim
 
 ```
 
+### SKALE Network usage
+
+To setup sgxwallet container for testnets or mainnet usage, you must use docker-compose to configure the sgxwallet container. Please see [docs/configuring.md](docs/configuring.md).
+
 ## Building
 
 See [docs/building.md](docs/building.md).
