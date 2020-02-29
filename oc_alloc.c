@@ -50,5 +50,5 @@ void oc_free (void *ptr, size_t sz)
 
 void oc_printf()
 {
-    printf("haha\n");
+    fprintf(stderr, "haha\n");
 }
