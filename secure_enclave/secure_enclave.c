@@ -73,6 +73,7 @@ void free_function(void *, size_t);
 
 
 void tgmp_init() {
+    oc_printf();
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
 
