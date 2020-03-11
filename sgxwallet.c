@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  
+  is_aes = 0;  
 
   while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
     switch (opt) {
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
       is_sgx_https = 0;
      break;
     case 'a':
-      is_aes = 1;
+      is_aes = 0;
       break;
     case 'b':
       SEK_initializer = enter_SEK;
