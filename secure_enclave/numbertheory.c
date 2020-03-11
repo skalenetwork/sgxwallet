@@ -17,7 +17,7 @@
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
     @file numbertheory.c
-    @author Sveta Rogova
+    @author Stan Kladko
     @date 2019
 */
 
