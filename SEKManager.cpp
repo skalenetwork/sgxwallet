@@ -231,7 +231,7 @@ void init_SEK(){
     gen_SEK();
   }
   else{
-    if (DEBUG_PRINT)
+    if (printDebugInfo)
       spdlog::info("going to set SEK from db" );
     set_SEK(encr_SEK_ptr);
   }

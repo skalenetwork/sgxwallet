@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  is_aes = 0;  
+    encryptKeys = 0;
 
   while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
     switch (opt) {
@@ -91,13 +91,13 @@ int main(int argc, char *argv[]) {
       sign_automatically = true;
       break;
     case 'd':
-      DEBUG_PRINT = 1;
+        printDebugInfo = 1;
       break;
     case '0':
-      is_sgx_https = 0;
+        useHTTPS = 0;
      break;
     case 'a':
-      is_aes = 0;
+        encryptKeys = 0;
       break;
     case 'b':
       SEK_initializer = enter_SEK;
