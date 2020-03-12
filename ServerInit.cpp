@@ -131,7 +131,7 @@ void init_enclave() {
 
 int sgxServerInited = 0;
 
-void init_all(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
+void initAll(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
 
@@ -141,7 +141,7 @@ void init_all(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
     init_enclave();
     init_daemon();
     //init_SEK();
-    SEK_func();
+    func();
 
     sgxServerInited = 1;
 

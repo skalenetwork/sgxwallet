@@ -124,7 +124,7 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     printDebugInfo = 1;
     useHTTPS = 0;
     autoconfirm = true;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
     free(key);
@@ -138,7 +138,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
         useHTTPS = 0;
         autoconfirm = true;
 
-        init_all(false, true, init_SEK);
+        initAll(false, true, init_SEK);
 
         //init_enclave();
 
@@ -552,7 +552,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     useHTTPS = 0;
     printDebugInfo = 1;
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -686,7 +686,7 @@ TEST_CASE("API test", "[api_test]") {
     useHTTPS = 0;
     //cerr << __GNUC__ << endl;
     cerr << "API test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -790,7 +790,7 @@ TEST_CASE("API test", "[api_test]") {
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
     autoconfirm = true;
     useHTTPS = 0;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -915,7 +915,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
     printDebugInfo = 1;
     encryptKeys = 1;
 
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     vector<thread> threads;
     int num_threads = 4;
@@ -937,7 +937,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
     encryptKeys = 1;
 
     cerr << "ecdsa_api_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -988,7 +988,7 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
     useHTTPS = 0;
 
     cerr << "dkg_api_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1066,7 +1066,7 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
     useHTTPS = 0;
 
     cerr << "is_poly_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1098,7 +1098,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
     reset_db();
 
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1228,7 +1228,7 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
     encryptKeys = 1;
 
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1261,7 +1261,7 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
         printDebugInfo = 1;
         useHTTPS = 0;
 
-        init_all(false, true, init_SEK);
+        initAll(false, true, init_SEK);
         //init_enclave();
 
         int errStatus = -1;

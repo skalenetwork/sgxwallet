@@ -30,7 +30,7 @@
 #define EXTERNC
 #endif
 
-EXTERNC void init_all(bool check_cert, bool sign_automatically, void (*func)());
+EXTERNC void initAll(bool check_cert, bool sign_automatically, void (*func)());
 
 EXTERNC void init_daemon();
 

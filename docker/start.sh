@@ -21,7 +21,7 @@ if [ "$1" = -t ]; then
   ./testw [AES-encrypt-decrypt]
 ./testw [ecdsa_api_test]
 #./testw [dkg-encr_sshares]
- ./testw [bls_sign]
+ #./testw [bls_sign]
 ./testw [many_threads_test]
   ./testw [aes_dkg]
 else

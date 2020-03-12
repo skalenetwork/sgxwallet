@@ -735,20 +735,20 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
 }
 
 
-Json::Value SGXWalletServer::generateDKGPoly(const string &polyName, int t) {
+Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     spdlog::info("entered generateDKGPoly");
     lock_guard<recursive_mutex> lock(m);
-    return generateDKGPolyImpl(polyName, t);
+    return generateDKGPolyImpl(_polyName, _t);
 }
 
-Json::Value SGXWalletServer::getVerificationVector(const string &polyName, int t, int n) {
+Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName, int _t, int _n) {
     lock_guard<recursive_mutex> lock(m);
-    return getVerificationVectorImpl(polyName, t, n);
+    return getVerificationVectorImpl(_polynomeName, _t, _n);
 }
 
-Json::Value SGXWalletServer::getSecretShare(const string &polyName, const Json::Value &publicKeys, int t, int n) {
+Json::Value SGXWalletServer::getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n) {
     lock_guard<recursive_mutex> lock(m);
-    return getSecretShareImpl(polyName, publicKeys, t, n);
+    return getSecretShareImpl(_polyName, _publicKeys, t, n);
 }
 
 Json::Value
@@ -776,9 +776,9 @@ Json::Value SGXWalletServer::generateECDSAKey() {
     return generateECDSAKeyImpl();
 }
 
-Json::Value SGXWalletServer::renameECDSAKey(const string &KeyName, const string &tempKeyName) {
+Json::Value SGXWalletServer::renameECDSAKey(const string &_keyName, const string &_tmpKeyName) {
     lock_guard<recursive_mutex> lock(m);
-    return renameECDSAKeyImpl(KeyName, tempKeyName);
+    return renameECDSAKeyImpl(_keyName, _tmpKeyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
@@ -787,13 +787,13 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
 }
 
 
-Json::Value SGXWalletServer::ecdsaSignMessageHash(int base, const string &_keyName, const string &messageHash) {
+Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash) {
     lock_guard<recursive_mutex> lock(m);
     spdlog::info("entered ecdsaSignMessageHash");
     if (printDebugInfo) {
-        spdlog::info("MessageHash first {}", messageHash);
+        spdlog::info("MessageHash first {}", _messageHash);
     }
-    return ecdsaSignMessageHashImpl(base, _keyName, messageHash);
+    return ecdsaSignMessageHashImpl(_base, _keyShareName, _messageHash);
 }
 
 
@@ -804,15 +804,15 @@ SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keySh
     return importBLSKeyShareImpl(_keyShare, _keyShareName, _t, _n, index);
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const string &keyShareName, const string &messageHash, int t, int n,
-                                                int signerIndex) {
+Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
+                                                int _signerIndex) {
     lock_guard<recursive_mutex> lock(m);
-    return blsSignMessageHashImpl(keyShareName, messageHash, t, n, signerIndex);
+    return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n, _signerIndex);
 }
 
-Json::Value SGXWalletServer::importECDSAKey(const string &key, const string &keyName) {
+Json::Value SGXWalletServer::importECDSAKey(const string &_key, const string &_keyName) {
     lock_guard<recursive_mutex> lock(m);
-    return importECDSAKeyImpl(key, keyName);
+    return importECDSAKeyImpl(_key, _keyName);
 }
 
 Json::Value SGXWalletServer::complaintResponse(const string &polyName, int ind) {

@@ -45,23 +45,23 @@ public:
     importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int _t, int _n, int index);
 
     virtual Json::Value
-    blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n, int signerIndex);
+    blsSignMessageHash(const std::string &_keyShareName, const std::string &_messageHash, int _t, int _n, int _signerIndex);
 
-    virtual Json::Value importECDSAKey(const std::string &key, const std::string &keyName);
+    virtual Json::Value importECDSAKey(const std::string &_key, const std::string &_keyName);
 
     virtual Json::Value generateECDSAKey();
 
-    virtual Json::Value renameECDSAKey(const std::string &KeyName, const std::string &tempKeyName);
+    virtual Json::Value renameECDSAKey(const std::string &_keyName, const std::string &_tmpKeyName);
 
-    virtual Json::Value ecdsaSignMessageHash(int base, const std::string &keyShareName, const std::string &messageHash);
+    virtual Json::Value ecdsaSignMessageHash(int _base, const std::string &_keyShareName, const std::string &_messageHash);
 
-    virtual Json::Value getPublicECDSAKey(const std::string &keyName);
+    virtual Json::Value getPublicECDSAKey(const std::string &_keyName);
 
-    virtual Json::Value generateDKGPoly(const std::string &polyName, int t);
+    virtual Json::Value generateDKGPoly(const std::string &_polyName, int _t);
 
-    virtual Json::Value getVerificationVector(const std::string &polyName, int t, int n);
+    virtual Json::Value getVerificationVector(const std::string &_polynomeName, int _t, int _n);
 
-    virtual Json::Value getSecretShare(const std::string &polyName, const Json::Value &publicKeys, int t, int n);
+    virtual Json::Value getSecretShare(const std::string &_polyName, const Json::Value &_publicKeys, int t, int n);
 
     virtual Json::Value
     dkgVerification(const std::string &publicShares, const std::string &ethKeyName, const std::string &SecretShare,
