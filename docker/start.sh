@@ -19,7 +19,7 @@ if [ "$1" = -t ]; then
   ./testw [dkg_api_test]
   ./testw [is_poly_test]
   ./testw [AES-encrypt-decrypt]
-./testw [ecdsa_api_test]
+#./testw [ecdsa_api_test]
 #./testw [dkg-encr_sshares]
  #./testw [bls_sign]
 ./testw [many_threads_test]

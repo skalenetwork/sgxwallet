@@ -36,48 +36,50 @@ class SGXWalletServer : public AbstractStubServer {
 
 
     SGXWalletServer *server = nullptr;
-    std::recursive_mutex m;
+    recursive_mutex m;
 
 public:
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);
 
     virtual Json::Value
-    importBLSKeyShare(const std::string &_keyShare, const std::string &_keyShareName, int _t, int _n, int index);
+    importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n, int index);
 
     virtual Json::Value
-    blsSignMessageHash(const std::string &_keyShareName, const std::string &_messageHash, int _t, int _n, int _signerIndex);
+    blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
+                       int _signerIndex);
 
-    virtual Json::Value importECDSAKey(const std::string &_key, const std::string &_keyName);
+    virtual Json::Value importECDSAKey(const string &_key, const string &_keyName);
 
     virtual Json::Value generateECDSAKey();
 
-    virtual Json::Value renameECDSAKey(const std::string &_keyName, const std::string &_tmpKeyName);
-
-    virtual Json::Value ecdsaSignMessageHash(int _base, const std::string &_keyShareName, const std::string &_messageHash);
-
-    virtual Json::Value getPublicECDSAKey(const std::string &_keyName);
-
-    virtual Json::Value generateDKGPoly(const std::string &_polyName, int _t);
-
-    virtual Json::Value getVerificationVector(const std::string &_polynomeName, int _t, int _n);
-
-    virtual Json::Value getSecretShare(const std::string &_polyName, const Json::Value &_publicKeys, int t, int n);
+    virtual Json::Value renameECDSAKey(const string &_keyName, const string &_tmpKeyName);
 
     virtual Json::Value
-    dkgVerification(const std::string &publicShares, const std::string &ethKeyName, const std::string &SecretShare,
+    ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash);
+
+    virtual Json::Value getPublicECDSAKey(const string &_keyName);
+
+    virtual Json::Value generateDKGPoly(const string &_polyName, int _t);
+
+    virtual Json::Value getVerificationVector(const string &_polynomeName, int _t, int _n);
+
+    virtual Json::Value getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n);
+
+    virtual Json::Value
+    dkgVerification(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
                     int t, int n, int index);
 
     virtual Json::Value
-    createBLSPrivateKey(const std::string &blsKeyName, const std::string &ethKeyName, const std::string &polyName,
-                        const std::string &SecretShare, int t, int n);
+    createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName, const string &polyName,
+                        const string &SecretShare, int t, int n);
 
-    virtual Json::Value getBLSPublicKeyShare(const std::string &blsKeyName);
+    virtual Json::Value getBLSPublicKeyShare(const string &blsKeyName);
 
-    virtual Json::Value complaintResponse(const std::string &polyName, int ind);
+    virtual Json::Value complaintResponse(const string &polyName, int ind);
 
-    virtual Json::Value multG2(const std::string &x);
+    virtual Json::Value multG2(const string &x);
 
-    virtual Json::Value isPolyExists(const std::string &polyName);
+    virtual Json::Value isPolyExists(const string &polyName);
 
     virtual Json::Value getServerStatus();
 
@@ -85,48 +87,48 @@ public:
 
     static void writeDataToDB(const string &Name, const string &value);
 
-    static void writeKeyShare(const string &_keyShareName, const string &value, int index, int n, int t);
+    static void writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t);
 
-    static shared_ptr<std::string> readKeyShare(const string &_keyShare);
-
-    static Json::Value
-    importBLSKeyShareImpl(const std::string &keyShare, const std::string &keyShareName, int t, int n, int index);
+    static shared_ptr<string> readKeyShare(const string &_keyShare);
 
     static Json::Value
-    blsSignMessageHashImpl(const std::string &keyShareName, const std::string &messageHash, int t, int n,
-                           int signerIndex);
+    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index);
 
-    static Json::Value importECDSAKeyImpl(const std::string &_key, const std::string &_keyName);
+    static Json::Value
+    blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n,
+                           int _signerIndex);
+
+    static Json::Value importECDSAKeyImpl(const string &_key, const string &_keyName);
 
     static Json::Value generateECDSAKeyImpl();
 
-    static Json::Value renameECDSAKeyImpl(const std::string &KeyName, const std::string &tempKeyName);
+    static Json::Value renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName);
 
-    static Json::Value ecdsaSignMessageHashImpl(int base, const std::string &keyName, const std::string &messageHash);
+    static Json::Value ecdsaSignMessageHashImpl(int _base, const string &keyName, const string &_messageHash);
 
-    static Json::Value getPublicECDSAKeyImpl(const std::string &keyName);
+    static Json::Value getPublicECDSAKeyImpl(const string &_keyName);
 
-    static Json::Value generateDKGPolyImpl(const std::string &polyName, int t);
+    static Json::Value generateDKGPolyImpl(const string &_polyName, int _t);
 
-    static Json::Value getVerificationVectorImpl(const std::string &polyName, int t, int n);
+    static Json::Value getVerificationVectorImpl(const string &_polyName, int _t, int _n);
 
-    static Json::Value getSecretShareImpl(const std::string &polyName, const Json::Value &publicKeys, int t, int n);
-
-    static Json::Value
-    dkgVerificationImpl(const std::string &publicShares, const std::string &ethKeyName, const std::string &SecretShare,
-                        int t, int n, int index);
+    static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_publicKeys, int _t, int _n);
 
     static Json::Value
-    createBLSPrivateKeyImpl(const std::string &blsKeyName, const std::string &ethKeyName, const std::string &polyName,
-                            const std::string &SecretShare, int t, int n);
+    dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare,
+                        int _t, int _n, int _index);
 
-    static Json::Value getBLSPublicKeyShareImpl(const std::string &blsKeyName);
+    static Json::Value
+    createBLSPrivateKeyImpl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
+                            const string &_secretShare, int _t, int _n);
 
-    static Json::Value complaintResponseImpl(const std::string &polyName, int ind);
+    static Json::Value getBLSPublicKeyShareImpl(const string &_blsKeyName);
 
-    static Json::Value multG2Impl(const std::string &x);
+    static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
 
-    static Json::Value isPolyExistsImpl(const std::string &polyName);
+    static Json::Value multG2Impl(const string &_x);
+
+    static Json::Value isPolyExistsImpl(const string &_polyName);
 
     static Json::Value getServerStatusImpl();
 
