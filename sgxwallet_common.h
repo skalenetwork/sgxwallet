@@ -35,9 +35,9 @@
 
 
 
-extern int DEBUG_PRINT;
-extern int is_sgx_https;
-extern int is_aes;
+extern int printDebugInfo;
+extern int useHTTPS;
+extern int encryptKeys;
 extern bool autoconfirm;
 
 #define BUF_LEN 1024

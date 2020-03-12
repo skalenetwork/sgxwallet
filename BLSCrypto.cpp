@@ -306,7 +306,7 @@ bool sign_aes(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, siz
 bool bls_sign(const char* _encryptedKeyHex, const char* _hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char* _sig) {
 
-  if (!is_aes){
+  if (!encryptKeys){
     return sign(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
   }
   else{
@@ -326,7 +326,7 @@ char* encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
     status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
-    if (DEBUG_PRINT) {
+    if (printDebugInfo) {
       spdlog::info("errStatus is {}",*errStatus);
       spdlog::info(" errMsg is ", errMsg->data() );
     }

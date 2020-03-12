@@ -64,13 +64,14 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "SGXWalletServer.hpp"
 #include "SGXWALLET_VERSION"
 
 //#include <system>
 
 
 
-void init_daemon() {
+void initDaemon() {
 
     libff::init_alt_bn128_params();
 
@@ -79,7 +80,7 @@ void init_daemon() {
 
 
 
-void init_enclave() {
+void initEnclave() {
 
     eid = 0;
     updated = 0;
@@ -95,7 +96,7 @@ void init_enclave() {
     }
 #endif
 
-    if ( DEBUG_PRINT) {
+    if ( printDebugInfo) {
       spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
     }
 
@@ -121,7 +122,7 @@ void init_enclave() {
         exit(1);
     }
 
-    if (DEBUG_PRINT) {
+    if (printDebugInfo) {
       spdlog::info("libtgmp initialized");
       //fprintf(stderr, "libtgmp initialized\n");
     }
@@ -130,27 +131,27 @@ void init_enclave() {
 
 int sgxServerInited = 0;
 
-void init_all(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
+void initAll(bool _checkCert, bool _autoSign, void (*SEK_func)()) {
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
 
     //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
-    init_enclave();
-    init_daemon();
+    initEnclave();
+    initDaemon();
     //init_SEK();
     SEK_func();
 
     sgxServerInited = 1;
 
-    if (is_sgx_https) {
-      init_https_server(check_cert);
-      init_registration_server(sign_automatically);
+    if (useHTTPS) {
+        SGXWalletServer::initHttpsServer(_checkCert);
+        initRegistrationServer(_autoSign);
       init_csrmanager_server();
     }
     else {
-      init_http_server();
+        SGXWalletServer::initHttpServer();
     }
 
     //std::cerr << "enclave inited" << std::endl;

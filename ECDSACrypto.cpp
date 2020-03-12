@@ -51,7 +51,7 @@ std::vector<std::string> gen_ecdsa_key(){
   char *pub_key_y = (char *)calloc(1024, 1);
   uint32_t enc_len = 0;
 
-  if ( !is_aes)
+  if ( !encryptKeys)
      status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
   else
      status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y );
@@ -61,7 +61,7 @@ std::vector<std::string> gen_ecdsa_key(){
     throw RPCException(status, errMsg) ;
   }
   std::vector<std::string> keys(3);
-  if (DEBUG_PRINT) {
+  if (printDebugInfo) {
     std::cerr << "account key is " << errMsg << std::endl;
     std::cerr << "enc_len is " << enc_len << std::endl;
    // std::cerr << "enc_key is "  << std::endl;
@@ -77,7 +77,7 @@ std::vector<std::string> gen_ecdsa_key(){
 
 
   unsigned long seed = rand_gen();
-  if (DEBUG_PRINT) {
+  if (printDebugInfo) {
     spdlog::info("seed is {}", seed);
     std::cerr << "strlen is " << strlen(hexEncrKey) << std::endl;
   }
@@ -122,7 +122,7 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
     throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
 
-  if ( !is_aes)
+  if ( !encryptKeys)
    status = get_public_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   else status = get_public_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, enc_len, pub_key_x, pub_key_y );
   if (err_status != 0){
@@ -130,7 +130,7 @@ std::string get_ecdsa_pubkey(const char* encryptedKeyHex){
   }
   std::string pubKey = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
-  if (DEBUG_PRINT) {
+  if (printDebugInfo) {
     spdlog::info("enc_len is {}", enc_len);
     spdlog::info("pubkey is {}", pubKey);
     spdlog::info("pubkey length is {}", pubKey.length());
@@ -162,20 +162,20 @@ std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char
       throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
   }
 
-  if (DEBUG_PRINT) {
+  if (printDebugInfo) {
     spdlog::info("encryptedKeyHex: {}", encryptedKeyHex);
     spdlog::info("HASH: {}", hashHex);
     spdlog::info("encrypted len: {}", dec_len);
   }
 
-  if (!is_aes)
+  if (!encryptKeys)
    status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
   else status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char*)hashHex, signature_r, signature_s, &signature_v, base );
   if ( err_status != 0){
     throw RPCException(-666, errMsg ) ;
   }
 
-  if (DEBUG_PRINT) {
+  if (printDebugInfo) {
     spdlog::info("signature r in  ecdsa_sign_hash: {}", signature_r);
     spdlog::info("signature s in  ecdsa_sign_hash: {}", signature_s);
   }

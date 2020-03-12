@@ -121,10 +121,10 @@ char *encryptTestKey() {
 
 
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
-    DEBUG_PRINT = 1;
-    is_sgx_https = 0;
+    printDebugInfo = 1;
+    useHTTPS = 0;
     autoconfirm = true;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
     free(key);
@@ -134,11 +134,11 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
 TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     {
 
-        DEBUG_PRINT = 1;
-        is_sgx_https = 0;
+        printDebugInfo = 1;
+        useHTTPS = 0;
         autoconfirm = true;
 
-        init_all(false, true, init_SEK);
+        initAll(false, true, init_SEK);
 
         //init_enclave();
 
@@ -169,7 +169,7 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
 
     autoconfirm = true;
     //init_all();
-    init_enclave();
+    initEnclave();
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -257,7 +257,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
     autoconfirm = true;
     //init_all();
     libff::init_alt_bn128_params();
-    init_enclave();
+    initEnclave();
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -327,7 +327,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
 TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
     autoconfirm = true;
     // init_all();
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 1);
     vector<char> result(130, 1);
@@ -363,7 +363,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 TEST_CASE("DKG verification test", "[dkg-verify]") {
     autoconfirm = true;
     // init_all();
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     vector<char> result(130, 0);
@@ -401,7 +401,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
     autoconfirm = true;
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -446,7 +446,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
 TEST_CASE("Test test", "[test_test]") {
     autoconfirm = true;
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -476,7 +476,7 @@ TEST_CASE("Test test", "[test_test]") {
 TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     autoconfirm = true;
     //init_all();
-    init_enclave();
+    initEnclave();
 
     int err_status = 0;
     vector<char> errMsg(1024, 0);
@@ -549,10 +549,10 @@ string ConvertDecToHex(string dec, int numBytes = 32) {
 
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
-    is_sgx_https = 0;
-    DEBUG_PRINT = 1;
+    useHTTPS = 0;
+    printDebugInfo = 1;
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -683,10 +683,10 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 TEST_CASE("API test", "[api_test]") {
     autoconfirm = true;
     //DEBUG_PRINT = 1;
-    is_sgx_https = 0;
+    useHTTPS = 0;
     //cerr << __GNUC__ << endl;
     cerr << "API test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -789,8 +789,8 @@ TEST_CASE("API test", "[api_test]") {
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
     autoconfirm = true;
-    is_sgx_https = 0;
-    init_all(false, true, init_SEK);
+    useHTTPS = 0;
+    initAll(false, true, init_SEK);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -911,11 +911,11 @@ void SendRPCRequest() {
 
 TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
     autoconfirm = true;
-    is_sgx_https = 0;
-    DEBUG_PRINT = 1;
-    is_aes = 1;
+    useHTTPS = 0;
+    printDebugInfo = 1;
+    encryptKeys = 1;
 
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     vector<thread> threads;
     int num_threads = 4;
@@ -932,12 +932,12 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
     autoconfirm = true;
-    DEBUG_PRINT = 1;
-    is_sgx_https = 0;
-    is_aes = 1;
+    printDebugInfo = 1;
+    useHTTPS = 0;
+    encryptKeys = 1;
 
     cerr << "ecdsa_api_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -984,11 +984,11 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
     autoconfirm = true;
-    DEBUG_PRINT = 1;
-    is_sgx_https = 0;
+    printDebugInfo = 1;
+    useHTTPS = 0;
 
     cerr << "dkg_api_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1062,11 +1062,11 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
 
 TEST_CASE("isPolyExists test", "[is_poly_test]") {
     autoconfirm = true;
-    DEBUG_PRINT = 1;
-    is_sgx_https = 0;
+    printDebugInfo = 1;
+    useHTTPS = 0;
 
     cerr << "is_poly_test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
 
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
@@ -1091,14 +1091,14 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
 
 TEST_CASE("AES_DKG test", "[aes_dkg]") {
     autoconfirm = true;
-    is_sgx_https = 0;
-    DEBUG_PRINT = 1;
-    is_aes = 1;
+    useHTTPS = 0;
+    printDebugInfo = 1;
+    encryptKeys = 1;
 
     reset_db();
 
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1223,12 +1223,12 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
 
 TEST_CASE("bls_sign_api test", "[bls_sign]") {
     autoconfirm = true;
-    is_sgx_https = 0;
-    DEBUG_PRINT = 1;
-    is_aes = 1;
+    useHTTPS = 0;
+    printDebugInfo = 1;
+    encryptKeys = 1;
 
     cerr << "test started" << endl;
-    init_all(false, true, init_SEK);
+    initAll(false, true, init_SEK);
     cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1258,10 +1258,10 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
 TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
     {
         autoconfirm = true;
-        DEBUG_PRINT = 1;
-        is_sgx_https = 0;
+        printDebugInfo = 1;
+        useHTTPS = 0;
 
-        init_all(false, true, init_SEK);
+        initAll(false, true, init_SEK);
         //init_enclave();
 
         int errStatus = -1;

@@ -44,10 +44,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 
 
-
 void usage() {
-  fprintf(stderr, "usage: sgxwallet\n");
-  exit(1);
+    fprintf(stderr, "usage: sgxwallet\n");
+    exit(1);
 }
 
 sgx_launch_token_t token = {0};
@@ -55,67 +54,74 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
+void printUsage() {
+    fprintf(stderr, "Available flags:\n");
+    fprintf(stderr, "-c  do not verify client certificate\n");
+    fprintf(stderr, "-s  sign client certificate without human confirmation \n");
+    fprintf(stderr, "-d  turn on debug output\n");
+    fprintf(stderr, "-0  launch SGXWalletServer using http (not https)\n");
+    fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
+    fprintf(stderr, "-y  Do not ask user to acknoledge receipt of backup key \n");
+}
+
 int main(int argc, char *argv[]) {
-  void (*SEK_initializer)();
-  SEK_initializer = init_SEK;
-  bool check_client_cert = true;
-  bool sign_automatically = false;
-  int opt;
+    void (*SEK_initializer)();
+    SEK_initializer = init_SEK;
+    bool checkClientCert = true;
+    bool sign_automatically = false;
+    int opt;
 
-  if (argc > 1 && strlen(argv[1])==1){
-    fprintf(stderr, "option is too short %s\n", argv[1]);
-    exit(1);
-  }
-
-  is_aes = 0;  
-
-  while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
-    switch (opt) {
-    case 'h':
-      if (strlen(argv[1]) == 2 ) {
-        fprintf(stderr, "-c  do not verify client certificate\n");
-        fprintf(stderr, "-s  sign client certificate without human confirmation \n");
-        fprintf(stderr, "-d  turn on debug output\n");
-        fprintf(stderr, "-0  launch SGXWalletServer using http (not https)\n");
-        fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
-        fprintf(stderr, "-y  Do not ask user to acknoledge receipt of backup key \n");
-        exit(0);
-      } else {
-        fprintf(stderr, "unknown flag %s\n", argv[1]);
+    if (argc > 1 && strlen(argv[1]) == 1) {
+        fprintf(stderr, "option is too short %s\n", argv[1]);
         exit(1);
-      }
-    case 'c':
-      check_client_cert = false;
-      break;
-    case 's':
-      sign_automatically = true;
-      break;
-    case 'd':
-      DEBUG_PRINT = 1;
-      break;
-    case '0':
-      is_sgx_https = 0;
-     break;
-    case 'a':
-      is_aes = 0;
-      break;
-    case 'b':
-      SEK_initializer = enter_SEK;
-      break;
-    case 'y':
-       autoconfirm = true;
-       break;
-    case '?': // fprintf(stderr, "unknown flag\n");
-      exit(1);
-    default:
-      break;
     }
-  }
-  init_all(check_client_cert, sign_automatically, SEK_initializer);
 
-  while (true) {
-      sleep(10);
-  }
+    encryptKeys = 0;
 
-  return 0;
+    while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
+        switch (opt) {
+            case 'h':
+                if (strlen(argv[1]) == 2) {
+                    printUsage();
+                    exit(0);
+                } else {
+                    fprintf(stderr, "unknown flag %s\n", argv[1]);
+                    printUsage();
+                    exit(1);
+                }
+            case 'c':
+                checkClientCert = false;
+                break;
+            case 's':
+                sign_automatically = true;
+                break;
+            case 'd':
+                printDebugInfo = 1;
+                break;
+            case '0':
+                useHTTPS = 0;
+                break;
+            case 'a':
+                encryptKeys = 0;
+                break;
+            case 'b':
+                SEK_initializer = enter_SEK;
+                break;
+            case 'y':
+                autoconfirm = true;
+                break;
+            case '?':
+                printUsage();
+                exit(1);
+            default:
+                break;
+        }
+    }
+    initAll(checkClientCert, sign_automatically, SEK_initializer);
+
+    while (true) {
+        sleep(10);
+    }
+
+    return 0;
 }

@@ -33,14 +33,12 @@ using namespace std;
 
 class SGXRegistrationServer: public AbstractRegServer {
   std::recursive_mutex m;
-  bool is_cert_created;
-  bool cert_auto_sign;
-
-  //std::string hash;
+  bool isCertCreated;
+  bool autoSign;
 
 public:
 
-  SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool auto_sign = false);
+  SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
 
   void set_cert_created(bool b);
 
@@ -50,7 +48,7 @@ public:
 };
 
 
-extern int init_registration_server(bool sign_automatically = false);
+extern int initRegistrationServer(bool _autoSign = false);
 
 
 
