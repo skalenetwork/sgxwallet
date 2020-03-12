@@ -71,7 +71,7 @@
 
 
 
-void init_daemon() {
+void initDaemon() {
 
     libff::init_alt_bn128_params();
 
@@ -80,7 +80,7 @@ void init_daemon() {
 
 
 
-void init_enclave() {
+void initEnclave() {
 
     eid = 0;
     updated = 0;
@@ -131,23 +131,23 @@ void init_enclave() {
 
 int sgxServerInited = 0;
 
-void initAll(bool check_cert, bool sign_automatically, void (*SEK_func)()) {
+void initAll(bool _checkCert, bool _autoSign, void (*SEK_func)()) {
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
 
     //spdlog::set_pattern("%c");
     if (sgxServerInited == 1)
         return;
-    init_enclave();
-    init_daemon();
+    initEnclave();
+    initDaemon();
     //init_SEK();
-    func();
+    SEK_func();
 
     sgxServerInited = 1;
 
     if (useHTTPS) {
-        SGXWalletServer::initHttpsServer(check_cert);
-        initRegistrationServer(sign_automatically);
+        SGXWalletServer::initHttpsServer(_checkCert);
+        initRegistrationServer(_autoSign);
       init_csrmanager_server();
     }
     else {

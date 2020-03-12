@@ -169,7 +169,7 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
 
     autoconfirm = true;
     //init_all();
-    init_enclave();
+    initEnclave();
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -257,7 +257,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
     autoconfirm = true;
     //init_all();
     libff::init_alt_bn128_params();
-    init_enclave();
+    initEnclave();
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -327,7 +327,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
 TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
     autoconfirm = true;
     // init_all();
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 1);
     vector<char> result(130, 1);
@@ -363,7 +363,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 TEST_CASE("DKG verification test", "[dkg-verify]") {
     autoconfirm = true;
     // init_all();
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     vector<char> result(130, 0);
@@ -401,7 +401,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
     autoconfirm = true;
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -446,7 +446,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
 TEST_CASE("Test test", "[test_test]") {
     autoconfirm = true;
-    init_enclave();
+    initEnclave();
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -476,7 +476,7 @@ TEST_CASE("Test test", "[test_test]") {
 TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     autoconfirm = true;
     //init_all();
-    init_enclave();
+    initEnclave();
 
     int err_status = 0;
     vector<char> errMsg(1024, 0);
