@@ -10,20 +10,17 @@ Install docker-compose if you do not have it.
 sudo apt-get install docker.io docker-compose
 ```
 
-## Run sgxwallet in secure SGX mode
+## Run sgxwallet in secure mode
 
-Run the latest sgxwallet docker container image in SGX mode
+```bash
+cd run_sgx; sudo docker-compose up -d
+```
 
-    cd run_sgx; 
-    sudo docker-compose up -d
-
-You should see "SGX Server started message".
+You should see "SGX Server started" message.
 
 Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
 as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
 device to use. 
-
-
 
 ## Start, stop and upgrade sgxwallet containers
 
