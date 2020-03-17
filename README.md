@@ -29,24 +29,12 @@ The sgxwallet server is still in active development and therefore should be rega
 
 The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
 
-Get it with [Docker](https://www.docker.com/):
+First install docker-compose if you dont have it [Docker](https://linuxize.com/post/how-to-install-and-use-docker-compose-on-ubuntu-18-04/).
+
+Then run sgxwallet using docker compose
 
 ```bash
-$ docker pull skalenetwork/sgxwalletsim
-
-```
-
-Then run: 
-
-```bash
-$ docker run -it --network host --name sgxwalletsim skalenetwork/sgxwalletsim
-
-```
-
-or for detached mode:
-
-```bash
-$ docker run -di --network host --name sgxwalletsim skalenetwork/sgxwalletsim
+$ cd run_sgx; sudo docker-compose up
 
 ```
 
