@@ -2,9 +2,9 @@
 
 ## Introduction
 
--   [Getting Started](index.md)
 -   [Prerequisites for sgxwallet containers](prerequisites.md)
--   [Enabling SGX](enabling-sgx.md)
+-   [Enable SGX](enabling-sgx.md)
+
 -   [Example sgxwallet certificate instantiation](examples.md#example-of-client-certificate-instantiation)
 
 ## Community

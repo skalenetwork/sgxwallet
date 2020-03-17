@@ -1,10 +1,10 @@
 # Admin guide
 
-## Introduction
+## Running SGX in secure mode.
 
--   [Prerequisites for sgxwallet containers](prerequisites.md)
--   [Enabling SGX](enabling-sgx.md)
--   [Example sgxwallet certificate instantiation](examples.md#example-of-client-certificate-instantiation)
+-   [Verify that your hardware and software can run SGX](prerequisites.md)
+-   [Enable SGX](enabling-sgx.md)
+-   [Instantiate sgxwallet certificate](examples.md#example-of-client-certificate-instantiation)
 
 ## Community
 
