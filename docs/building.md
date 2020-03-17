@@ -1,8 +1,8 @@
-# Building the sgxwallet server
+# Building SGX wallet from source
 
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-This document describes how to build sgxwallet on Ubuntu 18.04 systems. Currently, systems other than Ubuntu  (such as Windows, MacOS, ...) are not currently supported.
+This document describes how to build sgxwallet on Ubuntu 18.04. 
 
 ## Clone this repository and its submodules
 

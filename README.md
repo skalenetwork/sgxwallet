@@ -41,16 +41,16 @@ $ cd run_sgx; sudo docker-compose up
 Note: sgxwallet requires docker-compose for correct operation. You must always use 
 docker-compose and avoid using raw docker tools.
 
-### Admin guide
+## Admin guide
 
-If you are an SKALE validator and want to run sgxwallet for testnet or mainnet usage, 
-please refer to Admin guide to setup and configure sgxwallet container 
+If you are a SKALE validator and want to run sgxwallet for testnet or mainnet usage, 
+please refer to Admin guide. 
  [docs/admin_guide.md](docs/admin_guide.md).
 
 ## Developer guide
 
-If you are a SKALE developer and want to build sgxwallet from source,  
-see [docs/developer_guide.md](docs/developer_guide.md).
+If you are a SKALE developer and want to build sgxwallet from source, please refer to Developer
+guide [docs/developer_guide.md](docs/developer_guide.md).
 
 ## Contributing
 
