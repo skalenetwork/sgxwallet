@@ -53,7 +53,7 @@ Never run a production sgxserver in simulation mode.
 
 If you are a SKALE validator and want to run sgxwallet for testnet or mainnet usage, you need
  a SGX-capable server.  
-Please refer to Admin guide for details on how to setup sgxwallet in a secure hardware mode. 
+Please refer to Admin guide for details on how to setup sgxwallet in a secure hardware mode 
  [docs/admin_guide.md](docs/admin_guide.md).
 
 ## Developer guide
