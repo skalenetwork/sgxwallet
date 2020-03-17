@@ -1,6 +1,6 @@
 # Admin guide
 
-## Running SGX in secure mode.
+## Running SGX in secure mode
 
 -   [Verify that your hardware and software can run SGX](prerequisites.md)
 -   [Enable SGX](enabling-sgx.md)
