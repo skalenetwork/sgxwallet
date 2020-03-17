@@ -38,25 +38,25 @@ $ cd run_sgx; sudo docker-compose up
 
 ```
 
-### Admin Guide
+Note: sgxwallet requires docker-compose for correct operation. You must always use 
+docker-compose and avoid using raw docker tools.
 
-Please refer to Admin guide To setup sgxwallet container for testnets or mainnet usage, 
+### Admin guide
+
+If you are an SKALE validator and want to run sgxwallet for testnet or mainnet usage, 
+please refer to Admin guide to setup and configure sgxwallet container 
  [docs/admin_guide.md](docs/admin_guide.md).
 
 ## Developer guide
 
-If you want to build sgxwallet from source,  
+If you are a SKALE developer and want to build sgxwallet from source,  
 see [docs/developer_guide.md](docs/developer_guide.md).
-
-## Documentation
-
-See [docs](docs) for sgxwallet documentation.
 
 ## Contributing
 
 See [contributing](CONTRIBUTING.md) for information on how to contribute.
 
-## Libraries
+## Libraries used by this project
 
 -   [Intel-SGX-SSL by Intel](https://github.com/intel/intel-sgx-ssl)
 -   [LevelDB by Google](https://github.com/google/leveldb)
