@@ -1,27 +1,29 @@
-# Configuring sgxwallet server
+# Configuring sgxwallet server in hardware secure mode
 
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
 ## Docker Compose configuration
 
-To try the server:
-
 Install docker-compose if you do not have it.
 
 ```bash
 sudo apt-get install docker.io docker-compose
-
 ```
 
-And then do 
+## Run sgxwallet in secure SGX mode
 
-```bash
-cd run_sgx_sim; 
-sudo docker-compose up
+Run the latest sgxwallet docker container image in SGX mode
 
-```
+    cd run_sgx; 
+    sudo docker-compose up -d
 
-Voila! You should see the "SGX Server started" message.
+You should see "SGX Server started message".
+
+Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
+as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
+device to use. 
+
+
 
 ## Start, stop and upgrade sgxwallet containers
 
@@ -55,18 +57,6 @@ Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initia
 If you have a firewall on your network, please make sure these ports are open so clients are able to
 connect to the server. 
 
-## Run sgxwallet in secure SGX mode
-
-Run the latest sgxwallet docker container image in SGX mode
-
-    cd run_sgx; 
-    sudo docker-compose up -d
-
-You should see "SGX Server started message".
-
-Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
-as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
-device to use. 
 
 ## Logging
 
