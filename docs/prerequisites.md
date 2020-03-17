@@ -4,8 +4,8 @@
 
 sgxwallet depends on several freely available
 software components. These must be installed and configured before
-compiling sgxwallet.
-This document describes how to get and compile these required components.
+running sgxwallet.
+This docment describes how to install and configure these required components.
 
 # Table of Contents
 
@@ -18,22 +18,18 @@ This document describes how to get and compile these required components.
 
 sgxwallet should be ran on Ubuntu 18.04. Sgxwallet has been tested on Ubuntu 18.04.
 
-Sgxwallet may run on other Linux distributions, but the installation process is likely to be more complicated, and the use of other distributions is not supported by their respective communities at this time.
+Sgxwallet may run on other Linux distributions, 
+but the installation process is likely to be more complicated, 
+and the use of other distributions is not supported by their respective communities at this time.
 
-## Docker
-
-Docker may be used instead of building sgxwallet directly (standalone mode) and is recommended. If you build using Docker, you need to install Docker Engine and Docker Compose if it is not already installed.
 
 ### To install Docker CE Engine:
 
-```bash
-sudo apt-get install -y apt-transport-https ca-certificates
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install -y docker-ce
+Docker CE engine is pre-installed on Ubuntu 18.04.  You can re-install it as 
+described below
 
+```bash
+sudo apt-get install -y docker-io
 ```
 
 To verify a correct installation, run `sudo docker run hello-world`
@@ -41,11 +37,7 @@ To verify a correct installation, run `sudo docker run hello-world`
 ### To install Docker Compose:
 
 ```bash
-sudo curl -L \
-   https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` \
-   -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
+sudo apt-get install -y docker-compose
 ```
 
 To verify a correct installation, run `docker-compose version`
@@ -54,41 +46,10 @@ For details on Docker installation, see <https://docs.docker.com/engine/installa
 
 ## Intel® Software Guard Extensions (Intel SGX)
 
-Sgxwallet is intended to be run on Intel SGX-enabled platforms. However, it can also be run in "simulator mode" on platforms that do not have hardware support for Intel SGX. Support for other hardware-based Trusted Execution Environments (TEEs) can be added by submitting a Pull Request.
+Sgxwallet is intended to be run on Intel SGX-enabled platforms. 
+However, it can also be run in "simulator mode" on platforms that do not have hardware support for Intel SGX. 
+Support for other hardware-based  Trusted Execution Environments (TEEs) can be added by submitting a Pull Request.
 
-### Intel SGX SDK
-
-The Intel SGX SDK is required for both Intel SGX hardware platform and Intel SGX simulator mode.
-The following instructions download the Intel SGX SDK 2.5 and installs it in
-`/opt/intel/sgxsdk/` :
-
-```bash
-sudo mkdir -p /opt/intel
-cd /opt/intel
-sudo wget https://download.01.org/intel-sgx/linux-2.5/rhel7.4-server/sgx_linux_x64_psw_2.5.100.49891.bin
-echo "yes" | sudo bash ./sgx_linux_x64_sdk_2.5.100.49891.bin
-
-```
-
-This installs the Intel SGX SDK in the recommended location,
-`/opt/intel/sgxsdk` .
-The Intel SGX OpenSSL library expects the SDK to be here by default.
-
-After installing, source the Intel SGX SDK activation script to set
-`$SGX_SDK`, `$PATH`, `$PKG_CONFIG_PATH`, and `$LD_LIBRARY_PATH`.
-Append this line to your login shell script (`~/.bashrc` or similar):
-
-```bash
-source /opt/intel/sgxsdk/environment
-echo "source /opt/intel/sgxsdk/environment" >>~/.bashrc
-
-```
-
-To learn more about Intel SGX read the
-[Intel SGX SDK documentation](https://software.intel.com/en-us/sgx-sdk/documentation)
-or visit the [Intel SGX homepage](https://software.intel.com/en-us/sgx).
-Downloads are listed at
-[Intel SGX Downloads for Linux](https://01.org/intel-software-guard-extensions/downloads).
 
 ### Intel SGX in Hardware Mode
 
