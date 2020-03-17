@@ -2,7 +2,6 @@
 
 ## Introduction
 
--   [README.md](../README.md) Overview of sgxwallet
 -   [Getting Started](index.md)
 -   [Prerequisites for sgxwallet containers](prerequisites.md)
 -   [Enabling SGX](enabling-sgx.md)
