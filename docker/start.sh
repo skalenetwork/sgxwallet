@@ -23,7 +23,7 @@ if [ "$1" = -t ]; then
 #./testw [dkg-encr_sshares]
  #./testw [bls_sign]
 #./testw [many_threads_test]
-  ./testw [aes_dkg]
+#  ./testw [aes_dkg]
 else
    ./sgxwallet $1 $2 $3 $4
 fi
