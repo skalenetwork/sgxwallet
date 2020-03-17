@@ -29,7 +29,7 @@ The sgxwallet server is still in active development and therefore should be rega
 
 The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
 
-First install docker-compose if you dont have it [Docker](https://linuxize.com/post/how-to-install-and-use-docker-compose-on-ubuntu-18-04/).
+First install docker-compose if you dont have it [as described here](https://linuxize.com/post/how-to-install-and-use-docker-compose-on-ubuntu-18-04/).
 
 Then run sgxwallet using docker compose
 
@@ -38,23 +38,25 @@ $ cd run_sgx; sudo docker-compose up
 
 ```
 
-### SKALE Network usage
+Note: sgxwallet requires docker-compose for correct operation. You must always use 
+docker-compose and avoid using raw docker tools.
 
-To setup sgxwallet container for testnets or mainnet usage, you must use docker-compose to configure the sgxwallet container. Please see [docs/configuring.md](docs/configuring.md).
+### Admin guide
 
-## Building
+If you are an SKALE validator and want to run sgxwallet for testnet or mainnet usage, 
+please refer to Admin guide to setup and configure sgxwallet container 
+ [docs/admin_guide.md](docs/admin_guide.md).
 
-See [docs/building.md](docs/building.md).
+## Developer guide
 
-## Documentation
-
-See [docs](docs) for sgxwallet documentation.
+If you are a SKALE developer and want to build sgxwallet from source,  
+see [docs/developer_guide.md](docs/developer_guide.md).
 
 ## Contributing
 
 See [contributing](CONTRIBUTING.md) for information on how to contribute.
 
-## Libraries
+## Libraries used by this project
 
 -   [Intel-SGX-SSL by Intel](https://github.com/intel/intel-sgx-ssl)
 -   [LevelDB by Google](https://github.com/google/leveldb)
