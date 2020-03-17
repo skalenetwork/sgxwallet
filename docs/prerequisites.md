@@ -39,20 +39,19 @@ To verify a correct installation, run `docker-compose version`
 For details on Docker installation, see <https://docs.docker.com/engine/installation/linux/ubuntu> and <https://docs.docker.com/compose/install/#install-compose>
 
 
-### Check your machine supports SGX
+###  Verify thatyour machine supports SGX
 
 Install cpuid and libelf-dev packages:
 
 ```bash
 sudo apt-get install -y libelf-dev cpuid
-
 ```
 
 Verify your processor supports Intel SGX with:
 
-'''bash
+```bash
 cpuid | grep SGX:
-''''
+```
 
 The printout shoud read  `SGX: Software Guard Extensions supported = true`
 

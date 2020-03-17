@@ -38,8 +38,7 @@ sudo apt-get install docker.io docker-compose
 Then run sgxwallet using docker-compose
 
 ```bash
-$ cd run_sgx_sim; sudo docker-compose up
-
+cd run_sgx_sim; sudo docker-compose up
 ```
 
 Note: sgxwallet requires docker-compose for correct operation. You must always use 
