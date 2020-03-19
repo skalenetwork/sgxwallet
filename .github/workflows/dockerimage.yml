@@ -12,7 +12,7 @@ jobs:
       - name: submodule update
         run: git submodule update --init --recursive
       - name: build
-        run: python3 scripts/docker_build.py ${GITHUB_REF##*/} Dockerfile sgxwallet {GITHUB_SHA}
+        run: python3 scripts/docker_build.py ${GITHUB_REF##*/} Dockerfile sgxwallet ${GITHUB_SHA}
       - name: push
-        run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet {GITHUB_SHA}
+        run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet ${GITHUB_SHA}
 
