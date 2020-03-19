@@ -52,6 +52,7 @@ topDir = os.getcwd() + "/sgxwallet"
 BRANCH = sys.argv[1];
 DOCKER_FILE_NAME = sys.argv[2];
 IMAGE_NAME = sys.argv[3];
+COMMIT_HASH = sys.argv[4]
 if (BRANCH == "develop") :
    TAG_POSTFIX = "latest";
 else :
@@ -66,4 +67,7 @@ assert subprocess.call(["pwd"]) == 0;
 
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
                                               FULL_IMAGE_NAME]) == 0;
+
+assert subprocess.call(["docker", "tag",  FULL_IMAGE_NAME, IMAGE_NAME + ":" + COMMIT_HASH ]) == 0;
+
 

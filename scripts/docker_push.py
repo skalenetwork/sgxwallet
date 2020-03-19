@@ -56,6 +56,8 @@ SCRIPTS_DIR = topDir + "/scripts"
 BRANCH = sys.argv[1];
 DOCKER_FILE_NAME = sys.argv[2];
 IMAGE_NAME = sys.argv[3];
+COMMIT_HASH = sys.argv[4]
+
 if (BRANCH == "develop") :
     TAG_POSTFIX = "latest";
 else :
@@ -63,5 +65,5 @@ else :
 
 FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
-assert subprocess.call(["docker", "push", FULL_IMAGE_NAME]) == 0;
+assert subprocess.call(["docker", "push") == 0;
 

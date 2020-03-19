@@ -38,6 +38,7 @@ SCRIPTS_DIR = topDir + "/scripts"
 BRANCH = sys.argv[1];
 DOCKER_FILE_NAME = sys.argv[2];
 IMAGE_NAME = sys.argv[3];
+COMMIT_HASH = sys.argv[4]
 
 if (BRANCH == "develop") :
     TAG_POSTFIX = "latest";

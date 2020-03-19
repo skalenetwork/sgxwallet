@@ -49,6 +49,16 @@ that we use in testing.
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
+If driver installation fails, you can also try installing driver from the 
+Intel github repository. Do 
+ 
+```bash 
+git clone https://github.com/intel/linux-sgx-driver
+```
+
+And then follow instructions in README.md
+
+
 # Troubleshooting Installation
 
 -   If the message  `intel_sgx: SGX is not enabled` appears in `/var/log/syslog`
