@@ -65,5 +65,5 @@ else :
 
 FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
-assert subprocess.call(["docker", "push") == 0;
+assert subprocess.call(["docker", "push"]) == 0;
 
