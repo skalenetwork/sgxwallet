@@ -1,7 +1,7 @@
 version: '3'
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet:latest_commit 
+    image: skalenetwork/sgxwallet:latest 
     ports:
       - "1026:1026"
       - "1027:1027"
@@ -17,6 +17,7 @@ services:
         max-size: "10m"
         max-file: "4"
     restart: unless-stopped
-    command: -s -d -y
-
+    command: -s
+    healthcheck:
+      test: ["CMD", "ls /dev/isg /dev/mei0"]
 
