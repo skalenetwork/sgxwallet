@@ -73,8 +73,6 @@ int main(int argc, char *argv[]) {
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
 
-    void (*SEK_initializer)();
-    SEK_initializer = init_SEK;
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
@@ -112,7 +110,7 @@ int main(int argc, char *argv[]) {
                 encryptKeysOption = false;
                 break;
             case 'b':
-                SEK_initializer = enter_SEK;
+                encryptKeysOption = false;
                 break;
             case 'y':
                 autoconfirmOption = true;
@@ -127,7 +125,7 @@ int main(int argc, char *argv[]) {
 
     setFullOptions(printDebugInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
-    initAll(checkClientCertOption, autoSignClientCertOption, SEK_initializer);
+    initAll(checkClientCertOption, autoSignClientCertOption);
 
     while (true) {
         sleep(10);

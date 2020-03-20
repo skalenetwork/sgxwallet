@@ -22,62 +22,44 @@
 */
 
 #include <memory>
-
-
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
-
-#include "bls.h"
-
-
-#include "leveldb/db.h"
-#include <jsonrpccpp/server/connectors/httpserver.h>
-#include "BLSPrivateKeyShareSGX.h"
-
-
-#include "sgxwallet_common.h"
-#include "create_enclave.h"
-#include "secure_enclave_u.h"
-#include "sgx_detect.h"
-#include <gmp.h>
-#include <sgx_urts.h>
-
-#include "sgxwallet.h"
-
-#include "LevelDB.h"
-
-#include "SGXWalletServer.h"
-#include "SGXRegistrationServer.h"
-#include "CSRManagerServer.h"
-
-#include "BLSCrypto.h"
-#include "ServerInit.h"
-
-
-
 #include <iostream>
-
-#include "spdlog/spdlog.h"
 
 #include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "bls.h"
+#include "leveldb/db.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
+#include "spdlog/spdlog.h"
+#include <gmp.h>
+#include <sgx_urts.h>
+
+
+#include "BLSPrivateKeyShareSGX.h"
+#include "sgxwallet_common.h"
+#include "create_enclave.h"
+#include "secure_enclave_u.h"
+#include "sgx_detect.h"
+#include "sgxwallet.h"
+#include "LevelDB.h"
+#include "SGXWalletServer.h"
+#include "SGXRegistrationServer.h"
+#include "SEKManager.h"
+#include "CSRManagerServer.h"
+#include "BLSCrypto.h"
+#include "ServerInit.h"
 #include "SGXWalletServer.hpp"
 #include "SGXWALLET_VERSION"
 
-//#include <system>
-
-
-
-void initDaemon() {
-
+void initUserSpace() {
     libff::init_alt_bn128_params();
-
     LevelDB::initDataFolderAndDBs();
 }
-
 
 
 void initEnclave() {
@@ -95,8 +77,8 @@ void initEnclave() {
     }
 #endif
 
-    if ( printDebugInfo) {
-      spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
+    if (printDebugInfo) {
+        spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
     }
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
@@ -113,8 +95,7 @@ void initEnclave() {
         exit(1);
     }
 
-    //fprintf(stderr, "Enclave launched\n");
-    spdlog::error( "Enclave created and started successfully");
+    spdlog::error("Enclave created and started successfully");
 
     status = tgmp_init(eid);
     if (status != SGX_SUCCESS) {
@@ -129,29 +110,20 @@ void initEnclave() {
 
 int sgxServerInited = 0;
 
-void initAll(bool _checkCert, bool _autoSign, void (*SEK_func)()) {
+void initAll(bool _checkCert, bool _autoSign) {
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
-
-    //spdlog::set_pattern("%c");
-    if (sgxServerInited == 1)
-        return;
-    initEnclave();
-    initDaemon();
-    //init_SEK();
-    SEK_func();
-
+    CHECK_STATE(sgxServerInited == 0)
     sgxServerInited = 1;
+    initEnclave();
+    initUserSpace();
+    init_SEK();
 
     if (useHTTPS) {
         SGXWalletServer::initHttpsServer(_checkCert);
         initRegistrationServer(_autoSign);
-      init_csrmanager_server();
-    }
-    else {
+        init_csrmanager_server();
+    } else {
         SGXWalletServer::initHttpServer();
     }
-
-    //std::cerr << "enclave inited" << std::endl;
-
 }

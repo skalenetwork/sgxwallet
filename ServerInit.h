@@ -30,9 +30,9 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(bool _checkCert, bool _autoSign, void (*func)());
+EXTERNC void initAll(bool _checkCert, bool _autoSign);
 
-EXTERNC void initDaemon();
+EXTERNC void initUserSpace();
 
 EXTERNC void initEnclave();
 

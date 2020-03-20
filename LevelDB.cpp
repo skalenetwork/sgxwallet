@@ -273,12 +273,17 @@ bool LevelDB::isInited = false;
 
 void LevelDB::initDataFolderAndDBs() {
 
-    if (isInited)
-        return;
+    CHECK_STATE(!isInited)
+    isInited = true;
+
+    spdlog::info("Initing wallet database ... ");
+
 
     char cwd[PATH_MAX];
+
+
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        spdlog::error("could not get cwd");
+        spdlog::error("could not get current workin directory");
         exit(-1);
     }
 
@@ -286,16 +291,19 @@ void LevelDB::initDataFolderAndDBs() {
 
     struct stat info;
     if (stat(sgx_data_folder.c_str(), &info) !=0 ){
-        spdlog::info("going to create sgx_data folder");
-        std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
-        if (system(make_sgx_data_folder.c_str()) == 0){
-            spdlog::info("sgx_data folder was created");
+        spdlog::info("sgx_data folder does not exist. Creating ...");
+
+        if (system(("mkdir " + sgx_data_folder).c_str()) == 0){
+            spdlog::info("Successfully created sgx_data folder");
         }
         else{
-            spdlog::error("creating sgx_data folder failed");
+            spdlog::error("Couldnt create creating sgx_data folder");
             exit(-1);
         }
     }
+
+
+    spdlog::info("Opening wallet databases");
 
     auto dbName = sgx_data_folder +  WALLETDB_NAME;
     levelDb = make_shared<LevelDB>(dbName);
@@ -305,6 +313,8 @@ void LevelDB::initDataFolderAndDBs() {
 
     auto csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
     csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
+
+    spdlog::info("Successfully opened databases");
 
 }
 
