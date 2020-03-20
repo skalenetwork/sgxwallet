@@ -66,11 +66,13 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## You can't use $(wildcard ...) with automake so all source files
 ## have to be explicitly listed.
 
-COMMON_SRC = sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
+COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp \
+             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
+             sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp \
-DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwallet.c  $(COMMON_SRC)
 
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -104,13 +106,12 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread
 
 
-testw_SOURCES=testw.cpp stubclient.cpp SGXWalletServer.cpp  RPCException.cpp BLSCrypto.cpp ServerInit.cpp LevelDB.cpp \
- DKGCrypto.cpp BLSPrivateKeyShareSGX.cpp ECDSACrypto.cpp ServerDataChecker.cpp  SEKManager.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp $(COMMON_SRC)
+testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-cert_util_SOURCES=cert_util.cpp stubclient.cpp RPCException.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
+cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp RPCException.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
 cert_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
                    -l:libbls.a -l:libleveldb.a \
