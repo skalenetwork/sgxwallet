@@ -86,7 +86,6 @@ void initEnclave() {
     updated = 0;
 
 
-
 #ifndef SGX_HW_SIM
     unsigned long support;
     support = get_sgx_support();
@@ -108,13 +107,14 @@ void initEnclave() {
             fprintf(stderr, "sgx_create_enclave: %s: file not found\n", ENCLAVE_NAME);
             fprintf(stderr, "Did you forget to set LD_LIBRARY_PATH?\n");
         } else {
+            spdlog::error("sgx_create_enclave_search failed");
             fprintf(stderr, "%s: 0x%04x\n", ENCLAVE_NAME, status);
         }
         exit(1);
     }
 
     //fprintf(stderr, "Enclave launched\n");
-    spdlog::info( "Enclave launched");
+    spdlog::error( "Enclave created and started successfully");
 
     status = tgmp_init(eid);
     if (status != SGX_SUCCESS) {
@@ -122,10 +122,8 @@ void initEnclave() {
         exit(1);
     }
 
-    if (printDebugInfo) {
-      spdlog::info("libtgmp initialized");
-      //fprintf(stderr, "libtgmp initialized\n");
-    }
+    spdlog::info("Enclave libtgmp library initialized successfully");
+
 }
 
 

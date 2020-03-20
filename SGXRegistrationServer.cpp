@@ -46,10 +46,10 @@
 #include "spdlog/spdlog.h"
 #include "common.h"
 
-int printDebugInfo = 0;
-int useHTTPS = 1;
-int encryptKeys = 0;
-bool autoconfirm = false;
+int printDebugInfo = -1;
+int useHTTPS = -1;
+int encryptKeys = -1;
+int autoconfirm = -1;
 
 SGXRegistrationServer *registrationServer = nullptr;
 HttpServer *httpServer2 = nullptr;

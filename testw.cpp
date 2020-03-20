@@ -89,14 +89,15 @@ void usage() {
 }
 
 sgx_launch_token_t token = {0};
-sgx_enclave_id_t eid;
+sgx_enclave_id_t eid = 0;
 sgx_status_t status;
 int updated;
 
 #define  TEST_BLS_KEY_SHARE "4160780231445160889237664391382223604184857153814275770598791864649971919844"
 #define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
 
-void reset_db() {
+void resetDB() {
+    sgx_destroy_enclave(eid);
     //string db_name = SGXDATA_FOLDER + WALLETDB_NAME;
     REQUIRE(system("rm -rf "
                     WALLETDB_NAME) == 0);
@@ -121,55 +122,58 @@ char *encryptTestKey() {
 
 
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
-    printDebugInfo = 1;
-    useHTTPS = 0;
-    autoconfirm = true;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
     free(key);
+    sgx_destroy_enclave(eid);
 }
 
 
 TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
-    {
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
 
-        printDebugInfo = 1;
-        useHTTPS = 0;
-        autoconfirm = true;
+    //init_enclave();
 
-        initAll(false, true, init_SEK);
+    int errStatus = -1;
 
-        //init_enclave();
+    vector<char> errMsg(BUF_LEN, 0);
 
-        int errStatus = -1;
+    char *encryptedKey = encryptTestKey();
+    REQUIRE(encryptedKey != nullptr);
+    char *plaintextKey = decryptBLSKeyShareFromHex(&errStatus, errMsg.data(), encryptedKey);
+    free(encryptedKey);
 
-        vector<char> errMsg(BUF_LEN, 0);
+    REQUIRE(errStatus == 0);
+    REQUIRE(strcmp(plaintextKey, TEST_BLS_KEY_SHARE) == 0);
 
-        char *encryptedKey = encryptTestKey();
-        REQUIRE(encryptedKey != nullptr);
-        char *plaintextKey = decryptBLSKeyShareFromHex(&errStatus, errMsg.data(), encryptedKey);
-        free(encryptedKey);
+    printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg.data());
+    printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
+    printf("Decrypted key: %s\n", plaintextKey);
+    free(plaintextKey);
 
-        REQUIRE(errStatus == 0);
-        REQUIRE(strcmp(plaintextKey, TEST_BLS_KEY_SHARE) == 0);
+    sgx_destroy_enclave(eid);
 
-        printf("Decrypt key completed with status: %d %s \n", errStatus, errMsg.data());
-        printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
-        printf("Decrypted key: %s\n", plaintextKey);
-        free(plaintextKey);
+}
 
+void destroyEnclave() {
+    if (eid != 0) {
         sgx_destroy_enclave(eid);
-
+        eid = 0;
     }
 }
 
 
 TEST_CASE("DKG gen test", "[dkg-gen]") {
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
 
-    autoconfirm = true;
-    //init_all();
-    initEnclave();
+
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -254,10 +258,13 @@ libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
 }
 
 TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
-    autoconfirm = true;
-    //init_all();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
+
+
     libff::init_alt_bn128_params();
-    initEnclave();
+
     vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
     vector<char> errMsg(1024, 0);
 
@@ -325,9 +332,10 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
 }
 
 TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
-    autoconfirm = true;
-    // init_all();
-    initEnclave();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
+
 
     vector<char> errMsg(1024, 1);
     vector<char> result(130, 1);
@@ -348,12 +356,12 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 
     string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
 
-    vector<char> s_shareG2(320,0);
-    status = get_encr_sshare(eid, &err_status, errMsg.data(), encrPRDHKey.data(), &enc_len, result.data(), s_shareG2.data(),
-                             (char*) pub_keyB.data(), 2, 2, 1);
+    vector<char> s_shareG2(320, 0);
+    status = get_encr_sshare(eid, &err_status, errMsg.data(), encrPRDHKey.data(), &enc_len, result.data(),
+                             s_shareG2.data(),
+                             (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
-    printf(" get_encr_sshare completed with status: %d %s \n", err_status, errMsg.data());
 
     cerr << "secret share is " << result.data() << endl;
 
@@ -361,9 +369,10 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 }
 
 TEST_CASE("DKG verification test", "[dkg-verify]") {
-    autoconfirm = true;
-    // init_all();
-    initEnclave();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
+
 
     vector<char> errMsg(1024, 0);
     vector<char> result(130, 0);
@@ -385,10 +394,11 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
     string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
 
-    vector<char> s_shareG2(320,0);
+    vector<char> s_shareG2(320, 0);
 
-    status = get_encr_sshare(eid, &err_status, errMsg.data(), encrPrDHKey.data(), &enc_len, result.data(), s_shareG2.data(),
-                             (char*) pub_keyB.data(), 2, 2, 1);
+    status = get_encr_sshare(eid, &err_status, errMsg.data(), encrPrDHKey.data(), &enc_len, result.data(),
+                             s_shareG2.data(),
+                             (char *) pub_keyB.data(), 2, 2, 1);
     REQUIRE(status == SGX_SUCCESS);
     printf(" get_encr_sshare completed with status: %d %s \n", err_status, errMsg.data());
 
@@ -400,8 +410,10 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
 
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
-    autoconfirm = true;
-    initEnclave();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
+
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -420,12 +432,8 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
     printf("\nwas pub_key_x %s: \n", pub_key_x.data());
     printf("\nwas pub_key_y %s: \n", pub_key_y.data());
-    /*printf("\nencr priv_key : \n");
-    for ( int i = 0; i < 1024 ; i++)
-      printf("%u ", encr_pr_key[i]);*/
 
     string hex = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
-    // char* hex = "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
     printf("hash length %d ", (int) hex.size());
     vector<char> signature_r(1024, 0);
     vector<char> signature_s(1024, 0);
@@ -442,11 +450,13 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
     sgx_destroy_enclave(eid);
     printf("the end of ecdsa test\n");
+
 }
 
 TEST_CASE("Test test", "[test_test]") {
-    autoconfirm = true;
-    initEnclave();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
 
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -457,16 +467,8 @@ TEST_CASE("Test test", "[test_test]") {
 
     status = generate_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
-    //printf("\nerrMsg %s\n", errMsg );
+
     REQUIRE(status == SGX_SUCCESS);
-
-
-    //printf("\nwas pub_key_x %s: \n", pub_key_x);
-    //printf("\nwas pub_key_y %s: \n", pub_key_y);
-    //printf("\nencr priv_key %s: \n");
-
-    //for ( int i = 0; i < 1024 ; i++)
-    // printf("%u ", encr_pr_key[i]);
 
     sgx_destroy_enclave(eid);
 
@@ -474,9 +476,9 @@ TEST_CASE("Test test", "[test_test]") {
 }
 
 TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
-    autoconfirm = true;
-    //init_all();
-    initEnclave();
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
 
     int err_status = 0;
     vector<char> errMsg(1024, 0);
@@ -485,7 +487,6 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     vector<char> pub_key_y(1024, 0);
     uint32_t enc_len = 0;
 
-    //printf("before %p\n", pub_key_x);
 
     status = generate_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
@@ -513,7 +514,8 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     sgx_destroy_enclave(eid);
 }
 
-/*TEST_CASE( "verification test", "[verify]" ) {
+/*
+ * ( "verification test", "[verify]" ) {
 
 
     char*  pubshares = "0d72c21fc5a43452ad5f36699822309149ce6ce2cdce50dafa896e873f1b8ddd12f65a2e9c39c617a1f695f076b33b236b47ed773901fc2762f8b6f63277f5e30d7080be8e98c97f913d1920357f345dc0916c1fcb002b7beb060aa8b6b473a011bfafe9f8a5d8ea4c643ca4101e5119adbef5ae64f8dfb39cd10f1e69e31c591858d7eaca25b4c412fe909ca87ca7aadbf6d97d32d9b984e93d436f13d43ec31f40432cc750a64ac239cad6b8f78c1f1dd37427e4ff8c1cc4fe1c950fcbcec10ebfd79e0c19d0587adafe6db4f3c63ea9a329724a8804b63a9422e6898c0923209e828facf3a073254ec31af4231d999ba04eb5b7d1e0056d742a65b766f2f3";
@@ -549,16 +551,13 @@ string ConvertDecToHex(string dec, int numBytes = 32) {
 
 
 TEST_CASE("BLS_DKG test", "[bls_dkg]") {
-    useHTTPS = 0;
-    printDebugInfo = 1;
-    cerr << "test started" << endl;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     cerr << "Client inited" << endl;
-
-    reset_db();
 
 
     int n = 16, t = 16;
@@ -678,20 +677,19 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
+    sgx_destroy_enclave(eid);
+
 }
 
 TEST_CASE("API test", "[api_test]") {
-    autoconfirm = true;
-    //DEBUG_PRINT = 1;
-    useHTTPS = 0;
-    //cerr << __GNUC__ << endl;
-    cerr << "API test started" << endl;
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
+
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     // s.StartListening();
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -788,8 +786,8 @@ TEST_CASE("API test", "[api_test]") {
 }
 
 TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
-    autoconfirm = true;
-    useHTTPS = 0;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -802,7 +800,6 @@ void SendRPCRequest() {
     cout << "Hello from thread " << this_thread::get_id() << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
-    reset_db();
 
 
     int n = 16, t = 16;
@@ -910,10 +907,8 @@ void SendRPCRequest() {
 }
 
 TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
-    autoconfirm = true;
-    useHTTPS = 0;
-    printDebugInfo = 1;
-    encryptKeys = 1;
+    resetDB();
+    setOptions(true, false, true);
 
     initAll(false, true, init_SEK);
 
@@ -931,15 +926,11 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
 }
 
 TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
-    autoconfirm = true;
-    printDebugInfo = 1;
-    useHTTPS = 0;
-    encryptKeys = 1;
-
-    cerr << "ecdsa_api_test started" << endl;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
 
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -983,20 +974,14 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
 }
 
 TEST_CASE("dkg API test", "[dkg_api_test]") {
-    autoconfirm = true;
-    printDebugInfo = 1;
-    useHTTPS = 0;
-
-    cerr << "dkg_api_test started" << endl;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
 
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
-    cerr << "Client inited" << endl;
-
-    reset_db();
 
     string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
@@ -1061,20 +1046,15 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
 }
 
 TEST_CASE("isPolyExists test", "[is_poly_test]") {
-    autoconfirm = true;
-    printDebugInfo = 1;
-    useHTTPS = 0;
-
-    cerr << "is_poly_test started" << endl;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
 
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     cerr << "Client inited" << endl;
-
-    reset_db();
 
     string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
@@ -1087,19 +1067,16 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
     cout << polyDoesNotExist << endl;
     REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
+    sgx_destroy_enclave(eid);
+
 }
 
 TEST_CASE("AES_DKG test", "[aes_dkg]") {
-    autoconfirm = true;
-    useHTTPS = 0;
-    printDebugInfo = 1;
-    encryptKeys = 1;
-
-    reset_db();
+    resetDB();
+    setOptions(true, false, true);
 
     cerr << "test started" << endl;
     initAll(false, true, init_SEK);
-    cerr << "Server inited" << endl;
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     cerr << "Client inited" << endl;
@@ -1222,14 +1199,10 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
 }
 
 TEST_CASE("bls_sign_api test", "[bls_sign]") {
-    autoconfirm = true;
-    useHTTPS = 0;
-    printDebugInfo = 1;
-    encryptKeys = 1;
-
-    cerr << "test started" << endl;
+    resetDB();
+    setOptions(true, false, true);
     initAll(false, true, init_SEK);
-    cerr << "Server inited" << endl;
+
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     cerr << "Client inited" << endl;
@@ -1253,38 +1226,37 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
 //    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
 //    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
 
+    sgx_destroy_enclave(eid);
+
 }
 
 TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
-    {
-        autoconfirm = true;
-        printDebugInfo = 1;
-        useHTTPS = 0;
+    resetDB();
+    setOptions(true, false, true);
+    initAll(false, true, init_SEK);
 
-        initAll(false, true, init_SEK);
-        //init_enclave();
 
-        int errStatus = -1;
-        vector<char> errMsg(BUF_LEN, 0);;
-        uint32_t enc_len;
-        string key = "123456789";
-        vector<uint8_t> encrypted_key(BUF_LEN,0);
+    int errStatus = -1;
+    vector<char> errMsg(BUF_LEN, 0);;
+    uint32_t enc_len;
+    string key = "123456789";
+    vector<uint8_t> encrypted_key(BUF_LEN, 0);
 
-        status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &enc_len);
+    status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &enc_len);
 
-        REQUIRE(status == 0);
-        cerr << "key encrypted with status " << status << " err msg " << errMsg.data() << endl;
+    REQUIRE(status == 0);
+    cerr << "key encrypted with status " << status << " err msg " << errMsg.data() << endl;
 
-        vector<char> decr_key(BUF_LEN, 0);
-        status = decrypt_key_aes(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_len, decr_key.data());
+    vector<char> decr_key(BUF_LEN, 0);
+    status = decrypt_key_aes(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_len, decr_key.data());
 
-        REQUIRE(status == 0);
-        cerr << "key encrypted with status " << status << " err msg " << errMsg.data() << endl;
-        cerr << "decrypted key is " << decr_key.data() << endl;
+    REQUIRE(status == 0);
+    cerr << "key encrypted with status " << status << " err msg " << errMsg.data() << endl;
+    cerr << "decrypted key is " << decr_key.data() << endl;
 
-        REQUIRE(key.compare(decr_key.data()) == 0);
-        sgx_destroy_enclave(eid);
-    }
+    REQUIRE(key.compare(decr_key.data()) == 0);
+    sgx_destroy_enclave(eid);
+
 }
 
 

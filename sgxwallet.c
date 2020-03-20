@@ -65,18 +65,25 @@ void printUsage() {
 }
 
 int main(int argc, char *argv[]) {
+
+    bool encryptKeysOption  = false;
+    bool useHTTPSOption = true;
+    bool printDebugInfoOption = false;
+    bool autoconfirmOption = false;
+    bool checkClientCertOption = true;
+    bool autoSignClientCertOption = false;
+
     void (*SEK_initializer)();
     SEK_initializer = init_SEK;
-    bool checkClientCert = true;
-    bool sign_automatically = false;
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
-        fprintf(stderr, "option is too short %s\n", argv[1]);
+        printUsage();
         exit(1);
     }
 
-    encryptKeys = 0;
+
+
 
     while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
         switch (opt) {
@@ -90,25 +97,25 @@ int main(int argc, char *argv[]) {
                     exit(1);
                 }
             case 'c':
-                checkClientCert = false;
+                checkClientCertOption = false;
                 break;
             case 's':
-                sign_automatically = true;
+                autoSignClientCertOption = true;
                 break;
             case 'd':
-                printDebugInfo = 1;
+                printDebugInfoOption = true;
                 break;
             case '0':
-                useHTTPS = 0;
+                useHTTPSOption = false;
                 break;
             case 'a':
-                encryptKeys = 0;
+                encryptKeysOption = false;
                 break;
             case 'b':
                 SEK_initializer = enter_SEK;
                 break;
             case 'y':
-                autoconfirm = true;
+                autoconfirmOption = true;
                 break;
             case '?':
                 printUsage();
@@ -117,7 +124,10 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
-    initAll(checkClientCert, sign_automatically, SEK_initializer);
+
+    setFullOptions(printDebugInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
+
+    initAll(checkClientCertOption, autoSignClientCertOption, SEK_initializer);
 
     while (true) {
         sleep(10);
