@@ -339,8 +339,8 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
     initAll(false, true);
 
 
-    vector<char> errMsg(1024, 1);
-    vector<char> result(130, 1);
+    vector<char> errMsg(1024, 0);
+    vector<char> result(1300, 0);
 
     int err_status = 0;
     uint32_t enc_len = 0;
@@ -367,7 +367,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
 
     cerr << "secret share is " << result.data() << endl;
 
-    sgx_destroy_enclave(eid);
+    //sgx_destroy_enclave(eid);
 }
 
 TEST_CASE("DKG verification test", "[dkg-verify]") {
