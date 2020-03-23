@@ -213,8 +213,8 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
   //char *hexEncrKey = (char *) calloc(2 * BUF_LEN, 1);
 
   for ( int i = 0; i < n; i++){
-    uint8_t encrypted_skey[BUF_LEN];
-    memset(encrypted_skey, 0, BUF_LEN);
+    uint8_t encryptedSkey[BUF_LEN];
+    memset(encryptedSkey, 0, BUF_LEN);
     uint32_t dec_len;
 
     char cur_share[193];
@@ -231,11 +231,11 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
     }
 
     if (!encryptKeys)
-      get_encr_sshare(eid, &err_status, errMsg1, encrypted_skey, &dec_len,
-                   cur_share, s_shareG2, pubKeyB, t, n, i + 1 );
-    else
-      get_encr_sshare_aes(eid, &err_status, errMsg1, encrypted_skey, &dec_len,
+      get_encr_sshare(eid, &err_status, errMsg1, encryptedSkey, &dec_len,
                       cur_share, s_shareG2, pubKeyB, t, n, i + 1 );
+    else
+      get_encr_sshare_aes(eid, &err_status, errMsg1, encryptedSkey, &dec_len,
+                          cur_share, s_shareG2, pubKeyB, t, n, i + 1 );
     if (err_status != 0){
       throw RPCException(-666, errMsg1);
     }
@@ -251,17 +251,17 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
     }
 
 
-    carray2Hex(encrypted_skey, dec_len, hexEncrKey);
+    carray2Hex(encryptedSkey, dec_len, hexEncrKey);
 
 
-    string DHKey_name = "DKG_DH_KEY_" + polyName + "_" + to_string(i) + ":";
+    string dhKeyName = "DKG_DH_KEY_" + polyName + "_" + to_string(i) + ":";
 
-    cerr << "hexEncr DH Key: " << hexEncrKey << endl;
-    SGXWalletServer::writeDataToDB(DHKey_name, hexEncrKey);
+    spdlog::debug("hexEncr DH Key: { }" , hexEncrKey);
+    SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey);
 
     string shareG2_name = "shareG2_" + polyName + "_" + to_string(i) + ":";
     if (printDebugInfo) {
-      spdlog::info("name to write to db is {}", DHKey_name);
+      spdlog::info("name to write to db is {}", dhKeyName);
       spdlog::info("name to write to db is {}", shareG2_name);
       spdlog::info("s_shareG2: {}", s_shareG2);
     }
