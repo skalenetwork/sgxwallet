@@ -49,7 +49,7 @@ testList = ["[bls-key-encrypt]", "[dkg-gen]",
             "[ecdsa_api_test]",
             "[dkg_api_test]",
             "[is_poly_test]",
-            "[bls_sign]",
+#            "[bls_sign]",
             "[AES-encrypt-decrypt]"]
 
 
