@@ -68,7 +68,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stubclient.h"
 #include <jsonrpccpp/client/connectors/httpclient.h>
 
-default_random_engine rand_gen((unsigned int) time(0));
+default_random_engine randGen((unsigned int) time(0));
 
 string stringFromFr(libff::alt_bn128_Fr &el) {
 
@@ -572,8 +572,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     vector<string> pubShares(n);
     vector<string> poly_names(n);
 
-    int schain_id = rand_gen();
-    int dkg_id = rand_gen();
+    int schain_id = randGen();
+    int dkg_id = randGen();
     for (uint8_t i = 0; i < n; i++) {
         EthKeys[i] = c.generateECDSAKey();
         string polyName =
@@ -814,8 +814,8 @@ void SendRPCRequest() {
     vector<string> pubShares(n);
     vector<string> poly_names(n);
 
-    int schain_id = rand_gen();
-    int dkg_id = rand_gen();
+    int schain_id = randGen();
+    int dkg_id = randGen();
     for (uint8_t i = 0; i < n; i++) {
         EthKeys[i] = c.generateECDSAKey();
         string polyName =
@@ -1093,8 +1093,8 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
     vector<string> pubShares(n);
     vector<string> poly_names(n);
 
-    int schain_id = rand_gen();
-    int dkg_id = rand_gen();
+    int schain_id = randGen();
+    int dkg_id = randGen();
     for (uint8_t i = 0; i < n; i++) {
         EthKeys[i] = c.generateECDSAKey();
         string polyName =

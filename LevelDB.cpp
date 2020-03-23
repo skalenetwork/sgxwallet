@@ -63,7 +63,7 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
     auto status = db->Get(readOptions, _key, &*result);
 
     if (printDebugInfo) {
-      spdlog::info("key to read from db: {}",_key );
+      spdlog::debug("key to read from db: {}",_key );
       //std::cerr << "key to read from db: " << _key << std::endl;
     }
 
@@ -84,7 +84,7 @@ void LevelDB::writeString(const string &_key, const string &_value) {
     throwExceptionOnError(status);
 
     if (printDebugInfo) {
-        spdlog::info("written key: {}",_key );
+        spdlog::debug("written key: {}",_key );
        // std::cerr << "written key " << _key  << std::endl;
     }
 }
@@ -101,7 +101,7 @@ void LevelDB::deleteDHDKGKey (const string &_key) {
     throwExceptionOnError(status);
 
     if (printDebugInfo) {
-      spdlog::info("key deleted: {}",full_key );
+      spdlog::debug("key deleted: {}",full_key );
       //std::cerr << "key deleted " << full_key << std::endl;
     }
 }
@@ -131,7 +131,7 @@ void LevelDB::deleteKey(const string &_key){
     throwExceptionOnError(status);
 
     if (printDebugInfo) {
-      spdlog::info("key deleted: {}",_key );
+      spdlog::debug("key deleted: {}",_key );
       // std::cerr << "key deleted " << _key << std::endl;
     }
 }
@@ -213,14 +213,14 @@ void LevelDB::writeDataUnique(const string & Name, const string &value) {
   auto key = Name;
 
   if (readString(Name) != nullptr) {
-    spdlog::info("name {}",Name, " already exists");
+    spdlog::debug("name {}",Name, " already exists");
      // std::cerr << "name " << Name << " already exists" << std::endl;
     throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   writeString(key, value);
   if (printDebugInfo) {
-      spdlog::info("{}",Name, " is written to db");
+      spdlog::debug("{}",Name, " is written to db");
     //std::cerr << Name << " is written to db " << std::endl;
   }
 }

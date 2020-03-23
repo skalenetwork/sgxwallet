@@ -92,8 +92,8 @@ string gen_dkg_poly( int _t){
     }
 
     if (printDebugInfo) {
-      spdlog::info("gen_dkg_secret, status {}", err_status, " err msg ", errMsg.data());
-      spdlog::info("in DKGCrypto encr len is {}", enc_len);
+      spdlog::debug("gen_dkg_secret, status {}", err_status, " err msg ", errMsg.data());
+      spdlog::debug("in DKGCrypto encr len is {}", enc_len);
     }
 
     uint64_t length = DKG_MAX_SEALED_LEN;
@@ -120,7 +120,7 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
 
   if (printDebugInfo) {
     // cerr << "got encr poly " << encryptedPolyHex << endl;
-    spdlog::info("got encr poly size {}", char_traits<char>::length(encryptedPolyHex));
+    spdlog::debug("got encr poly size {}", char_traits<char>::length(encryptedPolyHex));
   }
 
   char* public_shares = (char*)calloc(10000, 1);
@@ -139,8 +139,8 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
 
   if (printDebugInfo) {
     //cerr << "hex_encr_poly is " << encryptedPolyHex << std::endl;
-    spdlog::info("hex_encr_poly length is {}", strlen(encryptedPolyHex));
-    spdlog::info("enc len {}", enc_len);
+    spdlog::debug("hex_encr_poly length is {}", strlen(encryptedPolyHex));
+    spdlog::debug("enc len {}", enc_len);
 //    cerr << "encr raw poly: " << endl;
 //    for ( int i = 0 ; i < 3050; i++)
 //      printf(" %d ", encr_dkg_poly[i] );
@@ -159,13 +159,13 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
   }
 
   if (printDebugInfo) {
-    spdlog::info("err msg is {}", errMsg1);
+    spdlog::debug("err msg is {}", errMsg1);
 
-    spdlog::info("public_shares:");
-    spdlog::info("{}", public_shares);
+    spdlog::debug("public_shares:");
+    spdlog::debug("{}", public_shares);
 //    cerr << "public_shares:" << endl;
 //    cerr << public_shares << endl;
-    spdlog::info("get_public_shares status: {}", err_status);
+    spdlog::debug("get_public_shares status: {}", err_status);
     //printf("\nget_public_shares status: %d error %s \n\n", err_status, errMsg1);
   }
 
@@ -227,7 +227,7 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
     strncpy(pubKeyB, pub_keyB.c_str(), 128);
     pubKeyB[128] = 0;
     if (printDebugInfo) {
-      spdlog::info("pubKeyB is {}", pub_keyB);
+      spdlog::debug("pubKeyB is {}", pub_keyB);
     }
 
     if (!encryptKeys)
@@ -240,14 +240,14 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
       throw RPCException(-666, errMsg1);
     }
     if (printDebugInfo) {
-      spdlog::info("cur_share is {}", cur_share);
+      spdlog::debug("cur_share is {}", cur_share);
     }
 
     result += cur_share;
 
     //uint32_t enc_len = BUF_LEN;
     if (printDebugInfo) {
-      spdlog::info("dec len is {}", dec_len);
+      spdlog::debug("dec len is {}", dec_len);
     }
 
 
@@ -261,14 +261,14 @@ string get_secret_shares(const string& polyName, const char* encryptedPolyHex, c
 
     string shareG2_name = "shareG2_" + polyName + "_" + to_string(i) + ":";
     if (printDebugInfo) {
-      spdlog::info("name to write to db is {}", dhKeyName);
-      spdlog::info("name to write to db is {}", shareG2_name);
-      spdlog::info("s_shareG2: {}", s_shareG2);
+      spdlog::debug("name to write to db is {}", dhKeyName);
+      spdlog::debug("name to write to db is {}", shareG2_name);
+      spdlog::debug("s_shareG2: {}", s_shareG2);
     }
     SGXWalletServer::writeDataToDB(shareG2_name, s_shareG2);
 
     if (printDebugInfo) {
-      spdlog::info("errMsg: {}", errMsg1);
+      spdlog::debug("errMsg: {}", errMsg1);
       // cerr << "iteration " << i <<" result length is " << result.length() << endl ;
       // cerr << "iteration " << i <<" share length is " << strlen(cur_share) << endl;
       // cerr << "iteration " << i <<" share is " << cur_share << endl;
@@ -300,7 +300,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
       cerr << "dec_key_len " << dec_key_len << endl;
       cerr << "encr_sshare length is " << strlen(encr_sshare) << endl;
       //cerr << "public shares " << publicShares << endl;
-      spdlog::info("publicShares length is {}", char_traits<char>::length(publicShares));
+      spdlog::debug("publicShares length is {}", char_traits<char>::length(publicShares));
     }
     char pshares[8193];
     memset(pshares, 0, 8193);
@@ -317,8 +317,8 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
     }
 
     if (printDebugInfo) {
-      spdlog::info("errMsg1: {}", errMsg1);
-      spdlog::info("result is: {}", result);
+      spdlog::debug("errMsg1: {}", errMsg1);
+      spdlog::debug("result is: {}", result);
     }
 
     //free(errMsg1);
@@ -328,7 +328,7 @@ bool VerifyShares(const char* publicShares, const char* encr_sshare, const char 
 
 bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex){
   if (printDebugInfo) {
-    spdlog::info("ENTER CreateBLSShare");
+    spdlog::debug("ENTER CreateBLSShare");
   }
  // char* errMsg1 = (char*) calloc(1024,1);
   char errMsg1[BUF_LEN];
@@ -367,8 +367,8 @@ bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char
    // cerr << "BEFORE WRITE BLS KEY TO DB" << endl;
     SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey);
     if (printDebugInfo) {
-      spdlog::info("hexBLSKey length is {}", char_traits<char>::length(hexBLSKey));
-      spdlog::info("bls key {}", blsKeyName, " is ", hexBLSKey );
+      spdlog::debug("hexBLSKey length is {}", char_traits<char>::length(hexBLSKey));
+      spdlog::debug("bls key {}", blsKeyName, " is ", hexBLSKey );
     }
     //free(hexBLSKey);
     return true;
@@ -390,7 +390,7 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex){
 
     char pub_key[320];
     if (printDebugInfo) {
-      spdlog::info("dec_key_len is {}", dec_key_len);
+      spdlog::debug("dec_key_len is {}", dec_key_len);
     }
 
     if (!encryptKeys)
@@ -404,10 +404,10 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex){
     vector<string> pub_key_vect = SplitString(pub_key, ':');
 
     if (printDebugInfo) {
-      spdlog::info("errMsg1 is {}", errMsg1);
-      spdlog::info("pub key is ");
+      spdlog::debug("errMsg1 is {}", errMsg1);
+      spdlog::debug("pub key is ");
       for (int i = 0; i < 4; i++)
-        spdlog::info("{}", pub_key_vect.at(i));
+        spdlog::debug("{}", pub_key_vect.at(i));
     }
     return pub_key_vect;
 }
@@ -420,7 +420,7 @@ string decrypt_DHKey(const string& polyName, int ind){
   string DH_key_name = polyName + "_" + to_string(ind) + ":";
   shared_ptr<string> hexEncrKey_ptr = SGXWalletServer::readFromDb(DH_key_name, "DKG_DH_KEY_");
   if (printDebugInfo) {
-    spdlog::info("encr DH key is {}", *hexEncrKey_ptr);
+    spdlog::debug("encr DH key is {}", *hexEncrKey_ptr);
   }
 
   vector<char> hexEncrKey(2 * BUF_LEN, 0);
@@ -431,8 +431,8 @@ string decrypt_DHKey(const string& polyName, int ind){
      throw RPCException(INVALID_HEX, "Invalid hexEncrKey");
   }
   if (printDebugInfo) {
-    spdlog::info("encr DH key length is {}", DH_enc_len);
-    spdlog::info("hex encr DH key length is {}", hexEncrKey_ptr->length());
+    spdlog::debug("encr DH key length is {}", DH_enc_len);
+    spdlog::debug("hex encr DH key length is {}", hexEncrKey_ptr->length());
   }
 
   char DHKey[ECDSA_SKEY_LEN];

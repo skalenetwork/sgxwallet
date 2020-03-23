@@ -327,8 +327,8 @@ char* encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     if (printDebugInfo) {
-      spdlog::info("errStatus is {}",*errStatus);
-      spdlog::info(" errMsg is ", errMsg->data() );
+      spdlog::debug("errStatus is {}",*errStatus);
+      spdlog::debug(" errMsg is ", errMsg->data() );
     }
 
     if (status != SGX_SUCCESS) {

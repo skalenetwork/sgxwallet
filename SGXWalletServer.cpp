@@ -252,12 +252,11 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
 
-    spdlog::info("Calling method generateECDSAKey");
 
     vector<string> keys;
 
     try {
-        keys = gen_ecdsa_key();
+        keys = genECDSAKey();
 
         if (keys.size() == 0) {
             throw RPCException(UNKNOWN_ERROR, "key was not generated");
@@ -351,7 +350,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
 
         shared_ptr<string> key_ptr = readFromDb(_keyName, "");
 
-        sign_vect = ecdsa_sign_hash(key_ptr->c_str(), cutHash.c_str(), _base);
+        sign_vect = ecdsaSignHash(key_ptr->c_str(), cutHash.c_str(), _base);
         if (sign_vect.size() != 3) {
             throw RPCException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
@@ -384,7 +383,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
             throw RPCException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
         shared_ptr<string> keyStr = readFromDb(_keyName);
-        publicKey = get_ecdsa_pubkey(keyStr->c_str());
+        publicKey = getECDSAPubKey(keyStr->c_str());
         spdlog::debug("PublicKey {}", publicKey);
         spdlog::debug("PublicKey length {}", publicKey.length());
 

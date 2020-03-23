@@ -227,7 +227,7 @@ void enter_SEK(){
 void init_SEK(){
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
   if (encr_SEK_ptr == nullptr){
-    spdlog::info("SEK was not created yet. Going to create SEK");
+    spdlog::error("SEK was not created yet. Going to create SEK");
     gen_SEK();
   }
   else{
