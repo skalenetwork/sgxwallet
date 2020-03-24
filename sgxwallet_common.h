@@ -35,7 +35,6 @@
 
 
 
-
 extern int printDebugInfo;
 extern int useHTTPS;
 extern int encryptKeys;
@@ -43,17 +42,7 @@ extern int autoconfirm;
 
 
 
-inline void setFullOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
-    printDebugInfo = _printDebugInfo;
-    useHTTPS = _useHTTPS;
-    autoconfirm = _autoconfirm;
-    encryptKeys = _encryptKeys;
-}
 
-
-inline void setOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm) {
-    setFullOptions(_printDebugInfo, _useHTTPS, _autoconfirm, false);
-}
 
 
 

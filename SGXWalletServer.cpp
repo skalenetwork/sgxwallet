@@ -45,6 +45,23 @@
 
 #include "common.h"
 
+void setFullOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
+    if (_printDebugInfo)
+        spdlog::set_level(spdlog::level::info);
+    else {
+        spdlog::set_level(spdlog::level::debug);
+    }
+    printDebugInfo = _printDebugInfo;
+    useHTTPS = _useHTTPS;
+    autoconfirm = _autoconfirm;
+    encryptKeys = _encryptKeys;
+}
+
+
+void setOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm) {
+    setFullOptions(_printDebugInfo, _useHTTPS, _autoconfirm, false);
+}
+
 
 bool isStringDec(string &_str) {
     auto res = find_if_not(_str.begin(), _str.end(), [](char c) -> bool {

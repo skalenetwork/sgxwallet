@@ -46,13 +46,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gmp.h>
 #include <sgx_urts.h>
 #include <stdio.h>
+#include <jsonrpccpp/client/connectors/httpclient.h>
+#include <sgx_tcrypto.h>
+
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "DKGCrypto.h"
 #include "RPCException.h"
 #include "LevelDB.h"
 #include "SGXWalletServer.hpp"
-#include <sgx_tcrypto.h>
+
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
@@ -66,7 +69,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include "common.h"
 #include "stubclient.h"
-#include <jsonrpccpp/client/connectors/httpclient.h>
+#include "SGXWalletServer.h"
 
 default_random_engine randGen((unsigned int) time(0));
 

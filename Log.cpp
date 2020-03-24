@@ -21,8 +21,9 @@
     @date 2018
 */
 
+#include "spdlog/spdlog.h"
+#include "sgxwallet_common.h"
 #include "common.h"
-
 #include "Log.h"
 
 using namespace std;
