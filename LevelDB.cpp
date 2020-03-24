@@ -62,10 +62,10 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     auto status = db->Get(readOptions, _key, &*result);
 
-    if (printDebugInfo) {
+
       spdlog::debug("key to read from db: {}",_key );
       //std::cerr << "key to read from db: " << _key << std::endl;
-    }
+
 
     throwExceptionOnError(status);
 
@@ -83,10 +83,10 @@ void LevelDB::writeString(const string &_key, const string &_value) {
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
+
         spdlog::debug("written key: {}",_key );
        // std::cerr << "written key " << _key  << std::endl;
-    }
+
 }
 
 
@@ -100,10 +100,9 @@ void LevelDB::deleteDHDKGKey (const string &_key) {
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
       spdlog::debug("key deleted: {}",full_key );
       //std::cerr << "key deleted " << full_key << std::endl;
-    }
+
 }
 
 void LevelDB::deleteTempNEK(const string &_key){
@@ -130,10 +129,9 @@ void LevelDB::deleteKey(const string &_key){
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
       spdlog::debug("key deleted: {}",_key );
       // std::cerr << "key deleted " << _key << std::endl;
-    }
+
 }
 
 
@@ -219,10 +217,9 @@ void LevelDB::writeDataUnique(const string & Name, const string &value) {
   }
 
   writeString(key, value);
-  if (printDebugInfo) {
+
       spdlog::debug("{}",Name, " is written to db");
-    //std::cerr << Name << " is written to db " << std::endl;
-  }
+
 }
 
 

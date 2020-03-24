@@ -77,9 +77,8 @@ void initEnclave() {
     }
 #endif
 
-    if (printDebugInfo) {
         spdlog::debug("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
-    }
+
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);

@@ -61,13 +61,10 @@ std::vector<std::string> genECDSAKey() {
         throw RPCException(status, errMsg);
     }
     std::vector<std::string> keys(3);
-    if (printDebugInfo) {
         std::cerr << "account key is " << errMsg << std::endl;
         std::cerr << "enc_len is " << enc_len << std::endl;
-        // std::cerr << "enc_key is "  << std::endl;
-//    for(int i = 0 ; i < 1024; i++)
-//      std::cerr << (int)encr_pr_key[i] << " " ;
-    }
+
+
     char *hexEncrKey = (char *) calloc(BUF_LEN * 2, 1);
     carray2Hex(encr_pr_key, enc_len, hexEncrKey);
     keys.at(0) = hexEncrKey;
@@ -77,10 +74,8 @@ std::vector<std::string> genECDSAKey() {
 
 
     unsigned long seed = randGen();
-    if (printDebugInfo) {
         spdlog::debug("seed is {}", seed);
         std::cerr << "strlen is " << strlen(hexEncrKey) << std::endl;
-    }
     gmp_randstate_t state;
     gmp_randinit_default(state);
 
@@ -133,13 +128,12 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
-    if (printDebugInfo) {
         spdlog::debug("enc_len is {}", enc_len);
         spdlog::debug("pubkey is {}", pubKey);
         spdlog::debug("pubkey length is {}", pubKey.length());
         spdlog::debug("err str is {}", errMsg.data());
         spdlog::debug("err status is {}", err_status);
-    }
+
 
     return pubKey;
 }
