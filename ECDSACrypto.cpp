@@ -34,12 +34,12 @@
 #include "spdlog/spdlog.h"
 
 
-static std::default_random_engine randGen((unsigned int) time(0));
+static default_random_engine randGen((unsigned int) time(0));
 
-std::string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
-    std::string px = pub_key_x;
-    std::string py = pub_key_y;
-    std::string result = "0x" + px + py;// + std::to_string(pub_key_x) + std::to_string(pub_key_y);
+string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
+    string px = pub_key_x;
+    string py = pub_key_y;
+    string result = "0x" + px + py;
     return result;
 }
 
@@ -57,25 +57,21 @@ std::vector<std::string> genECDSAKey() {
         status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
 
     if (status != SGX_SUCCESS || err_status != 0) {
-        std::cerr << "RPCException thrown with status" << status << std::endl;
+        spdlog::error("RPCException thrown with status {}", status);
         throw RPCException(status, errMsg);
     }
     std::vector<std::string> keys(3);
-        std::cerr << "account key is " << errMsg << std::endl;
-        std::cerr << "enc_len is " << enc_len << std::endl;
+
 
 
     char *hexEncrKey = (char *) calloc(BUF_LEN * 2, 1);
     carray2Hex(encr_pr_key, enc_len, hexEncrKey);
     keys.at(0) = hexEncrKey;
     keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
-    //std::cerr << "in ECDSACrypto encr key x " << keys.at(0) << std::endl;
-    //std::cerr << "in ECDSACrypto encr_len %d " << enc_len << std::endl;
 
 
     unsigned long seed = randGen();
-        spdlog::debug("seed is {}", seed);
-        std::cerr << "strlen is " << strlen(hexEncrKey) << std::endl;
+    spdlog::debug("seed is {}", seed);
     gmp_randstate_t state;
     gmp_randinit_default(state);
 
@@ -90,7 +86,6 @@ std::vector<std::string> genECDSAKey() {
 
     keys.at(2) = rand_str;
 
-    //std::cerr << "rand_str length is " << strlen(rand_str) << std::endl;
 
     gmp_randclear(state);
     mpz_clear(rand32);

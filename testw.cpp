@@ -179,23 +179,22 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
     initAll(false, true);
 
 
-    vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
+    vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
     int err_status = 0;
     uint32_t enc_len = 0;
 
-    status = gen_dkg_secret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 32);
+    status = gen_dkg_secret(eid, &err_status, errMsg.data(), encryptedDKGSecret.data(), &enc_len, 32);
     REQUIRE(status == SGX_SUCCESS);
     // printf("gen_dkg_secret completed with status: %d %s \n", err_status, errMsg.data());
     // printf("\n Length: %d \n", enc_len);
 
-    vector<char> secret(DKG_BUFER_LENGTH, 0);
-
+    vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
     uint32_t dec_len;
-    status = decrypt_dkg_secret(eid, &err_status, errMsg1.data(), encrypted_dkg_secret.data(),
+    status = decrypt_dkg_secret(eid, &err_status, errMsg1.data(), encryptedDKGSecret.data(),
                                 (uint8_t *) secret.data(), &dec_len);
 
     REQUIRE(status == SGX_SUCCESS);
@@ -270,7 +269,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
 
     libff::init_alt_bn128_params();
 
-    vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
+    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
     int err_status = 0;
@@ -295,17 +294,17 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
     // printf(" LEN: %d \n", (int) strlen(public_shares.data()));
     // printf(" result: %s \n", public_shares.data());
 
-    vector<string> G2_strings = SplitString(public_shares.data(), ',');
+    vector<string> G2_strings = splitString(public_shares.data(), ',');
     vector<libff::alt_bn128_G2> pub_shares_G2;
     for (u_int64_t i = 0; i < G2_strings.size(); i++) {
-        vector<string> koef_str = SplitString(G2_strings.at(i).c_str(), ':');
+        vector<string> koef_str = splitString(G2_strings.at(i).c_str(), ':');
         //libff::alt_bn128_G2 el = VectStringToG2(koef_str);
         //cerr << "pub_share G2 " << i+1 << " : " << endl;
         //el.print_coordinates();
         pub_shares_G2.push_back(VectStringToG2(koef_str));
     }
 
-    vector<char> secret(DKG_MAX_SEALED_LEN, 0);
+    vector<char> secret(BUF_LEN, 0);
 
     status = decrypt_dkg_secret(eid, &err_status, errMsg1.data(), encrypted_dkg_secret.data(),
                                 (uint8_t *) secret.data(), &enc_len);
@@ -348,7 +347,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
     int err_status = 0;
     uint32_t enc_len = 0;
 
-    vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 0);
+    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
     status = gen_dkg_secret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly generated" << endl;
@@ -385,7 +384,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
     int err_status = 0;
     uint32_t enc_len = 0;
 
-    vector<uint8_t> encrypted_dkg_secret(DKG_MAX_SEALED_LEN, 1);
+    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
 
     status = gen_dkg_secret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
     REQUIRE(status == SGX_SUCCESS);
@@ -485,31 +484,24 @@ TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
     setOptions(false, false, true);
     initAll(false, true);
 
-    int err_status = 0;
+    int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
-    vector<uint8_t> encr_pr_key(BUF_LEN, 0);
-    vector<char> pub_key_x(BUF_LEN, 0);
-    vector<char> pub_key_y(BUF_LEN, 0);
-    uint32_t enc_len = 0;
+    vector<uint8_t> encPrivKey(BUF_LEN, 0);
+    vector<char> pubKeyX(BUF_LEN, 0);
+    vector<char> pubKeyY(BUF_LEN, 0);
+    uint32_t encLen = 0;
 
 
-    status = generate_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
-                                pub_key_y.data());
-    // printf("\nerrMsg %s\n", errMsg.data());
+    status = generate_ecdsa_key(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
+                                pubKeyY.data());
+
     REQUIRE(status == SGX_SUCCESS);
 
-    //printf("\nwas pub_key_x %s length %d: \n", pub_key_x.data(), (int) strlen(pub_key_x.data()));
-    //printf("\nwas pub_key_y %s length %d: \n", pub_key_y.data(), (int) strlen(pub_key_y.data()));
+    vector<char> receivedPubKeyX(BUF_LEN, 0);
+    vector<char> receivedPubKeyY(BUF_LEN, 0);
 
-    /*printf("\nencr priv_key %s: \n");
-    for ( int i = 0; i < BUF_LEN ; i++)
-     printf("%u ", encr_pr_key[i]);*/
-
-    vector<char> got_pub_key_x(BUF_LEN, 0);
-    vector<char> got_pub_key_y(BUF_LEN, 0);
-
-    status = get_public_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), enc_len, got_pub_key_x.data(),
-                                  got_pub_key_y.data());
+    status = get_public_ecdsa_key(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, receivedPubKeyX.data(),
+                                  receivedPubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
     //printf("\nnow pub_key_x %s: \n", got_pub_key_x.data());
     //printf("\nnow pub_key_y %s: \n", got_pub_key_y.data());
@@ -825,20 +817,10 @@ void SendRPCRequest() {
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
 
-//    vector<string> pubKey_vect;
-//    for ( uint8_t j = 0; j < 4; j++){
-//        pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
-//    }
-//    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
-//    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
-
-        //koefs_pkeys_map[i+1] = make_shared<BLSPublicKeyShare>(pubKey);
 
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-//  BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
-//  REQUIRE( common_public.VerifySigWithHelper(hash_arr, commonSig, t, n) );
 
 
 }
@@ -1184,96 +1166,5 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
 
 }
 
-
-//TEST_CASE("BLS key import", "[bls-key-import]") {
-//    reset_db();
-//    init_all(false, true);
-//
-//
-//
-//    auto result = importBLSKeyShareImpl(TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
-//
-//    REQUIRE(result["status"] == 0);
-//
-//    REQUIRE(result["encryptedKeyShare"] != "");
-//
-//
-//TEST_CASE("BLS sign test", "[bls-sign]") {
-//
-//    //init_all();
-//    init_enclave();
-//
-//    char* encryptedKeyHex ="04000200000000000406ffffff02000000000000000000000b000000000000ff0000000000000000813f8390f6228a568e181a4dadb6508e3e66f5247175d65dbd0d8c7fbfa4df45000000f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000008000000000000000000000000000000000dc044ae0cd79faaf41e8a7abb412790476738a98b5b6ce95fa1a32db5551b0a0d867305f4de558c64fee730a1f62394633c7d4ca65e3a40b7883e89c2801c61918b01c5de8624a52963df6f4de8581bcbdd2f9b69720d4cc764e03a04c7a99314bfdb5d2d55deda2ca40cd691f093fb2ecbae24cdacdd4d5de93189c6dfd6792d7b95bd5e330aec3538e7a85d15793"; //encryptTestKey();
-//
-//    REQUIRE(encryptedKeyHex != nullptr);
-//
-//
-//   // const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
-//    const char *hexHash = "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F";
-//
-//    char* hexHashBuf = (char*) calloc(BUF_LEN, 1);
-//
-//    strncpy(hexHashBuf,  hexHash, BUF_LEN);
-//
-//    char sig[BUF_LEN];
-//    auto result = sign(encryptedKeyHex, hexHashBuf, 2, 2, 1, sig);
-//
-//    REQUIRE(result == true);
-//    printf("Signature is: %s \n",  sig );
-//
-//}
-//
-//TEST_CASE("Server BLS sign test", "[bls-server-sign]") {
-//
-//    reset_db();
-//
-//    init_all(false, true);
-//
-//
-//    auto result = importBLSKeyShareImpl( TEST_BLS_KEY_SHARE, TEST_BLS_KEY_NAME, 2, 2, 1);
-//
-//    REQUIRE(result["status"] == 0);
-//
-//    REQUIRE(result["encryptedKeyShare"] != "");
-//
-//    const char *hexHash = "001122334455667788" "001122334455667788" "001122334455667788" "001122334455667788";
-//
-//    REQUIRE_NOTHROW(result = blsSignMessageHashImpl(TEST_BLS_KEY_NAME, hexHash,2,2,1));
-//
-//    if (result["status"] != 0) {
-//        printf("Error message: %s", result["errorMessage"].asString().c_str());
-//    }
-//
-//
-//    REQUIRE(result["status"] == 0);
-//    REQUIRE(result["signatureShare"] != "");
-//
-//    printf("Signature is: %s \n",  result["signatureShare"].asString().c_str());
-//
-//}
-
-//TEST_CASE("KeysDB test", "[keys-db]") {
-//
-//
-//
-//    reset_db();
-//    init_all();
-//
-//
-//    string key = TEST_BLS_KEY_SHARE;
-//    string value = TEST_BLS_KEY_SHARE;
-//
-//
-//
-//    REQUIRE_THROWS(readKeyShare(key));
-//
-//
-//    writeKeyShare(key, value, 1, 2, 1);
-//
-//    REQUIRE(readKeyShare(key) != nullptr);
-//
-//
-//// put your test here
-//}
 
 

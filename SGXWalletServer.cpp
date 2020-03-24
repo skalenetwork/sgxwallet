@@ -47,9 +47,9 @@
 
 void setFullOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
     if (_printDebugInfo)
-        spdlog::set_level(spdlog::level::info);
-    else {
         spdlog::set_level(spdlog::level::debug);
+    else {
+        spdlog::set_level(spdlog::level::info);
     }
     printDebugInfo = _printDebugInfo;
     useHTTPS = _useHTTPS;
@@ -481,13 +481,13 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
     return result;
 }
 
-Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_publicKeys, int _t, int _n) {
+Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
 
     try {
-        if (_publicKeys.size() != (uint64_t) _n) {
+        if (_pubKeys.size() != (uint64_t) _n) {
             throw RPCException(INVALID_DKG_PARAMS, "invalid number of public keys");
         }
         if (!checkName(_polyName, "POLY")) {
@@ -499,16 +499,15 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
         shared_ptr<string> encr_poly_ptr = readFromDb(_polyName);
 
-        vector<string> pubKeys_vect;
+        vector<string> pubKeysStrs;
         for (int i = 0; i < _n; i++) {
-            std::cerr << "publicKeys " << i << " is " << _publicKeys[i].asString() << std::endl;
-            if (!checkHex(_publicKeys[i].asString(), 64)) {
+            if (!checkHex(_pubKeys[i].asString(), 64)) {
                 throw RPCException(INVALID_HEX, "Invalid public key");
             }
-            pubKeys_vect.push_back(_publicKeys[i].asString());
+            pubKeysStrs.push_back(_pubKeys[i].asString());
         }
 
-        string s = get_secret_shares(_polyName, encr_poly_ptr->c_str(), pubKeys_vect, _t, _n);
+        string s = get_secret_shares(_polyName, encr_poly_ptr->c_str(), pubKeysStrs, _t, _n);
         //cerr << "result is " << s << endl;
         result["secretShare"] = s;
 
@@ -547,7 +546,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
 
         shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
-        if (!VerifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
+        if (!verifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
             result["result"] = false;
         }
 

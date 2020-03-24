@@ -80,10 +80,8 @@ BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
   requiredSigners = _requiredSigners;
   totalSigners = _totalSigners;
 
-  std::cerr <<   "ENTER BLSPrivateKeyShareSGX CONSTRUCTOR" << std::endl;
 
   if (requiredSigners > totalSigners) {
-
     throw std::invalid_argument("requiredSigners > totalSigners");
   }
 

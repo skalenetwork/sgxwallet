@@ -112,7 +112,7 @@ public:
 
     static Json::Value getVerificationVectorImpl(const string &_polyName, int _t, int _n);
 
-    static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_publicKeys, int _t, int _n);
+    static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
 
     static Json::Value
     dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare,
