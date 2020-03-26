@@ -16,13 +16,13 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSCrypto.h
+    @file BLSCrypto.hpp
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXWALLET_BLSCRYPTO_H
-#define SGXWALLET_BLSCRYPTO_H
+#ifndef SGXWALLET_BLSCRYPTO_HPP
+#define SGXWALLET_BLSCRYPTO_HPP
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -30,17 +30,12 @@
 #define EXTERNC
 #endif
 
-EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
-        size_t signerIndex, char* _sig);
-
-EXTERNC int char2int(char _input);
-
-EXTERNC void  carray2Hex(const unsigned char *d, int _len, char* _hexArray);
-EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
-                        uint8_t* _bin );
-EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
-                 uint8_t* _bin, const int _max_length );
+using namespace std;
 
 
+
+shared_ptr<string> encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
+
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
 
 #endif //SGXWALLET_BLSCRYPTO_H
