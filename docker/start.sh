@@ -5,7 +5,7 @@ cd /usr/src/sdk;
 echo $1
 if [ "$1" = -t ]; then
   set -e
-#./testw [bls-key-encrypt]
+./testw [bls-key-encrypt]
 #./testw [bls-key-encrypt-decrypt]
 #./testw [dkg-gen]
 #./testw [dkg-pub_shares]
