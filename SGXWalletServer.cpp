@@ -285,6 +285,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
 
         result["encryptedKey"] = keys.at(0);
         result["publicKey"] = keys.at(1);
+        result["PublicKey"] = keys.at(1);
         result["keyName"] = keyName;
 
     } catch (RPCException &_e) {
@@ -389,6 +390,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
     result["status"] = 0;
     result["errorMessage"] = "";
     result["publicKey"] = "";
+    result["PublicKey"] = "";
 
     string publicKey;
 
@@ -401,6 +403,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
         spdlog::debug("PublicKey {}", publicKey);
         spdlog::debug("PublicKey length {}", publicKey.length());
 
+        result["PublicKey"] = publicKey;
         result["publicKey"] = publicKey;
 
     } catch (RPCException &_e) {
@@ -465,6 +468,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
             vector<string> cur_coef = verifVector.at(i);
             for (int j = 0; j < 4; j++) {
                 result["verificationVector"][i][j] = cur_coef.at(j);
+                result["Verification Vector"][i][j] = cur_coef.at(j);
             }
         }
 
@@ -473,6 +477,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["verificationVector"] = "";
+        result["Verification Vector"] = "";
     }
 
     return result;
@@ -513,6 +518,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["secretShare"] = "";
+        result["SecretShare"] = "";
     }
 
     return result;
@@ -631,6 +637,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         vector<string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
         for (uint8_t i = 0; i < 4; i++) {
             result["blsPublicKeyShare"][i] = public_key_vect.at(i);
+            result["BlsPublicKeyShare"][i] = public_key_vect.at(i);
         }
 
     } catch (RPCException &_e) {
@@ -659,6 +666,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
+        result["DHKey"] = DHKey;
 
     } catch (RPCException &_e) {
         cerr << " err str " << _e.errString << endl;
@@ -694,10 +702,12 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
     try {
         std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(_polyName);
         result["IsExist"] = true;
+        result["exists"] = true;
         result["status"] = 0;
         result["errorMessage"] = "";
         if (poly_str_ptr == nullptr) {
             result["IsExist"] = false;
+            result["exists"] = false;
             result["status"] = 0;
             result["errorMessage"] = "";
         }
@@ -706,6 +716,7 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["IsExist"] = false;
+        result["exists"] = false;
     }
 
     return result;
