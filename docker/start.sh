@@ -1,18 +1,26 @@
 #!/bin/bash
+set -e
+set -v
+
 source /opt/intel/sgxsdk/environment
+
 cd /usr/src/sdk;
+
 
 if [ -f "/var/hwmode" ]
 then
+  echo "Running in SGX hardware mode"
   jhid -d
   /opt/intel/sgxpsw/aesm/aesm_service &
   pid=$!
   sleep 2
+else
+  echo "Running in SGX simulation mode"
 fi
 
-echo $1
+
 if [ "$1" = -t ]; then
-  set -e
+  echo "Test run requested"
 ./testw [bls-key-encrypt]
 #./testw [bls-key-encrypt-decrypt]
 #./testw [dkg-gen]
