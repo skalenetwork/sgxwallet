@@ -70,11 +70,7 @@ cd scripts; ./build.py; cd ..
 Go to the project's top directory, then run
 
 ```bash
-libtoolize --force
-aclocal
-autoheader
-automake --force-missing --add-missing
-autoconf
+./autoconf.bash
 ./configure
 make
 

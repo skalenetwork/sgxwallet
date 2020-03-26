@@ -16,40 +16,26 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file SGXRegistrationServer.h
+    @file BLSCrypto.hpp
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXD_SGXREGISTRATIONSERVER_H
-#define SGXD_SGXREGISTRATIONSERVER_H
+#ifndef SGXWALLET_BLSCRYPTO_HPP
+#define SGXWALLET_BLSCRYPTO_HPP
 
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
 
-#include "abstractregserver.h"
-#include <mutex>
-
-using namespace jsonrpc;
 using namespace std;
 
-class SGXRegistrationServer: public AbstractRegServer {
-  std::recursive_mutex m;
-  bool isCertCreated;
-  bool autoSign;
-
-public:
-
-  SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
-
-  void set_cert_created(bool b);
-
-  virtual Json::Value SignCertificate(const std::string& csr);
-  virtual Json::Value GetCertificate(const std::string& hash);
-
-};
 
 
-extern int initRegistrationServer(bool _autoSign = false);
+shared_ptr<string> encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
 
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
 
-
-#endif // SGXD_SGXREGISTRATIONSERVER_H
+#endif //SGXWALLET_BLSCRYPTO_H

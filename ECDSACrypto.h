@@ -35,11 +35,13 @@
 #define EXTERNC
 #endif*/
 
-std::vector<std::string> gen_ecdsa_key();
+using namespace std;
 
-std::string get_ecdsa_pubkey(const char* encryptedKeyHex);
+vector<string> genECDSAKey();
 
-std::vector<std::string> ecdsa_sign_hash(const char* encryptedKeyHex, const char* hashHex, int base);
+string getECDSAPubKey(const char* _encryptedKeyHex);
+
+vector<string> ecdsaSignHash(const char* encryptedKeyHex, const char* hashHex, int base);
 
 
 #endif //SGXD_ECDSACRYPTO_H

@@ -25,9 +25,11 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
-#include "abstractstubserver.h"
 #include <mutex>
 
+#include "abstractstubserver.h"
+
+#include "BLSCrypto.hpp"
 
 using namespace jsonrpc;
 using namespace std;
@@ -112,7 +114,7 @@ public:
 
     static Json::Value getVerificationVectorImpl(const string &_polyName, int _t, int _n);
 
-    static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_publicKeys, int _t, int _n);
+    static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
 
     static Json::Value
     dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare,

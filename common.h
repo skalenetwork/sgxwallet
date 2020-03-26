@@ -32,15 +32,29 @@ using namespace std;
 #include <map>
 #include <memory>
 
-#define CHECK_ARGUMENT(_EXPRESSION_) \
-    if (!(_EXPRESSION_)) { \
-        auto __msg__ = string("Argument Check failed:") + #_EXPRESSION_ + "\n" + __CLASS_NAME__ + ":" + __FUNCTION__ +  \
-        + " " + string(__FILE__) + ":" + to_string(__LINE__); \
-        throw runtime_error(__msg__);}
+
+
+
+#include "InvalidStateException.h"
+
+
+inline std::string className(const std::string &prettyFunction) {
+    size_t colons = prettyFunction.find("::");
+    if (colons == std::string::npos)
+        return "::";
+    size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
+    size_t end = colons - begin;
+
+    return prettyFunction.substr(begin, end);
+}
+
+
+#define __CLASS_NAME__ className( __PRETTY_FUNCTION__ )
 
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = string("State check failed::") + #_EXPRESSION_ +  " " + string(__FILE__) + ":" + to_string(__LINE__); \
-        throw runtime_error(__msg__);}
+        throw InvalidStateException(__msg__, __CLASS_NAME__);}
+
 
 #endif //SGXWALLET_COMMON_H

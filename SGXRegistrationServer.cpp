@@ -46,10 +46,10 @@
 #include "spdlog/spdlog.h"
 #include "common.h"
 
-int printDebugInfo = 0;
-int useHTTPS = 1;
-int encryptKeys = 0;
-bool autoconfirm = false;
+int printDebugInfo = -1;
+int useHTTPS = -1;
+int encryptKeys = -1;
+int autoconfirm = -1;
 
 SGXRegistrationServer *registrationServer = nullptr;
 HttpServer *httpServer2 = nullptr;
@@ -164,13 +164,13 @@ Json::Value GetSertificateImpl(const string &hash) {
 }
 
 
-Json::Value SGXRegistrationServer::signCertificate(const string &csr) {
+Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info("Enter signCertificate ");
     lock_guard<recursive_mutex> lock(m);
     return signCertificateImpl(csr, autoSign);
 }
 
-Json::Value SGXRegistrationServer::getCertificate(const string &hash) {
+Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     lock_guard<recursive_mutex> lock(m);
     return GetSertificateImpl(hash);
 }

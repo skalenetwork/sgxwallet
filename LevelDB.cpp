@@ -62,10 +62,10 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     auto status = db->Get(readOptions, _key, &*result);
 
-    if (printDebugInfo) {
-      spdlog::info("key to read from db: {}",_key );
+
+      spdlog::debug("key to read from db: {}",_key );
       //std::cerr << "key to read from db: " << _key << std::endl;
-    }
+
 
     throwExceptionOnError(status);
 
@@ -83,10 +83,10 @@ void LevelDB::writeString(const string &_key, const string &_value) {
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
-        spdlog::info("written key: {}",_key );
+
+        spdlog::debug("written key: {}",_key );
        // std::cerr << "written key " << _key  << std::endl;
-    }
+
 }
 
 
@@ -100,10 +100,9 @@ void LevelDB::deleteDHDKGKey (const string &_key) {
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
-      spdlog::info("key deleted: {}",full_key );
+      spdlog::debug("key deleted: {}",full_key );
       //std::cerr << "key deleted " << full_key << std::endl;
-    }
+
 }
 
 void LevelDB::deleteTempNEK(const string &_key){
@@ -130,10 +129,9 @@ void LevelDB::deleteKey(const string &_key){
 
     throwExceptionOnError(status);
 
-    if (printDebugInfo) {
-      spdlog::info("key deleted: {}",_key );
+      spdlog::debug("key deleted: {}",_key );
       // std::cerr << "key deleted " << _key << std::endl;
-    }
+
 }
 
 
@@ -213,16 +211,15 @@ void LevelDB::writeDataUnique(const string & Name, const string &value) {
   auto key = Name;
 
   if (readString(Name) != nullptr) {
-    spdlog::info("name {}",Name, " already exists");
+    spdlog::debug("name {}",Name, " already exists");
      // std::cerr << "name " << Name << " already exists" << std::endl;
     throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   writeString(key, value);
-  if (printDebugInfo) {
-      spdlog::info("{}",Name, " is written to db");
-    //std::cerr << Name << " is written to db " << std::endl;
-  }
+
+      spdlog::debug("{}",Name, " is written to db");
+
 }
 
 
@@ -273,12 +270,17 @@ bool LevelDB::isInited = false;
 
 void LevelDB::initDataFolderAndDBs() {
 
-    if (isInited)
-        return;
+    CHECK_STATE(!isInited)
+    isInited = true;
+
+    spdlog::info("Initing wallet database ... ");
+
 
     char cwd[PATH_MAX];
+
+
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        spdlog::error("could not get cwd");
+        spdlog::error("could not get current workin directory");
         exit(-1);
     }
 
@@ -286,16 +288,19 @@ void LevelDB::initDataFolderAndDBs() {
 
     struct stat info;
     if (stat(sgx_data_folder.c_str(), &info) !=0 ){
-        spdlog::info("going to create sgx_data folder");
-        std::string make_sgx_data_folder = "mkdir " + sgx_data_folder;
-        if (system(make_sgx_data_folder.c_str()) == 0){
-            spdlog::info("sgx_data folder was created");
+        spdlog::info("sgx_data folder does not exist. Creating ...");
+
+        if (system(("mkdir " + sgx_data_folder).c_str()) == 0){
+            spdlog::info("Successfully created sgx_data folder");
         }
         else{
-            spdlog::error("creating sgx_data folder failed");
+            spdlog::error("Couldnt create creating sgx_data folder");
             exit(-1);
         }
     }
+
+
+    spdlog::info("Opening wallet databases");
 
     auto dbName = sgx_data_folder +  WALLETDB_NAME;
     levelDb = make_shared<LevelDB>(dbName);
@@ -305,6 +310,8 @@ void LevelDB::initDataFolderAndDBs() {
 
     auto csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
     csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
+
+    spdlog::info("Successfully opened databases");
 
 }
 

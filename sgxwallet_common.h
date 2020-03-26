@@ -30,17 +30,23 @@
 #include <stdint.h>
 #include <string.h>
 
-
 #include <stdbool.h>
+
 
 
 
 extern int printDebugInfo;
 extern int useHTTPS;
 extern int encryptKeys;
-extern bool autoconfirm;
+extern int autoconfirm;
 
-#define BUF_LEN 1024
+
+
+
+
+
+
+#define BUF_LEN 4096
 
 #define  MAX_KEY_LENGTH 128
 #define  MAX_COMPONENT_LENGTH 80
@@ -51,9 +57,6 @@ extern bool autoconfirm;
 #define SHA_256_LEN 32
 
 #define ADD_ENTROPY_SIZE 32
-
-#define  DKG_BUFER_LENGTH 2490//3060
-#define  DKG_MAX_SEALED_LEN 3050
 
 #define SECRET_SHARE_NUM_BYTES 96
 
