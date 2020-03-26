@@ -164,7 +164,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
-    shared_ptr<string> encryptedKeyShareHex = nullptr;
+    char *encryptedKeyShareHex = nullptr;
 
     try {
 
@@ -178,15 +178,18 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
             throw RPCException(errStatus, errMsg);
         }
 
-        result["encryptedKeyShare"] = *encryptedKeyShareHex;
+        result["encryptedKeyShare"] = string(encryptedKeyShareHex);
 
-        writeKeyShare(_keyShareName, *encryptedKeyShareHex, _index, n, t);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
 
     } catch (RPCException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
     }
 
+    if (encryptedKeyShareHex != nullptr) {
+        free(encryptedKeyShareHex);
+    }
 
     return result;
 }

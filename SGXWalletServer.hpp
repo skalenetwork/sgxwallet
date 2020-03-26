@@ -25,11 +25,9 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
+#include "abstractstubserver.h"
 #include <mutex>
 
-#include "abstractstubserver.h"
-
-#include "BLSCrypto.hpp"
 
 using namespace jsonrpc;
 using namespace std;
