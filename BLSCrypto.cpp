@@ -47,8 +47,6 @@
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
-#include "BLSCrypto.hpp"
-
 #include "ServerInit.h"
 
 #include "RPCException.h"
@@ -164,11 +162,16 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
         throw RPCException(INVALID_HEX, "Invalid hash");
     }
+    // assert(binLen == hash->size());
+
 
 
     auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
+    //cerr << "keyShare created" << endl;
+    // {
     auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
+    // }
 
     auto sigShareStr = sigShare->toString();
 
@@ -309,7 +312,7 @@ bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     }
 }
 
-shared_ptr<string> encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
     auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
@@ -318,7 +321,7 @@ shared_ptr<string> encryptBLSKeyShare2Hex(int *errStatus, char *err_string, cons
 
     unsigned int encryptedLen = 0;
 
-
+    //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
     status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     spdlog::debug("errStatus is {}", *errStatus);
@@ -336,11 +339,11 @@ shared_ptr<string> encryptBLSKeyShare2Hex(int *errStatus, char *err_string, cons
     }
 
 
-    vector<char> result(2 * BUF_LEN, 0);
+    char *result = (char *) calloc(2 * BUF_LEN, 1);
 
-    carray2Hex(encryptedKey->data(), encryptedLen, result.data());
+    carray2Hex(encryptedKey->data(), encryptedLen, result);
 
-    return make_shared<string>(result.data());
+    return result;
 }
 
 char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
