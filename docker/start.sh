@@ -2,7 +2,7 @@
 source /opt/intel/sgxsdk/environment
 cd /usr/src/sdk;
 
-if [ -z "$HW_MODE" ]
+if [ -f "/var/hwmode" ]
 then
   jhid -d
   /opt/intel/sgxpsw/aesm/aesm_service &

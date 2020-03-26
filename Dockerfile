@@ -1,8 +1,6 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
-ENV HW_MODE 1
-
-
+RUN touch /var/hwmode
 COPY *.cpp ./
 COPY *.h ./
 COPY *.txt ./
