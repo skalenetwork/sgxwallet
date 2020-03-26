@@ -39,16 +39,16 @@ public:
   inline virtual void signCertificateI(const Json::Value &request, Json::Value &response)
   {
       std::cerr << "signCertificateI in abstr server " << std::endl;
-      response = this->signCertificate( request["certificate"].asString());
+      response = this->SignCertificate(request["certificate"].asString());
   }
   inline virtual void getCertificateI(const Json::Value &request, Json::Value &response)
   {
-    response = this->getCertificate( request["hash"].asString());
+    response = this->GetCertificate(request["hash"].asString());
   }
 
 
-  virtual Json::Value signCertificate(const std::string& cert) = 0;
-  virtual Json::Value getCertificate(const std::string& hash) = 0;
+  virtual Json::Value SignCertificate(const std::string& cert) = 0;
+  virtual Json::Value GetCertificate(const std::string& hash) = 0;
 
 };
 

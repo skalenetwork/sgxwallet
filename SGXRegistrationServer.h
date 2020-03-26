@@ -42,7 +42,7 @@ public:
 
   void set_cert_created(bool b);
 
-  virtual Json::Value SignCertificЖate(const std::string& csr);
+  virtual Json::Value SignCertificate(const std::string& csr);
   virtual Json::Value GetCertificate(const std::string& hash);
 
 };

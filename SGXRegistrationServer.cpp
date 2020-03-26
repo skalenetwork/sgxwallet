@@ -164,13 +164,13 @@ Json::Value GetSertificateImpl(const string &hash) {
 }
 
 
-Json::Value SGXRegistrationServer::signCertificate(const string &csr) {
+Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info("Enter signCertificate ");
     lock_guard<recursive_mutex> lock(m);
     return signCertificateImpl(csr, autoSign);
 }
 
-Json::Value SGXRegistrationServer::getCertificate(const string &hash) {
+Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     lock_guard<recursive_mutex> lock(m);
     return GetSertificateImpl(hash);
 }
