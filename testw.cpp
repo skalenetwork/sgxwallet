@@ -472,6 +472,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
     // cerr << "Client inited" << endl;
 
 
+    cerr << "1" << endl;
+
     int n = 16, t = 16;
     Json::Value etnKeys[n];
     Json::Value VerifVects[n];
@@ -496,6 +498,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
         pubEthKeys.append(etnKeys[i]["publicKey"]);
     }
 
+    cerr << "2" << endl;
 
     for (uint8_t i = 0; i < n; i++) {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
@@ -509,6 +512,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
             }
         }
     }
+
+    cerr << "3" << endl;
 
     int k = 0;
 
@@ -536,6 +541,8 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
         }
 
     BLSSigShareSet sigShareSet(t, n);
+
+    cerr << "4" << endl;
 
     string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
 
@@ -571,11 +578,15 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
     }
 
+    cerr << "5" << endl;
+
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(coeffsPubKeysMap), t, n);
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
-    sgx_destroy_enclave(eid);
+    cerr << "6" << endl;
+
+    destroyEnclave();
 
 }
 
