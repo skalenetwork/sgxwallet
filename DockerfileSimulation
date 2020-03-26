@@ -1,6 +1,8 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
 
+
+
 COPY *.cpp ./
 COPY *.h ./
 COPY *.txt ./

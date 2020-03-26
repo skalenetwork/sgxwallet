@@ -2,6 +2,14 @@
 source /opt/intel/sgxsdk/environment
 cd /usr/src/sdk;
 
+if [ -z "$HW_MODE" ]
+then
+  jhid -d
+  /opt/intel/sgxpsw/aesm/aesm_service &
+  pid=$!
+  sleep 2
+fi
+
 echo $1
 if [ "$1" = -t ]; then
   set -e

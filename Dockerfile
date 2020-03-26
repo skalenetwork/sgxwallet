@@ -1,5 +1,7 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
+ENV SGX_MODE HW
+
 
 COPY *.cpp ./
 COPY *.h ./
