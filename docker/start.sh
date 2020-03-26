@@ -21,12 +21,12 @@ fi
 
 if [ "$1" = -t ]; then
   echo "Test run requested"
-./testw [bls-key-encrypt]
+#./testw [bls-key-encrypt]
 #./testw [bls-key-encrypt-decrypt]
 #./testw [dkg-gen]
 #./testw [dkg-pub_shares]
 #./testw [dkg-verify]
-#./testw [ecdsa_test]
+./testw [ecdsa_test]
 #./testw [test_test]
 #./testw [get_pub_ecdsa_key_test]
 #./testw [bls_dkg]
