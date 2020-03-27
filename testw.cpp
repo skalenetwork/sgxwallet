@@ -106,7 +106,7 @@ void resetDB() {
                     WALLETDB_NAME) == 0);
 }
 
-char *encryptTestKey() {
+shared_ptr<string> encryptTestKey() {
 
     const char *key = TEST_BLS_KEY_SHARE;
     int errStatus = -1;
@@ -120,7 +120,15 @@ char *encryptTestKey() {
     //printf("Encrypted key len %d\n", (int) strlen(encryptedKeyHex));
     //printf("Encrypted key %s \n", encryptedKeyHex);
 
-    return encryptedKeyHex;
+    return make_shared<string>(encryptedKeyHex);
+}
+
+
+void destroyEnclave() {
+    if (eid != 0) {
+        sgx_destroy_enclave(eid);
+        eid = 0;
+    }
 }
 
 
@@ -130,8 +138,6 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     initAll(false, true);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
-    free(key);
-    sgx_destroy_enclave(eid);
 }
 
 /* Do later
@@ -165,12 +171,6 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 */
 
-void destroyEnclave() {
-    if (eid != 0) {
-        sgx_destroy_enclave(eid);
-        eid = 0;
-    }
-}
 
 
 TEST_CASE("DKG gen test", "[dkg-gen]") {
@@ -1133,19 +1133,10 @@ TEST_CASE("bls_sign_api test", "[bls_sign]") {
     Json::Value pubBLSKey = c.getBLSPublicKeyShare(blsName);
     REQUIRE(pubBLSKey["status"] == 0);
 
-
-
     Json::Value sign = c.blsSignMessageHash(blsName, hash, t, n, 1);
     REQUIRE(sign["status"] == 0);
 
-//      vector<string> pubKey_vect;
-//    for ( uint8_t j = 0; j < 4; j++){
-//      pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
-//    }
-//    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
-//    REQUIRE( pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig) , t, n));
-
-    sgx_destroy_enclave(eid);
+    destroyEnclave();
 
 }
 
@@ -1173,7 +1164,7 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
 
 
     REQUIRE(key.compare(decr_key.data()) == 0);
-    sgx_destroy_enclave(eid);
+    destroyEnclave();
 
 }
 

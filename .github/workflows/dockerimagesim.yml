@@ -2,8 +2,7 @@ name: Build, test and push sim mode container
 on: [push]
 jobs:
   build:
-
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - name: Login to docker
       env:
