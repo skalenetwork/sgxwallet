@@ -22,26 +22,6 @@ fi
 
 if [ "$1" = -t ]; then
 echo "Test run requested"
-
-
-
-"[dkg-gen]",
-            "[dkg-encr-sshares]",
-            "[dkg-verify]",
-            "[ecdsa]",
-            "[test]",
-            "[get-pub-ecdsa-key-test]",
-            "[bls-dkg]",
-            "[api]",
-            "[get-server-status]",
-            "[many-threads]",
-            "[ecdsa-api]",
-            "[dkg-api]",
-            "[is-poly]",
-#            "[bls_sign]",
-            "[aes-encrypt-decrypt]"
-
-
 #./testw [bls-key-encrypt]
 ./testw [bls-key-encrypt-decrypt]
 ./testw [dkg-encr-sshares]
