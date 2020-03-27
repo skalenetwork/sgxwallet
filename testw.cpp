@@ -324,7 +324,8 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
         mpz_init(x_c0);
         x_c0_el.as_bigint().to_mpz(x_c0);
         char arr[mpz_sizeinbase(x_c0, 10) + 2];
-        char *share_str = mpz_get_str(arr, 10, x_c0);
+
+        // char *share_str = mpz_get_str(arr, 10, x_c0);
         // printf(" %s \n", share_str);
         mpz_clear(x_c0);
     }
