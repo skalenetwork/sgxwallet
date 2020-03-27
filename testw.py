@@ -37,20 +37,20 @@ print("Top directory is:" + topDir)
 
 
 testList = ["[bls-key-encrypt]", "[dkg-gen]",
-            "[dkg-encr_sshares]",
+            "[dkg-encr-sshares]",
             "[dkg-verify]",
-            "[ecdsa_test]",
-            "[test_test]",
-            "[get_pub_ecdsa_key_test]",
-            "[bls_dkg]",
-            "[api_test]",
-            "[getServerStatus_test]",
-            "[many_threads_test]",
-            "[ecdsa_api_test]",
-            "[dkg_api_test]",
-            "[is_poly_test]",
-#            "[bls_sign]",
-            "[AES-encrypt-decrypt]"]
+            "[ecdsa]",
+            "[test]",
+            "[get-pub-ecdsa-key-test]",
+            "[bls-dkg]",
+            "[api]",
+            "[get-server-status]",
+            "[many-threads]",
+            "[ecdsa-api]",
+            "[dkg-api]",
+            "[is-poly]",
+#            "[bls-sign]",
+            "[aes-encrypt-decrypt]"]
 
 
 for t in testList:

@@ -261,7 +261,7 @@ libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
     return koef;
 }
 
-TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
+TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -336,7 +336,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub_shares]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("DKG encrypted secret shares test", "[dkg-encr_sshares]") {
+TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -414,7 +414,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 }
 
 
-TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
+TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -458,7 +458,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa_test]") {
 
 }
 
-TEST_CASE("Test test", "[test_test]") {
+TEST_CASE("Test test", "[test]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -480,7 +480,7 @@ TEST_CASE("Test test", "[test_test]") {
 
 }
 
-TEST_CASE("get public ECDSA key", "[get_pub_ecdsa_key_test]") {
+TEST_CASE("get public ECDSA key", "[get-pub-ecdsa-key]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -548,7 +548,7 @@ string ConvertDecToHex(string dec, int numBytes = 32) {
 }
 
 
-TEST_CASE("BLS_DKG test", "[bls_dkg]") {
+TEST_CASE("BLS_DKG test", "[bls-dkg]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -677,7 +677,7 @@ TEST_CASE("BLS_DKG test", "[bls_dkg]") {
 
 }
 
-TEST_CASE("API test", "[api_test]") {
+TEST_CASE("API test", "[api]") {
     setOptions(false, false, true);
     initAll(false, true);
 
@@ -731,7 +731,7 @@ TEST_CASE("API test", "[api_test]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("getServerStatus test", "[getServerStatus_test]") {
+TEST_CASE("getServerStatus test", "[get-server-status]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -837,7 +837,7 @@ void SendRPCRequest() {
 
 }
 
-TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
+TEST_CASE("ManySimultaneousThreads", "[many-threads-test]") {
     resetDB();
     setOptions(false, false, true);
 
@@ -856,7 +856,7 @@ TEST_CASE("ManySimultaneousThreads", "[many_threads_test]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
+TEST_CASE("ecdsa API test", "[ecdsa-api]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -904,7 +904,7 @@ TEST_CASE("ecdsa API test", "[ecdsa_api_test]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("dkg API test", "[dkg_api_test]") {
+TEST_CASE("dkg API test", "[dkg-api]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -977,7 +977,7 @@ TEST_CASE("dkg API test", "[dkg_api_test]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("isPolyExists test", "[is_poly_test]") {
+TEST_CASE("isPolyExists test", "[is-poly]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
@@ -1003,7 +1003,7 @@ TEST_CASE("isPolyExists test", "[is_poly_test]") {
 
 }
 
-TEST_CASE("AES_DKG test", "[aes_dkg]") {
+TEST_CASE("AES_DKG test", "[aes-dkg]") {
     resetDB();
     setOptions(false, false, true);
 
@@ -1119,7 +1119,7 @@ TEST_CASE("AES_DKG test", "[aes_dkg]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("bls_sign_api test", "[bls_sign]") {
+TEST_CASE("bls_sign_api test", "[bls-sign]") {
     resetDB();
     setOptions(false, false, true);
     initAll(false, true);
