@@ -39,7 +39,7 @@ echo "Test run requested"
 #./testw [ecdsa_api_test]
 ./testw [dkg-encr_sshares]
 #./testw [bls_sign]
-/testw [many_threads_test]
+./testw [many_threads_test]
 ./testw [aes_dkg]
 else
    ./sgxwallet $1 $2 $3 $4
