@@ -22,7 +22,7 @@ fi
 
 if [ "$1" = -t ]; then
 echo "Test run requested"
-./testw [bls-key-encrypt]
+#./testw [bls-key-encrypt]
 ./testw [bls-key-encrypt-decrypt]
 ./testw [dkg-gen]
 ./testw [dkg-pub_shares]
