@@ -4,6 +4,8 @@ set -v
 
 source /opt/intel/sgxsdk/environment
 
+if ! [ -f /root/.rnd ]; then dd if=/dev/random of=/root/.rnd bs=256 count=1 ; fi
+
 cd /usr/src/sdk;
 
 

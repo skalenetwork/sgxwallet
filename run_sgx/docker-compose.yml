@@ -11,6 +11,7 @@ services:
       - "/dev/mei0"
     volumes:
       - ./sgx_data:/usr/src/sdk/sgx_data
+      -  /dev/urandom:/dev/random
     logging:
       driver: json-file
       options:
