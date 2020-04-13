@@ -1,7 +1,7 @@
 version: '3'
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet:latest
+    image: skalenetwork/sgxwallet:latest_commit
     ports:
       - "1026:1026"
       - "1027:1027"
