@@ -59,6 +59,8 @@ void printUsage() {
     fprintf(stderr, "-c  do not verify client certificate\n");
     fprintf(stderr, "-s  sign client certificate without human confirmation \n");
     fprintf(stderr, "-d  turn on debug output\n");
+    fprintf(stderr, "-v  verbose mode: turn on debug output\n");
+    fprintf(stderr, "-vv  detailed verbose mode: turn on debug and trace outputs\n");
     fprintf(stderr, "-0  launch SGXWalletServer using http (not https)\n");
     fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
     fprintf(stderr, "-y  Do not ask user to acknoledge receipt of backup key \n");
@@ -69,6 +71,7 @@ int main(int argc, char *argv[]) {
     bool encryptKeysOption  = false;
     bool useHTTPSOption = true;
     bool printDebugInfoOption = false;
+    bool printTraceInfoOption = false;
     bool autoconfirmOption = false;
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
@@ -83,17 +86,11 @@ int main(int argc, char *argv[]) {
 
 
 
-    while ((opt = getopt(argc, argv, "cshd0aby")) != -1) {
+    while ((opt = getopt(argc, argv, "cshd0abyvV")) != -1) {
         switch (opt) {
             case 'h':
-                if (strlen(argv[1]) == 2) {
-                    printUsage();
-                    exit(0);
-                } else {
-                    fprintf(stderr, "unknown flag %s\n", argv[1]);
-                    printUsage();
-                    exit(1);
-                }
+                printUsage();
+                exit(0);
             case 'c':
                 checkClientCertOption = false;
                 break;
@@ -102,6 +99,13 @@ int main(int argc, char *argv[]) {
                 break;
             case 'd':
                 printDebugInfoOption = true;
+                break;
+            case 'v':
+                printDebugInfoOption = true;
+                break;
+            case 'V':
+                printDebugInfoOption = true;
+                printTraceInfoOption = true;
                 break;
             case '0':
                 useHTTPSOption = false;
@@ -115,15 +119,14 @@ int main(int argc, char *argv[]) {
             case 'y':
                 autoconfirmOption = true;
                 break;
-            case '?':
+            default:
                 printUsage();
                 exit(1);
-            default:
                 break;
         }
     }
 
-    setFullOptions(printDebugInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
+    setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
     initAll(checkClientCertOption, autoSignClientCertOption);
 

@@ -35,7 +35,7 @@
 
 
 
-extern int printDebugInfo;
+
 extern int useHTTPS;
 extern int encryptKeys;
 extern int autoconfirm;

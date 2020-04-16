@@ -28,7 +28,7 @@
 
 #include <memory>
 #include "SGXWalletServer.hpp"
-#include "RPCException.h"
+#include "SGXException.h"
 
 //#include <libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
@@ -88,7 +88,7 @@ string gen_dkg_poly(int _t) {
     else
         status = gen_dkg_secret_aes(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     if (err_status != 0) {
-        throw RPCException(-666, errMsg.data());
+        throw SGXException(-666, errMsg.data());
     }
 
     spdlog::debug("gen_dkg_secret, status {}", err_status, " err msg ", errMsg.data());
@@ -127,7 +127,7 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
     vector<uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
     if (!hex2carray2(encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
 
@@ -144,7 +144,7 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
         status = get_public_shares_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen, pubShares.data(), t, n);
     }
     if (errStatus != 0) {
-        throw RPCException(-666, errMsg1.data());
+        throw SGXException(-666, errMsg1.data());
     }
 
 
@@ -176,7 +176,7 @@ string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex,
     vector<uint8_t > encrDKGPoly(BUF_LEN, 0);
 
     if (!hex2carray2(_encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
 
@@ -187,7 +187,7 @@ string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex,
         status = set_encrypted_dkg_poly_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
 
     if (status != SGX_SUCCESS || errStatus != 0) {
-        throw RPCException(-666, errMsg1.data());
+        throw SGXException(-666, errMsg1.data());
     }
 
     string result;
@@ -215,7 +215,7 @@ string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex,
             get_encr_sshare_aes(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
                                 currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
         if (errStatus != 0) {
-            throw RPCException(-666, errMsg1.data());
+            throw SGXException(-666, errMsg1.data());
         }
 
         spdlog::debug("cur_share is {}", currentShare.data());
@@ -253,7 +253,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     uint8_t encr_key[BUF_LEN];
     memset(encr_key, 0, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
     int result;
 
@@ -270,7 +270,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
         dkg_verification_aes(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
 
     if (result == 2) {
-        throw RPCException(INVALID_HEX, "Invalid public shares");
+        throw SGXException(INVALID_HEX, "Invalid public shares");
     }
 
     spdlog::debug("errMsg1: {}", errMsg1);
@@ -295,7 +295,7 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
     uint8_t encr_key[BUF_LEN];
     memset(encr_key, 0, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
     uint32_t enc_bls_len = 0;
@@ -310,7 +310,7 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
         spdlog::error(errMsg1);
         spdlog::error("status {}", err_status);
-        throw RPCException(ERROR_IN_ENCLAVE, "Create BLS private key failed in enclave");
+        throw SGXException(ERROR_IN_ENCLAVE, "Create BLS private key failed in enclave");
     } else {
 
         char hexBLSKey[2 * BUF_LEN];
@@ -334,7 +334,7 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
     uint64_t dec_key_len;
     uint8_t encr_key[BUF_LEN];
     if (!hex2carray(encryptedKeyHex, &dec_key_len, encr_key)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
     char pub_key[320];
@@ -346,7 +346,7 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
         get_bls_pub_key_aes(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
     if (err_status != 0) {
         spdlog::error(string(errMsg1) + " . Status is  {}", err_status);
-        throw RPCException(ERROR_IN_ENCLAVE, "Failed to get BLS public key in enclave");
+        throw SGXException(ERROR_IN_ENCLAVE, "Failed to get BLS public key in enclave");
     }
     vector<string> pub_key_vect = splitString(pub_key, ':');
 
@@ -373,7 +373,7 @@ string decrypt_DHKey(const string &polyName, int ind) {
     uint64_t DH_enc_len = 0;
     uint8_t encrypted_DHkey[BUF_LEN];
     if (!hex2carray(hexEncrKey_ptr->c_str(), &DH_enc_len, encrypted_DHkey)) {
-        throw RPCException(INVALID_HEX, "Invalid hexEncrKey");
+        throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", DH_enc_len);
     spdlog::debug("hex encr DH key length is {}", hexEncrKey_ptr->length());
@@ -386,7 +386,7 @@ string decrypt_DHKey(const string &polyName, int ind) {
     else
         decrypt_key_aes(eid, &err_status, errMsg1.data(), encrypted_DHkey, DH_enc_len, DHKey);
     if (err_status != 0) {
-        throw RPCException(/*ERROR_IN_ENCLAVE*/ err_status, "decrypt key failed in enclave");
+        throw SGXException(/*ERROR_IN_ENCLAVE*/ err_status, "decrypt key failed in enclave");
     }
 
     return DHKey;

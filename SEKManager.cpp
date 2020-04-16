@@ -22,7 +22,7 @@
 */
 
 #include "SEKManager.h"
-#include "RPCException.h"
+#include "SGXException.h"
 #include "BLSCrypto.h"
 #include "LevelDB.h"
 
@@ -56,7 +56,7 @@ void create_test_key(){
   status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
   if ( status != 0){
     std::cerr << "encrypt test key failed with status " << status << std::endl;
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
   //std::cerr << "enc len is " << enc_len << std::endl;
@@ -101,7 +101,7 @@ bool check_SEK(std::string SEK){
     status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
     if (status != SGX_SUCCESS){
       cerr << "RPCException thrown with status " << status << endl;
-      throw RPCException(status, errMsg.data());
+      throw SGXException(status, errMsg.data());
     }
 
     status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
@@ -135,7 +135,7 @@ void gen_SEK(){
 
   status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
   if (status != SGX_SUCCESS ||  err_status != 0  ){
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
@@ -175,13 +175,13 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
   uint64_t len;
 
   if (!hex2carray(hex_encr_SEK->c_str(), &len, encr_SEK)){
-    throw RPCException(INVALID_HEX, "Invalid encrypted SEK Hex");
+    throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
   }
 
   status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK, len );
   if ( status != SGX_SUCCESS || err_status != 0 ){
     cerr << "RPCException thrown" << endl;
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
 }
@@ -213,7 +213,7 @@ void enter_SEK(){
   status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
   if (status != SGX_SUCCESS){
     cerr << "RPCException thrown with status " << status << endl;
-    throw RPCException(status, errMsg.data());
+    throw SGXException(status, errMsg.data());
   }
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);

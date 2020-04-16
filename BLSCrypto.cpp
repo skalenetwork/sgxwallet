@@ -49,7 +49,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include "RPCException.h"
+#include "SGXException.h"
 
 #include "spdlog/spdlog.h"
 #include "common.h"
@@ -160,7 +160,7 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     uint64_t binLen;
 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
-        throw RPCException(INVALID_HEX, "Invalid hash");
+        throw SGXException(INVALID_HEX, "Invalid hash");
     }
     // assert(binLen == hash->size());
 
@@ -201,7 +201,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     uint64_t binLen;
 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
-        throw RPCException(INVALID_HEX, "Invalid hash");
+        throw SGXException(INVALID_HEX, "Invalid hash");
     }
     // assert(binLen == hash->size());
 
@@ -335,7 +335,7 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     }
 
     if (*errStatus != 0) {
-        throw RPCException(-666, errMsg->data());
+        throw SGXException(-666, errMsg->data());
     }
 
 

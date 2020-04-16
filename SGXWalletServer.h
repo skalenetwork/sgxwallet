@@ -31,8 +31,10 @@
 #endif
 
 
-EXTERNC void setFullOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys);
-EXTERNC void setOptions(int _printDebugInfo, int _useHTTPS, int _autoconfirm);
+EXTERNC void setFullOptions(int _printDebugInfo,
+                            int _printTraceInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys);
+EXTERNC void setOptions(int _printDebugInfo,
+                        int _printTraceInfo, int _useHTTPS, int _autoconfirm);
 
 
 

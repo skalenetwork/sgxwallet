@@ -28,14 +28,14 @@
 #include <string>
 #include <exception>
 
-class RPCException : public std::exception {
+class SGXException : public std::exception {
 
 public:
 
     int32_t status;
     std::string errString;
 
-    RPCException(int32_t _status, const char* _errString) : status(_status), errString(_errString) {}
+    SGXException(int32_t _status, const char* _errString) : status(_status), errString(_errString) {}
 
 };
 

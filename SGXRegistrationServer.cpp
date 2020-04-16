@@ -32,7 +32,7 @@
 
 #include "sgxwallet_common.h"
 
-#include "RPCException.h"
+#include "SGXException.h"
 #include "LevelDB.h"
 
 #include <thread>
@@ -79,7 +79,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
             outfile << _csr << endl;
             outfile.close();
             if (access(csr_name.c_str(), F_OK) != 0) {
-                throw RPCException(FILE_NOT_FOUND, "Csr does not exist");
+                throw SGXException(FILE_NOT_FOUND, "Csr does not exist");
             }
 
             string genCert = "cd cert && ./create_client_cert " + hash;
@@ -91,7 +91,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
                 spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
                 string status_db_key = "CSR:HASH:" + hash + "STATUS:";
                 LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FAIL_TO_CREATE_CERTIFICATE));
-                throw RPCException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
+                throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
                 //exit(-1);
             }
         }
@@ -102,7 +102,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
         LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
 
-    } catch (RPCException &_e) {
+    } catch (SGXException &_e) {
         cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -120,7 +120,7 @@ Json::Value GetSertificateImpl(const string &hash) {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
         shared_ptr<string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
         if (status_str_ptr == nullptr) {
-            throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
+            throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
         }
         int status = atoi(status_str_ptr->c_str());
 
@@ -132,7 +132,7 @@ Json::Value GetSertificateImpl(const string &hash) {
                 string status_db_key = "CSR:HASH:" + hash + "STATUS:";
                 LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
                 LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FILE_NOT_FOUND));
-                throw RPCException(FILE_NOT_FOUND, "Certificate does not exist");
+                throw SGXException(FILE_NOT_FOUND, "Certificate does not exist");
             } else {
                 ostringstream ss;
                 ss << infile.rdbuf();
@@ -154,7 +154,7 @@ Json::Value GetSertificateImpl(const string &hash) {
         result["status"] = status;
         result["cert"] = cert;
 
-    } catch (RPCException &_e) {
+    } catch (SGXException &_e) {
         cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;

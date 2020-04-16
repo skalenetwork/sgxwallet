@@ -58,7 +58,7 @@ add_executable(sgxwallet
         LevelDB.h
         oc_alloc.c
         RPCException.cpp
-        RPCException.h
+        SGXException.h
         secure_enclave_u.c
         secure_enclave_u.h
         SEKManager.cpp

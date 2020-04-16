@@ -25,7 +25,7 @@
 #include "BLSCrypto.h"
 #include "sgxwallet.h"
 
-#include "RPCException.h"
+#include "SGXException.h"
 
 #include <iostream>
 #include <gmp.h>
@@ -58,7 +58,7 @@ std::vector<std::string> genECDSAKey() {
 
     if (status != SGX_SUCCESS || err_status != 0) {
         spdlog::error("RPCException thrown with status {}", status);
-        throw RPCException(status, errMsg);
+        throw SGXException(status, errMsg);
     }
     std::vector<std::string> keys(3);
 
@@ -110,7 +110,7 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     uint64_t enc_len = 0;
 
     if (!hex2carray(_encryptedKeyHex, &enc_len, encrPrKey.data())) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
     if (!encryptKeys)
@@ -119,7 +119,7 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     else status = get_public_ecdsa_key_aes(eid, &err_status,
             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
     if (err_status != 0) {
-        throw RPCException(-666, errMsg.data());
+        throw SGXException(-666, errMsg.data());
     }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
@@ -146,7 +146,7 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     //uint8_t encr_key[BUF_LEN];
     uint8_t *encr_key = (uint8_t *) calloc(1024, 1);
     if (!hex2carray(encryptedKeyHex, &dec_len, encr_key)) {
-        throw RPCException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
 
@@ -162,7 +162,7 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
         status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
                                 signature_s, &signature_v, base);
     if (err_status != 0) {
-        throw RPCException(-666, errMsg);
+        throw SGXException(-666, errMsg);
     }
 
 

@@ -21,4 +21,4 @@
     @date 2019
 */
 
-#include "RPCException.h"
+#include "SGXException.h"
