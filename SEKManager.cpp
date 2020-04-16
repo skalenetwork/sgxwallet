@@ -224,7 +224,7 @@ void enter_SEK(){
   LevelDB::getLevelDb() -> writeDataUnique("SEK", hexEncrKey.data());
 }
 
-void init_SEK(){
+void initSEK(){
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
   if (encr_SEK_ptr == nullptr){
     spdlog::error("SEK was not created yet. Going to create SEK");

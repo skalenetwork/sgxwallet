@@ -116,7 +116,7 @@ void initAll(bool _checkCert, bool _autoSign) {
     sgxServerInited = 1;
     initEnclave();
     initUserSpace();
-    init_SEK();
+    initSEK();
 
     if (useHTTPS) {
         SGXWalletServer::initHttpsServer(_checkCert);

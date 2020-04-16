@@ -29,7 +29,6 @@ username = getpass.getuser()
 
 
 
-assert username == "root"
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Starting build push")
