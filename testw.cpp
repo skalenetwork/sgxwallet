@@ -182,24 +182,24 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
     vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
-    int err_status = 0;
+    int errStatus = 0;
     uint32_t enc_len = 0;
 
-    status = trustedGenDkgSecret(eid, &err_status, errMsg.data(), encryptedDKGSecret.data(), &enc_len, 32);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &enc_len, 32);
     REQUIRE(status == SGX_SUCCESS);
-    // printf("trustedGenDkgSecret completed with status: %d %s \n", err_status, errMsg.data());
+    // printf("trustedGenDkgSecret completed with status: %d %s \n", errStatus, errMsg.data());
     // printf("\n Length: %d \n", enc_len);
 
     vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
     uint32_t dec_len;
-    status = trustedDecryptDkgSecret(eid, &err_status, errMsg1.data(), encryptedDKGSecret.data(),
+    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
                                 (uint8_t *) secret.data(), &dec_len);
 
     REQUIRE(status == SGX_SUCCESS);
 
-    // printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", err_status, errMsg1.data());
+    // printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", errStatus, errMsg1.data());
     // printf("decrypted secret %s \n\n", secret.data());
     // printf("secret length %d \n", (int) strlen(secret.data()));
     // printf("decr length %d \n", dec_len);
@@ -272,14 +272,14 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
-    int err_status = 0;
+    int errStatus = 0;
     uint32_t enc_len = 0;
 
     unsigned t = 32, n = 32;
 
-    status = trustedGenDkgSecret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, n);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, n);
     REQUIRE(status == SGX_SUCCESS);
-    //printf("gen_dkg_public completed with status: %d %s \n", err_status, errMsg);
+    //printf("gen_dkg_public completed with status: %d %s \n", errStatus, errMsg);
 
 
     vector<char> errMsg1(BUF_LEN, 0);
@@ -287,10 +287,10 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     char colon = ':';
     vector<char> public_shares(10000, 0);
 
-    status = trustedGetPublicShares(eid, &err_status, errMsg1.data(),
+    status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
                                encrypted_dkg_secret.data(), enc_len, public_shares.data(), t, n);
     REQUIRE(status == SGX_SUCCESS);
-    // printf("\ntrustedGetPublicShares status: %d error %s \n\n", err_status, errMsg1.data());
+    // printf("\ntrustedGetPublicShares status: %d error %s \n\n", errStatus, errMsg1.data());
     // printf(" LEN: %d \n", (int) strlen(public_shares.data()));
     // printf(" result: %s \n", public_shares.data());
 
@@ -306,10 +306,10 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
 
     vector<char> secret(BUF_LEN, 0);
 
-    status = trustedDecryptDkgSecret(eid, &err_status, errMsg1.data(), encrypted_dkg_secret.data(),
+    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encrypted_dkg_secret.data(),
                                 (uint8_t *) secret.data(), &enc_len);
     REQUIRE(status == SGX_SUCCESS);
-    //printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", err_status, errMsg1.data());
+    //printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", errStatus, errMsg1.data());
 
     signatures::Dkg dkg_obj(t, n);
 
@@ -345,15 +345,15 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
 
-    int err_status = 0;
+    int errStatus = 0;
     uint32_t enc_len = 0;
 
     vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
-    status = trustedGenDkgSecret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly generated" << endl;
 
-    status = trustedSetEncryptedDkgPoly(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data());
+    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data());
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly set" << endl;
 
@@ -362,7 +362,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
     string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
 
     vector<char> s_shareG2(BUF_LEN, 0);
-    status = trustedGetEncryptedSecretShare(eid, &err_status, errMsg.data(), encrPRDHKey.data(), &enc_len, result.data(),
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &enc_len, result.data(),
                              s_shareG2.data(),
                              (char *) pub_keyB.data(), 2, 2, 1);
 
@@ -382,16 +382,16 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
 
-    int err_status = 0;
+    int errStatus = 0;
     uint32_t enc_len = 0;
 
     vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
 
-    status = trustedGenDkgSecret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly generated" << endl;
 
-    status = trustedSetEncryptedDkgPoly(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data());
+    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data());
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly set" << endl;
 
@@ -401,11 +401,11 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 
     vector<char> s_shareG2(BUF_LEN, 0);
 
-    status = trustedGetEncryptedSecretShare(eid, &err_status, errMsg.data(), encrPrDHKey.data(), &enc_len, result.data(),
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPrDHKey.data(), &enc_len, result.data(),
                              s_shareG2.data(),
                              (char *) pub_keyB.data(), 2, 2, 1);
     REQUIRE(status == SGX_SUCCESS);
-    // printf(" trustedGetEncryptedSecretShare completed with status: %d %s \n", err_status, errMsg.data());
+    // printf(" trustedGetEncryptedSecretShare completed with status: %d %s \n", errStatus, errMsg.data());
 
     // cerr << "secret share is " << result.data() << endl;
 
@@ -421,7 +421,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
-    int err_status = 0;
+    int errStatus = 0;
     vector<uint8_t> encr_pr_key(BUF_LEN, 0);
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
@@ -430,7 +430,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
 
     //printf("before %p\n", pub_key_x);
 
-    status = trustedGenerateEcdsaKey(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
     // printf("\nerrMsg %s\n", errMsg.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -444,7 +444,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
     vector<char> signature_s(BUF_LEN, 0);
     uint8_t signature_v = 0;
 
-    status = trustedEcdsaSign(eid, &err_status, errMsg.data(), encr_pr_key.data(), enc_len, (unsigned char *) hex.data(),
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encr_pr_key.data(), enc_len, (unsigned char *) hex.data(),
                          signature_r.data(),
                          signature_s.data(), &signature_v, 16);
     REQUIRE(status == SGX_SUCCESS);
@@ -464,13 +464,13 @@ TEST_CASE("Test test", "[test]") {
     initAll(false, true);
 
     vector<char> errMsg(BUF_LEN, 0);
-    int err_status = 0;
+    int errStatus = 0;
     vector<uint8_t> encr_pr_key(BUF_LEN, 0);
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
     uint32_t enc_len = 0;
 
-    status = trustedGenerateEcdsaKey(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
 
     REQUIRE(status == SGX_SUCCESS);

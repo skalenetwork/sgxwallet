@@ -102,7 +102,7 @@ void init() {
     libff::init_alt_bn128_params();
 }
 
-void checkKey(int *err_status, char *err_string, const char *_keyString) {
+void checkKey(int *errStatus, char *err_string, const char *_keyString) {
 
     uint64_t keyLen = strnlen(_keyString, MAX_KEY_LENGTH);
 
@@ -114,7 +114,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
     }
 
 
-    *err_status = -2;
+    *errStatus = -2;
 
 
     if (_keyString == nullptr) {
@@ -122,7 +122,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
         return;
     }
 
-    *err_status = -3;
+    *errStatus = -3;
 
      //check that key is padded with 0s
 
@@ -145,7 +145,7 @@ void checkKey(int *err_status, char *err_string, const char *_keyString) {
 //        throw std::exception();
 //    }
 
-    *err_status = 0;
+    *errStatus = 0;
 
    // return;
 }

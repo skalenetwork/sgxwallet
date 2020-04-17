@@ -29,7 +29,7 @@ enclave {
 		);
 
 		public void trustedGenerateEcdsaKey (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len,
@@ -37,7 +37,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
 		public void trustedGetPublicEcdsaKey (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t dec_len,
@@ -45,21 +45,21 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
 		public void encrypt_key (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] char* key,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len);
 
                 public void decrypt_key (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
                                 [out, count = SMALL_BUF_SIZE] char* key );
 
 		public void trustedBlsSignMessage (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
@@ -68,21 +68,21 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char* signature);
 
                 public void trustedGenDkgSecret (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t * enc_len,
                                 size_t _t);
 
                 public void trustedDecryptDkgSecret (
-                            	[user_check] int *err_status,
+                            	[user_check] int *errStatus,
                             	[out, count = SMALL_BUF_SIZE] char* err_string,
                             	[in, count = 3050] uint8_t* encrypted_dkg_secret,
                             	[out, count = 2490] uint8_t* decrypted_dkg_secret,
                             	[user_check] uint32_t* dec_len);
 
                 public void trustedGetSecretShares (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t* dec_len,
@@ -91,7 +91,7 @@ enclave {
                                 unsigned _n);
 
                 public void trustedGetPublicShares (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 uint32_t enc_len,
@@ -100,7 +100,7 @@ enclave {
                                 unsigned _n);
 
                 public void trustedEcdsaSign(
-                                 [user_check] int *err_status,
+                                 [user_check] int *errStatus,
                                  [out, count = SMALL_BUF_SIZE] char* err_string,
                                  [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                  uint32_t enc_len,
@@ -110,12 +110,12 @@ enclave {
                                  [user_check] uint8_t* sig_v,
                                  int base);
 
-                public void trustedSetEncryptedDkgPoly( [user_check] int *err_status,
+                public void trustedSetEncryptedDkgPoly( [user_check] int *errStatus,
                                  [out, count = SMALL_BUF_SIZE] char* err_string,
                                  [in, count = 3050] uint8_t* encrypted_poly);
 
                 public void trustedGetEncryptedSecretShare(
-                                [user_check]int *err_status,
+                                [user_check]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
                                 [user_check] uint32_t* dec_len,
@@ -127,7 +127,7 @@ enclave {
                                 uint8_t ind);
 
                 public void trustedDkgVerify(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 8193] const char* public_shares,
                                 [in, count = 193] const char* s_share,
@@ -138,7 +138,7 @@ enclave {
                                 [user_check] int* result);
 
                 public void trustedCreateBlsKey(
-                                [user_check]int *err_status,
+                                [user_check]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 6145] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
@@ -147,14 +147,14 @@ enclave {
                                 [user_check] uint32_t *enc_bls_key_len);
 
                 public void trustedGetBlsPubKey(
-                                [user_check]int *err_status,
+                                [user_check]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE]  char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = 320] char* bls_pub_key);
 
                 public void trustedComplaintResponse(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE]  char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t *encryptedDHKey,
                                 [in, count = 3050] uint8_t *encrypted_dkg_secret,
@@ -166,27 +166,27 @@ enclave {
                                 uint8_t ind1);
 
                 public void trustedGenerateSEK(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
                                 [user_check] uint32_t *enc_len,
                                 [out, count = 65] char* hex_SEK);
 
                 public void trustedSetSEK(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
                                 uint64_t encr_len);
 
                 public void trustedSetSEK_backup(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
                                 [user_check] uint32_t *enc_len,
                                 [in, count = 65] const char* SEK_hex);
 
                 public void trustedGenerateEcdsaKey_aes (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = ECDSA_ENCR_LEN] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len,
@@ -194,7 +194,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
                 public void trustedGetPublicEcdsaKey_aes(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t dec_len,
@@ -202,7 +202,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
                 public void trustedEcdsaSignAES(
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
@@ -213,14 +213,14 @@ enclave {
                                 int base);
 
                 public void encrypt_key_aes (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] const char* key,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len);
 
                 public void decrypt_key_aes (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
@@ -228,27 +228,27 @@ enclave {
 
 
                 public void trustedGenDkgSecret_aes (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t * enc_len,
                                         size_t _t);
 
                 public void trustedDecryptDkgSecret_aes (
-                                [user_check] int *err_status,
+                                [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [out, count = 2490] uint8_t* decrypted_dkg_secret,
                                 [user_check] uint32_t* dec_len);
 
                 public void trustedSetEncryptedDkgPoly_aes(
-                               [user_check] int *err_status,
+                               [user_check] int *errStatus,
                                [out, count = SMALL_BUF_SIZE] char* err_string,
                                [in, count = 3050] uint8_t* encrypted_poly,
                                [user_check] uint64_t* enc_len);
 
                 public void trustedGetEncryptedSecretShare_aes(
-                              [user_check]int *err_status,
+                              [user_check]int *errStatus,
                               [out, count = SMALL_BUF_SIZE] char *err_string,
                               [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
                               [user_check] uint32_t* dec_len,
@@ -260,7 +260,7 @@ enclave {
                               uint8_t ind);
 
                 public void trustedGetPublicShares_aes(
-                            [user_check] int *err_status,
+                            [user_check] int *errStatus,
                             [out, count = SMALL_BUF_SIZE] char* err_string,
                             [in, count = 3050] uint8_t* encrypted_dkg_secret,
                             uint32_t enc_len,
@@ -269,7 +269,7 @@ enclave {
                             unsigned _n);
 
                 public void trustedDkgVerify_aes(
-                          [user_check] int *err_status,
+                          [user_check] int *errStatus,
                           [out, count = SMALL_BUF_SIZE] char* err_string,
                           [in, count = 8193] const char* public_shares,
                           [in, count = 193] const char* s_share,
@@ -281,7 +281,7 @@ enclave {
 
 
                 public void trustedCreateBlsKey_aes(
-                        [user_check]int *err_status,
+                        [user_check]int *errStatus,
                         [out, count = SMALL_BUF_SIZE] char* err_string,
                         [in, count = 6145] const char* s_shares,
                         [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
@@ -290,7 +290,7 @@ enclave {
                         [user_check] uint32_t *enc_bls_key_len);
 
                 public void trustedBlsSignMessage_aes (
-                        [user_check] int *err_status,
+                        [user_check] int *errStatus,
                         [out, count = SMALL_BUF_SIZE] char* err_string,
                         [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                         uint32_t enc_len,
@@ -299,7 +299,7 @@ enclave {
                         [out, count = SMALL_BUF_SIZE] char* signature);
 
                 public void trustedGetBlsPubKeyAES(
-                        [user_check]int *err_status,
+                        [user_check]int *errStatus,
                         [out, count = SMALL_BUF_SIZE]  char* err_string,
                         [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                         uint64_t key_len,

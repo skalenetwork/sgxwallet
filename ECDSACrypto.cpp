@@ -45,18 +45,18 @@ string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
 
 std::vector<std::string> genECDSAKey() {
     char *errMsg = (char *) calloc(1024, 1);
-    int err_status = 0;
+    int errStatus = 0;
     uint8_t *encr_pr_key = (uint8_t *) calloc(1024, 1);
     char *pub_key_x = (char *) calloc(1024, 1);
     char *pub_key_y = (char *) calloc(1024, 1);
     uint32_t enc_len = 0;
 
     if (!encryptKeys)
-        status = trustedGenerateEcdsaKey(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
     else
-        status = trustedGenerateEcdsaKey_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKey_aes(eid, &errStatus, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
 
-    if (status != SGX_SUCCESS || err_status != 0) {
+    if (status != SGX_SUCCESS || errStatus != 0) {
         spdlog::error("RPCException thrown with status {}", status);
         throw SGXException(status, errMsg);
     }
@@ -106,7 +106,7 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     vector<char> pubKeyY(BUF_LEN, 0);
     vector<uint8_t> encrPrKey(BUF_LEN, 0);
 
-    int err_status = 0;
+    int errStatus = 0;
     uint64_t enc_len = 0;
 
     if (!hex2carray(_encryptedKeyHex, &enc_len, encrPrKey.data())) {
@@ -114,11 +114,11 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     }
 
     if (!encryptKeys)
-        status = trustedGetPublicEcdsaKey(eid, &err_status, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
+        status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
                 pubKeyY.data());
-    else status = trustedGetPublicEcdsaKey_aes(eid, &err_status,
+    else status = trustedGetPublicEcdsaKey_aes(eid, &errStatus,
             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
-    if (err_status != 0) {
+    if (errStatus != 0) {
         throw SGXException(-666, errMsg.data());
     }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
@@ -127,7 +127,7 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
         spdlog::debug("pubkey is {}", pubKey);
         spdlog::debug("pubkey length is {}", pubKey.length());
         spdlog::debug("err str is {}", errMsg.data());
-        spdlog::debug("err status is {}", err_status);
+        spdlog::debug("err status is {}", errStatus);
 
 
     return pubKey;
@@ -137,7 +137,7 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     vector<string> signature_vect(3);
 
     char *errMsg = (char *) calloc(1024, 1);
-    int err_status = 0;
+    int errStatus = 0;
     char *signature_r = (char *) calloc(1024, 1);
     char *signature_s = (char *) calloc(1024, 1);
     uint8_t signature_v = 0;
@@ -156,12 +156,12 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
 
 
     if (!encryptKeys)
-        status = trustedEcdsaSign(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
+        status = trustedEcdsaSign(eid, &errStatus, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
     else
-        status = trustedEcdsaSignAES(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
+        status = trustedEcdsaSignAES(eid, &errStatus, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
                                 signature_s, &signature_v, base);
-    if (err_status != 0) {
+    if (errStatus != 0) {
         throw SGXException(-666, errMsg);
     }
 

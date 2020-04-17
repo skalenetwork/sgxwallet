@@ -34,9 +34,9 @@
 
 //#include <stdint.h>
 
-EXTERNC void checkKey(int *err_status, char *err_string, const char* _keyString);
+EXTERNC void checkKey(int *errStatus, char *err_string, const char* _keyString);
 
-EXTERNC void check_key(int *err_status, char *err_string, const char* _keyString);
+EXTERNC void check_key(int *errStatus, char *err_string, const char* _keyString);
 
 
 

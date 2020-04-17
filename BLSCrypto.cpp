@@ -162,7 +162,7 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
-    // assert(binLen == hash->size());
+
 
 
 
@@ -203,7 +203,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
-    // assert(binLen == hash->size());
 
 
 
