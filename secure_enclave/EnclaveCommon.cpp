@@ -99,7 +99,7 @@ libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
 
 int inited = 0;
 
-void init() {
+void enclave_init() {
     if (inited == 1)
         return;
     inited = 1;

@@ -72,13 +72,18 @@ void *reallocate_function(void *, size_t, size_t);
 void free_function(void *, size_t);
 
 
+
 void trustedEnclaveInit(uint32_t _logLevel) {
-    oc_printf("Initing tgmp library\n");
+
+
+    oc_printf("Initing enclave:  library\n");
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
 
     mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
     mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
+
+    enclave_init();
 }
 
 void free_function(void *ptr, size_t sz) {
@@ -375,7 +380,7 @@ void trustedEcdsaSign(int *errStatus, char *err_string, uint8_t *encrypted_key, 
 void trustedEncryptKey(int *errStatus, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
-    //init();
+
 
     *errStatus = UNKNOWN_ERROR;
 
@@ -441,7 +446,7 @@ void trustedEncryptKey(int *errStatus, char *err_string, char *key,
 void trustedDecryptKey(int *errStatus, char *err_string, uint8_t *encrypted_key,
                  uint32_t enc_len, char *key) {
 
-    init();
+
 
     uint32_t decLen;
 
@@ -500,7 +505,6 @@ void trustedBlsSignMessage(int *errStatus, char *err_string, uint8_t *encrypted_
     char *sig = (char *) calloc(BUF_LEN, 1);
     // char sig[2 * BUF_LEN];
 
-    init();
 
 
     trustedDecryptKey(errStatus, err_string, encrypted_key, enc_len, key);
@@ -1271,8 +1275,6 @@ void trustedEncryptKeyAES(int *errStatus, char *err_string, const char *key,
 void trustedDecryptKeyAES(int *errStatus, char *err_string, uint8_t *encrypted_key,
                      uint32_t enc_len, char *key) {
 
-    init();
-
     uint32_t decLen;
 
     *errStatus = -9;
@@ -1319,7 +1321,7 @@ void trustedBlsSignMessageAES(int *errStatus, char *err_string, uint8_t *encrypt
     memset(sig, 0, BUF_LEN);
     //char* sig = (char*) calloc(BUF_LEN, 1);
 
-    init();
+    enclave_init();
 
 
     int stat = AES_decrypt(encrypted_key, enc_len, key);
