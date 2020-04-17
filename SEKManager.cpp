@@ -22,7 +22,7 @@
 */
 
 #include "SEKManager.h"
-#include "RPCException.h"
+#include "SGXException.h"
 #include "BLSCrypto.h"
 #include "LevelDB.h"
 
@@ -53,10 +53,10 @@ void create_test_key(){
 
   std::string key = TEST_VALUE;
 
-  status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+  status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
   if ( status != 0){
     std::cerr << "encrypt test key failed with status " << status << std::endl;
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
   //std::cerr << "enc len is " << enc_len << std::endl;
@@ -98,13 +98,13 @@ bool check_SEK(std::string SEK){
     uint32_t l = len;
     std::cerr << " l is " << l << std::endl;
 
-    status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
+    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
     if (status != SGX_SUCCESS){
       cerr << "RPCException thrown with status " << status << endl;
-      throw RPCException(status, errMsg.data());
+      throw SGXException(status, errMsg.data());
     }
 
-    status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     if (status != SGX_SUCCESS || err_status != 0){
       spdlog::error("failed to decrypt test key" );
       spdlog::error(errMsg.data());
@@ -133,9 +133,9 @@ void gen_SEK(){
   char SEK[65];
   memset(SEK, 0, 65);
 
-  status = generate_SEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
+  status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
   if (status != SGX_SUCCESS ||  err_status != 0  ){
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
@@ -164,7 +164,7 @@ void gen_SEK(){
   create_test_key();
 }
 
-void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
+void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK){
   vector<char> errMsg(1024,0);
   int err_status = 0;
   //vector<uint8_t> encr_SEK(1024, 0);
@@ -175,13 +175,13 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK){
   uint64_t len;
 
   if (!hex2carray(hex_encr_SEK->c_str(), &len, encr_SEK)){
-    throw RPCException(INVALID_HEX, "Invalid encrypted SEK Hex");
+    throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
   }
 
-  status = set_SEK(eid, &err_status, errMsg.data(), encr_SEK, len );
+  status = trustedSetSEK(eid, &err_status, errMsg.data(), encr_SEK, len );
   if ( status != SGX_SUCCESS || err_status != 0 ){
     cerr << "RPCException thrown" << endl;
-    throw RPCException(status, errMsg.data()) ;
+    throw SGXException(status, errMsg.data()) ;
   }
 
 }
@@ -210,10 +210,10 @@ void enter_SEK(){
 //   std::cerr << "your key is " << SEK << std::endl;
 
 
-  status = set_SEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
+  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
   if (status != SGX_SUCCESS){
     cerr << "RPCException thrown with status " << status << endl;
-    throw RPCException(status, errMsg.data());
+    throw SGXException(status, errMsg.data());
   }
 
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
@@ -224,14 +224,14 @@ void enter_SEK(){
   LevelDB::getLevelDb() -> writeDataUnique("SEK", hexEncrKey.data());
 }
 
-void init_SEK(){
+void initSEK(){
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
   if (encr_SEK_ptr == nullptr){
     spdlog::error("SEK was not created yet. Going to create SEK");
     gen_SEK();
   }
   else{
-    set_SEK(encr_SEK_ptr);
+    trustedSetSEK(encr_SEK_ptr);
   }
 }
 

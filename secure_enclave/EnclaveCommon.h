@@ -21,8 +21,8 @@
     @date 2019
 */
 
-#ifndef SGXWALLET_BLSUTILS_H
-#define SGXWALLET_BLSUTILS_H
+#ifndef SGXWALLET_ENCLAVECOMMON_H
+#define SGXWALLET_ENCLAVECOMMON_H
 
 
 
@@ -34,9 +34,9 @@
 
 //#include <stdint.h>
 
-EXTERNC void checkKey(int *err_status, char *err_string, const char* _keyString);
+EXTERNC void checkKey(int *errStatus, char *err_string, const char* _keyString);
 
-EXTERNC void check_key(int *err_status, char *err_string, const char* _keyString);
+EXTERNC void check_key(int *errStatus, char *err_string, const char* _keyString);
 
 
 
@@ -49,7 +49,18 @@ EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                        uint8_t* _bin );
 EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                          uint8_t* _bin, const int _max_length );
-EXTERNC void init();
+EXTERNC void enclave_init();
 
 
-#endif //SGXWALLET_BLSUTILS_H
+EXTERNC void LOG_INFO(char* msg);
+EXTERNC void LOG_WARNING(char* _msg);
+EXTERNC void LOG_ERROR(char* _msg);
+EXTERNC void LOG_DEBUG(char* _msg);
+EXTERNC void LOG_TRACE(char* _msg);
+
+
+extern uint32_t globalLogLevel_;
+
+
+
+#endif //SGXWALLET_ENCLAVECOMMON_H

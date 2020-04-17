@@ -31,7 +31,7 @@
 #include "leveldb/db.h"
 
 #include "sgxwallet_common.h"
-#include "RPCException.h"
+#include "SGXException.h"
 #include "LevelDB.h"
 
 #include "ServerInit.h"
@@ -57,7 +57,7 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
     auto result = std::make_shared<string>();
 
     if (db == nullptr) {
-        throw RPCException(NULL_DATABASE, "Null db");
+        throw SGXException(NULL_DATABASE, "Null db");
     }
 
     auto status = db->Get(readOptions, _key, &*result);
@@ -163,7 +163,7 @@ void LevelDB::throwExceptionOnError(Status _status) {
         return;
 
     if (!_status.ok()) {
-        throw RPCException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
+        throw SGXException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
     }
 
 }
@@ -213,7 +213,7 @@ void LevelDB::writeDataUnique(const string & Name, const string &value) {
   if (readString(Name) != nullptr) {
     spdlog::debug("name {}",Name, " already exists");
      // std::cerr << "name " << Name << " already exists" << std::endl;
-    throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
+    throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   writeString(key, value);

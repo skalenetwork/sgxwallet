@@ -30,11 +30,8 @@
 #define EXTERNC
 #endif
 
-//EXTERNC void init_all();
-//
-//EXTERNC void init_daemon();
-//
-//EXTERNC  void init_enclave();
+#include "stddef.h"
+#include "stdint.h"
 
 EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
         size_t signerIndex, char* _sig);

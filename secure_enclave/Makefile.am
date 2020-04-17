@@ -85,8 +85,8 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c AESUtils.c \
-    DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+	Curves.c DomainParameters.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
+    DKGUtils.cpp   EnclaveCommon.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 

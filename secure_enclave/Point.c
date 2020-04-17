@@ -27,15 +27,16 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
-#include "domain_parameters.h"
-#include "point.h"
-#include "numbertheory.h"
 
+#include "NumberTheory.h"
+
+#include "DomainParameters.h"
+#include "Point.h"
 /*Initialize a point*/
 point point_init()
 {
 	point p;
-	p = malloc(sizeof(struct point_s));
+	p = calloc(sizeof(struct point_s), 1);
 	mpz_init(p->x);
 	mpz_init(p->y);
 	p->infinity = false;
@@ -364,7 +365,7 @@ char* point_compress(point P)
 
 	//Reserve memory
 	int l = mpz_sizeinbase(P->x, 16) + 2;
-	char* result = (char*)malloc(l + 1);
+	char* result = (char*)calloc(l + 1, 1);
 	result[l] = '\0';
 	mpz_t t1;mpz_init(t1);
 

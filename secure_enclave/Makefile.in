@@ -107,10 +107,10 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
-	secure_enclave.$(OBJEXT) curves.$(OBJEXT) \
-	domain_parameters.$(OBJEXT) numbertheory.$(OBJEXT) \
-	point.$(OBJEXT) signature.$(OBJEXT) DH_dkg.$(OBJEXT) \
-	AESUtils.$(OBJEXT) DKGUtils.$(OBJEXT) BLSEnclave.$(OBJEXT) \
+	secure_enclave.$(OBJEXT) Curves.$(OBJEXT) \
+	DomainParameters.$(OBJEXT) NumberTheory.$(OBJEXT) \
+	Point.$(OBJEXT) Signature.$(OBJEXT) DHDkg.$(OBJEXT) \
+	AESUtils.$(OBJEXT) DKGUtils.$(OBJEXT) EnclaveCommon.$(OBJEXT) \
 	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
 	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
@@ -338,8 +338,8 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c AESUtils.c \
-    DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+	Curves.c DomainParameters.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
+    DKGUtils.cpp   EnclaveCommon.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
@@ -433,19 +433,19 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AESUtils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BLSEnclave.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DH_dkg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Curves.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DHDkg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DKGUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DomainParameters.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NumberTheory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Point.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Signature.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/curves.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain_parameters.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/numbertheory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/point.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave_t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signature.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_rel.Po@am__quote@
 

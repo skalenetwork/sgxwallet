@@ -12,19 +12,19 @@ include_directories(tgmp-build/include)
 add_executable(sgxwallet
         secure_enclave/AESUtils.c
         secure_enclave/AESUtils.h
-        secure_enclave/BLSEnclave.cpp
-        secure_enclave/BLSEnclave.h
-        secure_enclave/curves.c
-        secure_enclave/curves.h
-        secure_enclave/DH_dkg.c
-        secure_enclave/DH_dkg.h
+        secure_enclave/EnclaveCommon.cpp
+        secure_enclave/EnclaveCommon.h
+        secure_enclave/Curves.c
+        secure_enclave/Curves.h
+        secure_enclave/DHDkg.c
+        secure_enclave/DHDkg.h
         secure_enclave/DKGUtils.cpp
         secure_enclave/DKGUtils.h
-        secure_enclave/domain_parameters.c
-        secure_enclave/domain_parameters.h
-        secure_enclave/enclave_common.h
-        secure_enclave/numbertheory.c
-        secure_enclave/numbertheory.h
+        secure_enclave/DomainParameters.c
+        secure_enclave/DomainParameters.h
+        secure_enclave/EnclaveConstants.h
+        secure_enclave/NumberTheory.c
+        secure_enclave/NumberTheory.h
         secure_enclave/point.c
         secure_enclave/point.h
         secure_enclave/secure_enclave.c
@@ -58,7 +58,7 @@ add_executable(sgxwallet
         LevelDB.h
         oc_alloc.c
         RPCException.cpp
-        RPCException.h
+        SGXException.h
         secure_enclave_u.c
         secure_enclave_u.h
         SEKManager.cpp

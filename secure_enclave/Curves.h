@@ -21,6 +21,11 @@
     @date 2019
 */
 
+
+#ifndef SGXWALLET_CURVES_H
+#define SGXWALLET_CURVES_H
+
+
 /*Curves that can be loaded using domain_parameters_load_curve()*/
 typedef enum {	secp112r1 = 0,
 				//secp112r2,	//See remark below
@@ -50,3 +55,6 @@ Benchmark is supposed to write -1 as operation time if the operation failed.
 As I don't see any reason to have extent my headache I'm putting this problem to rest by commenting these curves out. Furthermore it's very limited in terms of what can be done to debug these curves, since I don't have any test vectors for them.
 It's probably related to a bug in the implementation, perhaps an exception I didn't handle or round of, who knows.
 */
+
+
+#endif

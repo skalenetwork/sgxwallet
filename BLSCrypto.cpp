@@ -49,7 +49,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include "RPCException.h"
+#include "SGXException.h"
 
 #include "spdlog/spdlog.h"
 #include "common.h"
@@ -160,9 +160,9 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     uint64_t binLen;
 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
-        throw RPCException(INVALID_HEX, "Invalid hash");
+        throw SGXException(INVALID_HEX, "Invalid hash");
     }
-    // assert(binLen == hash->size());
+
 
 
 
@@ -201,9 +201,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     uint64_t binLen;
 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
-        throw RPCException(INVALID_HEX, "Invalid hash");
+        throw SGXException(INVALID_HEX, "Invalid hash");
     }
-    // assert(binLen == hash->size());
 
 
 
@@ -267,13 +266,13 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     }
 
     sgx_status_t status =
-            bls_sign_message_aes(eid, &errStatus, errMsg, encryptedKey,
+            trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
 
 
     if (status != SGX_SUCCESS) {
-        cerr << "SGX enclave call  to bls_sign_message failed:" << status << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to bls_sign_message failed"));
+        cerr << "SGX enclave call  to trustedBlsSignMessage failed:" << status << std::endl;
+        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
     }
 
 
@@ -321,8 +320,8 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 
     unsigned int encryptedLen = 0;
 
-    //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
-    status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
+    //status = trustedEncryptKey(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
+    status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     spdlog::debug("errStatus is {}", *errStatus);
     spdlog::debug(" errMsg is ", errMsg->data());
@@ -335,7 +334,7 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     }
 
     if (*errStatus != 0) {
-        throw RPCException(-666, errMsg->data());
+        throw SGXException(-666, errMsg->data());
     }
 
 
@@ -361,8 +360,8 @@ char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encry
 
     char *plaintextKey = (char *) calloc(BUF_LEN, 1);
 
-    //status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
-    status = decrypt_key_aes(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+    //status = trustedDecryptKey(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+    status = trustedDecryptKeyAES(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
 
     if (status != SGX_SUCCESS) {
         return nullptr;

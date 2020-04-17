@@ -35,7 +35,7 @@
 void gen_SEK();
 
 #ifdef __cplusplus
-void set_SEK(std::shared_ptr<std::string> hex_encr_SEK);
+void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK);
 #endif
 
 #ifdef __cplusplus
@@ -46,7 +46,7 @@ void set_SEK(std::shared_ptr<std::string> hex_encr_SEK);
 
 EXTERNC void enter_SEK();
 
-EXTERNC void init_SEK();
+EXTERNC void initSEK();
 
 
 #endif //SGXD_SEKMANAGER_H

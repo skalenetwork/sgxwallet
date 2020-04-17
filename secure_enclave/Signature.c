@@ -26,10 +26,10 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "domain_parameters.h"
-#include "point.h"
-#include "signature.h"
-#include "numbertheory.h"
+#include "DomainParameters.h"
+#include "Point.h"
+#include "NumberTheory.h"
+#include "Signature.h"
 
 /*Initialize a signature*/
 signature signature_init() {
@@ -97,7 +97,7 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_init(k); mpz_init(x); mpz_init(r); mpz_init(t1); mpz_init(t2); mpz_init(t3); mpz_init(s);
     mpz_init(t4); mpz_init(t5); mpz_init(n_div_2); mpz_init(rem); mpz_init(neg); mpz_init(seed);
 
-    unsigned char *rand_char = (unsigned char *) malloc(32);
+    unsigned char *rand_char = (unsigned char *) calloc(32,1);
 
     sgx_read_rand(rand_char, 32);
 
