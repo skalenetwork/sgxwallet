@@ -153,7 +153,7 @@ enclave {
                                 uint64_t key_len,
                                 [out, count = 320] char* bls_pub_key);
 
-                public void complaint_response(
+                public void trustedComplaintResponse(
                                 [user_check] int *err_status,
                                 [out, count = 1024]  char* err_string,
                                 [in, count = 1024] uint8_t *encrypted_DHkey,
@@ -165,20 +165,20 @@ enclave {
                                 uint8_t _n,
                                 uint8_t ind1);
 
-                public void generate_SEK(
+                public void trustedGenerateSEK(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char *err_string,
                                 [out, count = 1024] uint8_t *encrypted_SEK,
                                 [user_check] uint32_t *enc_len,
                                 [out, count = 65] char* hex_SEK);
 
-                public void set_SEK(
+                public void trustedSetSEK(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char *err_string,
                                 [in, count = 1024] uint8_t *encrypted_SEK,
                                 uint64_t encr_len);
 
-                public void set_SEK_backup(
+                public void trustedSetSEK_backup(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char *err_string,
                                 [out, count = 1024] uint8_t *encrypted_SEK,

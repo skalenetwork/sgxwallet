@@ -703,7 +703,7 @@ void trustedGetEncryptedSecretShare(int *err_status, char *err_string, uint8_t *
     //free(cypher);
 }
 
-void complaint_response(int *err_status, char *err_string, uint8_t *encrypted_DHkey, uint8_t *encrypted_dkg_secret,
+void trustedComplaintResponse(int *err_status, char *err_string, uint8_t *encrypted_DHkey, uint8_t *encrypted_dkg_secret,
                         uint32_t *dec_len,
                         char *DH_key, char *s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1) {
 
@@ -926,7 +926,7 @@ void trustedGetBlsPubKey(int *err_status, char *err_string, uint8_t *encrypted_k
     }
 }
 
-void generate_SEK(int *err_status, char *err_string,
+void trustedGenerateSEK(int *err_status, char *err_string,
                   uint8_t *encrypted_SEK, uint32_t *enc_len, char *SEK_hex) {
     uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
     //unsigned char* rand_char = (unsigned char*)malloc(16);
@@ -956,7 +956,7 @@ void generate_SEK(int *err_status, char *err_string,
     //free(rand_char);
 }
 
-void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK, uint64_t encr_len) {
+void trustedSetSEK(int *err_status, char *err_string, uint8_t *encrypted_SEK, uint64_t encr_len) {
 
     //memset(AES_key, 0, SGX_AESGCM_KEY_SIZE);
 
@@ -976,7 +976,7 @@ void set_SEK(int *err_status, char *err_string, uint8_t *encrypted_SEK, uint64_t
 
 }
 
-void set_SEK_backup(int *err_status, char *err_string,
+void trustedSetSEK_backup(int *err_status, char *err_string,
                     uint8_t *encrypted_SEK, uint32_t *enc_len, const char *SEK_hex) {
 
     uint64_t len;
