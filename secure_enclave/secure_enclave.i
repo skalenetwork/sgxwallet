@@ -5469,8 +5469,8 @@ void trustedEMpzMul(mpz_t* c, mpz_t* a, mpz_t* b);
 void trustedEMpzDiv(mpz_t* c, mpz_t* a, mpz_t* b);
 void trustedEMpfDiv(mpf_t* c, mpf_t* a, mpf_t* b);
 void trustedGenerateEcdsaKey(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t* enc_len, char* pub_key_x, char* pub_key_y);
-void encrypt_key(int* err_status, char* err_string, char* key, uint8_t* encrypted_key, uint32_t* enc_len);
-void decrypt_key(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* key);
+void trustedEncryptKey(int* err_status, char* err_string, char* key, uint8_t* encrypted_key, uint32_t* enc_len);
+void trustedDecryptKey(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* key);
 void trustedBlsSignMessage(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* hashX, char* hashY, char* signature);
 void trustedGenDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t* enc_len, size_t _t);
 void trustedDecryptDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len);
@@ -6741,7 +6741,7 @@ void trustedGenerateEcdsaKey(int *err_status, char *err_string,
 }
 
 
-void encrypt_key(int *err_status, char *err_string, char *key,
+void trustedEncryptKey(int *err_status, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
     init();
@@ -6782,10 +6782,10 @@ void encrypt_key(int *err_status, char *err_string, char *key,
     char decryptedKey[1024];
     memset(decryptedKey, 0, 1024);
 
-    decrypt_key(err_status, err_string, encrypted_key, sealedLen, decryptedKey);
+    trustedDecryptKey(err_status, err_string, encrypted_key, sealedLen, decryptedKey);
 
     if (*err_status != 0) {
-        snprintf(err_string + strlen(err_string), 1024, ":decrypt_key failed");
+        snprintf(err_string + strlen(err_string), 1024, ":trustedDecryptKey failed");
         return;
     }
 
@@ -6807,7 +6807,7 @@ void encrypt_key(int *err_status, char *err_string, char *key,
     *err_status = 0;
 }
 
-void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
+void trustedDecryptKey(int *err_status, char *err_string, uint8_t *encrypted_key,
                  uint32_t enc_len, char *key) {
 
     init();
@@ -6869,7 +6869,7 @@ void trustedBlsSignMessage(int *err_status, char *err_string, uint8_t *encrypted
     init();
 
 
-    decrypt_key(err_status, err_string, encrypted_key, enc_len, key);
+    trustedDecryptKey(err_status, err_string, encrypted_key, enc_len, key);
 
     if (*err_status != 0) {
         return;

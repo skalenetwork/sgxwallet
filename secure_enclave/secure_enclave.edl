@@ -44,14 +44,14 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_x,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
-		public void encrypt_key (
+		public void trustedEncryptKey (
                                 [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] char* key,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len);
 
-                public void decrypt_key (
+		public void trustedDecryptKey (
                                 [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,

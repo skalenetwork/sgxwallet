@@ -378,7 +378,7 @@ string decryptDHKey(const string &polyName, int ind) {
     char DHKey[ECDSA_SKEY_LEN];
 
     if (!encryptKeys)
-        decrypt_key(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+        trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     else
         trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     if (errStatus != 0) {

@@ -371,7 +371,7 @@ void trustedEcdsaSign(int *errStatus, char *err_string, uint8_t *encrypted_key, 
 }
 
 
-void encrypt_key(int *errStatus, char *err_string, char *key,
+void trustedEncryptKey(int *errStatus, char *err_string, char *key,
                  uint8_t *encrypted_key, uint32_t *enc_len) {
 
     //init();
@@ -412,10 +412,10 @@ void encrypt_key(int *errStatus, char *err_string, char *key,
     char decryptedKey[BUF_LEN];
     memset(decryptedKey, 0, BUF_LEN);
 
-    decrypt_key(errStatus, err_string, encrypted_key, sealedLen, decryptedKey);
+    trustedDecryptKey(errStatus, err_string, encrypted_key, sealedLen, decryptedKey);
 
     if (*errStatus != 0) {
-        snprintf(err_string + strlen(err_string), BUF_LEN, ":decrypt_key failed");
+        snprintf(err_string + strlen(err_string), BUF_LEN, ":trustedDecryptKey failed");
         return;
     }
 
@@ -437,7 +437,7 @@ void encrypt_key(int *errStatus, char *err_string, char *key,
     *errStatus = 0;
 }
 
-void decrypt_key(int *errStatus, char *err_string, uint8_t *encrypted_key,
+void trustedDecryptKey(int *errStatus, char *err_string, uint8_t *encrypted_key,
                  uint32_t enc_len, char *key) {
 
     init();
@@ -502,7 +502,7 @@ void trustedBlsSignMessage(int *errStatus, char *err_string, uint8_t *encrypted_
     init();
 
 
-    decrypt_key(errStatus, err_string, encrypted_key, enc_len, key);
+    trustedDecryptKey(errStatus, err_string, encrypted_key, enc_len, key);
 
     if (*errStatus != 0) {
         strncpy(signature, err_string, BUF_LEN);
@@ -1252,7 +1252,7 @@ void trustedEncryptKeyAES(int *errStatus, char *err_string, const char *key,
 
     if (stat != 0) {
         *errStatus = stat;
-        snprintf(err_string, BUF_LEN, ":decrypt_key failed with status %d", stat);
+        snprintf(err_string, BUF_LEN, ":trustedDecryptKey failed with status %d", stat);
         return;
     }
 
