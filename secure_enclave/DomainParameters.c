@@ -32,7 +32,7 @@
 domain_parameters domain_parameters_init()
 {
 	domain_parameters curve;
-	curve = malloc(sizeof(struct domain_parameters_s));
+	curve = calloc(sizeof(struct domain_parameters_s),1);
 
 	//Initialize all members
 	mpz_init(curve->p);
@@ -49,7 +49,7 @@ domain_parameters domain_parameters_init()
 void domain_parameters_set_name(domain_parameters curve, char* name)
 {
 	int len = strlen(name);
-	curve->name = (char*)malloc( sizeof(char) * (len+1) );
+	curve->name = (char*)calloc( sizeof(char) * (len+1), 1 );
 	curve->name[len] = '\0';
 	strncpy(curve->name, name, len+1);
 }

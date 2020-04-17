@@ -16,7 +16,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file DH_dkg.c
+    @file DHDkg.c
     @author Stan Kladko
     @date 2019
 */
@@ -36,11 +36,11 @@
 
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
 
-    char* pb_keyB_x = (char*)malloc(65);
+    char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, pb_keyB, 64);
     pb_keyB_x[64] = 0;
 
-    char* pb_keyB_y = (char*)malloc(65);
+    char* pb_keyB_y = (char*)calloc(65,1);
     strncpy(pb_keyB_y, pb_keyB + 64, 64);
     pb_keyB_y[64] = 0;
 
@@ -76,11 +76,11 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
 
 void session_key_recover(const char *skey_str, const char* sshare, char* common_key){
 
-    char* pb_keyB_x = (char*)malloc(65);
+    char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, sshare + 64, 64);
     pb_keyB_x[64] = 0;
 
-    char* pb_keyB_y = (char*)malloc(65);
+    char* pb_keyB_y = (char*)calloc(65, 1);
     strncpy(pb_keyB_y, sshare + 128, 64);
     pb_keyB_y[64] = 0;
 
@@ -123,7 +123,7 @@ void xor_encrypt(char* key, char* message, char* cypher){
    uint8_t cypher_bin[33];
 
    //uint8_t key_bin[33];
-   uint8_t* key_bin = (uint8_t*)malloc(33);
+   uint8_t* key_bin = (uint8_t*)calloc(33,1);
    uint64_t key_length;
    if (!hex2carray(key, &key_length, key_bin)){
      cypher = NULL;
@@ -152,7 +152,7 @@ void xor_decrypt(char* key, char* cypher, char* message){
     uint8_t msg_bin[33];
 
     //uint8_t key_bin[33];
-    uint8_t* key_bin = (uint8_t*)malloc(33);
+    uint8_t* key_bin = (uint8_t*)calloc(33,1);
     uint64_t key_length;
     if (!hex2carray(key, &key_length, key_bin)){
       message = NULL;

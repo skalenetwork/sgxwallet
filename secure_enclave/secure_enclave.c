@@ -133,7 +133,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *err_string,
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
 
-    unsigned char *rand_char = (unsigned char *) malloc(32);
+    unsigned char *rand_char = (unsigned char *) calloc(32, 1);
     sgx_read_rand(rand_char, 32);
 
     mpz_t seed;
@@ -524,7 +524,7 @@ void trustedBlsSignMessage(int *errStatus, char *err_string, uint8_t *encrypted_
 
 void trustedGenDkgSecret(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
 
-    char dkg_secret[DKG_BUFER_LENGTH]; //= (char*)malloc(DKG_BUFER_LENGTH);
+    char dkg_secret[DKG_BUFER_LENGTH];
 
     if (gen_dkg_poly(dkg_secret, _t) != 0) {
         *errStatus = -1;
@@ -570,11 +570,9 @@ void trustedGetSecretShares(int *errStatus, char *err_string, uint8_t *encrypted
                        char *secret_shares,
                        unsigned _t, unsigned _n) {
 
-    char decrypted_dkg_secret[DKG_BUFER_LENGTH]; //= (char*)malloc(DKG_BUFER_LENGTH);
+    char decrypted_dkg_secret[DKG_BUFER_LENGTH];
 
-    //char decrypted_dkg_secret[DKG_MAX_SEALED_LEN];
     uint32_t decr_len;
-    //uint32_t* decr_len_test =  (char*)malloc(1);
     trustedDecryptDkgSecret(errStatus, err_string, encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret, &decr_len);
     //sgx_status_t status = sgx_unseal_data(
     //  (const sgx_sealed_data_t *)encrypted_dkg_secret, NULL, 0, (uint8_t*)decrypted_dkg_secret, &decr_len);
@@ -594,9 +592,8 @@ void trustedGetSecretShares(int *errStatus, char *err_string, uint8_t *encrypted
 void trustedGetPublicShares(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t enc_len,
                        char *public_shares,
                        unsigned _t, unsigned _n) {
-    //char decrypted_dkg_secret[DKG_MAX_SEALED_LEN * 2]; //= (char*)malloc(DKG_MAX_SEALED_LEN);
 
-    char *decrypted_dkg_secret = (char *) malloc(DKG_MAX_SEALED_LEN);
+    char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
     uint32_t decr_len;
     trustedDecryptDkgSecret(errStatus, err_string, (uint8_t *) encrypted_dkg_secret, decrypted_dkg_secret, &decr_len);
     if (*errStatus != 0) {
@@ -659,13 +656,10 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *err_string, uint8_t *e
     }
     snprintf(err_string, BUF_LEN, "unsealed random skey is %s\n", skey);
 
-    char *common_key[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
+    char *common_key[ECDSA_SKEY_LEN];
     gen_session_key(skey, pub_keyB, common_key);
-    //snprintf(err_string + 81, BUF_LEN,"pub_key_B is %s length is %d", pub_keyB, strlen(pub_keyB));
-    //snprintf(err_string + 88, BUF_LEN - 88,"\ncommon key is %s", common_key);
+    char *s_share[ECDSA_SKEY_LEN]; ;
 
-    char *s_share[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
-    //char s_share[65];
 
     if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
@@ -680,7 +674,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *err_string, uint8_t *e
         return;
     }
 
-    char *cypher[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
+    char *cypher[ECDSA_SKEY_LEN];
     xor_encrypt(common_key, s_share, cypher);
     if (cypher == NULL) {
         *errStatus = 1;
@@ -717,7 +711,7 @@ void trustedComplaintResponse(int *errStatus, char *err_string, uint8_t *encrypt
 //    return;
 //  }
 
-    char decrypted_dkg_secret[DKG_BUFER_LENGTH]; //= (char*)malloc(DKG_BUFER_LENGTH);
+    char decrypted_dkg_secret[DKG_BUFER_LENGTH];
     uint32_t decr_len;
     trustedDecryptDkgSecret(errStatus, err_string, encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret, &decr_len);
     if (*errStatus != 0) {
@@ -930,7 +924,6 @@ void trustedGetBlsPubKey(int *errStatus, char *err_string, uint8_t *encrypted_ke
 void trustedGenerateSEK(int *errStatus, char *err_string,
                   uint8_t *encrypted_SEK, uint32_t *enc_len, char *SEK_hex) {
     uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
-    //unsigned char* rand_char = (unsigned char*)malloc(16);
     sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
@@ -1004,7 +997,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *err_string,
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
 
-    unsigned char *rand_char = (unsigned char *) malloc(32);
+    unsigned char *rand_char = (unsigned char *) calloc(32, 1);
     sgx_read_rand(rand_char, 32);
 
     mpz_t seed;
@@ -1449,12 +1442,12 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *err_string, uint8_t
 
     *dec_len = enc_len;// + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-    char *common_key[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
+    char *common_key[ECDSA_SKEY_LEN];
     gen_session_key(skey, pub_keyB, common_key);
     //snprintf(err_string + 81, BUF_LEN,"pub_key_B is %s length is %d", pub_keyB, strlen(pub_keyB));
     //snprintf(err_string + 88, BUF_LEN - 88,"\ncommon key is %s", common_key);
 
-    char *s_share[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
+    char *s_share[ECDSA_SKEY_LEN];
     //char s_share[65];
 
     if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
@@ -1471,7 +1464,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *err_string, uint8_t
         return;
     }
 
-    char *cypher[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
+    char *cypher[ECDSA_SKEY_LEN];
     xor_encrypt(common_key, s_share, cypher);
     if (cypher == NULL) {
         *errStatus = 1;
