@@ -5464,14 +5464,14 @@ enum
 # 10 "secure_enclave_t.h" 2
 # 19 "secure_enclave_t.h"
 void tgmp_init(void);
-void e_mpz_add(mpz_t* c, mpz_t* a, mpz_t* b);
-void e_mpz_mul(mpz_t* c, mpz_t* a, mpz_t* b);
-void e_mpz_div(mpz_t* c, mpz_t* a, mpz_t* b);
-void e_mpf_div(mpf_t* c, mpf_t* a, mpf_t* b);
-void generate_ecdsa_key(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t* enc_len, char* pub_key_x, char* pub_key_y);
+void trustedEMpzAdd(mpz_t* c, mpz_t* a, mpz_t* b);
+void trustedEMpzMul(mpz_t* c, mpz_t* a, mpz_t* b);
+void trustedEMpzDiv(mpz_t* c, mpz_t* a, mpz_t* b);
+void trustedEMpfDiv(mpf_t* c, mpf_t* a, mpf_t* b);
+void trustedGenerateEcdsaKey(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t* enc_len, char* pub_key_x, char* pub_key_y);
 void encrypt_key(int* err_status, char* err_string, char* key, uint8_t* encrypted_key, uint32_t* enc_len);
 void decrypt_key(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* key);
-void bls_sign_message(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* hashX, char* hashY, char* signature);
+void trustedBlsSignMessage(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* hashX, char* hashY, char* signature);
 void gen_dkg_secret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t* enc_len, size_t _t);
 void decrypt_dkg_secret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len);
 void get_secret_shares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* secret_shares, unsigned int _t, unsigned int _n);
@@ -6682,16 +6682,16 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-void e_mpz_add(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzAdd(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpz_mul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzMul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzDiv(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
+void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
-void generate_ecdsa_key(int *err_status, char *err_string,
+void trustedGenerateEcdsaKey(int *err_status, char *err_string,
                         uint8_t *encrypted_key, uint32_t *enc_len, char * pub_key_x, char * pub_key_y) {
 
   domain_parameters curve = domain_parameters_init();
@@ -6857,7 +6857,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 }
 
 
-void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
+void trustedBlsSignMessage(int *err_status, char *err_string, uint8_t *encrypted_key,
                       uint32_t enc_len, char *_hashX,
                       char *_hashY, char *signature) {
 

@@ -430,7 +430,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
 
     //printf("before %p\n", pub_key_x);
 
-    status = generate_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
     // printf("\nerrMsg %s\n", errMsg.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -470,7 +470,7 @@ TEST_CASE("Test test", "[test]") {
     vector<char> pub_key_y(BUF_LEN, 0);
     uint32_t enc_len = 0;
 
-    status = generate_ecdsa_key(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &err_status, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
                                 pub_key_y.data());
 
     REQUIRE(status == SGX_SUCCESS);
@@ -493,7 +493,7 @@ TEST_CASE("get public ECDSA key", "[get-pub-ecdsa-key]") {
     uint32_t encLen = 0;
 
 
-    status = generate_ecdsa_key(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
                                 pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
@@ -501,7 +501,7 @@ TEST_CASE("get public ECDSA key", "[get-pub-ecdsa-key]") {
     vector<char> receivedPubKeyX(BUF_LEN, 0);
     vector<char> receivedPubKeyY(BUF_LEN, 0);
 
-    status = get_public_ecdsa_key(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, receivedPubKeyX.data(),
+    status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, receivedPubKeyX.data(),
                                   receivedPubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
     //printf("\nnow pub_key_x %s: \n", got_pub_key_x.data());

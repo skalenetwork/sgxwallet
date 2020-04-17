@@ -72,7 +72,7 @@ void *reallocate_function(void *, size_t, size_t);
 void free_function(void *, size_t);
 
 
-void trusted_enclave_init(uint32_t _logLevel) {
+void trustedEnclaveInit(uint32_t _logLevel) {
     oc_printf("Initing tgmp library\n");
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
@@ -117,16 +117,16 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-void e_mpz_add(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzAdd(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpz_mul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzMul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpz_div(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
+void trustedEMpzDiv(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
-void e_mpf_div(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
+void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 
-void generate_ecdsa_key(int *err_status, char *err_string,
+void trustedGenerateEcdsaKey(int *err_status, char *err_string,
                         uint8_t *encrypted_key, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
 
     domain_parameters curve = domain_parameters_init();
@@ -201,7 +201,7 @@ void generate_ecdsa_key(int *err_status, char *err_string,
 }
 
 
-void get_public_ecdsa_key(int *err_status, char *err_string,
+void trustedGetPublicEcdsaKey(int *err_status, char *err_string,
                           uint8_t *encrypted_key, uint32_t dec_len, char *pub_key_x, char *pub_key_y) {
 
     //uint32_t dec_len = 0;
@@ -490,7 +490,7 @@ void decrypt_key(int *err_status, char *err_string, uint8_t *encrypted_key,
 }
 
 
-void bls_sign_message(int *err_status, char *err_string, uint8_t *encrypted_key,
+void trustedBlsSignMessage(int *err_status, char *err_string, uint8_t *encrypted_key,
                       uint32_t enc_len, char *_hashX,
                       char *_hashY, char *signature) {
 
@@ -640,7 +640,7 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
 
     uint32_t enc_len;
 
-    generate_ecdsa_key(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    trustedGenerateEcdsaKey(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
     if (*err_status != 0) {
         return;
     }
@@ -997,7 +997,7 @@ void set_SEK_backup(int *err_status, char *err_string,
     *enc_len = sealedLen;
 }
 
-void generate_ecdsa_key_aes(int *err_status, char *err_string,
+void trustedGenerateEcdsaKey_aes(int *err_status, char *err_string,
                             uint8_t *encrypted_key, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
 
     domain_parameters curve = domain_parameters_init();
@@ -1069,7 +1069,7 @@ void generate_ecdsa_key_aes(int *err_status, char *err_string,
     point_clear(Pkey);
 }
 
-void get_public_ecdsa_key_aes(int *err_status, char *err_string,
+void trustedGetPublicEcdsaKey_aes(int *err_status, char *err_string,
                               uint8_t *encrypted_key, uint32_t enc_len, char *pub_key_x, char *pub_key_y) {
 
     domain_parameters curve = domain_parameters_init();
@@ -1315,7 +1315,7 @@ void decrypt_key_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
 
 }
 
-void bls_sign_message_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
+void trustedBlsSignMessage_aes(int *err_status, char *err_string, uint8_t *encrypted_key,
                           uint32_t enc_len, char *_hashX,
                           char *_hashY, char *signature) {
 
@@ -1430,7 +1430,7 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
 
     uint32_t enc_len;
 
-    generate_ecdsa_key_aes(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    trustedGenerateEcdsaKey_aes(err_status, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
     if (*err_status != 0) {
         return;
     }

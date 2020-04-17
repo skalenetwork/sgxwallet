@@ -95,9 +95,9 @@ void initEnclave() {
 
     spdlog::info("Enclave created and started successfully");
 
-    status = trusted_enclave_init(eid, 0);
+    status = trustedEnclaveInit(eid, 0);
     if (status != SGX_SUCCESS) {
-        spdlog::error("trusted_enclave_init failed: {}", status);
+        spdlog::error("trustedEnclaveInit failed: {}", status);
         exit(1);
     }
 

@@ -267,13 +267,13 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     }
 
     sgx_status_t status =
-            bls_sign_message_aes(eid, &errStatus, errMsg, encryptedKey,
+            trustedBlsSignMessage_aes(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
 
 
     if (status != SGX_SUCCESS) {
-        cerr << "SGX enclave call  to bls_sign_message failed:" << status << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to bls_sign_message failed"));
+        cerr << "SGX enclave call  to trustedBlsSignMessage failed:" << status << std::endl;
+        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
     }
 
 

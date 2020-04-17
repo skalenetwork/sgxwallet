@@ -52,9 +52,9 @@ std::vector<std::string> genECDSAKey() {
     uint32_t enc_len = 0;
 
     if (!encryptKeys)
-        status = generate_ecdsa_key(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKey(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
     else
-        status = generate_ecdsa_key_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKey_aes(eid, &err_status, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
 
     if (status != SGX_SUCCESS || err_status != 0) {
         spdlog::error("RPCException thrown with status {}", status);
@@ -114,9 +114,9 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     }
 
     if (!encryptKeys)
-        status = get_public_ecdsa_key(eid, &err_status, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
+        status = trustedGetPublicEcdsaKey(eid, &err_status, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
                 pubKeyY.data());
-    else status = get_public_ecdsa_key_aes(eid, &err_status,
+    else status = trustedGetPublicEcdsaKey_aes(eid, &err_status,
             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
     if (err_status != 0) {
         throw SGXException(-666, errMsg.data());

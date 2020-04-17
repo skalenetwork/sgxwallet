@@ -165,7 +165,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   cerr << "Key is " + *encryptedKeyHex << endl;
 
   sgx_status_t status =
-      bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
+      trustedBlsSignMessage(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
  // strncpy(signature, "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855", 1024);
@@ -174,13 +174,13 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
 
   if (status != SGX_SUCCESS) {
-    gmp_printf("SGX enclave call  to bls_sign_message failed: 0x%04x\n", status);
-    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to bls_sign_message failed"));
+    gmp_printf("SGX enclave call  to trustedBlsSignMessage failed: 0x%04x\n", status);
+    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
   }
 
 
   if (errStatus != 0) {
-    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed:" + to_string(errStatus) + ":" + errMsg ));
+    BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
     return nullptr;
   }
 
@@ -269,7 +269,7 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
   cerr << "Key is " + *encryptedKeyHex << endl;
 
 //  sgx_status_t status =
-//      bls_sign_message(eid, &errStatus, errMsg, encryptedKey,
+//      trustedBlsSignMessage(eid, &errStatus, errMsg, encryptedKey,
 //                       encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
   strncpy(signature, "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855", 1024);
@@ -278,13 +278,13 @@ std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
 
 
 //  if (status != SGX_SUCCESS) {
-//    gmp_printf("SGX enclave call  to bls_sign_message failed: 0x%04x\n", status);
-//    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to bls_sign_message failed"));
+//    gmp_printf("SGX enclave call  to trustedBlsSignMessage failed: 0x%04x\n", status);
+//    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
 //  }
 
 
 //  if (errStatus != 0) {
-//    BOOST_THROW_EXCEPTION(runtime_error("Enclave bls_sign_message failed:" + to_string(errStatus) + ":" + errMsg ));
+//    BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
 //    return nullptr;
 //  }
 
