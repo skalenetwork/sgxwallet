@@ -156,7 +156,7 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
 
 
     if (!encryptKeys)
-        status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
+        status = trustedEcdsaSign(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
     else
         status = trustedEcdsaSignAES(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,

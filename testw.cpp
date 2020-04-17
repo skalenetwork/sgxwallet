@@ -444,7 +444,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
     vector<char> signature_s(BUF_LEN, 0);
     uint8_t signature_v = 0;
 
-    status = ecdsa_sign1(eid, &err_status, errMsg.data(), encr_pr_key.data(), enc_len, (unsigned char *) hex.data(),
+    status = trustedEcdsaSign(eid, &err_status, errMsg.data(), encr_pr_key.data(), enc_len, (unsigned char *) hex.data(),
                          signature_r.data(),
                          signature_s.data(), &signature_v, 16);
     REQUIRE(status == SGX_SUCCESS);
