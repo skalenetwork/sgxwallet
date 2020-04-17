@@ -33,15 +33,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <stdbool.h>
 
-#include "sgxwallet.h"
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
 #include "SEKManager.h"
-
-
-#include <stdbool.h>
+#include "SGXWalletServer.h"
+#include "sgxwallet.h"
 
 
 void usage() {
@@ -65,6 +64,8 @@ void printUsage() {
     fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
     fprintf(stderr, "-y  Do not ask user to acknoledge receipt of backup key \n");
 }
+
+enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
 int main(int argc, char *argv[]) {
 
@@ -128,7 +129,17 @@ int main(int argc, char *argv[]) {
 
     setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
-    initAll(checkClientCertOption, autoSignClientCertOption);
+
+
+    uint32_t  enclaveLogLevel = L_INFO;
+
+    if (printTraceInfoOption) {
+        enclaveLogLevel = L_TRACE;
+    } else if (printDebugInfoOption) {
+        enclaveLogLevel = L_DEBUG;
+    }
+
+    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
 
     while (true) {
         sleep(10);

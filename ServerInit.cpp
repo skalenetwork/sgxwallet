@@ -62,7 +62,7 @@ void initUserSpace() {
 }
 
 
-void initEnclave() {
+void initEnclave(uint32_t _logLevel) {
 
     eid = 0;
     updated = 0;
@@ -95,7 +95,7 @@ void initEnclave() {
 
     spdlog::info("Enclave created and started successfully");
 
-    status = trustedEnclaveInit(eid, 0);
+    status = trustedEnclaveInit(eid, _logLevel);
     if (status != SGX_SUCCESS) {
         spdlog::error("trustedEnclaveInit failed: {}", status);
         exit(1);
@@ -108,12 +108,12 @@ void initEnclave() {
 
 int sgxServerInited = 0;
 
-void initAll(bool _checkCert, bool _autoSign) {
+void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
     CHECK_STATE(sgxServerInited == 0)
     sgxServerInited = 1;
-    initEnclave();
+    initEnclave(_logLevel);
     initUserSpace();
     initSEK();
 

@@ -135,7 +135,7 @@ void destroyEnclave() {
 TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
 }
@@ -144,7 +144,7 @@ TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
 TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     //init_enclave();
 
@@ -176,7 +176,7 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 TEST_CASE("DKG gen test", "[dkg-gen]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
@@ -264,7 +264,7 @@ libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
 TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     libff::init_alt_bn128_params();
@@ -339,7 +339,7 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
 TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -376,7 +376,7 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
 TEST_CASE("DKG verification test", "[dkg-verify]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -417,7 +417,7 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
 TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -461,7 +461,7 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
 TEST_CASE("Test test", "[test]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
@@ -483,7 +483,7 @@ TEST_CASE("Test test", "[test]") {
 TEST_CASE("get public ECDSA key", "[get-pub-ecdsa-key]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
@@ -551,7 +551,7 @@ string ConvertDecToHex(string dec, int numBytes = 32) {
 TEST_CASE("BLS_DKG test", "[bls-dkg]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -679,7 +679,7 @@ TEST_CASE("BLS_DKG test", "[bls-dkg]") {
 
 TEST_CASE("API test", "[api]") {
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
@@ -734,7 +734,7 @@ TEST_CASE("API test", "[api]") {
 TEST_CASE("getServerStatus test", "[get-server-status]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -841,7 +841,7 @@ TEST_CASE("ManySimultaneousThreads", "[many-threads-test]") {
     resetDB();
     setOptions(false, false, false, true);
 
-    initAll(false, true);
+    initAll(0, false, true);
 
     vector<thread> threads;
     int num_threads = 4;
@@ -859,7 +859,7 @@ TEST_CASE("ManySimultaneousThreads", "[many-threads-test]") {
 TEST_CASE("ecdsa API test", "[ecdsa-api]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     HttpClient client("http://localhost:1029");
@@ -907,7 +907,7 @@ TEST_CASE("ecdsa API test", "[ecdsa-api]") {
 TEST_CASE("dkg API test", "[dkg-api]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     HttpClient client("http://localhost:1029");
@@ -980,7 +980,7 @@ TEST_CASE("dkg API test", "[dkg-api]") {
 TEST_CASE("isPolyExists test", "[is-poly]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     HttpClient client("http://localhost:1029");
@@ -1008,7 +1008,7 @@ TEST_CASE("AES_DKG test", "[aes-dkg]") {
     setOptions(false, false, false, true);
 
 
-    initAll(false, true);
+    initAll(0, false, true);
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -1122,7 +1122,7 @@ TEST_CASE("AES_DKG test", "[aes-dkg]") {
 TEST_CASE("bls_sign_api test", "[bls-sign]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1144,7 +1144,7 @@ TEST_CASE("bls_sign_api test", "[bls-sign]") {
 TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
     resetDB();
     setOptions(false, false, false, true);
-    initAll(false, true);
+    initAll(0, false, true);
 
 
     int errStatus = -1;

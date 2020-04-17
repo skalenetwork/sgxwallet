@@ -277,11 +277,11 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
 
-uint32_t logLevel = 2;
+uint32_t globalLogLevel_ = 2;
 
 void logMsg(log_level _level, char* _msg) {
 
-    if (_level < logLevel)
+    if (_level < globalLogLevel_)
         return;
 
     if (!_msg) {
@@ -289,13 +289,26 @@ void logMsg(log_level _level, char* _msg) {
         return;
     }
 
+    oc_printf("***ENCLAVE_LOG***:");
     oc_printf(_msg);
-
+    oc_printf("\n");
 }
 
 
-EXTERNC void LOG_INFO(char* msg) {};
-EXTERNC void LOG_WARNING(char* _msg) {};
-EXTERNC void LOG_ERROR(char* _msg) {};
-EXTERNC void LOG_DEBUG(char* _msg) {};
-EXTERNC void LOG_TRACE(char* _msg) {};
+EXTERNC void LOG_INFO(char* _msg) {
+    logMsg(L_INFO, _msg);
+};
+EXTERNC void LOG_WARNING(char* _msg) {
+    logMsg(L_WARNING, _msg);
+};
+
+EXTERNC void LOG_ERROR(char* _msg) {
+    logMsg(L_ERROR, _msg);
+};
+EXTERNC void LOG_DEBUG(char* _msg) {
+    logMsg(L_DEBUG, _msg);
+};
+EXTERNC void LOG_TRACE(char* _msg) {
+    logMsg(L_TRACE, _msg);
+};
+

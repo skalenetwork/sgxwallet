@@ -47,7 +47,7 @@ void oc_printf (const char *str) {
     /* Proxy/Bridge will check the length and null-terminate
      * the input string to prevent buffer overflow.
      * */
-    fprintf(stderr, "***ENCLAVE_LOG***: %s", str);
+    fprintf(stderr, "%s", str);
 }
 
 

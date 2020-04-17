@@ -59,6 +59,8 @@ EXTERNC void LOG_DEBUG(char* _msg);
 EXTERNC void LOG_TRACE(char* _msg);
 
 
+extern uint32_t globalLogLevel_;
+
 
 
 #endif //SGXWALLET_ENCLAVECOMMON_H
