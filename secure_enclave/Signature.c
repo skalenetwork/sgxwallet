@@ -26,10 +26,10 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "domain_parameters.h"
-#include "point.h"
-#include "signature.h"
-#include "numbertheory.h"
+#include "DomainParameters.h"
+#include "Point.h"
+#include "NumberTheory.h"
+#include "Signature.h"
 
 /*Initialize a signature*/
 signature signature_init() {

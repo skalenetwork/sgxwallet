@@ -31,30 +31,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+
 #include "secure_enclave_t.h"
 #include "sgx_tcrypto.h"
 #include "sgx_tseal.h"
 #include <sgx_tgmp.h>
 #include <sgx_trts.h>
 
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
 
-#include <stdbool.h>
-#include "domain_parameters.h"
-#include "point.h"
-#include "signature.h"
-#include "curves.h"
 
-#include "DH_dkg.h"
+#include "Point.h"
+#include "DomainParameters.h"
 
-#include <sgx_tcrypto.h>
-
+#include "Signature.h"
+#include "Curves.h"
+#include "DHDkg.h"
 #include "AESUtils.h"
 
-//#include "../sgxwallet_common.h"
-#include "enclave_common.h"
+
+#include "EnclaveConstants.h"
+#include "EnclaveConstants.h"
 
 uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
 
@@ -128,6 +128,7 @@ void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 void trustedGenerateEcdsaKey(int *errStatus, char *err_string,
                         uint8_t *encrypted_key, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
+
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);

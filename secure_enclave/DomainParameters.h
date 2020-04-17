@@ -20,15 +20,19 @@
     @author Stan Kladko
     @date 2019
 */
+#ifndef SGXWALLET_DOMAINPARAMETERS_H
+#define SGXWALLET_DOMAINPARAMETERS_H
+
 
 /*Type that represents a point*/
 typedef struct point_s* point;
 struct point_s
 {
-	mpz_t x;
-	mpz_t y;
-	bool infinity;
+    mpz_t x;
+    mpz_t y;
+    bool infinity;
 };
+
 
 /*Type that represents a curve*/
 typedef struct domain_parameters_s* domain_parameters;
@@ -66,3 +70,4 @@ void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, cha
 /*Release memory*/
 void domain_parameters_clear(domain_parameters curve);
 
+#endif

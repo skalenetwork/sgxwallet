@@ -21,6 +21,9 @@
     @date 2019
 */
 
+#ifndef SGXWALLET_SIGNATURE_H
+#define SGXWALLET_SIGNATURE_H
+
 /*Type for representing a signature*/
 struct signature_s
 {
@@ -64,4 +67,4 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 /*Verify the integrity of a message using it's signature*/
 bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve);
 
-
+#endif

@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
-#include "numbertheory.h"
+#include "NumberTheory.h"
 
 /*Calculate R = a^k mod P, using repeated square-and-multiply algorithm
  *Handbook of applied cryptography: Algorithm 2.143. */

@@ -21,13 +21,13 @@
     @date 2019
 */
 
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "domain_parameters.h"
-#include "curves.h"
-#include "point.h"
+#include <../tgmp-build/include/sgx_tgmp.h>
+#include "DomainParameters.h"
+#include "Curves.h"
+#include "Point.h"
 
 /*Load a curve depending on it's curve number, defined by the enum*/
 void domain_parameters_load_curve(domain_parameters out, curve_list curve)

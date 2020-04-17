@@ -27,10 +27,11 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
-#include "domain_parameters.h"
-#include "point.h"
-#include "numbertheory.h"
 
+#include "NumberTheory.h"
+
+#include "DomainParameters.h"
+#include "Point.h"
 /*Initialize a point*/
 point point_init()
 {

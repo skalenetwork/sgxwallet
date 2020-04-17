@@ -22,15 +22,16 @@
 */
 
 #include <stdlib.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
-#include "domain_parameters.h"
-#include "curves.h"
-#include "point.h"
-#include "numbertheory.h"
+#include <../tgmp-build/include/sgx_tgmp.h>
+
+#include "DomainParameters.h"
+#include "Curves.h"
+#include "Point.h"
+#include "NumberTheory.h"
 
 #include <stdint.h>
-#include "BLSEnclave.h"
+#include "EnclaveCommon.h"
 #include <string.h>
 
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){

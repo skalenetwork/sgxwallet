@@ -21,6 +21,13 @@
     @date 2019
 */
 
+
+#ifndef SGXWALLET_POINT_H
+#define SGXWALLET_POINT_H
+
+
+#include "DomainParameters.h"
+
 /*Initialize a point*/
 point point_init();
 
@@ -71,3 +78,4 @@ void point_copy(point R, point P);
 /*Set a point from another point*/
 void point_set(point R, point P);
 
+#endif

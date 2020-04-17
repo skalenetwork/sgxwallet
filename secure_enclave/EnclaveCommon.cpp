@@ -16,7 +16,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.cpp
+    @file EnclaveCommon.cpp
     @author Stan Kladko
     @date 2019
 */
@@ -25,15 +25,19 @@
 
 #include <string.h>
 #include <cstdint>
-//#include "../sgxwallet_common.h"
-#include "enclave_common.h"
 
-
-#include "BLSEnclave.h"
 #include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
-std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
+#include "secure_enclave_t.h"
+
+#include "EnclaveConstants.h"
+#include "EnclaveCommon.h"
+
+using namespace  std;
+
+
+string *stringFromKey(libff::alt_bn128_Fr *_key) {
 
     mpz_t t;
     mpz_init(t);
@@ -45,10 +49,10 @@ std::string *stringFromKey(libff::alt_bn128_Fr *_key) {
     char *tmp = mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(tmp);
+    return new string(tmp);
 }
 
-std::string *stringFromFq(libff::alt_bn128_Fq *_fq) {
+string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
     mpz_t t;
     mpz_init(t);
@@ -60,10 +64,10 @@ std::string *stringFromFq(libff::alt_bn128_Fq *_fq) {
     char *tmp = mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(tmp);
+    return new string(tmp);
 }
 
-std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
+string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
 
     _g1->to_affine_coordinates();
@@ -71,7 +75,7 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     auto sX = stringFromFq(&_g1->X);
     auto sY = stringFromFq(&_g1->Y);
 
-    auto sG1 = new std::string(*sX + ":" + *sY);
+    auto sG1 = new string(*sX + ":" + *sY);
 
     delete (sX);
     delete (sY);
@@ -132,9 +136,9 @@ void checkKey(int *errStatus, char *err_string, const char *_keyString) {
         }
     }
 
-//    std::string ks(_keyString);
+//    string ks(_keyString);
 //
-//    // std::string  keyString =
+//    // string  keyString =
 //    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
 //
 //    auto key = keyFromString(ks.c_str());
@@ -142,7 +146,7 @@ void checkKey(int *errStatus, char *err_string, const char *_keyString) {
 //    auto s1 = stringFromKey(key);
 //
 //    if (s1->compare(ks) != 0) {
-//        throw std::exception();
+//        throw exception();
 //    }
 
     *errStatus = 0;
@@ -161,7 +165,7 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
     auto key = keyFromString(_keyString);
 
     if (key == nullptr) {
-        throw std::exception();
+        throw exception();
     }
 
     libff::alt_bn128_Fq hashX(_hashXString);
@@ -270,4 +274,28 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
 
 }
 
+enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
+
+uint32_t logLevel = 2;
+
+void logMsg(log_level _level, char* _msg) {
+
+    if (_level < logLevel)
+        return;
+
+    if (!_msg) {
+        oc_printf("Null msg in logMsg");
+        return;
+    }
+
+    oc_printf(_msg);
+
+}
+
+
+EXTERNC void LOG_INFO(char* msg) {};
+EXTERNC void LOG_WARNING(char* _msg) {};
+EXTERNC void LOG_ERROR(char* _msg) {};
+EXTERNC void LOG_DEBUG(char* _msg) {};
+EXTERNC void LOG_TRACE(char* _msg) {};

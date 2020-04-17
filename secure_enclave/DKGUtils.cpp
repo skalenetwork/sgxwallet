@@ -31,11 +31,11 @@
 
 
 //#include "../sgxwallet_common.h"
-#include "enclave_common.h"
+#include "EnclaveConstants.h"
 #include <cstdio>
 #include <stdio.h>
 
-#include "DH_dkg.h"
+#include "DHDkg.h"
 
 
 

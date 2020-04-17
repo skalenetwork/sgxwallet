@@ -21,8 +21,8 @@
     @date 2019
 */
 
-#ifndef SGXD_DKGUTILS_H
-#define SGXD_DKGUTILS_H
+#ifndef SGXWALLET_DKGUTILS_H
+#define SGXWALLET_DKGUTILS_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -51,5 +51,5 @@ EXTERNC void calc_secret_shareG2_old(const char* public_shares, char * s_shareG2
                                  unsigned _t, unsigned ind);
 
 EXTERNC int calc_secret_shareG2(const char* s_share, char * s_shareG2);
-#endif //SGXD_DKGUTILS_H
+#endif
 

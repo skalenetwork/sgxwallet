@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "domain_parameters.h"
-#include "point.h"
+#include "Point.h"
+#include "DomainParameters.h"
 
 /*Initialize a curve*/
 domain_parameters domain_parameters_init()
