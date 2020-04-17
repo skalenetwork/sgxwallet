@@ -1218,7 +1218,7 @@ void trustedEcdsaSignAES(int *errStatus, char *err_string, uint8_t *encrypted_ke
 
 }
 
-void encrypt_key_aes(int *errStatus, char *err_string, const char *key,
+void trustedEncryptKeyAES(int *errStatus, char *err_string, const char *key,
                      uint8_t *encrypted_key, uint32_t *enc_len) {
 
     //init();
@@ -1274,7 +1274,7 @@ void encrypt_key_aes(int *errStatus, char *err_string, const char *key,
     *errStatus = 0;
 }
 
-void decrypt_key_aes(int *errStatus, char *err_string, uint8_t *encrypted_key,
+void trustedDecryptKeyAES(int *errStatus, char *err_string, uint8_t *encrypted_key,
                      uint32_t enc_len, char *key) {
 
     init();

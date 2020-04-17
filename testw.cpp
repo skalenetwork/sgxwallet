@@ -1153,13 +1153,13 @@ TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
     string key = "123456789";
     vector<uint8_t> encrypted_key(BUF_LEN, 0);
 
-    status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &enc_len);
+    status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &enc_len);
 
     REQUIRE(status == 0);
 
 
     vector<char> decr_key(BUF_LEN, 0);
-    status = decrypt_key_aes(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_len, decr_key.data());
+    status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_len, decr_key.data());
 
     REQUIRE(status == 0);
 

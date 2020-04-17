@@ -53,7 +53,7 @@ void create_test_key(){
 
   std::string key = TEST_VALUE;
 
-  status = encrypt_key_aes(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+  status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
   if ( status != 0){
     std::cerr << "encrypt test key failed with status " << status << std::endl;
     throw SGXException(status, errMsg.data()) ;
@@ -104,7 +104,7 @@ bool check_SEK(std::string SEK){
       throw SGXException(status, errMsg.data());
     }
 
-    status = decrypt_key_aes(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     if (status != SGX_SUCCESS || err_status != 0){
       spdlog::error("failed to decrypt test key" );
       spdlog::error(errMsg.data());

@@ -321,7 +321,7 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     unsigned int encryptedLen = 0;
 
     //status = encrypt_key(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
-    status = encrypt_key_aes(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
+    status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     spdlog::debug("errStatus is {}", *errStatus);
     spdlog::debug(" errMsg is ", errMsg->data());
@@ -361,7 +361,7 @@ char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encry
     char *plaintextKey = (char *) calloc(BUF_LEN, 1);
 
     //status = decrypt_key(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
-    status = decrypt_key_aes(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
+    status = trustedDecryptKeyAES(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
 
     if (status != SGX_SUCCESS) {
         return nullptr;

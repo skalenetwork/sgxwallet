@@ -380,7 +380,7 @@ string decryptDHKey(const string &polyName, int ind) {
     if (!encryptKeys)
         decrypt_key(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     else
-        decrypt_key_aes(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+        trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     if (errStatus != 0) {
         throw SGXException(/*ERROR_IN_ENCLAVE*/ errStatus, "decrypt key failed in enclave");
     }
