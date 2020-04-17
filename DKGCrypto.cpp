@@ -300,7 +300,7 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
     if (!encryptKeys)
         trustedCreateBlsKey(eid, &errStatus, errMsg, s_shares, encr_key, decKeyLen, encr_bls_key, &enc_bls_len);
     else
-        trustedCreateBlsKey_aes(eid, &errStatus, errMsg, s_shares, encr_key, decKeyLen, encr_bls_key, &enc_bls_len);
+        trustedCreateBlsKeyAES(eid, &errStatus, errMsg, s_shares, encr_key, decKeyLen, encr_bls_key, &enc_bls_len);
 
     if (errStatus != 0) {
 

@@ -266,7 +266,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     }
 
     sgx_status_t status =
-            trustedBlsSignMessage_aes(eid, &errStatus, errMsg, encryptedKey,
+            trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
 
 

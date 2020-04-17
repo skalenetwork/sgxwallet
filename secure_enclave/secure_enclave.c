@@ -997,7 +997,7 @@ void trustedSetSEK_backup(int *errStatus, char *err_string,
     *enc_len = sealedLen;
 }
 
-void trustedGenerateEcdsaKey_aes(int *errStatus, char *err_string,
+void trustedGenerateEcdsaKeyAES(int *errStatus, char *err_string,
                             uint8_t *encrypted_key, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
 
     domain_parameters curve = domain_parameters_init();
@@ -1069,7 +1069,7 @@ void trustedGenerateEcdsaKey_aes(int *errStatus, char *err_string,
     point_clear(Pkey);
 }
 
-void trustedGetPublicEcdsaKey_aes(int *errStatus, char *err_string,
+void trustedGetPublicEcdsaKeyAES(int *errStatus, char *err_string,
                               uint8_t *encrypted_key, uint32_t enc_len, char *pub_key_x, char *pub_key_y) {
 
     domain_parameters curve = domain_parameters_init();
@@ -1315,7 +1315,7 @@ void decrypt_key_aes(int *errStatus, char *err_string, uint8_t *encrypted_key,
 
 }
 
-void trustedBlsSignMessage_aes(int *errStatus, char *err_string, uint8_t *encrypted_key,
+void trustedBlsSignMessageAES(int *errStatus, char *err_string, uint8_t *encrypted_key,
                           uint32_t enc_len, char *_hashX,
                           char *_hashY, char *signature) {
 
@@ -1430,7 +1430,7 @@ void trustedGetEncryptedSecretShare_aes(int *errStatus, char *err_string, uint8_
 
     uint32_t enc_len;
 
-    trustedGenerateEcdsaKey_aes(errStatus, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    trustedGenerateEcdsaKeyAES(errStatus, err_string, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
     if (*errStatus != 0) {
         return;
     }
@@ -1587,7 +1587,7 @@ void trustedDkgVerify_aes(int *errStatus, char *err_string, const char *public_s
 
 }
 
-void trustedCreateBlsKey_aes(int *errStatus, char *err_string, const char *s_shares,
+void trustedCreateBlsKeyAES(int *errStatus, char *err_string, const char *s_shares,
                         uint8_t *encrypted_key, uint64_t key_len, uint8_t *encr_bls_key, uint32_t *enc_bls_key_len) {
 
     char skey[ECDSA_SKEY_LEN];
