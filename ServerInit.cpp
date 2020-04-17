@@ -85,24 +85,23 @@ void initEnclave() {
 
     if (status != SGX_SUCCESS) {
         if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
-            fprintf(stderr, "sgx_create_enclave: %s: file not found\n", ENCLAVE_NAME);
-            fprintf(stderr, "Did you forget to set LD_LIBRARY_PATH?\n");
+            spdlog::error("sgx_create_enclave: {}: file not found", ENCLAVE_NAME);
+            spdlog::error("Did you forget to set LD_LIBRARY_PATH?");
         } else {
-            spdlog::error("sgx_create_enclave_search failed");
-            fprintf(stderr, "%s: 0x%04x\n", ENCLAVE_NAME, status);
+            spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
         }
         exit(1);
     }
 
     spdlog::info("Enclave created and started successfully");
 
-    status = tgmp_init(eid);
+    status = trusted_enclave_init(eid, 0);
     if (status != SGX_SUCCESS) {
-        fprintf(stderr, "ECALL tgmp_init: 0x%04x\n", status);
+        spdlog::error("trusted_enclave_init failed: {}", status);
         exit(1);
     }
 
-    spdlog::info("Enclave libtgmp library initialized successfully");
+    spdlog::info("Enclave libtgmp library and logging initialized successfully");
 
 }
 

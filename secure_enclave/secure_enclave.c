@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "../sgxwallet_common.h"
 #include "enclave_common.h"
 
-uint8_t Decrypted_dkg_poly[DKG_BUFER_LENGTH];
+uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
 
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
@@ -72,7 +72,7 @@ void *reallocate_function(void *, size_t, size_t);
 void free_function(void *, size_t);
 
 
-void tgmp_init() {
+void trusted_enclave_init(uint32_t _logLevel) {
     oc_printf("Initing tgmp library\n");
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
@@ -614,10 +614,10 @@ void get_public_shares(int *err_status, char *err_string, uint8_t *encrypted_dkg
 
 
 void set_encrypted_dkg_poly(int *err_status, char *err_string, uint8_t *encrypted_poly) {
-    memset(Decrypted_dkg_poly, 0, DKG_BUFER_LENGTH);
+    memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
     uint32_t decr_len;
     sgx_status_t status = sgx_unseal_data(
-            (const sgx_sealed_data_t *) encrypted_poly, NULL, 0, Decrypted_dkg_poly, &decr_len);
+            (const sgx_sealed_data_t *) encrypted_poly, NULL, 0, decryptedDkgPoly, &decr_len);
 
     if (status != SGX_SUCCESS) {
         *err_status = -1;
@@ -666,7 +666,7 @@ void get_encr_sshare(int *err_status, char *err_string, uint8_t *encrypted_skey,
     char *s_share[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
     //char s_share[65];
 
-    if (calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind) != 0) {
+    if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *err_status = -1;
         snprintf(err_string, BUF_LEN, "\nt does not match poly degree\n");
         return;
@@ -1406,8 +1406,8 @@ decrypt_dkg_secret_aes(int *err_status, char *err_string, uint8_t *encrypted_dkg
 }
 
 void set_encrypted_dkg_poly_aes(int *err_status, char *err_string, uint8_t *encrypted_poly, uint64_t *enc_len) {
-    memset(Decrypted_dkg_poly, 0, DKG_BUFER_LENGTH);
-    int status = AES_decrypt(encrypted_poly, *enc_len, Decrypted_dkg_poly);
+    memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
+    int status = AES_decrypt(encrypted_poly, *enc_len, decryptedDkgPoly);
 
     if (status != SGX_SUCCESS) {
         *err_status = -1;
@@ -1456,10 +1456,10 @@ void get_encr_sshare_aes(int *err_status, char *err_string, uint8_t *encrypted_s
     char *s_share[ECDSA_SKEY_LEN]; //= (char *)malloc(65);
     //char s_share[65];
 
-    if (calc_secret_share(Decrypted_dkg_poly, s_share, _t, _n, ind) != 0) {
+    if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *err_status = -1;
         // snprintf(err_string, BUF_LEN,"t does not match poly degree");
-        snprintf(err_string, BUF_LEN, Decrypted_dkg_poly);
+        snprintf(err_string, BUF_LEN, decryptedDkgPoly);
         return;
     }
     snprintf(err_string + 88, BUF_LEN, "\nsecret share is %s", s_share);

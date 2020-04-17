@@ -10,7 +10,7 @@ enclave {
 		include "sgx_tgmp.h"
 
 
-		public void tgmp_init();
+		public void trusted_enclave_init(uint32_t _logLevel);
 
 		public void e_mpz_add(
 			[user_check] mpz_t *c, [user_check] mpz_t *a, [user_check] mpz_t *b
