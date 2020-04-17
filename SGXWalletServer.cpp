@@ -517,7 +517,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
 
-        string s = get_secret_shares(_polyName, encr_poly_ptr->c_str(), pubKeysStrs, _t, _n);
+        string s = trustedGetSecretShares(_polyName, encr_poly_ptr->c_str(), pubKeysStrs, _t, _n);
         //cerr << "result is " << s << endl;
         result["secretShare"] = s;
 

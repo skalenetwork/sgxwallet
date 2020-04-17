@@ -5472,10 +5472,10 @@ void trustedGenerateEcdsaKey(int* err_status, char* err_string, uint8_t* encrypt
 void encrypt_key(int* err_status, char* err_string, char* key, uint8_t* encrypted_key, uint32_t* enc_len);
 void decrypt_key(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* key);
 void trustedBlsSignMessage(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t enc_len, char* hashX, char* hashY, char* signature);
-void gen_dkg_secret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t* enc_len, size_t _t);
-void decrypt_dkg_secret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len);
-void get_secret_shares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* secret_shares, unsigned int _t, unsigned int _n);
-void get_public_shares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* public_shares, unsigned int _t, unsigned int _n);
+void trustedGenDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t* enc_len, size_t _t);
+void trustedDecryptDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len);
+void trustedGetSecretShares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* secret_shares, unsigned int _t, unsigned int _n);
+void trustedGetPublicShares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* public_shares, unsigned int _t, unsigned int _n);
 void ecdsa_sign1(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t dec_len, unsigned char* hash, char* signature, int test_len);
 
 sgx_status_t oc_realloc(uint64_t* retval, void* optr, size_t osz, size_t nsz);
@@ -6887,7 +6887,7 @@ void trustedBlsSignMessage(int *err_status, char *err_string, uint8_t *encrypted
 
 }
 
-void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
+void trustedGenDkgSecret (int *err_status, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t* enc_len, size_t _t){
 
   char* dkg_secret = (char*)malloc(1250);
 
@@ -6905,7 +6905,7 @@ void gen_dkg_secret (int *err_status, char *err_string, uint8_t *encrypted_dkg_s
   free(dkg_secret);
 }
 
-void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len){
+void trustedDecryptDkgSecret (int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len){
 
 
 
@@ -6918,17 +6918,17 @@ void decrypt_dkg_secret (int *err_status, char* err_string, uint8_t* encrypted_d
   }
 }
 
-void get_secret_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* secret_shares,
+void trustedGetSecretShares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* secret_shares,
     unsigned _t, unsigned _n){
   char* decrypted_dkg_secret = (char*)malloc(2000);
-  decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
+  trustedDecryptDkgSecret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
   calc_secret_shares(decrypted_dkg_secret, secret_shares, _t, _n);
 }
 
-void get_public_shares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* public_shares,
+void trustedGetPublicShares(int *err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint32_t enc_len, char* public_shares,
                        unsigned _t, unsigned _n){
     char* decrypted_dkg_secret = (char*)malloc(2000);
-    decrypt_dkg_secret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
+    trustedDecryptDkgSecret(err_status, err_string, (uint8_t*)encrypted_dkg_secret, decrypted_dkg_secret, enc_len);
     calc_public_shares(decrypted_dkg_secret, public_shares, _t);
 }
 

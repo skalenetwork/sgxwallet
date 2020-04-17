@@ -84,14 +84,14 @@ string gen_dkg_poly(int _t) {
     uint32_t enc_len = 0;
 
     if (!encryptKeys)
-        status = gen_dkg_secret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+        status = trustedGenDkgSecret(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     else
-        status = gen_dkg_secret_aes(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+        status = trustedGenDkgSecret_aes(eid, &err_status, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     if (err_status != 0) {
         throw SGXException(-666, errMsg.data());
     }
 
-    spdlog::debug("gen_dkg_secret, status {}", err_status, " err msg ", errMsg.data());
+    spdlog::debug("trustedGenDkgSecret, status {}", err_status, " err msg ", errMsg.data());
     spdlog::debug("in DKGCrypto encr len is {}", enc_len);
 
     uint64_t length = DKG_MAX_SEALED_LEN;
@@ -138,10 +138,10 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
     uint32_t len = 0;
 
     if (!encryptKeys)
-        status = get_public_shares(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), len, pubShares.data(), t, n);
+        status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), len, pubShares.data(), t, n);
     else {
 
-        status = get_public_shares_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen, pubShares.data(), t, n);
+        status = trustedGetPublicShares_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen, pubShares.data(), t, n);
     }
     if (errStatus != 0) {
         throw SGXException(-666, errMsg1.data());
@@ -152,7 +152,7 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
 
     spdlog::debug("public_shares:");
     spdlog::debug("{}", pubShares.data());;
-    spdlog::debug("get_public_shares status: {}", errStatus);
+    spdlog::debug("trustedGetPublicShares status: {}", errStatus);
 
     vector<string> g2Strings = splitString(pubShares.data(), ',');
     vector<vector<string>> pubSharesVect;
@@ -164,7 +164,7 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
     return pubSharesVect;
 }
 
-string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys, int _t,
+string trustedGetSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys, int _t,
                          int _n) {
 
     vector<char> errMsg1(BUF_LEN, 0);
@@ -182,9 +182,9 @@ string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex,
 
 
     if (!encryptKeys)
-        status = set_encrypted_dkg_poly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data());
+        status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data());
     else
-        status = set_encrypted_dkg_poly_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
+        status = trustedSetEncryptedDkgPoly_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
 
     if (status != SGX_SUCCESS || errStatus != 0) {
         throw SGXException(-666, errMsg1.data());
@@ -209,10 +209,10 @@ string get_secret_shares(const string &_polyName, const char *_encryptedPolyHex,
 
 
         if (!encryptKeys)
-            get_encr_sshare(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+            trustedGetEncryptedSecretShare(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
                             currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
         else
-            get_encr_sshare_aes(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+            trustedGetEncryptedSecretShare_aes(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
                                 currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
         if (errStatus != 0) {
             throw SGXException(-666, errMsg1.data());
@@ -265,9 +265,9 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 
 
     if (!encryptKeys)
-        dkg_verification(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
+        trustedDkgVerify(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
     else
-        dkg_verification_aes(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
+        trustedDkgVerify_aes(eid, &err_status, errMsg1, pshares, encr_sshare, encr_key, dec_key_len, t, ind, &result);
 
     if (result == 2) {
         throw SGXException(INVALID_HEX, "Invalid public shares");
@@ -302,9 +302,9 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
 
     if (!encryptKeys)
-        create_bls_key(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
+        trustedCreateBlsKey(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
     else
-        create_bls_key_aes(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
+        trustedCreateBlsKey_aes(eid, &err_status, errMsg1, s_shares, encr_key, dec_key_len, encr_bls_key, &enc_bls_len);
 
     if (err_status != 0) {
 
@@ -341,9 +341,9 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
     spdlog::debug("dec_key_len is {}", dec_key_len);
 
     if (!encryptKeys)
-        get_bls_pub_key(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
+        trustedGetBlsPubKey(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
     else
-        get_bls_pub_key_aes(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
+        trustedGetBlsPubKey_aes(eid, &err_status, errMsg1, encr_key, dec_key_len, pub_key);
     if (err_status != 0) {
         spdlog::error(string(errMsg1) + " . Status is  {}", err_status);
         throw SGXException(ERROR_IN_ENCLAVE, "Failed to get BLS public key in enclave");

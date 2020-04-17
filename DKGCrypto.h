@@ -33,7 +33,7 @@ std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyH
 
 std::vector<std::string> splitString(const char* koefs, const char symbol);
 
-std::string get_secret_shares(const std::string& _polyName, const char* _encryptedPolyHex, const std::vector<std::string>& _publicKeys, int _t, int _n);
+std::string trustedGetSecretShares(const std::string& _polyName, const char* _encryptedPolyHex, const std::vector<std::string>& _publicKeys, int _t, int _n);
 
 bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
 

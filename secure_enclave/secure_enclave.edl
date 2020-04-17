@@ -67,21 +67,21 @@ enclave {
                                 [in, count = 1024] char* hashY ,
                                 [out, count = 1024] char* signature);
 
-                public void gen_dkg_secret (
+                public void trustedGenDkgSecret (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t * enc_len,
                                 size_t _t);
 
-                public void decrypt_dkg_secret (
+                public void trustedDecryptDkgSecret (
                             	[user_check] int *err_status,
                             	[out, count = 1024] char* err_string,
                             	[in, count = 3050] uint8_t* encrypted_dkg_secret,
                             	[out, count = 2490] uint8_t* decrypted_dkg_secret,
                             	[user_check] uint32_t* dec_len);
 
-                public void get_secret_shares (
+                public void trustedGetSecretShares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
@@ -90,7 +90,7 @@ enclave {
                                 unsigned _t,
                                 unsigned _n);
 
-                public void get_public_shares (
+                public void trustedGetPublicShares (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
@@ -110,11 +110,11 @@ enclave {
                                  [user_check] uint8_t* sig_v,
                                  int base);
 
-                public void set_encrypted_dkg_poly( [user_check] int *err_status,
+                public void trustedSetEncryptedDkgPoly( [user_check] int *err_status,
                                  [out, count = 1024] char* err_string,
                                  [in, count = 3050] uint8_t* encrypted_poly);
 
-                public void get_encr_sshare(
+                public void trustedGetEncryptedSecretShare(
                                 [user_check]int *err_status,
                                 [out, count = 1024] char *err_string,
                                 [out, count = 1024] uint8_t *encrypted_skey,
@@ -126,7 +126,7 @@ enclave {
                                 uint8_t _n,
                                 uint8_t ind);
 
-                public void dkg_verification(
+                public void trustedDkgVerify(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 8193] const char* public_shares,
@@ -137,7 +137,7 @@ enclave {
                                 int _ind,
                                 [user_check] int* result);
 
-                public void create_bls_key(
+                public void trustedCreateBlsKey(
                                 [user_check]int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 6145] const char* s_shares,
@@ -146,7 +146,7 @@ enclave {
                                 [out, count = 1024] uint8_t * encr_bls_key,
                                 [user_check] uint32_t *enc_bls_key_len);
 
-                public void get_bls_pub_key(
+                public void trustedGetBlsPubKey(
                                 [user_check]int *err_status,
                                 [out, count = 1024]  char* err_string,
                                 [in, count = 1024] uint8_t* encrypted_key,
@@ -227,27 +227,27 @@ enclave {
                                 [out, count = 1024] char* key );
 
 
-                public void gen_dkg_secret_aes (
+                public void trustedGenDkgSecret_aes (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t * enc_len,
                                         size_t _t);
 
-                public void decrypt_dkg_secret_aes (
+                public void trustedDecryptDkgSecret_aes (
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [out, count = 2490] uint8_t* decrypted_dkg_secret,
                                 [user_check] uint32_t* dec_len);
 
-                public void set_encrypted_dkg_poly_aes(
+                public void trustedSetEncryptedDkgPoly_aes(
                                [user_check] int *err_status,
                                [out, count = 1024] char* err_string,
                                [in, count = 3050] uint8_t* encrypted_poly,
                                [user_check] uint64_t* enc_len);
 
-                public void get_encr_sshare_aes(
+                public void trustedGetEncryptedSecretShare_aes(
                               [user_check]int *err_status,
                               [out, count = 1024] char *err_string,
                               [out, count = 1024] uint8_t *encrypted_skey,
@@ -259,7 +259,7 @@ enclave {
                               uint8_t _n,
                               uint8_t ind);
 
-                public void get_public_shares_aes (
+                public void trustedGetPublicShares_aes (
                             [user_check] int *err_status,
                             [out, count = 1024] char* err_string,
                             [in, count = 3050] uint8_t* encrypted_dkg_secret,
@@ -268,7 +268,7 @@ enclave {
                             unsigned _t,
                             unsigned _n);
 
-                public void dkg_verification_aes(
+                public void trustedDkgVerify_aes(
                           [user_check] int *err_status,
                           [out, count = 1024] char* err_string,
                           [in, count = 8193] const char* public_shares,
@@ -280,7 +280,7 @@ enclave {
                           [user_check] int* result);
 
 
-                public void create_bls_key_aes(
+                public void trustedCreateBlsKey_aes(
                         [user_check]int *err_status,
                         [out, count = 1024] char* err_string,
                         [in, count = 6145] const char* s_shares,
@@ -298,7 +298,7 @@ enclave {
                         [in, count = 1024] char* hashY ,
                         [out, count = 1024] char* signature);
 
-                public void get_bls_pub_key_aes(
+                public void trustedGetBlsPubKey_aes(
                         [user_check]int *err_status,
                         [out, count = 1024]  char* err_string,
                         [in, count = 1024] uint8_t* encrypted_key,
