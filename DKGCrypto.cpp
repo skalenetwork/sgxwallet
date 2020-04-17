@@ -86,7 +86,7 @@ string gen_dkg_poly(int _t) {
     if (!encryptKeys)
         status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     else
-        status = trustedGenDkgSecret_aes(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+        status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     if (errStatus != 0) {
         throw SGXException(-666, errMsg.data());
     }
@@ -139,7 +139,7 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
                                         n);
     else {
 
-        status = trustedGetPublicShares_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen,
+        status = trustedGetPublicSharesAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen,
                                             pubShares.data(), t, n);
     }
     if (errStatus != 0) {
@@ -183,7 +183,7 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
     if (!encryptKeys)
         status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data());
     else
-        status = trustedSetEncryptedDkgPoly_aes(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
+        status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
 
     if (status != SGX_SUCCESS || errStatus != 0) {
         throw SGXException(-666, errMsg1.data());
@@ -211,7 +211,7 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
             trustedGetEncryptedSecretShare(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
                                            currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
         else
-            trustedGetEncryptedSecretShare_aes(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+            trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
                                                currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
         if (errStatus != 0) {
             throw SGXException(-666, errMsg1.data());
@@ -265,7 +265,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     if (!encryptKeys)
         trustedDkgVerify(eid, &errStatus, errMsg, pshares, encr_sshare, encr_key, decKeyLen, t, ind, &result);
     else
-        trustedDkgVerify_aes(eid, &errStatus, errMsg, pshares, encr_sshare, encr_key, decKeyLen, t, ind, &result);
+        trustedDkgVerifyAES(eid, &errStatus, errMsg, pshares, encr_sshare, encr_key, decKeyLen, t, ind, &result);
 
     if (result == 2) {
         throw SGXException(INVALID_HEX, "Invalid public shares");

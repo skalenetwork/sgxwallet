@@ -227,27 +227,27 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char* key );
 
 
-                public void trustedGenDkgSecret_aes (
+                public void trustedGenDkgSecretAES (
                                 [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [user_check] uint32_t * enc_len,
                                         size_t _t);
 
-                public void trustedDecryptDkgSecret_aes (
+                public void trustedDecryptDkgSecretAES (
                                 [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 [out, count = 2490] uint8_t* decrypted_dkg_secret,
                                 [user_check] uint32_t* dec_len);
 
-                public void trustedSetEncryptedDkgPoly_aes(
+                public void trustedSetEncryptedDkgPolyAES(
                                [user_check] int *errStatus,
                                [out, count = SMALL_BUF_SIZE] char* err_string,
                                [in, count = 3050] uint8_t* encrypted_poly,
                                [user_check] uint64_t* enc_len);
 
-                public void trustedGetEncryptedSecretShare_aes(
+                public void trustedGetEncryptedSecretShareAES(
                               [user_check]int *errStatus,
                               [out, count = SMALL_BUF_SIZE] char *err_string,
                               [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
@@ -259,7 +259,7 @@ enclave {
                               uint8_t _n,
                               uint8_t ind);
 
-                public void trustedGetPublicShares_aes(
+                public void trustedGetPublicSharesAES(
                             [user_check] int *errStatus,
                             [out, count = SMALL_BUF_SIZE] char* err_string,
                             [in, count = 3050] uint8_t* encrypted_dkg_secret,
@@ -268,7 +268,7 @@ enclave {
                             unsigned _t,
                             unsigned _n);
 
-                public void trustedDkgVerify_aes(
+                public void trustedDkgVerifyAES(
                           [user_check] int *errStatus,
                           [out, count = SMALL_BUF_SIZE] char* err_string,
                           [in, count = 8193] const char* public_shares,

@@ -1348,7 +1348,7 @@ void trustedBlsSignMessageAES(int *errStatus, char *err_string, uint8_t *encrypt
 }
 
 void
-trustedGenDkgSecret_aes(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
+trustedGenDkgSecretAES(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
 
     char dkg_secret[DKG_BUFER_LENGTH];// = (char*)calloc(DKG_BUFER_LENGTH, 1);
     memset(dkg_secret, 0, DKG_BUFER_LENGTH);
@@ -1392,7 +1392,7 @@ trustedGenDkgSecret_aes(int *errStatus, char *err_string, uint8_t *encrypted_dkg
 }
 
 void
-trustedDecryptDkgSecret_aes(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint8_t *decrypted_dkg_secret,
+trustedDecryptDkgSecretAES(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint8_t *decrypted_dkg_secret,
                        uint32_t *dec_len) {
 
     int status = AES_decrypt(encrypted_dkg_secret, dec_len, decrypted_dkg_secret);
@@ -1405,7 +1405,7 @@ trustedDecryptDkgSecret_aes(int *errStatus, char *err_string, uint8_t *encrypted
     //*dec_len = decr_len;
 }
 
-void trustedSetEncryptedDkgPoly_aes(int *errStatus, char *err_string, uint8_t *encrypted_poly, uint64_t *enc_len) {
+void trustedSetEncryptedDkgPolyAES(int *errStatus, char *err_string, uint8_t *encrypted_poly, uint64_t *enc_len) {
     memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
     int status = AES_decrypt(encrypted_poly, *enc_len, decryptedDkgPoly);
 
@@ -1416,7 +1416,7 @@ void trustedSetEncryptedDkgPoly_aes(int *errStatus, char *err_string, uint8_t *e
     }
 }
 
-void trustedGetEncryptedSecretShare_aes(int *errStatus, char *err_string, uint8_t *encrypted_skey, uint32_t *dec_len,
+void trustedGetEncryptedSecretShareAES(int *errStatus, char *err_string, uint8_t *encrypted_skey, uint32_t *dec_len,
                          char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n, uint8_t ind) {
 
     char skey[ECDSA_SKEY_LEN];
@@ -1440,7 +1440,7 @@ void trustedGetEncryptedSecretShare_aes(int *errStatus, char *err_string, uint8_
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
     if (status != SGX_SUCCESS) {
-        snprintf(err_string, BUF_LEN, "AES_decrypt failed (in trustedGetEncryptedSecretShare_aes)  with status %d", status);
+        snprintf(err_string, BUF_LEN, "AES_decrypt failed (in trustedGetEncryptedSecretShareAES)  with status %d", status);
         *errStatus = status;
         return;
     }
@@ -1495,7 +1495,7 @@ void trustedGetEncryptedSecretShare_aes(int *errStatus, char *err_string, uint8_
 
 }
 
-void trustedGetPublicShares_aes(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t enc_len,
+void trustedGetPublicSharesAES(int *errStatus, char *err_string, uint8_t *encrypted_dkg_secret, uint32_t enc_len,
                            char *public_shares,
                            unsigned _t, unsigned _n) {
 
@@ -1523,7 +1523,7 @@ void trustedGetPublicShares_aes(int *errStatus, char *err_string, uint8_t *encry
     //free(decrypted_dkg_secret);
 }
 
-void trustedDkgVerify_aes(int *errStatus, char *err_string, const char *public_shares, const char *s_share,
+void trustedDkgVerifyAES(int *errStatus, char *err_string, const char *public_shares, const char *s_share,
                           uint8_t *encrypted_key, uint64_t enc_len, unsigned _t, int _ind, int *result) {
 
     //uint32_t dec_len = 625;
@@ -1533,7 +1533,7 @@ void trustedDkgVerify_aes(int *errStatus, char *err_string, const char *public_s
     //skey[ECDSA_SKEY_LEN - 1] = 0;
 
     if (status != SGX_SUCCESS) {
-        snprintf(err_string, BUF_LEN, "AES_decrypt failed (in trustedDkgVerify_aes)  with status %d", status);
+        snprintf(err_string, BUF_LEN, "AES_decrypt failed (in trustedDkgVerifyAES)  with status %d", status);
         *errStatus = status;
         return;
     }
