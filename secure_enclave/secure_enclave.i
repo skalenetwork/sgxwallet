@@ -5476,7 +5476,7 @@ void trustedGenDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_d
 void trustedDecryptDkgSecret(int* err_status, char* err_string, uint8_t* encrypted_dkg_secret, uint8_t* decrypted_dkg_secret, uint32_t enc_len);
 void trustedGetSecretShares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* secret_shares, unsigned int _t, unsigned int _n);
 void trustedGetPublicShares(int* err_status, char* err_string, uint8_t* decrypted_dkg_secret, uint32_t enc_len, char* public_shares, unsigned int _t, unsigned int _n);
-void ecdsa_sign1(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t dec_len, unsigned char* hash, char* signature, int test_len);
+void trustedEcdsaSign(int* err_status, char* err_string, uint8_t* encrypted_key, uint32_t dec_len, unsigned char* hash, char* signature, int test_len);
 
 sgx_status_t oc_realloc(uint64_t* retval, void* optr, size_t osz, size_t nsz);
 sgx_status_t oc_free(void* optr, size_t sz);
@@ -6940,7 +6940,7 @@ struct signature_s
   mpz_t s;
 };
 
-void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key,
+void trustedEcdsaSign(int *err_status, char *err_string, uint8_t *encrypted_key,
                         uint32_t dec_len, unsigned char* hash, char * signature, int test_len) {
 
   domain_parameters curve = domain_parameters_init();

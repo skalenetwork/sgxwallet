@@ -99,7 +99,7 @@ enclave {
                                 unsigned _t,
                                 unsigned _n);
 
-                public void ecdsa_sign1(
+                public void trustedEcdsaSign(
                                  [user_check] int *err_status,
                                  [out, count = 1024] char* err_string,
                                  [in, count = 1024] uint8_t* encrypted_key,
@@ -201,7 +201,7 @@ enclave {
                                 [out, count = 1024] char * pub_key_x,
                                 [out, count = 1024] char * pub_key_y);
 
-                public void ecdsa_sign_aes(
+                public void trustedEcdsaSignAES(
                                 [user_check] int *err_status,
                                 [out, count = 1024] char* err_string,
                                 [in, count = 1024] uint8_t* encrypted_key,
@@ -259,7 +259,7 @@ enclave {
                               uint8_t _n,
                               uint8_t ind);
 
-                public void trustedGetPublicShares_aes (
+                public void trustedGetPublicShares_aes(
                             [user_check] int *err_status,
                             [out, count = 1024] char* err_string,
                             [in, count = 3050] uint8_t* encrypted_dkg_secret,

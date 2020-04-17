@@ -273,7 +273,7 @@ void trustedGetPublicEcdsaKey(int *err_status, char *err_string,
     point_clear(Pkey);
 }
 
-void ecdsa_sign1(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
+void trustedEcdsaSign(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
                  unsigned char *hash, char *sig_r, char *sig_s, uint8_t *sig_v, int base) {
 
     char* arr_m = NULL;
@@ -1140,7 +1140,7 @@ void trustedGetPublicEcdsaKey_aes(int *err_status, char *err_string,
     point_clear(Pkey);
 }
 
-void ecdsa_sign_aes(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t enc_len,
+void trustedEcdsaSignAES(int *err_status, char *err_string, uint8_t *encrypted_key, uint32_t enc_len,
                     unsigned char *hash, char *sig_r, char *sig_s, uint8_t *sig_v, int base) {
 
     domain_parameters curve = domain_parameters_init();

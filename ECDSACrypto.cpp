@@ -159,7 +159,7 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
         status = ecdsa_sign1(eid, &err_status, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
     else
-        status = ecdsa_sign_aes(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
+        status = trustedEcdsaSignAES(eid, &err_status, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
                                 signature_s, &signature_v, base);
     if (err_status != 0) {
         throw SGXException(-666, errMsg);
