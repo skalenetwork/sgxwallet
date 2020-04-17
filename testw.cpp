@@ -207,8 +207,8 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
     sgx_destroy_enclave(eid);
 }
 
-vector<libff::alt_bn128_Fr> SplitStringToFr(const char *koefs, const char symbol) {
-    string str(koefs);
+vector<libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
+    string str(coeffs);
     string delim;
     delim.push_back(symbol);
     vector<libff::alt_bn128_Fr> tokens;
@@ -218,8 +218,8 @@ vector<libff::alt_bn128_Fr> SplitStringToFr(const char *koefs, const char symbol
         if (pos == string::npos) pos = str.length();
         string token = str.substr(prev, pos - prev);
         if (!token.empty()) {
-            libff::alt_bn128_Fr koef(token.c_str());
-            tokens.push_back(koef);
+            libff::alt_bn128_Fr coeff(token.c_str());
+            tokens.push_back(coeff);
         }
         prev = pos + delim.length();
     } while (pos < str.length() && prev < str.length());
@@ -227,9 +227,9 @@ vector<libff::alt_bn128_Fr> SplitStringToFr(const char *koefs, const char symbol
     return tokens;
 }
 
-vector<string> SplitStringTest(const char *koefs, const char symbol) {
+vector<string> SplitStringTest(const char *coeffs, const char symbol) {
     libff::init_alt_bn128_params();
-    string str(koefs);
+    string str(coeffs);
     string delim;
     delim.push_back(symbol);
     vector<string> G2_strings;
@@ -239,8 +239,8 @@ vector<string> SplitStringTest(const char *koefs, const char symbol) {
         if (pos == string::npos) pos = str.length();
         string token = str.substr(prev, pos - prev);
         if (!token.empty()) {
-            string koef(token.c_str());
-            G2_strings.push_back(koef);
+            string coeff(token.c_str());
+            G2_strings.push_back(coeff);
         }
         prev = pos + delim.length();
     } while (pos < str.length() && prev < str.length());
@@ -250,15 +250,15 @@ vector<string> SplitStringTest(const char *koefs, const char symbol) {
 
 libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
     libff::init_alt_bn128_params();
-    libff::alt_bn128_G2 koef = libff::alt_bn128_G2::zero();
-    koef.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
-    koef.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
-    koef.Y.c0 = libff::alt_bn128_Fq(G2_str_vect.at(2).c_str());
-    koef.Y.c1 = libff::alt_bn128_Fq(G2_str_vect.at(3).c_str());
-    koef.Z.c0 = libff::alt_bn128_Fq::one();
-    koef.Z.c1 = libff::alt_bn128_Fq::zero();
+    libff::alt_bn128_G2 coeff = libff::alt_bn128_G2::zero();
+    coeff.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
+    coeff.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
+    coeff.Y.c0 = libff::alt_bn128_Fq(G2_str_vect.at(2).c_str());
+    coeff.Y.c1 = libff::alt_bn128_Fq(G2_str_vect.at(3).c_str());
+    coeff.Z.c0 = libff::alt_bn128_Fq::one();
+    coeff.Z.c1 = libff::alt_bn128_Fq::zero();
 
-    return koef;
+    return coeff;
 }
 
 TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
@@ -297,11 +297,11 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     vector<string> G2_strings = splitString(public_shares.data(), ',');
     vector<libff::alt_bn128_G2> pub_shares_G2;
     for (u_int64_t i = 0; i < G2_strings.size(); i++) {
-        vector<string> koef_str = splitString(G2_strings.at(i).c_str(), ':');
-        //libff::alt_bn128_G2 el = VectStringToG2(koef_str);
+        vector<string> coeff_str = splitString(G2_strings.at(i).c_str(), ':');
+        //libff::alt_bn128_G2 el = VectStringToG2(coeff_str);
         //cerr << "pub_share G2 " << i+1 << " : " << endl;
         //el.print_coordinates();
-        pub_shares_G2.push_back(VectStringToG2(koef_str));
+        pub_shares_G2.push_back(VectStringToG2(coeff_str));
     }
 
     vector<char> secret(BUF_LEN, 0);
@@ -809,7 +809,7 @@ void SendRPCRequest() {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
-    map<size_t, shared_ptr<BLSPublicKeyShare>> koefs_pkeys_map;
+    map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
 
     for (int i = 0; i < t; i++) {
@@ -1082,7 +1082,7 @@ TEST_CASE("AES_DKG test", "[aes-dkg]") {
     }
 
 
-    map<size_t, shared_ptr<BLSPublicKeyShare>> koefs_pkeys_map;
+    map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
     for (int i = 0; i < t; i++) {
         string endName = poly_names[i].substr(4);
@@ -1108,12 +1108,12 @@ TEST_CASE("AES_DKG test", "[aes-dkg]") {
         BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
         REQUIRE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
 
-        koefs_pkeys_map[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+        coeffs_pkeys_map[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
 
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-    BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(koefs_pkeys_map), t, n);
+    BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(coeffs_pkeys_map), t, n);
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
     sgx_destroy_enclave(eid);

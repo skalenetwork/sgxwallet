@@ -31,13 +31,13 @@ std::string gen_dkg_poly( int _t);
 
 std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyHex, int t, int n);
 
-std::vector<std::string> splitString(const char* koefs, const char symbol);
+std::vector<std::string> splitString(const char* coeffs, const char symbol);
 
 std::string trustedGetSecretShares(const std::string& _polyName, const char* _encryptedPolyHex, const std::vector<std::string>& _publicKeys, int _t, int _n);
 
 bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
 
-std::string decrypt_DHKey(const std::string& polyName, int ind);
+std::string decryptDHKey(const std::string& polyName, int ind);
 
 bool CreateBLSShare( const std::string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 

@@ -703,16 +703,16 @@ void trustedGetEncryptedSecretShare(int *err_status, char *err_string, uint8_t *
     //free(cypher);
 }
 
-void trustedComplaintResponse(int *err_status, char *err_string, uint8_t *encrypted_DHkey, uint8_t *encrypted_dkg_secret,
+void trustedComplaintResponse(int *err_status, char *err_string, uint8_t *encryptedDHKey, uint8_t *encrypted_dkg_secret,
                         uint32_t *dec_len,
                         char *DH_key, char *s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1) {
 
     uint32_t enc_len;
 
 //  sgx_status_t status = sgx_unseal_data(
-//      (const sgx_sealed_data_t *)encrypted_DHkey, NULL, 0, (uint8_t *)DH_key, &enc_len);
+//      (const sgx_sealed_data_t *)encryptedDHKey, NULL, 0, (uint8_t *)DH_key, &enc_len);
 //  if (status != SGX_SUCCESS) {
-//    snprintf(err_string, BUF_LEN,"sgx_unseal_data - encrypted_DHkey failed with status %d", status);
+//    snprintf(err_string, BUF_LEN,"sgx_unseal_data - encryptedDHKey failed with status %d", status);
 //    return;
 //  }
 
@@ -1694,7 +1694,7 @@ void trustedCreateBlsKey_aes(int *err_status, char *err_string, const char *s_sh
 }
 
 void
-trustedGetBlsPubKey_aes(int *err_status, char *err_string, uint8_t *encrypted_key, uint64_t key_len, char *bls_pub_key) {
+trustedGetBlsPubKeyAES(int *err_status, char *err_string, uint8_t *encrypted_key, uint64_t key_len, char *bls_pub_key) {
 
     char skey_hex[ECDSA_SKEY_LEN];
 

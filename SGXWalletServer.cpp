@@ -671,7 +671,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(_ind) + ":";
         shared_ptr<string> shareG2_ptr = readFromDb(shareG2_name);
 
-        string DHKey = decrypt_DHKey(_polyName, _ind);
+        string DHKey = decryptDHKey(_polyName, _ind);
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
