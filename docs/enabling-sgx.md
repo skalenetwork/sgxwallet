@@ -36,11 +36,17 @@ make
 
 ## Install SGX driver
 
+Install make and gcc if you do not have it
+
+```bash
+apt-get install  build-essential
+```
+
+
 Run the following command:
 
 ```bash
 cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
-
 ```
 
 You can also try other driver versions from Intel website, but version 2.5.0_2605efa is what
