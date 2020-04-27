@@ -22,12 +22,7 @@ COPY secure_enclave ./secure_enclave
 COPY spdlog ./spdlog
 COPY SGXWALLET_VERSION ./
 
-RUN autoreconf -vif
-RUN libtoolize --force
-RUN aclocal
-RUN autoheader || true
-RUN automake --force-missing --add-missing
-RUN autoconf
+RUN ./autoconf.bash
 RUN ./configure
 ### RUN cd libBLS; cmake -H. -Bbuild; cmake --build build -- -j$(nproc);
 RUN make
