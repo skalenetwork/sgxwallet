@@ -6,7 +6,7 @@ WORKDIR /usr/src/sdk
 
 COPY docker/install-psw.patch ./
 
-RUN apt-get update &&  apt-get-install -yq apt-utils && apt-get install -yq --no-install-recommends python-yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev ccache vim libprotobuf10 yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools && \
+RUN apt-get update &&  apt get-install -yq apt-utils && apt-get install -yq --no-install-recommends python-yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev ccache vim libprotobuf10 yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools && \
        ln -s /usr/bin/ccache /usr/local/bin/clang && \
        ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \
