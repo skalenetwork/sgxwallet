@@ -1,5 +1,7 @@
 FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
+
+RUN ccache -sz
 RUN touch /var/hwmode
 COPY *.cpp ./
 COPY *.h ./
@@ -25,6 +27,7 @@ COPY SGXWALLET_VERSION ./
 RUN ./autoconf.bash
 RUN ./configure
 RUN make
+RUN ccache -sz
 RUN mkdir /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

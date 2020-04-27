@@ -2,6 +2,7 @@ FROM skalenetwork/sgxwallet_base:latest
 WORKDIR /usr/src/sdk
 
 
+RUN ccache -sz
 
 COPY *.cpp ./
 COPY *.h ./
@@ -26,6 +27,8 @@ COPY autoconf.bash ./
 RUN ./autoconf.bash
 RUN ./configure --enable-sgx-simulation
 RUN make
+
+RUN ccache -sz
 
 RUN mkdir /usr/src/sdk/sgx_data
 

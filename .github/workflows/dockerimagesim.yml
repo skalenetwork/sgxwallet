@@ -4,8 +4,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: show ccache stats
-      run: ccache -sz
     - name: Check that /dev/urandom exists
       run: ls /dev/urandom
     - name: Login to docker
@@ -21,8 +19,7 @@ jobs:
       run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
     - name: push
       run: python3 scripts/docker_push.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
-    - name: show ccache stats
-      run: ccache -sz
+
 
 
 

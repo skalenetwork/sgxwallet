@@ -4,8 +4,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: show ccache stats
-        run: ccache -sz
       - name: Login to docker
         env:
           GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
@@ -17,6 +15,5 @@ jobs:
         run: python3 scripts/docker_build.py ${GITHUB_REF##*/} Dockerfile sgxwallet ${GITHUB_SHA}
       - name: push
         run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet ${GITHUB_SHA}
-      - name: show ccache stats
-        run: ccache -sz
+
 
