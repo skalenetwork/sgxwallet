@@ -9,7 +9,6 @@ COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
 COPY *.sh ./
-COPY *.m4 ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
@@ -35,7 +34,7 @@ RUN    ln -s /usr/bin/ccache /usr/local/bin/clang && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \
        ln -s /usr/bin/ccache /usr/local/bin/g++ && \
        ln -s /usr/bin/ccache /usr/local/bin/cc && \
-       ln -s /usr/bin/ccache /usr/local/bin/c++ && \
+       ln -s /usr/bin/ccache /usr/local/bin/c++
 
 COPY docker/install-psw.patch ./
 
