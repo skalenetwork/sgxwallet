@@ -4,8 +4,11 @@ set -x
 
 source /opt/intel/sgxsdk/environment
 
+
+
 if [[ ! -f "/dev/random" ]]
 then
+ls /dev/random;
 echo "SGX wallet error. No /dev/random.";
 echo "If you are running raw docker without docker compose please make sure";
 echo "the command line includes -v /dev/urandom:/dev/random";
