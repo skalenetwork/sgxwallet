@@ -26,7 +26,7 @@ COPY SGXWALLET_VERSION ./
 COPY autoconf.bash ./
 RUN ./autoconf.bash
 RUN ./configure --enable-sgx-simulation
-RUN make
+RUN bash -c "make -j$(nproc)"
 
 RUN ccache -sz
 

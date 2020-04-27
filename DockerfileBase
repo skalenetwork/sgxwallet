@@ -63,4 +63,4 @@ RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-l
 
 RUN ./autoconf.bash
 RUN ./configure
-RUN make
+RUN bash -c "make -j$(nproc)"

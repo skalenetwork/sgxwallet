@@ -26,7 +26,7 @@ COPY SGXWALLET_VERSION ./
 
 RUN ./autoconf.bash
 RUN ./configure
-RUN make
+RUN bash -c "make -j$(nproc)"
 RUN ccache -sz
 RUN mkdir /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
