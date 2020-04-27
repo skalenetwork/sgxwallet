@@ -52,7 +52,7 @@ print("Running tests for branch " + BRANCH);
 assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
 
 dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
-                        "--name", "-v /dev/urandom:/dev/random", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
+                            "-v /dev/urandom:/dev/random", "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
 
 print(dockerRun.stdout)
 print(dockerRun.stderr)
