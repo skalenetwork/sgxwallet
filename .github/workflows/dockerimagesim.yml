@@ -4,6 +4,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Check that /dev/urandom exists
+      run: ls /dev/urandom
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
