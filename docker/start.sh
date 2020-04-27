@@ -4,6 +4,13 @@ set -x
 
 source /opt/intel/sgxsdk/environment
 
+if [ -f "/dev/random" ]
+then
+else
+echo "SGX wallet error. No /dev/random.";
+exit(1);
+fi
+
 ls /dev/random;
 rm -f /root/.rnd;
 dd if=/dev/random of=/root/.rnd bs=256 count=1;
