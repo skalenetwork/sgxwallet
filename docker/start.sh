@@ -6,7 +6,7 @@ source /opt/intel/sgxsdk/environment
 
 
 
-if [[ ! -f "/dev/random" ]]
+if [[ ! -e "/dev/random" ]]
 then
 ls /dev/random;
 echo "SGX wallet error. No /dev/random.";
