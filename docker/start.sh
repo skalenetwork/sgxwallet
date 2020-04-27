@@ -1,10 +1,13 @@
 #!/bin/bash
 set -e
-set -v
+set -x
 
 source /opt/intel/sgxsdk/environment
 
-if ! [ -f /root/.rnd ]; then dd if=/dev/random of=/root/.rnd bs=256 count=1 ; fi
+ls /dev/random;
+rm -f /root/.rnd;
+dd if=/dev/random of=/root/.rnd bs=256 count=1;
+ls /root/.rnd;
 
 cd /usr/src/sdk;
 
