@@ -23,9 +23,8 @@ COPY secure_enclave ./secure_enclave
 COPY spdlog ./spdlog
 COPY SGXWALLET_VERSION ./
 COPY autoconf.bash ./
-RUN autoconf.bash
+RUN ./autoconf.bash
 RUN ./configure --enable-sgx-simulation
-### RUN cd libBLS; cmake -H. -Bbuild; cmake --build build -- -j$(nproc);
 RUN make
 
 RUN mkdir /usr/src/sdk/sgx_data
