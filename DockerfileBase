@@ -8,7 +8,7 @@ COPY *.txt ./
 COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
-COPY autogen.sh ./
+COPY autoconf.bash ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
@@ -24,6 +24,7 @@ COPY secure_enclave ./secure_enclave
 COPY sgx-gmp ./sgx-gmp
 COPY sgx-software-enable ./sgx-software-enable
 COPY trusted_libff ./trusted_libff
+COPY m4 ./m4
 RUN rm -rf /usr/src/sdk/leveldb/build/
 
 RUN apt-get update && apt-get install -yq --no-install-recommends python-yaml vim telnet git ca-certificates build-essential ocaml ocamlbuild automake autoconf libtool wget python libssl-dev libssl-dev libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev alien cmake debhelper uuid-dev libxml2-dev
