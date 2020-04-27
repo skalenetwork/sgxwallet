@@ -9,7 +9,7 @@ then
 echo "SGX wallet error. No /dev/random.";
 echo "If you are running raw docker without docker compose please make sure";
 echo "the command line includes -v /dev/urandom:/dev/random";
-exit(1);
+exit 1;
 fi
 
 ls /dev/random;

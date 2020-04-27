@@ -31,7 +31,6 @@ RUN autoconf
 RUN ./configure
 ### RUN cd libBLS; cmake -H. -Bbuild; cmake --build build -- -j$(nproc);
 RUN make
-
 RUN mkdir /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
