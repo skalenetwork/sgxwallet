@@ -4,9 +4,8 @@ set -x
 
 source /opt/intel/sgxsdk/environment
 
-if [ -f "/dev/random" ]
+if [[ ! -f "/dev/random" ]]
 then
-else
 echo "SGX wallet error. No /dev/random.";
 echo "If you are running raw docker without docker compose please make sure";
 echo "the command line includes -v /dev/urandom:/dev/random";
@@ -21,7 +20,7 @@ ls /root/.rnd;
 cd /usr/src/sdk;
 
 
-if [ -f "/var/hwmode" ]
+if [[ -f "/var/hwmode" ]]
 then
 echo "Running in SGX hardware mode"
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/sgxpsw/aesm/
@@ -34,7 +33,7 @@ echo "Running in SGX simulation mode"
 fi
 
 
-if [ "$1" = -t ]; then
+if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 #./testw [bls-key-encrypt]
 ./testw [bls-key-encrypt-decrypt]
