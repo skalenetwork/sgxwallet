@@ -8,7 +8,7 @@ COPY *.txt ./
 COPY *.c ./
 COPY *.am ./
 COPY *.hpp ./
-COPY *.sh ./
+COPY autogen.sh ./
 COPY *.gmp ./
 COPY *.ac ./
 COPY *.json ./
@@ -59,11 +59,6 @@ RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-l
     make install && \
     cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 
-RUN autoreconf -vif
-RUN libtoolize --force
-RUN aclocal
-RUN autoheader || true
-RUN automake --force-missing --add-missing
-RUN autoconf
+RUN ./autoconf.bash
 RUN ./configure
 RUN make
