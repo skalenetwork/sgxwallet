@@ -21,7 +21,7 @@ RUN    apt update && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \
        ln -s /usr/bin/ccache /usr/local/bin/g++ && \
        ln -s /usr/bin/ccache /usr/local/bin/cc && \
-       ln -s /usr/bin/ccache /usr/local/bin/c++ &&
+       ln -s /usr/bin/ccache /usr/local/bin/c++ && \
        git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
        cd linux-sgx && \
        patch -p1 -i ../install-psw.patch && \
