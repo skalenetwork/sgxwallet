@@ -20,6 +20,7 @@ COPY jsonrpc ./jsonrpc
 COPY leveldb ./leveldb
 COPY libBLS ./libBLS
 COPY scripts ./scripts
+COPY spdlog ./spdlog
 COPY secure_enclave ./secure_enclave
 COPY sgx-gmp ./sgx-gmp
 COPY sgx-software-enable ./sgx-software-enable
