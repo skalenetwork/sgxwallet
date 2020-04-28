@@ -4,6 +4,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Check that /dev/urandom exists
+      run: ls /dev/urandom
     - name: Login to docker
       env:
         GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
@@ -17,6 +19,7 @@ jobs:
       run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
     - name: push
       run: python3 scripts/docker_push.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
+
 
 
 

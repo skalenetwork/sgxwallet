@@ -31,7 +31,7 @@ import sys, os, subprocess, socket, time
 
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build push")
+print("Starting containerb test")
 print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 
@@ -49,14 +49,13 @@ FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
 print("Running tests for branch " + BRANCH);
 
-assert subprocess.call(["docker", "image", "inspect", FULL_IMAGE_NAME]) == 0;
+dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
+                            "-v", "/dev/urandom:/dev/random", "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
 
-completedProcess = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
-                        "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
+print(dockerRun.stdout)
+print(dockerRun.stderr)
+assert dockerRun.returncode == 0;
 
-print(completedProcess.stdout)
-print(completedProcess.stderr)
-assert completedProcess.returncode == 0;
 
 
 assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0

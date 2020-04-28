@@ -17,7 +17,7 @@ source sgx-sdk-build/sgxsdk/environment;
 Depending on whether you built a docker container or pulled it from docker hub, use the appropriate docker image name (e.g. sgxwallet_base, sgxwalletsim, ...) and execute:
 
 ```bash
-sudo docker run -di --network host --device /dev/isgx --device /dev/mei0 --name sgxwallet <sgx-docker-image>
+sudo docker run -di --network host -v /dev/random:/dev/urandom --device /dev/isgx --device /dev/mei0 --name sgxwallet <sgx-docker-image>
 ```
 
 This will run the server in a Docker container named sgxwallet

@@ -16,3 +16,4 @@ jobs:
       - name: push
         run: python3 scripts/docker_push.py ${GITHUB_REF##*/} Dockerfile sgxwallet ${GITHUB_SHA}
 
+
