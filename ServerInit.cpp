@@ -106,9 +106,11 @@ void initEnclave(uint32_t _logLevel) {
 }
 
 
-int sgxServerInited = 0;
+
 
 void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
+
+    static int sgxServerInited;
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
     CHECK_STATE(sgxServerInited == 0)
