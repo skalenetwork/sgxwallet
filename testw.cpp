@@ -195,7 +195,7 @@ libff::alt_bn128_G2 vectStringToG2(const vector <string> &G2_str_vect) {
 
 void sendRPCRequest() {
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
@@ -209,12 +209,12 @@ void sendRPCRequest() {
     vector <string> pubShares(n);
     vector <string> poly_names(n);
 
-    int schain_id = randGen();
-    int dkg_id = randGen();
+    int schainID = randGen();
+    int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         EthKeys[i] = c.generateECDSAKey();
         string polyName =
-                "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         c.generateDKGPoly(polyName, t);
         poly_names[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
@@ -442,7 +442,7 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     
 
@@ -487,7 +487,7 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-api]") {
 
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
@@ -613,7 +613,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG encrypted secret shares test", "[dkg-encr-
 
     vector <uint8_t> encrPRDHKey(BUF_LEN, 0);
 
-    string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
+    string pub_keyB = SAMPLE_PUBLIC_KEY_B;
 
     vector<char> s_shareG2(BUF_LEN, 0);
     status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &encLen, result.data(),
@@ -641,7 +641,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
     REQUIRE(status == SGX_SUCCESS);
     vector <uint8_t> encrPrDHKey(BUF_LEN, 0);
 
-    string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
+    string pub_keyB = SAMPLE_PUBLIC_KEY_B;
 
     vector<char> s_shareG2(BUF_LEN, 0);
 
@@ -677,12 +677,10 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
 
 TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    // cerr << "Client inited" << endl;
 
 
-    cerr << "1" << endl;
 
     int n = 16, t = 16;
     Json::Value etnKeys[n];
@@ -708,8 +706,6 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
         pubEthKeys.append(etnKeys[i]["publicKey"]);
     }
 
-    cerr << "2" << endl;
-
     for (uint8_t i = 0; i < n; i++) {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         cout << secretShares[i] << endl;
@@ -723,7 +719,6 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
         }
     }
 
-    cerr << "3" << endl;
 
     int k = 0;
 
@@ -753,9 +748,8 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
     BLSSigShareSet sigShareSet(t, n);
 
-    cerr << "4" << endl;
 
-    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+    string hash = SAMPLE_HASH;
 
     auto hash_arr = make_shared < array < uint8_t,
     32 >> ();
@@ -790,21 +784,17 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
     }
 
-    cerr << "5" << endl;
 
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >> > (coeffsPubKeysMap), t,
                                n);
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
-    cerr << "6" << endl;
-
-
 }
 
 
 TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
 
@@ -817,11 +807,13 @@ TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
 TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
-    string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
+    string polyName = SAMPLE_POLY_NAME;
+
+
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
 
     Json::Value publicKeys;
@@ -885,11 +877,11 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 TEST_CASE_METHOD(Fixture, "PolyExists test", "[dkg-poly-exists]") {
 
 
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
-    string polyName = "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1";
+    string polyName = SAMPLE_POLY_NAME;
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
 
     Json::Value polyExists = c.isPolyExists(polyName);
@@ -904,7 +896,7 @@ TEST_CASE_METHOD(Fixture, "PolyExists test", "[dkg-poly-exists]") {
 }
 
 TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
-    HttpClient client("http://localhost:1029");
+    HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
@@ -953,12 +945,9 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
-
             bool res = verif["result"].asBool();
             k++;
-
             REQUIRE(res);
-            // }
         }
 
 
@@ -970,9 +959,10 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
+
     uint64_t binLen;
+
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
@@ -1034,8 +1024,6 @@ TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]")
     status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
-
-
     REQUIRE(key.compare(decr_key.data()) == 0);
 
 }
