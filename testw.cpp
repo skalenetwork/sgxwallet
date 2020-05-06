@@ -57,7 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SGXWalletServer.hpp"
 
 
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 #include "stubclient.h"
@@ -129,9 +129,6 @@ shared_ptr <string> encryptTestKey() {
     REQUIRE(encryptedKeyHex != nullptr);
     REQUIRE(errStatus == 0);
 
-    //printf("Encrypt key completed with status: %d %s \n", errStatus, errMsg.data());
-    //printf("Encrypted key len %d\n", (int) strlen(encryptedKeyHex));
-    //printf("Encrypted key %s \n", encryptedKeyHex);
 
     return make_shared<string>(encryptedKeyHex);
 }
@@ -158,7 +155,7 @@ vector <libff::alt_bn128_Fr> splitStringToFr(const char *coeffs, const char symb
 }
 
 vector <string> splitStringTest(const char *coeffs, const char symbol) {
-    libff::init_alt_bn128_params();
+
     string str(coeffs);
     string delim;
     delim.push_back(symbol);
@@ -179,7 +176,7 @@ vector <string> splitStringTest(const char *coeffs, const char symbol) {
 }
 
 libff::alt_bn128_G2 vectStringToG2(const vector <string> &G2_str_vect) {
-    libff::init_alt_bn128_params();
+
     libff::alt_bn128_G2 coeff = libff::alt_bn128_G2::zero();
     coeff.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
     coeff.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
@@ -339,14 +336,11 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-
 
     status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen, pubKeyX.data(),
                                      pubKeyY.data());
-    // printf("\nerrMsg %s\n", errMsg.data());
+
     REQUIRE(status == SGX_SUCCESS);
 
-    // printf("\nwas pubKeyX %s: \n", pubKeyX.data());
-    // printf("\nwas pubKeyY %s: \n", pubKeyY.data());
 
     string hex = SAMPLE_HEX_HASH;
-    // printf("hash length %d ", (int) hex.size());
     vector<char> signature_r(BUF_LEN, 0);
     vector<char> signature_s(BUF_LEN, 0);
     uint8_t signature_v = 0;
@@ -355,13 +349,6 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-
                               signature_r.data(),
                               signature_s.data(), &signature_v, 16);
     REQUIRE(status == SGX_SUCCESS);
-    //printf("\nsignature r : %s  ", signature_r.data());
-    //printf("\nsignature s: %s  ", signature_s.data());
-    //printf("\nsignature v: %u  ", signature_v);
-    //printf("\n %s  \n", errMsg.data());
-
-
-    // printf("the end of ecdsa test\n");
 
 }
 
@@ -455,10 +442,8 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
         Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
 
         Json::Value publicKeys;
-        publicKeys.append(
-                "505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e2");
-        publicKeys.append(
-                "378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25");
+        publicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+        publicKeys.append(SAMPLE_DKG_PUB_KEY_2);
 
 
         string share_big0 = "501e364a6ea516f4812b013bcc150cbb435a2c465c9fd525951264969d8441a986798fd3317c1c3e60f868bb26c4cff837d9185f4be6015d8326437cb5b69480495859cd5a385430ece51252acdc234d8dbde75708b600ac50b2974e813ee26bd87140d88647fcc44df7262bbba24328e8ce622cd627a15b508ffa0db9ae81e0e110fab42cfe40da66b524218ca3c8e5aa3363fbcadef748dc3523a7ffb95b8f5d8141a5163db9f69d1ab223494ed71487c9bb032a74c08a222d897a5e49a617";
@@ -817,10 +802,8 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
 
     Json::Value publicKeys;
-    publicKeys.append(
-            "505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e2");
-    publicKeys.append(
-            "378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25");
+    publicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+    publicKeys.append(SAMPLE_DKG_PUB_KEY_2);
 
     // wrongName
     Json::Value genPolyWrongName = c.generateDKGPoly("poly", 2);
@@ -853,8 +836,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 
 
     Json::Value publicKeys1;
-    publicKeys1.append(
-            "505f55a38f9c064da744f217d1cb993a17705e9839801958cda7c884e08ab4dad7fd8d22953d3ac7f0913de24fd67d7ed36741141b8a3da152d7ba954b0f14e2");
+    publicKeys1.append(SAMPLE_DKG_PUB_KEY_1);
     Json::Value secretSharesWrong_n = c.getSecretShare(polyName, publicKeys1, 2, 1);
     REQUIRE(secretSharesWrong_n["status"].asInt() != 0);
 
