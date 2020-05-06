@@ -41,9 +41,8 @@
 
 #include "ServerInit.h"
 
-#include "spdlog/spdlog.h"
+#include "Log.h"
 
-#include "common.h"
 
 void setFullOptions(int _printDebugInfo,
                     int _printTraceInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
@@ -83,7 +82,7 @@ SGXWalletServer::SGXWalletServer(AbstractServerConnector &_connector,
         : AbstractStubServer(_connector, _type) {}
 
 void SGXWalletServer::printDB() {
-    cout << "HERE ARE YOUR KEYS: " << endl;
+    cout << "PRINTING LEVELDB: " << endl;
     class MyVisitor : public LevelDB::KeyVisitor {
     public:
         virtual void visitDBKey(const char *_data) {
@@ -296,19 +295,13 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         result["PublicKey"] = keys.at(1);
         result["keyName"] = keyName;
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
     result["encryptedKey"] = "";
 
     try {
@@ -327,24 +320,22 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
         }
 
         shared_ptr<string> key_ptr = readFromDb(_tempKeyName);
-        cerr << "new key name is " << _keyName << endl;
+
+
         writeDataToDB(_keyName, *key_ptr);
         LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 
 Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName, const string &_messageHash) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
+    INIT_RESULT(result)
+
+
     result["signature_v"] = "";
     result["signature_r"] = "";
     result["signature_s"] = "";
@@ -384,19 +375,15 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         result["signature_r"] = sign_vect.at(1);
         result["signature_s"] = sign_vect.at(2);
 
-    } catch (SGXException &_e) {
-        cerr << "err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
+    INIT_RESULT(result)
+
     result["publicKey"] = "";
     result["PublicKey"] = "";
 
@@ -414,20 +401,14 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
         result["PublicKey"] = publicKey;
         result["publicKey"] = publicKey;
 
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t) {
 
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
-    //result["encryptedPoly"] = "";
+   INIT_RESULT(result)
 
     string encrPolyHex;
 
@@ -442,12 +423,8 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
         encrPolyHex = gen_dkg_poly(_t);
         writeDataToDB(_polyName, encrPolyHex);
 
-        //result["encryptedPoly"] = encrPolyHex;
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
@@ -619,21 +596,14 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
 
-    } catch (SGXException &_e) {
-        //cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName) {
 
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         if (!checkName(_blsKeyName, "BLS_KEY")) {
@@ -649,21 +619,15 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
             result["BlsPublicKeyShare"][i] = public_key_vect.at(i);
         }
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
-
-    //debug_print();
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
+    INIT_RESULT(result)
+
     try {
         if (!checkName(_polyName, "POLY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
@@ -677,82 +641,65 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         result["dhKey"] = DHKey;
         result["DHKey"] = DHKey;
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 
 }
 
 Json::Value SGXWalletServer::multG2Impl(const string &_x) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
+    INIT_RESULT(result)
+
     try {
-        vector<string> xG2_vect = mult_G2(_x);
+        auto xG2_vect = mult_G2(_x);
         for (uint8_t i = 0; i < 4; i++) {
             result["x*G2"][i] = xG2_vect.at(i);
         }
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
-    Json::Value result;
+    INIT_RESULT(result)
+
+    result["IsExist"] = false;
+    result["exists"] = false;
+
     try {
         std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(_polyName);
-        result["IsExist"] = true;
-        result["exists"] = true;
-        result["status"] = 0;
-        result["errorMessage"] = "";
-        if (poly_str_ptr == nullptr) {
-            result["IsExist"] = false;
-            result["exists"] = false;
-            result["status"] = 0;
-            result["errorMessage"] = "";
+
+        if (poly_str_ptr != nullptr) {
+            result["IsExist"] = true;
+            result["exists"] = true;
         }
-    } catch (SGXException &_e) {
-        std::cerr << " err str " << _e.errString << std::endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["IsExist"] = false;
-        result["exists"] = false;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::getServerStatusImpl() {
 
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     return result;
 }
 
 
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return generateDKGPolyImpl(_polyName, _t);
 }
 
 Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName, int _t, int _n) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return getVerificationVectorImpl(_polynomeName, _t, _n);
 }
 
 Json::Value SGXWalletServer::getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return getSecretShareImpl(_polyName, _publicKeys, t, n);
 }
 
@@ -760,41 +707,41 @@ Json::Value
 SGXWalletServer::dkgVerification(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
                                  int t,
                                  int n, int index) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return dkgVerificationImpl(_publicShares, ethKeyName, SecretShare, t, n, index);
 }
 
 Json::Value
 SGXWalletServer::createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName, const string &polyName,
                                      const string &SecretShare, int t, int n) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return createBLSPrivateKeyImpl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
 Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
 
 Json::Value SGXWalletServer::generateECDSAKey() {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return generateECDSAKeyImpl();
 }
 
 Json::Value SGXWalletServer::renameECDSAKey(const string &_keyName, const string &_tmpKeyName) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return renameECDSAKeyImpl(_keyName, _tmpKeyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return getPublicECDSAKeyImpl(_keyName);
 }
 
 
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     spdlog::debug("MessageHash first {}", _messageHash);
     return ecdsaSignMessageHashImpl(_base, _keyShareName, _messageHash);
 }
@@ -803,38 +750,38 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyS
 Json::Value
 SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n,
                                    int index) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return importBLSKeyShareImpl(_keyShare, _keyShareName, _t, _n, index);
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
                                                 int _signerIndex) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n, _signerIndex);
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const string &_key, const string &_keyName) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return importECDSAKeyImpl(_key, _keyName);
 }
 
 Json::Value SGXWalletServer::complaintResponse(const string &polyName, int ind) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return complaintResponseImpl(polyName, ind);
 }
 
 Json::Value SGXWalletServer::multG2(const string &x) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return multG2Impl(x);
 }
 
 Json::Value SGXWalletServer::isPolyExists(const string &polyName) {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return isPolyExistsImpl(polyName);
 }
 
 Json::Value SGXWalletServer::getServerStatus() {
-    lock_guard<recursive_mutex> lock(m);
+    LOCK(m)
     return getServerStatusImpl();
 }
 

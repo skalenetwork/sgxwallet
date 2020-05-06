@@ -24,19 +24,14 @@
 #include "spdlog/spdlog.h"
 #include "sgxwallet_common.h"
 #include "common.h"
+#include "SGXException.h"
 #include "Log.h"
 
 using namespace std;
 
-
-
-
-
 void Log::setGlobalLogLevel(string &_s) {
     globalLogLevel = logLevelFromString(_s);
 }
-
-
 
 level_enum Log::logLevelFromString(string &_s) {
 
@@ -58,6 +53,11 @@ level_enum Log::logLevelFromString(string &_s) {
 }
 
 
+void Log::handleSGXException(Json::Value& _result, SGXException& _e ) {
+    spdlog::error("Responding with JSON error:" +  _e.errString);
+    _result["status"] = _e.status;
+    _result["errorMessage"] = _e.errString;
+}
 
 
 
