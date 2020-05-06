@@ -10,12 +10,19 @@
 cd scripts; sudo ./install_packages.sh; cd ..
 ```
 
+
+
 ## Build dependencies
 
 Dependencies only need to be built once.
 
 ```bash
 cd scripts; ./build_deps.py; cd ..
+```
+## Set SGX environment variables 
+
+```bash
+source sgx-sdk-build/sgxsdk/environment
 ```
 
 ## Configure and build sgxwallet
