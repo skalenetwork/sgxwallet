@@ -9,7 +9,7 @@ The following instructions download the Intel SGX SDK 2.5 and installs it in
 ```bash
 sudo mkdir -p /opt/intel
 cd /opt/intel
-sudo wget https://download.01.org/intel-sgx/linux-2.5/rhel7.4-server/sgx_linux_x64_psw_2.5.100.49891.bin
+sudo wget https://download.01.org/intel-sgx/linux-2.5/rhel7.4-server/sgx_linux_x64_sdk_2.5.100.49891.bin
 echo "yes" | sudo bash ./sgx_linux_x64_sdk_2.5.100.49891.bin
 
 ```
