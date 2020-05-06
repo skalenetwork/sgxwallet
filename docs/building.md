@@ -62,7 +62,7 @@ cd scripts; sudo ./install_packages.sh; cd ..
 Dependencies only need to be built once.
 
 ```bash
-cd scripts; ./build.py; cd ..
+cd scripts; ./build_deps.py; cd ..
 ```
 
 ## Configure and build sgxwallet
