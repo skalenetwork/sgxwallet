@@ -515,7 +515,7 @@ TEST_CASE_METHOD(FixtureResetDB, "BLS key encrypt", "[bls-key-encrypt]") {
     REQUIRE(key != nullptr);
 }
 
-TEST_CASE_METHOD(Fixture, "DKG gen test", "[dkg-gen]") {
+TEST_CASE_METHOD(FixtureResetDB, "DKG gen test", "[dkg-gen]") {
 
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
@@ -540,7 +540,7 @@ TEST_CASE_METHOD(Fixture, "DKG gen test", "[dkg-gen]") {
 }
 
 
-TEST_CASE_METHOD(Fixture, "DKG public shares test", "[dkg-pub-shares]") {
+TEST_CASE_METHOD(FixtureResetDB, "DKG public shares test", "[dkg-pub-shares]") {
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
@@ -595,7 +595,7 @@ TEST_CASE_METHOD(Fixture, "DKG public shares test", "[dkg-pub-shares]") {
 }
 
 
-TEST_CASE_METHOD(Fixture, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
+TEST_CASE_METHOD(FixtureResetDB, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -624,7 +624,7 @@ TEST_CASE_METHOD(Fixture, "DKG encrypted secret shares test", "[dkg-encr-sshares
     REQUIRE(status == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(Fixture, "DKG verification test", "[dkg-verify]") {
+TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
 
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
@@ -829,7 +829,7 @@ TEST_CASE_METHOD(Fixture, "Many threads", "[many-threads]") {
 
 
 
-TEST_CASE_METHOD(Fixture, "DKG API test", "[dkg-api]") {
+TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 
 
     HttpClient client("http://localhost:1029");
