@@ -325,26 +325,26 @@ public:
 
 };
 
-TEST_CASE_METHOD(Fixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
+TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector <uint8_t> encr_pr_key(BUF_LEN, 0);
-    vector<char> pub_key_x(BUF_LEN, 0);
-    vector<char> pub_key_y(BUF_LEN, 0);
+    vector <uint8_t> encrPrivKey(BUF_LEN, 0);
+    vector<char> pubKeyX(BUF_LEN, 0);
+    vector<char> pubKeyY(BUF_LEN, 0);
 
     uint32_t encLen = 0;
 
-    //printf("before %p\n", pub_key_x);
+    //printf("before %p\n", pubKeyX);
 
-    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &encLen, pub_key_x.data(),
-                                     pub_key_y.data());
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen, pubKeyX.data(),
+                                     pubKeyY.data());
     // printf("\nerrMsg %s\n", errMsg.data());
     REQUIRE(status == SGX_SUCCESS);
 
-    // printf("\nwas pub_key_x %s: \n", pub_key_x.data());
-    // printf("\nwas pub_key_y %s: \n", pub_key_y.data());
+    // printf("\nwas pubKeyX %s: \n", pubKeyX.data());
+    // printf("\nwas pubKeyY %s: \n", pubKeyY.data());
 
     string hex = SAMPLE_HEX_HASH;
     // printf("hash length %d ", (int) hex.size());
@@ -352,7 +352,7 @@ TEST_CASE_METHOD(Fixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen
     vector<char> signature_s(BUF_LEN, 0);
     uint8_t signature_v = 0;
 
-    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encr_pr_key.data(), encLen, (unsigned char *) hex.data(),
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen, (unsigned char *) hex.data(),
                               signature_r.data(),
                               signature_s.data(), &signature_v, 16);
     REQUIRE(status == SGX_SUCCESS);
@@ -366,23 +366,22 @@ TEST_CASE_METHOD(Fixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen
 
 }
 
-TEST_CASE_METHOD(Fixture, "ECDSA key gen", "[ecdsa-key-gen]") {
+TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen", "[ecdsa-key-gen]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector <uint8_t> encr_pr_key(BUF_LEN, 0);
-    vector<char> pub_key_x(BUF_LEN, 0);
-    vector<char> pub_key_y(BUF_LEN, 0);
+    vector <uint8_t> encrPrivKey(BUF_LEN, 0);
+    vector<char> pubKeyX(BUF_LEN, 0);
+    vector<char> pubKeyY(BUF_LEN, 0);
     uint32_t encLen = 0;
-
-    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &encLen, pub_key_x.data(),
-                                     pub_key_y.data());
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen, pubKeyX.data(),
+                                     pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(Fixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
+TEST_CASE_METHOD(FixtureResetDB, "ECDSA get public key", "[ecddsa-get-pub-key]") {
 
 
     int errStatus = 0;
@@ -408,11 +407,6 @@ TEST_CASE_METHOD(Fixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "BLS key encrypt", "[bls-key-encrypt]") {
-
-    auto key = encryptTestKey();
-    REQUIRE(key != nullptr);
-}
 
 /* Do later
 TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
@@ -446,7 +440,7 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 */
 
 
-TEST_CASE_METHOD(Fixture, "API test", "[ecdsa-key-gen-api]") {
+TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
 
     HttpClient client("http://localhost:1029");
@@ -490,6 +484,36 @@ TEST_CASE_METHOD(Fixture, "API test", "[ecdsa-key-gen-api]") {
 
 }
 
+
+TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-api]") {
+
+
+    HttpClient client("http://localhost:1029");
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+
+    Json::Value genKey = c.generateECDSAKey();
+
+    REQUIRE(genKey["status"].asInt() == 0);
+
+    Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
+
+    REQUIRE(getPubKey["status"].asInt() == 0);
+    REQUIRE(getPubKey["publicKey"].asString() == genKey["publicKey"].asString());
+
+    Json::Value ecdsaSign = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(),
+                                                   "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
+
+    REQUIRE(ecdsaSign["status"].asInt() == 0);
+
+
+}
+
+TEST_CASE_METHOD(FixtureResetDB, "BLS key encrypt", "[bls-key-encrypt]") {
+
+    auto key = encryptTestKey();
+    REQUIRE(key != nullptr);
+}
 
 TEST_CASE_METHOD(Fixture, "DKG gen test", "[dkg-gen]") {
 
@@ -780,7 +804,7 @@ TEST_CASE_METHOD(Fixture, "BLS_DKG test", "[bls-dkg]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "getServerStatus test", "[get-server-status]") {
+TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -788,7 +812,7 @@ TEST_CASE_METHOD(FixtureResetDB, "getServerStatus test", "[get-server-status]") 
 }
 
 
-TEST_CASE_METHOD(Fixture, "ManySimultaneousThreads", "[many-threads-test]") {
+TEST_CASE_METHOD(Fixture, "Many threads", "[many-threads]") {
 
     vector <thread> threads;
     int num_threads = 4;
@@ -803,51 +827,9 @@ TEST_CASE_METHOD(Fixture, "ManySimultaneousThreads", "[many-threads-test]") {
 
 }
 
-TEST_CASE_METHOD(Fixture, "ecdsa API test", "[ecdsa-key-gen-sign-api]") {
 
 
-    HttpClient client("http://localhost:1029");
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-
-    Json::Value genKey = c.generateECDSAKey();
-
-    REQUIRE(genKey["status"].asInt() == 0);
-
-    Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
-
-    REQUIRE(getPubKey["status"].asInt() == 0);
-    REQUIRE(getPubKey["publicKey"].asString() == genKey["publicKey"].asString());
-
-    Json::Value ecdsaSign = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(),
-                                                   "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
-
-    REQUIRE(ecdsaSign["status"].asInt() == 0);
-
-
-
-//  //wrong base
-//  Json::Value ecdsaSignWrongBase = c.ecdsaSignMessageHash(0, genKey["keyName"].asString(), "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
-//  cout << ecdsaSignWrongBase << endl;
-//  REQUIRE(ecdsaSignWrongBase["status"].asInt() != 0);
-//
-//  //wrong keyName
-//  Json::Value ecdsaSignWrongKeyName  = c.ecdsaSignMessageHash(0, "", "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
-//  cout << ecdsaSignWrongKeyName << endl;
-//  REQUIRE(ecdsaSignWrongKeyName["status"].asInt() != 0);
-//  Json::Value getPubKeyWrongKeyName = c.getPublicECDSAKey("keyName");
-//  REQUIRE(getPubKeyWrongKeyName["status"].asInt() != 0);
-//  cout << getPubKeyWrongKeyName << endl;
-//
-//  //wrong hash
-//  Json::Value ecdsaSignWrongHash = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), "");
-//  cout << ecdsaSignWrongHash << endl;
-//  REQUIRE(ecdsaSignWrongHash["status"].asInt() != 0);
-
-
-}
-
-TEST_CASE_METHOD(Fixture, "dkg API test", "[dkg-api]") {
+TEST_CASE_METHOD(Fixture, "DKG API test", "[dkg-api]") {
 
 
     HttpClient client("http://localhost:1029");
@@ -1049,7 +1031,7 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
 }
 
-TEST_CASE_METHOD(Fixture, "bls_sign test", "[bls-sign]") {
+TEST_CASE_METHOD(Fixture, "BLS sign test", "[bls-sign]") {
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
