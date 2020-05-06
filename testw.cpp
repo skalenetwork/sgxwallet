@@ -73,7 +73,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "testw.h"
 
 
-
 using namespace jsonrpc;
 using namespace std;
 
@@ -189,7 +188,6 @@ libff::alt_bn128_G2 vectStringToG2(const vector <string> &G2_str_vect) {
 }
 
 
-
 void sendRPCRequest() {
 
     HttpClient client(RPC_ENDPOINT);
@@ -197,31 +195,31 @@ void sendRPCRequest() {
 
 
     int n = 16, t = 16;
-    Json::Value EthKeys[n];
+    Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
     Json::Value secretShares[n];
     Json::Value pubBLSKeys[n];
     Json::Value blsSigShares[n];
     vector <string> pubShares(n);
-    vector <string> poly_names(n);
+    vector <string> polyNames(n);
 
     int schainID = randGen();
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
-        EthKeys[i] = c.generateECDSAKey();
+        ethKeys[i] = c.generateECDSAKey();
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         c.generateDKGPoly(polyName, t);
-        poly_names[i] = polyName;
+        polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         REQUIRE(verifVects[i]["status"] == 0);
 
-        pubEthKeys.append(EthKeys[i]["publicKey"]);
+        pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
 
     for (uint8_t i = 0; i < n; i++) {
-        secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+        secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = verifVects[i]["Verification Vector"][k][j].asString();
@@ -233,14 +231,14 @@ void sendRPCRequest() {
 
     int k = 0;
 
-    vector <string> secShares_vect(n);
+    vector <string> secShares(n);
 
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++) {
 
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-            secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
 
             k++;
 
@@ -262,11 +260,11 @@ void sendRPCRequest() {
 
 
     for (int i = 0; i < t; i++) {
-        string endName = poly_names[i].substr(4);
-        string blsName = "BLS_KEY" + poly_names[i].substr(4);
+        string endName = polyNames[i].substr(4);
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t,
+        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
                               n);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
 
@@ -282,8 +280,7 @@ void sendRPCRequest() {
     }
 
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
-
-
+    
 }
 
 
@@ -341,13 +338,13 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-
 
 
     string hex = SAMPLE_HEX_HASH;
-    vector<char> signature_r(BUF_LEN, 0);
-    vector<char> signature_s(BUF_LEN, 0);
-    uint8_t signature_v = 0;
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    uint8_t signatureV = 0;
 
     status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen, (unsigned char *) hex.data(),
-                              signature_r.data(),
-                              signature_s.data(), &signature_v, 16);
+                              signatureR.data(),
+                              signatureS.data(), &signatureV, 16);
     REQUIRE(status == SGX_SUCCESS);
 
 }
@@ -666,7 +663,6 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
-
     int n = 16, t = 16;
     Json::Value etnKeys[n];
     Json::Value verifVects[n];
@@ -707,7 +703,7 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
     int k = 0;
 
-    vector <string> secShares_vect(n);
+    vector <string> secShares(n);
 
     vector <string> pSharesBad(pubShares);
 
@@ -716,7 +712,7 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
 
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-            secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             bool res = c.dkgVerification(pubShares[i], etnKeys[j]["keyName"].asString(), secretShare, t, n,
                                          j)["result"].asBool();
             k++;
@@ -751,7 +747,7 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        c.createBLSPrivateKey(blsName, etnKeys[i]["keyName"].asString(), polyNames[i], secShares_vect[i], t, n);
+        c.createBLSPrivateKey(blsName, etnKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
@@ -784,9 +780,6 @@ TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
     REQUIRE(c.getServerStatus()["status"] == 0);
 
 }
-
-
-
 
 
 TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
@@ -883,31 +876,31 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
 
     int n = 2, t = 2;
-    Json::Value EthKeys[n];
+    Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
     Json::Value secretShares[n];
     Json::Value pubBLSKeys[n];
     Json::Value blsSigShares[n];
     vector <string> pubShares(n);
-    vector <string> poly_names(n);
+    vector <string> polyNames(n);
 
     int schainID = randGen();
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
-        EthKeys[i] = c.generateECDSAKey();
+        ethKeys[i] = c.generateECDSAKey();
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
-        REQUIRE(EthKeys[i]["status"] == 0);
+        REQUIRE(ethKeys[i]["status"] == 0);
         c.generateDKGPoly(polyName, t);
-        poly_names[i] = polyName;
+        polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
 
-        pubEthKeys.append(EthKeys[i]["publicKey"]);
+        pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
 
     for (uint8_t i = 0; i < n; i++) {
-        secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+        secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
 
         REQUIRE(secretShares[i]["status"] == 0);
         for (uint8_t k = 0; k < t; k++)
@@ -919,21 +912,21 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
     }
 
     int k = 0;
-    vector <string> secShares_vect(n);
+    vector <string> secShares(n);
 
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++) {
 
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-            secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
             bool res = verif["result"].asBool();
             k++;
             REQUIRE(res);
         }
 
 
-    Json::Value complaintResponse = c.complaintResponse(poly_names[1], 0);
+    Json::Value complaintResponse = c.complaintResponse(polyNames[1], 0);
 
     REQUIRE(complaintResponse["status"] == 0);
 
@@ -941,7 +934,8 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
+    auto hash_arr = make_shared < array < uint8_t,
+    32 >> ();
 
     uint64_t binLen;
 
@@ -953,9 +947,9 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
     for (int i = 0; i < t; i++) {
-        string endName = poly_names[i].substr(4);
-        string blsName = "BLS_KEY" + poly_names[i].substr(4);
-        c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t, n);
+        string endName = polyNames[i].substr(4);
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
 
         REQUIRE(pubBLSKeys[i]["status"] == 0);
@@ -1009,7 +1003,6 @@ TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]")
     REQUIRE(key.compare(decr_key.data()) == 0);
 
 }
-
 
 
 TEST_CASE_METHOD(Fixture, "Many threads ecdsa dkg bls", "[many-threads-ecdsa-dkg-bls]") {
