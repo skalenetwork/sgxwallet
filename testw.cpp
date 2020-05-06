@@ -444,7 +444,7 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    
+
 
     try {
 
@@ -525,7 +525,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG gen test", "[dkg-gen]") {
 
     status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 32);
     REQUIRE(status == SGX_SUCCESS);
-    
+
     vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
@@ -551,7 +551,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG public shares test", "[dkg-pub-shares]") {
 
     status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, n);
     REQUIRE(status == SGX_SUCCESS);
-    
+
     vector<char> errMsg1(BUF_LEN, 0);
 
     char colon = ':';
@@ -590,7 +590,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG public shares test", "[dkg-pub-shares]") {
         mpz_clear(x_c0);
     }
     REQUIRE(pubSharesG2 == pubSharesDkg);
-    
+
 }
 
 
@@ -692,12 +692,12 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
     vector <string> pubShares(n);
     vector <string> polyNames(n);
 
-    int schain_id = randGen();
-    int dkg_id = randGen();
+    int schainID = randGen();
+    int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         etnKeys[i] = c.generateECDSAKey();
         string polyName =
-                "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
 
         c.generateDKGPoly(polyName, t);
         polyNames[i] = polyName;
@@ -910,12 +910,12 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
     vector <string> pubShares(n);
     vector <string> poly_names(n);
 
-    int schain_id = randGen();
-    int dkg_id = randGen();
+    int schainID = randGen();
+    int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         EthKeys[i] = c.generateECDSAKey();
         string polyName =
-                "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         REQUIRE(EthKeys[i]["status"] == 0);
         c.generateDKGPoly(polyName, t);
         poly_names[i] = polyName;
