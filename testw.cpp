@@ -86,10 +86,21 @@ string stringFromFr(libff::alt_bn128_Fr &el) {
 }
 
 
-void usage() {
-    fprintf(stderr, "usage: sgxwallet\n");
-    exit(1);
+string convertDecToHex(string dec, int numBytes = 32) {
+    mpz_t num;
+    mpz_init(num);
+    mpz_set_str(num, dec.c_str(), 10);
+
+    vector<char> tmp(mpz_sizeinbase(num, 16) + 2, 0);
+    char *hex = mpz_get_str(tmp.data(), 16, num);
+
+    string result = hex;
+    int n_zeroes = numBytes * 2 - result.length();
+    result.insert(0, n_zeroes, '0');
+
+    return result;
 }
+
 
 sgx_launch_token_t token = {0};
 sgx_enclave_id_t eid = 0;
@@ -101,9 +112,7 @@ int updated;
 
 void resetDB() {
     sgx_destroy_enclave(eid);
-    //string db_name = SGXDATA_FOLDER + WALLETDB_NAME;
-    REQUIRE(system("rm -rf "
-                    WALLETDB_NAME) == 0);
+    REQUIRE(system("rm -rf " SGXDATA_FOLDER) == 0);
 }
 
 shared_ptr<string> encryptTestKey() {
@@ -124,6 +133,163 @@ shared_ptr<string> encryptTestKey() {
 }
 
 
+
+vector<libff::alt_bn128_Fr> splitStringToFr(const char *coeffs, const char symbol) {
+    string str(coeffs);
+    string delim;
+    delim.push_back(symbol);
+    vector<libff::alt_bn128_Fr> tokens;
+    size_t prev = 0, pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos - prev);
+        if (!token.empty()) {
+            libff::alt_bn128_Fr coeff(token.c_str());
+            tokens.push_back(coeff);
+        }
+        prev = pos + delim.length();
+    } while (pos < str.length() && prev < str.length());
+
+    return tokens;
+}
+
+vector<string> splitStringTest(const char *coeffs, const char symbol) {
+    libff::init_alt_bn128_params();
+    string str(coeffs);
+    string delim;
+    delim.push_back(symbol);
+    vector<string> g2Strings;
+    size_t prev = 0, pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos - prev);
+        if (!token.empty()) {
+            string coeff(token.c_str());
+            g2Strings.push_back(coeff);
+        }
+        prev = pos + delim.length();
+    } while (pos < str.length() && prev < str.length());
+
+    return g2Strings;
+}
+
+libff::alt_bn128_G2 vectStringToG2(const vector<string> &G2_str_vect) {
+    libff::init_alt_bn128_params();
+    libff::alt_bn128_G2 coeff = libff::alt_bn128_G2::zero();
+    coeff.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
+    coeff.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
+    coeff.Y.c0 = libff::alt_bn128_Fq(G2_str_vect.at(2).c_str());
+    coeff.Y.c1 = libff::alt_bn128_Fq(G2_str_vect.at(3).c_str());
+    coeff.Z.c0 = libff::alt_bn128_Fq::one();
+    coeff.Z.c1 = libff::alt_bn128_Fq::zero();
+
+    return coeff;
+}
+
+
+using namespace jsonrpc;
+using namespace std;
+
+
+void sendRPCRequest() {
+
+    HttpClient client("http://localhost:1029");
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+
+    int n = 16, t = 16;
+    Json::Value EthKeys[n];
+    Json::Value VerifVects[n];
+    Json::Value pubEthKeys;
+    Json::Value secretShares[n];
+    Json::Value pubBLSKeys[n];
+    Json::Value BLSSigShares[n];
+    vector<string> pubShares(n);
+    vector<string> poly_names(n);
+
+    int schain_id = randGen();
+    int dkg_id = randGen();
+    for (uint8_t i = 0; i < n; i++) {
+        EthKeys[i] = c.generateECDSAKey();
+        string polyName =
+                "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
+        c.generateDKGPoly(polyName, t);
+        poly_names[i] = polyName;
+        VerifVects[i] = c.getVerificationVector(polyName, t, n);
+        REQUIRE(VerifVects[i]["status"] == 0);
+
+        pubEthKeys.append(EthKeys[i]["publicKey"]);
+    }
+
+    for (uint8_t i = 0; i < n; i++) {
+        secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
+        for (uint8_t k = 0; k < t; k++) {
+            for (uint8_t j = 0; j < 4; j++) {
+                string pubShare = VerifVects[i]["Verification Vector"][k][j].asString();
+                pubShares[i] += convertDecToHex(pubShare);
+            }
+        }
+    }
+
+
+    int k = 0;
+
+    vector<string> secShares_vect(n);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+
+            string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
+            secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
+
+            k++;
+
+        }
+
+
+    BLSSigShareSet sigShareSet(t, n);
+
+    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+
+    auto hash_arr = make_shared<array<uint8_t, 32>>();
+    uint64_t binLen;
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
+        throw SGXException(INVALID_HEX, "Invalid hash");
+    }
+
+    map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+
+
+    for (int i = 0; i < t; i++) {
+        string endName = poly_names[i].substr(4);
+        string blsName = "BLS_KEY" + poly_names[i].substr(4);
+        string secretShare = secretShares[i]["secretShare"].asString();
+
+        c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t,
+                              n);
+        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+
+        string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+        BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        REQUIRE(BLSSigShares[i]["status"] == 0);
+
+        shared_ptr<string> sig_share_ptr = make_shared<string>(BLSSigShares[i]["signatureShare"].asString());
+        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+        sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+
+
+    }
+
+    shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+
+
+}
+
+
+
 void destroyEnclave() {
     if (eid != 0) {
         sgx_destroy_enclave(eid);
@@ -132,18 +298,36 @@ void destroyEnclave() {
 }
 
 
-class TestsFixture {
+class Fixture {
 public:
-    TestsFixture()  {
+    Fixture()  {
+        setOptions(false, false, false, true);
+        initAll(0, false, true);
+    }
+    
+    ~Fixture() {
+        destroyEnclave();
+    }
+};
+
+class FixtureResetDB {
+public:
+    FixtureResetDB()  {
         resetDB();
         setOptions(false, false, false, true);
         initAll(0, false, true);
     }
+
+    ~FixtureResetDB() {
+        destroyEnclave();
+    }
+    
 };
 
 
 
-TEST_CASE_METHOD(TestsFixture, "BLS key encrypt", "[bls-key-encrypt]") {
+
+TEST_CASE_METHOD(Fixture, "BLS key encrypt", "[bls-key-encrypt]") {
 
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
@@ -174,7 +358,7 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     printf("Decrypted key: %s\n", plaintextKey);
     free(plaintextKey);
 
-    sgx_destroy_enclave(eid);
+
 
 }
 
@@ -182,19 +366,19 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 
 
-TEST_CASE_METHOD(TestsFixture, "DKG gen test", "[dkg-gen]") {
+TEST_CASE_METHOD(Fixture, "DKG gen test", "[dkg-gen]") {
     
 
     vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
-    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &enc_len, 32);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 32);
     REQUIRE(status == SGX_SUCCESS);
     // printf("trustedGenDkgSecret completed with status: %d %s \n", errStatus, errMsg.data());
-    // printf("\n Length: %d \n", enc_len);
+    // printf("\n Length: %d \n", encLen);
 
     vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
@@ -205,76 +389,23 @@ TEST_CASE_METHOD(TestsFixture, "DKG gen test", "[dkg-gen]") {
 
     REQUIRE(status == SGX_SUCCESS);
     
-    sgx_destroy_enclave(eid);
+
 }
 
-vector<libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
-    string str(coeffs);
-    string delim;
-    delim.push_back(symbol);
-    vector<libff::alt_bn128_Fr> tokens;
-    size_t prev = 0, pos = 0;
-    do {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos - prev);
-        if (!token.empty()) {
-            libff::alt_bn128_Fr coeff(token.c_str());
-            tokens.push_back(coeff);
-        }
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
 
-    return tokens;
-}
-
-vector<string> SplitStringTest(const char *coeffs, const char symbol) {
-    libff::init_alt_bn128_params();
-    string str(coeffs);
-    string delim;
-    delim.push_back(symbol);
-    vector<string> G2_strings;
-    size_t prev = 0, pos = 0;
-    do {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos - prev);
-        if (!token.empty()) {
-            string coeff(token.c_str());
-            G2_strings.push_back(coeff);
-        }
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-
-    return G2_strings;
-}
-
-libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
-    libff::init_alt_bn128_params();
-    libff::alt_bn128_G2 coeff = libff::alt_bn128_G2::zero();
-    coeff.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
-    coeff.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
-    coeff.Y.c0 = libff::alt_bn128_Fq(G2_str_vect.at(2).c_str());
-    coeff.Y.c1 = libff::alt_bn128_Fq(G2_str_vect.at(3).c_str());
-    coeff.Z.c0 = libff::alt_bn128_Fq::one();
-    coeff.Z.c1 = libff::alt_bn128_Fq::zero();
-
-    return coeff;
-}
-
-TEST_CASE_METHOD(TestsFixture, "DKG public shares test", "[dkg-pub-shares]") {
+TEST_CASE_METHOD(Fixture, "DKG public shares test", "[dkg-pub-shares]") {
 
     libff::init_alt_bn128_params();
 
-    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
+    vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
     unsigned t = 32, n = 32;
 
-    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, n);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, n);
     REQUIRE(status == SGX_SUCCESS);
     //printf("gen_dkg_public completed with status: %d %s \n", errStatus, errMsg);
 
@@ -282,59 +413,58 @@ TEST_CASE_METHOD(TestsFixture, "DKG public shares test", "[dkg-pub-shares]") {
     vector<char> errMsg1(BUF_LEN, 0);
 
     char colon = ':';
-    vector<char> public_shares(10000, 0);
+    vector<char> pubShares(10000, 0);
 
     status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
-                               encrypted_dkg_secret.data(), enc_len, public_shares.data(), t, n);
+                               encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
     REQUIRE(status == SGX_SUCCESS);
     // printf("\ntrustedGetPublicShares status: %d error %s \n\n", errStatus, errMsg1.data());
-    // printf(" LEN: %d \n", (int) strlen(public_shares.data()));
-    // printf(" result: %s \n", public_shares.data());
+    // printf(" LEN: %d \n", (int) strlen(pubShares.data()));
+    // printf(" result: %s \n", pubShares.data());
 
-    vector<string> G2_strings = splitString(public_shares.data(), ',');
-    vector<libff::alt_bn128_G2> pub_shares_G2;
-    for (u_int64_t i = 0; i < G2_strings.size(); i++) {
-        vector<string> coeff_str = splitString(G2_strings.at(i).c_str(), ':');
-        //libff::alt_bn128_G2 el = VectStringToG2(coeff_str);
+    vector<string> g2Strings = splitString(pubShares.data(), ',');
+    vector<libff::alt_bn128_G2> pubSharesG2;
+    for (u_int64_t i = 0; i < g2Strings.size(); i++) {
+        vector<string> coeffStr = splitString(g2Strings.at(i).c_str(), ':');
+        //libff::alt_bn128_G2 el = VectStringToG2(coeffStr);
         //cerr << "pub_share G2 " << i+1 << " : " << endl;
         //el.print_coordinates();
-        pub_shares_G2.push_back(VectStringToG2(coeff_str));
+        pubSharesG2.push_back(vectStringToG2(coeffStr));
     }
 
     vector<char> secret(BUF_LEN, 0);
 
-    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encrypted_dkg_secret.data(),
-                                (uint8_t *) secret.data(), &enc_len);
+    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
+                                (uint8_t *) secret.data(), &encLen);
     REQUIRE(status == SGX_SUCCESS);
     //printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", errStatus, errMsg1.data());
 
-    signatures::Dkg dkg_obj(t, n);
+    signatures::Dkg dkgObj(t, n);
 
-    vector<libff::alt_bn128_Fr> poly = SplitStringToFr(secret.data(), colon);
-    vector<libff::alt_bn128_G2> pub_shares_dkg = dkg_obj.VerificationVector(poly);
+    vector<libff::alt_bn128_Fr> poly = splitStringToFr(secret.data(), colon);
+    vector<libff::alt_bn128_G2> pubSharesDkg = dkgObj.VerificationVector(poly);
     // printf("calculated public shares (X.c0): \n");
-    for (uint32_t i = 0; i < pub_shares_dkg.size(); i++) {
-        libff::alt_bn128_G2 el = pub_shares_dkg.at(i);
+    for (uint32_t i = 0; i < pubSharesDkg.size(); i++) {
+        libff::alt_bn128_G2 el = pubSharesDkg.at(i);
         el.to_affine_coordinates();
         libff::alt_bn128_Fq x_c0_el = el.X.c0;
         mpz_t x_c0;
         mpz_init(x_c0);
         x_c0_el.as_bigint().to_mpz(x_c0);
-        char arr[mpz_sizeinbase(x_c0, 10) + 2];
 
         // char *share_str = mpz_get_str(arr, 10, x_c0);
         // printf(" %s \n", share_str);
         mpz_clear(x_c0);
     }
 
-    bool res = (pub_shares_G2 == pub_shares_dkg);
+    bool res = (pubSharesG2 == pubSharesDkg);
     REQUIRE(res == true);
 
-    sgx_destroy_enclave(eid);
+
 }
 
 
-TEST_CASE_METHOD(TestsFixture, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
+TEST_CASE_METHOD(Fixture, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
 
 
 
@@ -342,14 +472,14 @@ TEST_CASE_METHOD(TestsFixture, "DKG encrypted secret shares test", "[dkg-encr-ss
     vector<char> result(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
-    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
-    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
+    vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly generated" << endl;
 
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data());
+    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data());
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly set" << endl;
 
@@ -358,28 +488,28 @@ TEST_CASE_METHOD(TestsFixture, "DKG encrypted secret shares test", "[dkg-encr-ss
     string pub_keyB = "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e7fc87932eee5478b1b9023de19df654395574a690843988c3ff475";
 
     vector<char> s_shareG2(BUF_LEN, 0);
-    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &enc_len, result.data(),
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &encLen, result.data(),
                              s_shareG2.data(),
                              (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(TestsFixture, "DKG verification test", "[dkg-verify]") {
+TEST_CASE_METHOD(Fixture, "DKG verification test", "[dkg-verify]") {
     
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
-    vector<uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
+    vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
 
-    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, 2);
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly generated" << endl;
 
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data());
+    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data());
     REQUIRE(status == SGX_SUCCESS);
     // cerr << " poly set" << endl;
 
@@ -389,17 +519,17 @@ TEST_CASE_METHOD(TestsFixture, "DKG verification test", "[dkg-verify]") {
 
     vector<char> s_shareG2(BUF_LEN, 0);
 
-    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPrDHKey.data(), &enc_len, result.data(),
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPrDHKey.data(), &encLen, result.data(),
                              s_shareG2.data(),
                              (char *) pub_keyB.data(), 2, 2, 1);
     REQUIRE(status == SGX_SUCCESS);
     
-    sgx_destroy_enclave(eid);
+
 
 }
 
 
-TEST_CASE_METHOD(TestsFixture, "ECDSA keygen and signature test", "[ecdsa]") {
+TEST_CASE_METHOD(Fixture, "ECDSA keygen and signature test", "[ecdsa]") {
     
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -408,11 +538,11 @@ TEST_CASE_METHOD(TestsFixture, "ECDSA keygen and signature test", "[ecdsa]") {
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
 
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
     //printf("before %p\n", pub_key_x);
 
-    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &encLen, pub_key_x.data(),
                                 pub_key_y.data());
     // printf("\nerrMsg %s\n", errMsg.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -426,7 +556,7 @@ TEST_CASE_METHOD(TestsFixture, "ECDSA keygen and signature test", "[ecdsa]") {
     vector<char> signature_s(BUF_LEN, 0);
     uint8_t signature_v = 0;
 
-    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encr_pr_key.data(), enc_len, (unsigned char *) hex.data(),
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encr_pr_key.data(), encLen, (unsigned char *) hex.data(),
                          signature_r.data(),
                          signature_s.data(), &signature_v, 16);
     REQUIRE(status == SGX_SUCCESS);
@@ -435,12 +565,12 @@ TEST_CASE_METHOD(TestsFixture, "ECDSA keygen and signature test", "[ecdsa]") {
     //printf("\nsignature v: %u  ", signature_v);
     //printf("\n %s  \n", errMsg.data());
 
-    sgx_destroy_enclave(eid);
+
     // printf("the end of ecdsa test\n");
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "Test test", "[test]") {
+TEST_CASE_METHOD(Fixture, "Test test", "[test]") {
     
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -448,19 +578,19 @@ TEST_CASE_METHOD(TestsFixture, "Test test", "[test]") {
     vector<uint8_t> encr_pr_key(BUF_LEN, 0);
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
-    uint32_t enc_len = 0;
+    uint32_t encLen = 0;
 
-    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &enc_len, pub_key_x.data(),
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(), &encLen, pub_key_x.data(),
                                 pub_key_y.data());
 
     REQUIRE(status == SGX_SUCCESS);
 
-    sgx_destroy_enclave(eid);
+
 
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
+TEST_CASE_METHOD(Fixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
     
 
     int errStatus = 0;
@@ -487,7 +617,7 @@ TEST_CASE_METHOD(TestsFixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
     //printf("\n pr key  %s  \n", errMsg.data());
 
 
-    sgx_destroy_enclave(eid);
+
 }
 
 /*
@@ -507,26 +637,9 @@ TEST_CASE_METHOD(TestsFixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
 
 
 
-using namespace jsonrpc;
-using namespace std;
-
-string ConvertDecToHex(string dec, int numBytes = 32) {
-    mpz_t num;
-    mpz_init(num);
-    mpz_set_str(num, dec.c_str(), 10);
-
-    vector<char> tmp(mpz_sizeinbase(num, 16) + 2, 0);
-    char *hex = mpz_get_str(tmp.data(), 16, num);
-
-    string result = hex;
-    int n_zeroes = numBytes * 2 - result.length();
-    result.insert(0, n_zeroes, '0');
-
-    return result;
-}
 
 
-TEST_CASE_METHOD(TestsFixture, "BLS_DKG test", "[bls-dkg]") {
+TEST_CASE_METHOD(Fixture, "BLS_DKG test", "[bls-dkg]") {
     
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -569,7 +682,7 @@ TEST_CASE_METHOD(TestsFixture, "BLS_DKG test", "[bls-dkg]") {
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
                 REQUIRE(pubShare.length() > 60);
-                pubShares[i] += ConvertDecToHex(pubShare);
+                pubShares[i] += convertDecToHex(pubShare);
             }
         }
     }
@@ -652,7 +765,7 @@ TEST_CASE_METHOD(TestsFixture, "BLS_DKG test", "[bls-dkg]") {
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "API test", "[api]") {
+TEST_CASE_METHOD(Fixture, "API test", "[api]") {
     
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
@@ -702,128 +815,35 @@ TEST_CASE_METHOD(TestsFixture, "API test", "[api]") {
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
     }
-    sgx_destroy_enclave(eid);
+
 }
 
-TEST_CASE_METHOD(TestsFixture, "getServerStatus test", "[get-server-status]") {
+TEST_CASE_METHOD(Fixture, "getServerStatus test", "[get-server-status]") {
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
-    sgx_destroy_enclave(eid);
-}
-
-
-void SendRPCRequest() {
-
-    HttpClient client("http://localhost:1029");
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-
-    int n = 16, t = 16;
-    Json::Value EthKeys[n];
-    Json::Value VerifVects[n];
-    Json::Value pubEthKeys;
-    Json::Value secretShares[n];
-    Json::Value pubBLSKeys[n];
-    Json::Value BLSSigShares[n];
-    vector<string> pubShares(n);
-    vector<string> poly_names(n);
-
-    int schain_id = randGen();
-    int dkg_id = randGen();
-    for (uint8_t i = 0; i < n; i++) {
-        EthKeys[i] = c.generateECDSAKey();
-        string polyName =
-                "POLY:SCHAIN_ID:" + to_string(schain_id) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkg_id);
-        c.generateDKGPoly(polyName, t);
-        poly_names[i] = polyName;
-        VerifVects[i] = c.getVerificationVector(polyName, t, n);
-        REQUIRE(VerifVects[i]["status"] == 0);
-
-        pubEthKeys.append(EthKeys[i]["publicKey"]);
-    }
-
-    for (uint8_t i = 0; i < n; i++) {
-        secretShares[i] = c.getSecretShare(poly_names[i], pubEthKeys, t, n);
-        for (uint8_t k = 0; k < t; k++) {
-            for (uint8_t j = 0; j < 4; j++) {
-                string pubShare = VerifVects[i]["Verification Vector"][k][j].asString();
-                pubShares[i] += ConvertDecToHex(pubShare);
-            }
-        }
-    }
-
-
-    int k = 0;
-
-    vector<string> secShares_vect(n);
-
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++) {
-
-            string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-            secShares_vect[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value verif = c.dkgVerification(pubShares[i], EthKeys[j]["keyName"].asString(), secretShare, t, n, j);
-
-            k++;
-
-        }
-
-
-    BLSSigShareSet sigShareSet(t, n);
-
-    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
-
-    auto hash_arr = make_shared<array<uint8_t, 32>>();
-    uint64_t binLen;
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
-    }
-
-    map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
-
-
-    for (int i = 0; i < t; i++) {
-        string endName = poly_names[i].substr(4);
-        string blsName = "BLS_KEY" + poly_names[i].substr(4);
-        string secretShare = secretShares[i]["secretShare"].asString();
-
-        c.createBLSPrivateKey(blsName, EthKeys[i]["keyName"].asString(), poly_names[i], secShares_vect[i], t,
-                                      n);
-        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
-
-        string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
-        BLSSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
-        REQUIRE(BLSSigShares[i]["status"] == 0);
-
-        shared_ptr<string> sig_share_ptr = make_shared<string>(BLSSigShares[i]["signatureShare"].asString());
-        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-        sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
-
-
-    }
-
-    shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "ManySimultaneousThreads", "[many-threads-test]") {
+
+
+
+TEST_CASE_METHOD(Fixture, "ManySimultaneousThreads", "[many-threads-test]") {
     
     vector<thread> threads;
     int num_threads = 4;
     for (int i = 0; i < num_threads; i++) {
-        threads.push_back(thread(SendRPCRequest));
+        threads.push_back(thread(sendRPCRequest));
     }
 
     for (auto &thread : threads) {
         thread.join();
     }
 
-    sgx_destroy_enclave(eid);
+
 }
 
-TEST_CASE_METHOD(TestsFixture, "ecdsa API test", "[ecdsa-api]") {
+TEST_CASE_METHOD(Fixture, "ecdsa API test", "[ecdsa-api]") {
     
 
     HttpClient client("http://localhost:1029");
@@ -865,10 +885,10 @@ TEST_CASE_METHOD(TestsFixture, "ecdsa API test", "[ecdsa-api]") {
 //  cout << ecdsaSignWrongHash << endl;
 //  REQUIRE(ecdsaSignWrongHash["status"].asInt() != 0);
 
-    sgx_destroy_enclave(eid);
+
 }
 
-TEST_CASE_METHOD(TestsFixture, "dkg API test", "[dkg-api]") {
+TEST_CASE_METHOD(Fixture, "dkg API test", "[dkg-api]") {
     
 
     HttpClient client("http://localhost:1029");
@@ -935,10 +955,10 @@ TEST_CASE_METHOD(TestsFixture, "dkg API test", "[dkg-api]") {
     REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
 
 
-    sgx_destroy_enclave(eid);
+
 }
 
-TEST_CASE_METHOD(TestsFixture, "isPolyExists test", "[is-poly]") {
+TEST_CASE_METHOD(Fixture, "isPolyExists test", "[is-poly]") {
     
 
     HttpClient client("http://localhost:1029");
@@ -957,11 +977,11 @@ TEST_CASE_METHOD(TestsFixture, "isPolyExists test", "[is-poly]") {
 
     REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
-    sgx_destroy_enclave(eid);
+
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "AES_DKG test", "[aes-dkg]") {
+TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -997,7 +1017,7 @@ TEST_CASE_METHOD(TestsFixture, "AES_DKG test", "[aes-dkg]") {
         for (uint8_t k = 0; k < t; k++)
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = VerifVects[i]["verificationVector"][k][j].asString();
-                pubShares[i] += ConvertDecToHex(pubShare);
+                pubShares[i] += convertDecToHex(pubShare);
             }
 
     }
@@ -1069,10 +1089,10 @@ TEST_CASE_METHOD(TestsFixture, "AES_DKG test", "[aes-dkg]") {
     BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(coeffs_pkeys_map), t, n);
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
-    sgx_destroy_enclave(eid);
+
 }
 
-TEST_CASE_METHOD(TestsFixture, "bls_sign_api test", "[bls-sign]") {
+TEST_CASE_METHOD(Fixture, "bls_sign_api test", "[bls-sign]") {
     
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1091,22 +1111,22 @@ TEST_CASE_METHOD(TestsFixture, "bls_sign_api test", "[bls-sign]") {
 
 }
 
-TEST_CASE_METHOD(TestsFixture, "AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
+TEST_CASE_METHOD(Fixture, "AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
     
 
     int errStatus = -1;
     vector<char> errMsg(BUF_LEN, 0);;
-    uint32_t enc_len;
+    uint32_t encLen;
     string key = "123456789";
     vector<uint8_t> encrypted_key(BUF_LEN, 0);
 
-    status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &enc_len);
+    status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
 
     REQUIRE(status == 0);
 
 
     vector<char> decr_key(BUF_LEN, 0);
-    status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_len, decr_key.data());
+    status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
 
