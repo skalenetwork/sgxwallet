@@ -45,10 +45,10 @@ testList = ["[get-server-status]",
             "[dkg-gen]",
             "[dkg-encr-sshares]",
             "[dkg-verify]",
-            "[bls-dkg]",
             "[dkg-api]",
-            "[poly-exists]",
-            "[many-threads]",
+            "[dkg-bls]",
+            "[dkg-poly-exists]",
+            "[many-threads-ecdsa-dkg-bls-api]",
             "[aes-encrypt-decrypt]"]
 
 

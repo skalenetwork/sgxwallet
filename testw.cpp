@@ -252,7 +252,7 @@ void sendRPCRequest() {
 
     BLSSigShareSet sigShareSet(t, n);
 
-    string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+    string hash = SAMPLE_HASH;
 
     auto hash_arr = make_shared < array < uint8_t,
     32 >> ();
@@ -675,7 +675,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
 
 
 
-TEST_CASE_METHOD(Fixture, "BLS_DKG test", "[bls-dkg]") {
+TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -811,20 +811,6 @@ TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
 }
 
 
-TEST_CASE_METHOD(Fixture, "Many threads", "[many-threads]") {
-
-    vector <thread> threads;
-    int num_threads = 4;
-    for (int i = 0; i < num_threads; i++) {
-        threads.push_back(thread(sendRPCRequest));
-    }
-
-    for (auto &thread : threads) {
-        thread.join();
-    }
-
-
-}
 
 
 
@@ -896,7 +882,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 
 }
 
-TEST_CASE_METHOD(Fixture, "PolyExists test", "[poly-exists]") {
+TEST_CASE_METHOD(Fixture, "PolyExists test", "[dkg-poly-exists]") {
 
 
     HttpClient client("http://localhost:1029");
@@ -1056,3 +1042,15 @@ TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]")
 
 
 
+TEST_CASE_METHOD(Fixture, "Many threads ecdsa dkg bls", "[many-threads-ecdsa-dkg-bls]") {
+
+    vector <thread> threads;
+    int num_threads = 4;
+    for (int i = 0; i < num_threads; i++) {
+        threads.push_back(thread(sendRPCRequest));
+    }
+
+    for (auto &thread : threads) {
+        thread.join();
+    }
+}
