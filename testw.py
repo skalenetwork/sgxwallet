@@ -35,21 +35,21 @@ print("Starting build push")
 print("Top directory is:" + topDir)
 
 
-testList = ["[bls-key-encrypt]", "[dkg-gen]",
-            "[dkg-encr-sshares]",
-            "[dkg-verify]",
-            "[ecdsa]",
-            "[test]",
-            "[get-pub-ecdsa-key-test]",
-            "[bls-dkg]",
+testList = ["[get-server-status]",
+            "[ecdsa-key-gen]",
+            "[ecdsa-key-sig-gen]",
+            "[get-pub-ecdsa-key]",
             "[ecdsa-api]",
-            "[get-server-status]",
-            "[many-threads]",
             "[ecdsa-key-gen-api]",
             "[ecdsa-key-gen-sign-api]",
+            "[bls-key-encrypt]", "[dkg-gen]",
+            "[dkg-encr-sshares]",
+            "[dkg-verify]",
+            "[bls-dkg]",
+            "[many-threads]",
             "[dkg-api]",
             "[is-poly]",
-#            "[bls-sign]",
+            #"[bls-sign]",
             "[aes-encrypt-decrypt]"]
 
 
