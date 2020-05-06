@@ -132,16 +132,25 @@ void destroyEnclave() {
 }
 
 
-TEST_CASE("BLS key encrypt", "[bls-key-encrypt]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+class TestsFixture {
+public:
+    TestsFixture()  {
+        resetDB();
+        setOptions(false, false, false, true);
+        initAll(0, false, true);
+    }
+};
+
+
+
+TEST_CASE_METHOD(TestsFixture, "BLS key encrypt", "[bls-key-encrypt]") {
+
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
 }
 
 /* Do later
-TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
+TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     resetDB();
     setOptions(false, false, false, true);
     initAll(0, false, true);
@@ -173,11 +182,8 @@ TEST_CASE("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 
 
-TEST_CASE("DKG gen test", "[dkg-gen]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "DKG gen test", "[dkg-gen]") {
+    
 
     vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
@@ -198,12 +204,7 @@ TEST_CASE("DKG gen test", "[dkg-gen]") {
                                 (uint8_t *) secret.data(), &dec_len);
 
     REQUIRE(status == SGX_SUCCESS);
-
-    // printf("\ntrustedDecryptDkgSecret completed with status: %d %s \n", errStatus, errMsg1.data());
-    // printf("decrypted secret %s \n\n", secret.data());
-    // printf("secret length %d \n", (int) strlen(secret.data()));
-    // printf("decr length %d \n", dec_len);
-
+    
     sgx_destroy_enclave(eid);
 }
 
@@ -261,11 +262,7 @@ libff::alt_bn128_G2 VectStringToG2(const vector<string> &G2_str_vect) {
     return coeff;
 }
 
-TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "DKG public shares test", "[dkg-pub-shares]") {
 
     libff::init_alt_bn128_params();
 
@@ -336,10 +333,9 @@ TEST_CASE("DKG public shares test", "[dkg-pub-shares]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+
+TEST_CASE_METHOD(TestsFixture, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
+
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -367,18 +363,10 @@ TEST_CASE("DKG encrypted secret shares test", "[dkg-encr-sshares]") {
                              (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
-
-    // cerr << "secret share is " << result.data() << endl;
-
-    //sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("DKG verification test", "[dkg-verify]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
-
+TEST_CASE_METHOD(TestsFixture, "DKG verification test", "[dkg-verify]") {
+    
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
 
@@ -405,20 +393,14 @@ TEST_CASE("DKG verification test", "[dkg-verify]") {
                              s_shareG2.data(),
                              (char *) pub_keyB.data(), 2, 2, 1);
     REQUIRE(status == SGX_SUCCESS);
-    // printf(" trustedGetEncryptedSecretShare completed with status: %d %s \n", errStatus, errMsg.data());
-
-    // cerr << "secret share is " << result.data() << endl;
-
+    
     sgx_destroy_enclave(eid);
 
 }
 
 
-TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "ECDSA keygen and signature test", "[ecdsa]") {
+    
 
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
@@ -458,10 +440,8 @@ TEST_CASE("ECDSA keygen and signature test", "[ecdsa]") {
 
 }
 
-TEST_CASE("Test test", "[test]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+TEST_CASE_METHOD(TestsFixture, "Test test", "[test]") {
+    
 
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
@@ -480,10 +460,8 @@ TEST_CASE("Test test", "[test]") {
 
 }
 
-TEST_CASE("get public ECDSA key", "[get-pub-ecdsa-key]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+TEST_CASE_METHOD(TestsFixture, "get public ECDSA key", "[get-pub-ecdsa-key]") {
+    
 
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
@@ -548,11 +526,8 @@ string ConvertDecToHex(string dec, int numBytes = 32) {
 }
 
 
-TEST_CASE("BLS_DKG test", "[bls-dkg]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "BLS_DKG test", "[bls-dkg]") {
+    
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     // cerr << "Client inited" << endl;
@@ -677,10 +652,8 @@ TEST_CASE("BLS_DKG test", "[bls-dkg]") {
 
 }
 
-TEST_CASE("API test", "[api]") {
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "API test", "[api]") {
+    
     //HttpServer httpserver(1025);
     //SGXWalletServer s(httpserver,
     //                JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -692,6 +665,7 @@ TEST_CASE("API test", "[api]") {
     // cerr << "Client inited" << endl;
 
     try {
+
 
         Json::Value genKey = c.generateECDSAKey();
         cout << genKey << endl;
@@ -731,10 +705,7 @@ TEST_CASE("API test", "[api]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("getServerStatus test", "[get-server-status]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+TEST_CASE_METHOD(TestsFixture, "getServerStatus test", "[get-server-status]") {
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -837,12 +808,8 @@ void SendRPCRequest() {
 
 }
 
-TEST_CASE("ManySimultaneousThreads", "[many-threads-test]") {
-    resetDB();
-    setOptions(false, false, false, true);
-
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "ManySimultaneousThreads", "[many-threads-test]") {
+    
     vector<thread> threads;
     int num_threads = 4;
     for (int i = 0; i < num_threads; i++) {
@@ -856,11 +823,8 @@ TEST_CASE("ManySimultaneousThreads", "[many-threads-test]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("ecdsa API test", "[ecdsa-api]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "ecdsa API test", "[ecdsa-api]") {
+    
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -904,11 +868,8 @@ TEST_CASE("ecdsa API test", "[ecdsa-api]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("dkg API test", "[dkg-api]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "dkg API test", "[dkg-api]") {
+    
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -977,11 +938,8 @@ TEST_CASE("dkg API test", "[dkg-api]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("isPolyExists test", "[is-poly]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "isPolyExists test", "[is-poly]") {
+    
 
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1003,12 +961,7 @@ TEST_CASE("isPolyExists test", "[is-poly]") {
 
 }
 
-TEST_CASE("AES_DKG test", "[aes-dkg]") {
-    resetDB();
-    setOptions(false, false, false, true);
-
-
-    initAll(0, false, true);
+TEST_CASE_METHOD(TestsFixture, "AES_DKG test", "[aes-dkg]") {
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -1119,11 +1072,8 @@ TEST_CASE("AES_DKG test", "[aes-dkg]") {
     sgx_destroy_enclave(eid);
 }
 
-TEST_CASE("bls_sign_api test", "[bls-sign]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "bls_sign_api test", "[bls-sign]") {
+    
     HttpClient client("http://localhost:1029");
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -1141,11 +1091,8 @@ TEST_CASE("bls_sign_api test", "[bls-sign]") {
 
 }
 
-TEST_CASE("AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
-    resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
-
+TEST_CASE_METHOD(TestsFixture, "AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
+    
 
     int errStatus = -1;
     vector<char> errMsg(BUF_LEN, 0);;
