@@ -292,33 +292,21 @@ void destroyEnclave() {
 }
 
 
-class Fixture {
+class TestFixture {
 public:
-    Fixture() {
-        setOptions(false, false, false, true);
-        initAll(0, false, true);
-    }
-
-    ~Fixture() {
-        destroyEnclave();
-    }
-};
-
-class FixtureResetDB {
-public:
-    FixtureResetDB() {
+    TestFixture() {
         resetDB();
         setOptions(false, false, false, true);
         initAll(0, false, true);
     }
 
-    ~FixtureResetDB() {
+    ~TestFixture() {
         destroyEnclave();
     }
 
 };
 
-TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -349,7 +337,7 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA keygen and signature test", "[ecdsa-key-
 
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen", "[ecdsa-key-gen]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA key gen", "[ecdsa-key-gen]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -364,7 +352,7 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen", "[ecdsa-key-gen]") {
     REQUIRE(status == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "ECDSA get public key", "[ecddsa-get-pub-key]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA get public key", "[ecdsa-get-pub-key]") {
 
 
     int errStatus = 0;
@@ -423,7 +411,7 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 */
 
 
-TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
 
     HttpClient client(RPC_ENDPOINT);
@@ -466,7 +454,7 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-api]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-api]") {
 
 
     HttpClient client(RPC_ENDPOINT);
@@ -490,13 +478,13 @@ TEST_CASE_METHOD(FixtureResetDB, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-
 
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "BLS key encrypt", "[bls-key-encrypt]") {
+TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {
 
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "DKG gen test", "[dkg-gen]") {
+TEST_CASE_METHOD(TestFixture, "DKG gen test", "[dkg-gen]") {
 
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
@@ -521,7 +509,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG gen test", "[dkg-gen]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "DKG public shares test", "[dkg-pub-shares]") {
+TEST_CASE_METHOD(TestFixture, "DKG public shares test", "[dkg-pub-shares]") {
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
@@ -576,7 +564,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG public shares test", "[dkg-pub-shares]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
+TEST_CASE_METHOD(TestFixture, "DKG encrypted secret shares test", "[dkg-encr-sshares]") {
 
 
     vector<char> errMsg(BUF_LEN, 0);
@@ -605,7 +593,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG encrypted secret shares test", "[dkg-encr-
     REQUIRE(status == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
+TEST_CASE_METHOD(TestFixture, "DKG verification test", "[dkg-verify]") {
 
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> result(BUF_LEN, 0);
@@ -657,7 +645,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG verification test", "[dkg-verify]") {
 
 
 
-TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
+TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -774,7 +762,7 @@ TEST_CASE_METHOD(Fixture, "DKG_BLS test", "[dkg-bls]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
+TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
@@ -782,7 +770,7 @@ TEST_CASE_METHOD(FixtureResetDB, "Get ServerStatus", "[get-server-status]") {
 }
 
 
-TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
+TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {
 
 
     HttpClient client(RPC_ENDPOINT);
@@ -849,7 +837,7 @@ TEST_CASE_METHOD(FixtureResetDB, "DKG API test", "[dkg-api]") {
 
 }
 
-TEST_CASE_METHOD(Fixture, "PolyExists test", "[dkg-poly-exists]") {
+TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
 
 
     HttpClient client(RPC_ENDPOINT);
@@ -870,7 +858,7 @@ TEST_CASE_METHOD(Fixture, "PolyExists test", "[dkg-poly-exists]") {
 
 }
 
-TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
+TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -982,7 +970,7 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
 }
 
-TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]") {
+TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
 
 
     int errStatus = -1;
@@ -1005,7 +993,7 @@ TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]")
 }
 
 
-TEST_CASE_METHOD(Fixture, "Many threads ecdsa dkg bls", "[many-threads-ecdsa-dkg-bls]") {
+TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypto]") {
 
     vector <thread> threads;
     int num_threads = 4;

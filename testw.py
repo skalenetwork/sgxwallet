@@ -48,8 +48,10 @@ testList = ["[get-server-status]",
             "[dkg-api]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
-            "[many-threads-ecdsa-dkg-bls-api]",
-            "[aes-encrypt-decrypt]"]
+            "[dkg-pub-shares]",
+            "[many-threads-crypto]",
+            "[aes-encrypt-decrypt]",
+            "[aes-dkg]"]
 
 
 for t in testList:
