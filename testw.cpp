@@ -116,8 +116,7 @@ int updated;
 
 
 void resetDB() {
-    sgx_destroy_enclave(eid);
-    REQUIRE(system("rm -rf " SGXDATA_FOLDER) == 0);
+    REQUIRE(system("bash -c \"rm -rf " SGXDATA_FOLDER "* \"") == 0);
 }
 
 shared_ptr <string> encryptTestKey() {
@@ -1003,7 +1002,7 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
 
         REQUIRE(pubBLSKeys[i]["status"] == 0);
 
-        string hash = "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db";
+        string hash = SAMPLE_HASH;
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
 
         REQUIRE(blsSigShares[i]["status"] == 0);
@@ -1029,24 +1028,6 @@ TEST_CASE_METHOD(Fixture, "AES_DKG test", "[aes-dkg]") {
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
 
-}
-
-TEST_CASE_METHOD(Fixture, "BLS sign test", "[bls-sign]") {
-
-    HttpClient client("http://localhost:1029");
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-    string hash = SAMPLE_HASH;
-    string blsName = "BLS_KEY:SCHAIN_ID:323669558:NODE_ID:1:DKG_ID:338183455";
-    int n = 4, t = 4;
-
-    Json::Value pubBLSKey = c.getBLSPublicKeyShare(blsName);
-    REQUIRE(pubBLSKey["status"] == 0);
-
-    Json::Value sign = c.blsSignMessageHash(blsName, hash, t, n, 1);
-    REQUIRE(sign["status"] == 0);
-
-    
 }
 
 TEST_CASE_METHOD(FixtureResetDB, "AES encrypt/decrypt", "[AES-encrypt-decrypt]") {

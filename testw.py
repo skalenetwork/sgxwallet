@@ -41,14 +41,14 @@ testList = ["[get-server-status]",
             "[ecdsa-get-pub-key]",
             "[ecdsa-key-gen-api]",
             "[ecdsa-key-gen-sign-api]",
-            "[bls-key-encrypt]", "[dkg-gen]",
+            "[bls-key-encrypt]",
+            "[dkg-gen]",
             "[dkg-encr-sshares]",
             "[dkg-verify]",
             "[bls-dkg]",
             "[dkg-api]",
-            "[is-poly]",
+            "[poly-exists]",
             "[many-threads]",
-            #"[bls-sign]",
             "[aes-encrypt-decrypt]"]
 
 
