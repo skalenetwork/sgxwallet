@@ -25,8 +25,12 @@
 #define SGXD_SGXREGISTRATIONSERVER_H
 
 
-#include "abstractregserver.h"
 #include <mutex>
+
+#include "abstractregserver.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
+
 
 using namespace jsonrpc;
 using namespace std;
@@ -35,6 +39,8 @@ class SGXRegistrationServer: public AbstractRegServer {
   recursive_mutex m;
   bool autoSign;
 
+  static shared_ptr<SGXRegistrationServer> server;
+  static shared_ptr<HttpServer> httpServer;
 
 public:
 

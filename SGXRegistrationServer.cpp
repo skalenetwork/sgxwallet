@@ -51,8 +51,8 @@ int useHTTPS = -1;
 int encryptKeys = -1;
 int autoconfirm = -1;
 
-SGXRegistrationServer *registrationServer = nullptr;
-HttpServer *httpServer2 = nullptr;
+shared_ptr <SGXRegistrationServer> SGXRegistrationServer::server = nullptr;
+shared_ptr <HttpServer> SGXRegistrationServer::httpServer = nullptr;
 
 SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
                                              serverVersion_t type, bool _autoSign)
@@ -60,13 +60,13 @@ SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
 
 
 Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
+    spdlog::info(__FUNCTION__);
     INIT_RESULT(result)
 
     result["result"] = false;
 
-
     try {
-        spdlog::info(__FUNCTION__);
+
 
         string status = "1";
         string hash = cryptlite::sha256::hash_hex(_csr);
@@ -115,16 +115,15 @@ Json::Value getCertificateImpl(const string &hash) {
     string cert;
     try {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
-        shared_ptr<string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
+        shared_ptr <string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
         if (status_str_ptr == nullptr) {
             throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
         }
         int status = atoi(status_str_ptr->c_str());
 
         if (status == 0) {
-            string crt_name = "cert/" + hash + ".crt";
-            //if (access(crt_name.c_str(), F_OK) == 0){
-            ifstream infile(crt_name);
+            string crtPath = "cert/" + hash + ".crt";
+            ifstream infile(crtPath);
             if (!infile.is_open()) {
                 string status_db_key = "CSR:HASH:" + hash + "STATUS:";
                 LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
@@ -170,16 +169,14 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 }
 
 
-
-
 int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
-    httpServer2 = new HttpServer(BASE_PORT + 1);
-    registrationServer = new SGXRegistrationServer(*httpServer2,
-                                                   JSONRPC_SERVER_V2,
-                                                   _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
+    httpServer = make_shared<HttpServer>(BASE_PORT + 1);
+    server = make_shared<SGXRegistrationServer>(*httpServer,
+                                                            JSONRPC_SERVER_V2,
+                                                            _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
 
-    if (!registrationServer->StartListening()) {
+    if (!server->StartListening()) {
         spdlog::info("Registration server could not start listening");
         exit(-1);
     } else {
