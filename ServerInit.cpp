@@ -121,7 +121,7 @@ void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
     if (useHTTPS) {
         SGXWalletServer::initHttpsServer(_checkCert);
-        initRegistrationServer(_autoSign);
+        SGXRegistrationServer::initRegistrationServer(_autoSign);
         init_csrmanager_server();
     } else {
         SGXWalletServer::initHttpServer();

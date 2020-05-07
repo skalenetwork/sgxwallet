@@ -43,7 +43,7 @@
 #include "SGXRegistrationServer.h"
 #include "LevelDB.h"
 
-#include "spdlog/spdlog.h"
+#include "Log.h"
 #include "common.h"
 
 int printDebugInfo = -1;
@@ -109,7 +109,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
     return result;
 }
 
-Json::Value GetSertificateImpl(const string &hash) {
+Json::Value GetertificateImpl(const string &hash) {
     Json::Value result;
 
     string cert;
@@ -175,24 +175,7 @@ void SGXRegistrationServer::set_cert_created(bool b) {
 }
 
 
-int initRegistrationServer(bool _autoSign) {
-
-//  string certPath = "cert/SGXCACertificate.crt";
-//  string keyPath = "cert/SGXCACertificate.key";
-//
-//  if (access(certPath.c_str(), F_OK) != 0){
-//    cerr << "CERTIFICATE IS GOING TO BE CREATED" << endl;
-//
-//    string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXCACertificate\" -e=info@skalelabs.com";
-//
-//    if (system(genCert.c_str()) == 0){
-//      cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << endl;
-//    }
-//    else{
-//      cerr << "CERTIFICATE GENERATION FAILED" << endl;
-//      exit(-1);
-//    }
-//  }
+int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
     httpServer2 = new HttpServer(BASE_PORT + 1);
     registrationServer = new SGXRegistrationServer(*httpServer2,
