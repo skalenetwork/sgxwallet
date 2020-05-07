@@ -131,7 +131,7 @@ Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
     return signByHashImpl(hash, status);
 }
 
-int init_csrmanager_server() {
+int CSRManagerServer::initCSRManagerServer() {
     hs3 = new jsonrpc::HttpServer(BASE_PORT + 2);
     hs3->BindLocalhost();
     cs = new CSRManagerServer(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)

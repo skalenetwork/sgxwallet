@@ -109,7 +109,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
     return result;
 }
 
-Json::Value GetertificateImpl(const string &hash) {
+Json::Value getCertificateImpl(const string &hash) {
     Json::Value result;
 
     string cert;
@@ -166,7 +166,7 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
 Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     spdlog::info(__FUNCTION__);
     LOCK(m)
-    return GetSertificateImpl(hash);
+    return getCertificateImpl(hash);
 }
 
 void SGXRegistrationServer::set_cert_created(bool b) {
