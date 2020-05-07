@@ -56,7 +56,7 @@ HttpServer *httpServer2 = nullptr;
 
 SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
                                              serverVersion_t type, bool _autoSign)
-        : AbstractRegServer(connector, type), isCertCreated(false), autoSign(_autoSign) {}
+        : AbstractRegServer(connector, type), autoSign(_autoSign) {}
 
 
 Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
@@ -169,10 +169,7 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     return getCertificateImpl(hash);
 }
 
-void SGXRegistrationServer::set_cert_created(bool b) {
-    sleep(100);
-    isCertCreated = b;
-}
+
 
 
 int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {

@@ -32,18 +32,17 @@ using namespace jsonrpc;
 using namespace std;
 
 class SGXRegistrationServer: public AbstractRegServer {
-  std::recursive_mutex m;
-  bool isCertCreated;
+  recursive_mutex m;
   bool autoSign;
+
 
 public:
 
   SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
 
-  void set_cert_created(bool b);
 
-  virtual Json::Value SignCertificate(const std::string& csr);
-  virtual Json::Value GetCertificate(const std::string& hash);
+  virtual Json::Value SignCertificate(const string& csr);
+  virtual Json::Value GetCertificate(const string& hash);
 
   static int initRegistrationServer(bool _autoSign = false);
 
