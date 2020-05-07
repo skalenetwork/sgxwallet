@@ -25,23 +25,33 @@
 #ifndef SGXD_CSRMANAGERSERVER_H
 #define SGXD_CSRMANAGERSERVER_H
 
+#include <mutex>
+
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
 #include "abstractCSRManagerServer.h"
 #include "LevelDB.h"
 
-#include <mutex>
+
+
 
 using namespace jsonrpc;
+using namespace std;
 
 class CSRManagerServer : public abstractCSRManagerServer {
 
-  std::recursive_mutex m;
+  recursive_mutex m;
+
+  static shared_ptr<HttpServer> hs3;
+
+  static shared_ptr<CSRManagerServer> cs;
 
   public:
 
   CSRManagerServer(AbstractServerConnector &connector, serverVersion_t type);
 
   virtual Json::Value getUnsignedCSRs();
-  virtual Json::Value signByHash(const std::string& hash, int status);
+  virtual Json::Value signByHash(const string& hash, int status);
 
   static int initCSRManagerServer();
 };
