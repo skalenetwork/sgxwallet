@@ -67,42 +67,50 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
 
     try {
 
-
-        string status = "1";
         string hash = cryptlite::sha256::hash_hex(_csr);
-        if (!_autoSign) {
-            string db_key = "CSR:HASH:" + hash;
-            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
+
+        if (system("ls " CERT_DIR "/" CERT_CREATE_COMMAND) != 0) {
+            spdlog::error("cert/create_client_cert does not exist");
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
         }
 
         if (_autoSign) {
-            string csr_name = "cert/" + hash + ".csr";
+            string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
             ofstream outfile(csr_name);
+            outfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
             outfile << _csr << endl;
             outfile.close();
-            if (access(csr_name.c_str(), F_OK) != 0) {
-                throw SGXException(FILE_NOT_FOUND, "Csr does not exist");
+
+            if (system(("ls " + csr_name).c_str()) != 0) {
+                spdlog::error("could not create csr file");
+                throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
             }
 
-            string genCert = "cd cert && ./create_client_cert " + hash;
+
+            string genCert = string("cd ") + CERT_DIR + "&& ./" + CERT_CREATE_COMMAND + " " + hash;
+            if (system(("rm -f " + csr_name).c_str()) != 0) {
+                spdlog::error("could not delete csr file");
+            }
 
             if (system(genCert.c_str()) == 0) {
                 spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
-                status = "0";
+                string db_key = "CSR:HASH:" + hash + "STATUS:";
+                string status = "0";
+                LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
             } else {
-                spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
-                string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-                LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FAIL_TO_CREATE_CERTIFICATE));
+                spdlog::error("CLIENT CERTIFICATE GENERATION FAILED");
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-                //exit(-1);
             }
+        } else {
+            string db_key = "CSR:HASH:" + hash;
+            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
         }
 
         result["result"] = true;
         result["hash"] = hash;
 
-        string db_key = "CSR:HASH:" + hash + "STATUS:";
-        LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
+
+
 
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -117,34 +125,23 @@ Json::Value getCertificateImpl(const string &hash) {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
         shared_ptr <string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
         if (status_str_ptr == nullptr) {
-            throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
+            throw SGXException(CERT_REQUEST_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
         }
         int status = atoi(status_str_ptr->c_str());
 
         if (status == 0) {
             string crtPath = "cert/" + hash + ".crt";
-            ifstream infile(crtPath);
-            if (!infile.is_open()) {
-                string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-                LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
-                LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FILE_NOT_FOUND));
+
+            if (system(("ls " + crtPath).c_str()) != 0) {
                 throw SGXException(FILE_NOT_FOUND, "Certificate does not exist");
-            } else {
-                ostringstream ss;
-                ss << infile.rdbuf();
-                cert = ss.str();
-
-                infile.close();
-                string remove_crt = "cd cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
-                if (system(remove_crt.c_str()) == 0) {
-                    //cerr << "cert removed" << endl;
-                    spdlog::info(" cert removed ");
-
-                } else {
-                    spdlog::info(" cert was not removed ");
-                }
-
             }
+
+            ifstream infile(crtPath);
+            infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            ostringstream ss;
+            ss << infile.rdbuf();
+            infile.close();
+            cert = ss.str();
         }
 
         result["status"] = status;
@@ -173,11 +170,11 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
     server = make_shared<SGXRegistrationServer>(*httpServer,
-                                                            JSONRPC_SERVER_V2,
-                                                            _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
+                                                JSONRPC_SERVER_V2,
+                                                _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
 
     if (!server->StartListening()) {
-        spdlog::info("Registration server could not start listening");
+        spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
         exit(-1);
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);

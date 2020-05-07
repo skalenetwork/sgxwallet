@@ -31,6 +31,9 @@
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 
+#define CERT_DIR "cert"
+#define CERT_CREATE_COMMAND "create_client_cert"
+
 
 using namespace jsonrpc;
 using namespace std;
