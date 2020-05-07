@@ -71,6 +71,8 @@ JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
 #subprocess.call(["git", "submodule",  "update", "--init"])
 
+print("Cleaning")
+
 subprocess.call(["rm", "-f",  "install-sh"])
 subprocess.call(["rm", "-f",  "compile"])
 subprocess.call(["rm", "-f",  "missing"])
@@ -85,23 +87,36 @@ subprocess.call(["rm", "-rf", SDK_DIR])
 
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
+
+
+print("Build LevelDB");
+
 os.chdir(LEVELDB_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
+
+
+print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 os.chdir(BLS_DIR)
 assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild"]) == 0
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0
+ 
+print("Build JSON"); 
 
 os.chdir(JSON_LIBS_DIR)
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 
+print("Install Linux SDK");
+
 os.chdir(SCRIPTS_DIR)
 assert subprocess.call(["bash", "-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0
+
+print("Make GMP");
 
 os.chdir(GMP_DIR)
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + TGMP_BUILD_DIR + " --disable-shared --enable-static --with-pic --enable-sgx  --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0

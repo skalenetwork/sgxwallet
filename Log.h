@@ -30,7 +30,11 @@
 #include <map>
 #include <memory>
 
+#include "json/json.h"
+#include "spdlog/spdlog.h"
 
+
+#include "SGXException.h"
 #include "InvalidArgumentException.h"
 #include "InvalidStateException.h"
 
@@ -39,21 +43,18 @@
 using namespace std;
 
 
-
 class Exception;
-
 
 
 #define __CLASS_NAME__ className( __PRETTY_FUNCTION__ )
 
-#define LOG( __SEVERITY__, __MESSAGE__ ) \
+#define LOG(__SEVERITY__, __MESSAGE__) \
     cerr <<  to_string(__SEVERITY__) << " " <<  __MESSAGE__ << " " << className( __PRETTY_FUNCTION__ ) << endl;
 
 
-
-
-enum level_enum { trace, debug, info, warn, err };
-
+enum level_enum {
+    trace, debug, info, warn, err
+};
 
 
 class Log {
@@ -62,8 +63,16 @@ public:
 
     level_enum globalLogLevel;
 
-    void setGlobalLogLevel( string& _s );
+    void setGlobalLogLevel(string &_s);
 
     static level_enum logLevelFromString(string &_s);
+
+    static void handleSGXException(Json::Value &_result, SGXException &_e);
 };
+
+#define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; __RESULT__["status"] = 0; __RESULT__["errorMessage"] = "";
+#define HANDLE_SGX_EXCEPTION(_RESULT_) catch (SGXException &__e) { Log::handleSGXException(_RESULT_, __e);}
+#define LOCK(__M__)  lock_guard<recursive_mutex> lock(__M__);
+
 #endif
+
