@@ -60,11 +60,13 @@ SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
 
 
 Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
+
+    result["result"] = false;
+
+
     try {
-        spdlog::info("enter signCertificateImpl");
+        spdlog::info(__FUNCTION__);
 
         string status = "1";
         string hash = cryptlite::sha256::hash_hex(_csr);
@@ -102,12 +104,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
         LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["result"] = false;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
@@ -154,24 +151,21 @@ Json::Value GetSertificateImpl(const string &hash) {
         result["status"] = status;
         result["cert"] = cert;
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 
 Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
-    spdlog::info("Enter signCertificate ");
-    lock_guard<recursive_mutex> lock(m);
+    spdlog::info(__FUNCTION__);
+    LOCK(m)
     return signCertificateImpl(csr, autoSign);
 }
 
 Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
-    lock_guard<recursive_mutex> lock(m);
+    spdlog::info(__FUNCTION__);
+    LOCK(m)
     return GetSertificateImpl(hash);
 }
 

@@ -21,6 +21,8 @@
 #define SAMPLE_DKG_PUB_KEY_2 "378b3e6fdfe2633256ae1662fcd23466d02ead907b5d4366136341cea5e46f5a7bb67d897d6e35f619810238aa143c416f61c640ed214eb9c67a34c4a31b7d25"
 
 
+//openssl req -new -newkey rsa:2048 -nodes -keyout yourdomain.key -out yourdomain.csr^
+#define SAMPLE_CSR_FILE_NAME "samples/yourdomain.csr"
 
 
 #endif //SGXWALLET_TESTW_H

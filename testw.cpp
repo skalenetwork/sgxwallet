@@ -769,6 +769,13 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
 
 }
 
+TEST_CASE_METHOD(TestFixture, "Cert request sign ServerStatus", "[cert-sign]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+    REQUIRE(c.getServerStatus()["status"] == 0);
+}
+
+
 
 TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {
 
