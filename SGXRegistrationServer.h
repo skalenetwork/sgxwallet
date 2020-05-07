@@ -38,26 +38,31 @@
 using namespace jsonrpc;
 using namespace std;
 
-class SGXRegistrationServer: public AbstractRegServer {
-  recursive_mutex m;
-  bool autoSign;
+class SGXRegistrationServer : public AbstractRegServer {
+    recursive_mutex m;
+    bool autoSign;
 
-  static shared_ptr<SGXRegistrationServer> server;
-  static shared_ptr<HttpServer> httpServer;
+
+    static shared_ptr <HttpServer> httpServer;
+
+    static shared_ptr <SGXRegistrationServer> server;
+
 
 public:
 
-  SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
+    static shared_ptr <SGXRegistrationServer> getServer();
 
 
-  virtual Json::Value SignCertificate(const string& csr);
-  virtual Json::Value GetCertificate(const string& hash);
+    SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
 
-  static int initRegistrationServer(bool _autoSign = false);
+
+    virtual Json::Value SignCertificate(const string &csr);
+
+    virtual Json::Value GetCertificate(const string &hash);
+
+    static int initRegistrationServer(bool _autoSign = false);
 
 };
-
-
 
 
 #endif // SGXD_SGXREGISTRATIONSERVER_H

@@ -87,18 +87,23 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
             }
 
 
-            string genCert = string("cd ") + CERT_DIR + "&& ./" + CERT_CREATE_COMMAND + " " + hash;
-            if (system(("rm -f " + csr_name).c_str()) != 0) {
-                spdlog::error("could not delete csr file");
-            }
+            string genCert = string("cd ") + CERT_DIR + "&& ./"
+                    + CERT_CREATE_COMMAND + " " + hash ;
+
 
             if (system(genCert.c_str()) == 0) {
-                spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
+                spdlog::info("Client cert " + hash + " generated");
                 string db_key = "CSR:HASH:" + hash + "STATUS:";
                 string status = "0";
                 LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
+
+                if (system(("rm -f " + csr_name).c_str()) != 0) {
+                    spdlog::error("could not delete csr file");
+                }
+
             } else {
-                spdlog::error("CLIENT CERTIFICATE GENERATION FAILED");
+
+                spdlog::error("Client cert generation failed: {} ", genCert);
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
             }
         } else {
@@ -182,5 +187,11 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
 
     return 0;
+}
+
+
+shared_ptr<SGXRegistrationServer> SGXRegistrationServer::getServer() {
+    CHECK_STATE(server);
+    return server;
 }
 

@@ -69,6 +69,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include "common.h"
 #include "stubclient.h"
+#include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "testw.h"
 
@@ -303,8 +304,22 @@ public:
     ~TestFixture() {
         destroyEnclave();
     }
-
 };
+
+class TestFixtureHTTPS {
+public:
+    TestFixtureHTTPS() {
+        resetDB();
+        setOptions(false, false, true, true);
+        initAll(0, false, true);
+    }
+
+    ~TestFixtureHTTPS() {
+        destroyEnclave();
+    }
+};
+
+
 
 TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
 
@@ -769,10 +784,12 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
 
 }
 
-TEST_CASE_METHOD(TestFixture, "Cert request sign ServerStatus", "[cert-sign]") {
-    HttpClient client(RPC_ENDPOINT);
-    StubClient c(client, JSONRPC_CLIENT_V2);
-    REQUIRE(c.getServerStatus()["status"] == 0);
+TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
+
+    REQUIRE(SGXRegistrationServer::getServer() != nullptr);
+    auto result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
+
+    REQUIRE(result["status"] == 0);
 }
 
 
