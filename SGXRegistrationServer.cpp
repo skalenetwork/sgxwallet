@@ -74,18 +74,25 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
             throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
         }
 
+
+        string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
+        ofstream outfile(csr_name);
+        outfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        outfile << _csr << endl;
+        outfile.close();
+
+        if (system(("ls " + csr_name).c_str()) != 0) {
+            spdlog::error("could not create csr file");
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
+        }
+
+        if (system(("openssl req -in " + csr_name).c_str()) != 0) {
+            spdlog::error("Incorrect CSR format: {}", _csr);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "Incorrect CSR format ");
+        }
+
+
         if (_autoSign) {
-            string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
-            ofstream outfile(csr_name);
-            outfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-            outfile << _csr << endl;
-            outfile.close();
-
-            if (system(("ls " + csr_name).c_str()) != 0) {
-                spdlog::error("could not create csr file");
-                throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-            }
-
 
             string genCert = string("cd ") + CERT_DIR + "&& ./"
                     + CERT_CREATE_COMMAND + " " + hash ;
@@ -96,10 +103,6 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
                 string db_key = "CSR:HASH:" + hash + "STATUS:";
                 string status = "0";
                 LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
-
-                if (system(("rm -f " + csr_name).c_str()) != 0) {
-                    spdlog::error("could not delete csr file");
-                }
 
             } else {
 

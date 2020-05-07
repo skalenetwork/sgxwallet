@@ -787,9 +787,22 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
 
     REQUIRE(SGXRegistrationServer::getServer() != nullptr);
-    auto result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
+
+    string csrFile = "insecure-samples/yourdomain.csr";
+
+    ifstream infile(csrFile);
+    infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ostringstream ss;
+    ss << infile.rdbuf();
+    infile.close();
+
+    auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
 
     REQUIRE(result["status"] == 0);
+
+    result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
+
+    REQUIRE(result["status"] != 0);
 }
 
 
