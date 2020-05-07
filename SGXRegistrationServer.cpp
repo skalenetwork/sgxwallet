@@ -117,9 +117,6 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         result["result"] = true;
         result["hash"] = hash;
 
-
-
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
