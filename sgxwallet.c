@@ -60,9 +60,9 @@ void printUsage() {
     fprintf(stderr, "-d  turn on debug output\n");
     fprintf(stderr, "-v  verbose mode: turn on debug output\n");
     fprintf(stderr, "-vv  detailed verbose mode: turn on debug and trace outputs\n");
-    fprintf(stderr, "-0  launch SGXWalletServer using http (not https)\n");
+    fprintf(stderr, "-n  launch SGXWalletServer using http (not https)\n");
     fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
-    fprintf(stderr, "-y  Do not ask user to acknoledge receipt of backup key \n");
+    fprintf(stderr, "-y  Do not ask user to acknowledge receipt of backup key \n");
 }
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
@@ -111,6 +111,9 @@ int main(int argc, char *argv[]) {
             case '0':
                 useHTTPSOption = false;
                 break;
+            case 'n':
+                useHTTPSOption = false;
+                break;                
             case 'a':
                 encryptKeysOption = false;
                 break;
