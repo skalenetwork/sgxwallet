@@ -25,18 +25,21 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
-#include "abstractstubserver.h"
-#include <mutex>
 
+#include <jsonrpccpp/server/connectors/httpserver.h>
+#include <mutex>
+#include "abstractstubserver.h"
 
 using namespace jsonrpc;
 using namespace std;
 
 class SGXWalletServer : public AbstractStubServer {
 
-
-    SGXWalletServer *server = nullptr;
     recursive_mutex m;
+
+    static shared_ptr<SGXWalletServer> server;
+    static shared_ptr<HttpServer> httpServer;
+
 
 public:
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);

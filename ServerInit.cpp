@@ -113,6 +113,7 @@ void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
     static int sgxServerInited;
 
     cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
+
     CHECK_STATE(sgxServerInited == 0)
     sgxServerInited = 1;
     initEnclave(_logLevel);
@@ -121,8 +122,8 @@ void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
     if (useHTTPS) {
         SGXWalletServer::initHttpsServer(_checkCert);
-        initRegistrationServer(_autoSign);
-        init_csrmanager_server();
+        SGXRegistrationServer::initRegistrationServer(_autoSign);
+        CSRManagerServer::initCSRManagerServer();
     } else {
         SGXWalletServer::initHttpServer();
     }

@@ -74,8 +74,8 @@ bool isStringDec(string &_str) {
 }
 
 
-SGXWalletServer *s = nullptr;
-HttpServer *httpServer = nullptr;
+shared_ptr<SGXWalletServer> SGXWalletServer::server = nullptr;
+shared_ptr<HttpServer> SGXWalletServer::httpServer = nullptr;
 
 SGXWalletServer::SGXWalletServer(AbstractServerConnector &_connector,
                                  serverVersion_t _type)
@@ -130,11 +130,11 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
         }
     }
 
-    httpServer = new HttpServer(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, 64);
-    s = new SGXWalletServer(*httpServer,
-                            JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, 64);
+    server = make_shared<SGXWalletServer>(*httpServer,
+                                     JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
-    if (!s->StartListening()) {
+    if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
         exit(-1);
     } else {
@@ -146,10 +146,10 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
 int SGXWalletServer::initHttpServer() { //without ssl
 
-    httpServer = new HttpServer(BASE_PORT + 3);
-    s = new SGXWalletServer(*httpServer,
-                            JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
-    if (!s->StartListening()) {
+    httpServer = make_shared<HttpServer>(BASE_PORT + 3);
+    server = make_shared<SGXWalletServer>(*httpServer,
+                                     JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+    if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
         exit(-1);
     }
@@ -207,7 +207,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
     char *signature = (char *) calloc(BUF_LEN, 1);
 
-    shared_ptr<string> value = nullptr;
+    shared_ptr <string> value = nullptr;
 
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
@@ -274,7 +274,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
     result["encryptedKey"] = "";
 
 
-    vector<string> keys;
+    vector <string> keys;
 
     try {
         keys = genECDSAKey();
@@ -319,7 +319,7 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
             throw SGXException(UNKNOWN_ERROR, "invalid key name");
         }
 
-        shared_ptr<string> key_ptr = readFromDb(_tempKeyName);
+        shared_ptr <string> key_ptr = readFromDb(_tempKeyName);
 
 
         writeDataToDB(_keyName, *key_ptr);
@@ -340,7 +340,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
     result["signature_r"] = "";
     result["signature_s"] = "";
 
-    vector<string> sign_vect(3);
+    vector <string> sign_vect(3);
 
     try {
 
@@ -362,7 +362,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(-22, "Invalid base");
         }
 
-        shared_ptr<string> key_ptr = readFromDb(_keyName, "");
+        shared_ptr <string> key_ptr = readFromDb(_keyName, "");
 
         sign_vect = ecdsaSignHash(key_ptr->c_str(), cutHash.c_str(), _base);
         if (sign_vect.size() != 3) {
@@ -393,7 +393,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
-        shared_ptr<string> keyStr = readFromDb(_keyName);
+        shared_ptr <string> keyStr = readFromDb(_keyName);
         publicKey = getECDSAPubKey(keyStr->c_str());
         spdlog::debug("PublicKey {}", publicKey);
         spdlog::debug("PublicKey length {}", publicKey.length());
@@ -408,7 +408,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
 
 Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t) {
 
-   INIT_RESULT(result)
+    INIT_RESULT(result)
 
     string encrPolyHex;
 
@@ -435,7 +435,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
     result["status"] = 0;
     result["errorMessage"] = "";
 
-    vector<vector<string>> verifVector;
+    vector <vector<string>> verifVector;
     try {
         if (!checkName(_polyName, "POLY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
@@ -444,13 +444,13 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
             throw SGXException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
         }
 
-        shared_ptr<string> encr_poly_ptr = readFromDb(_polyName);
+        shared_ptr <string> encr_poly_ptr = readFromDb(_polyName);
 
         verifVector = get_verif_vect(encr_poly_ptr->c_str(), _t, _n);
         //cerr << "verif vect size " << verifVector.size() << endl;
 
         for (int i = 0; i < _t; i++) {
-            vector<string> cur_coef = verifVector.at(i);
+            vector <string> cur_coef = verifVector.at(i);
             for (int j = 0; j < 4; j++) {
                 result["verificationVector"][i][j] = cur_coef.at(j);
                 result["Verification Vector"][i][j] = cur_coef.at(j);
@@ -484,9 +484,9 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
 
-        shared_ptr<string> encr_poly_ptr = readFromDb(_polyName);
+        shared_ptr <string> encr_poly_ptr = readFromDb(_polyName);
 
-        vector<string> pubKeysStrs;
+        vector <string> pubKeysStrs;
         for (int i = 0; i < _n; i++) {
             if (!checkHex(_pubKeys[i].asString(), 64)) {
                 throw SGXException(INVALID_HEX, "Invalid public key");
@@ -532,7 +532,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
             throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
         }
 
-        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
         if (!verifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
             result["result"] = false;
@@ -576,11 +576,11 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
         if (!check_n_t(_t, _n)) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
-        vector<string> sshares_vect;
+        vector <string> sshares_vect;
 
         spdlog::debug("secret shares from json are - {}", _secretShare);
 
-        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
         bool res = CreateBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
         if (res) {
@@ -609,11 +609,11 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         if (!checkName(_blsKeyName, "BLS_KEY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid BLSKey name");
         }
-        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
         spdlog::debug("encr_bls_key_share is {}", *encryptedKeyHex_ptr);
         spdlog::debug("length is {}", encryptedKeyHex_ptr->length());
 
-        vector<string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+        vector <string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
         for (uint8_t i = 0; i < 4; i++) {
             result["blsPublicKeyShare"][i] = public_key_vect.at(i);
             result["BlsPublicKeyShare"][i] = public_key_vect.at(i);
@@ -633,7 +633,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(_ind) + ":";
-        shared_ptr<string> shareG2_ptr = readFromDb(shareG2_name);
+        shared_ptr <string> shareG2_ptr = readFromDb(shareG2_name);
 
         string DHKey = decryptDHKey(_polyName, _ind);
 
@@ -669,7 +669,7 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
     result["exists"] = false;
 
     try {
-        std::shared_ptr<std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(_polyName);
+        std::shared_ptr <std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(_polyName);
 
         if (poly_str_ptr != nullptr) {
             result["IsExist"] = true;
@@ -785,7 +785,7 @@ Json::Value SGXWalletServer::getServerStatus() {
     return getServerStatusImpl();
 }
 
-shared_ptr<string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
+shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
 
     auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
 
@@ -796,7 +796,7 @@ shared_ptr<string> SGXWalletServer::readFromDb(const string &name, const string 
     return dataStr;
 }
 
-shared_ptr<string> SGXWalletServer::readKeyShare(const string &_keyShareName) {
+shared_ptr <string> SGXWalletServer::readKeyShare(const string &_keyShareName) {
 
     auto keyShareStr = LevelDB::getLevelDb()->readString("BLSKEYSHARE:" + _keyShareName);
 

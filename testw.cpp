@@ -69,6 +69,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include "common.h"
 #include "stubclient.h"
+#include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "testw.h"
 
@@ -303,8 +304,22 @@ public:
     ~TestFixture() {
         destroyEnclave();
     }
-
 };
+
+class TestFixtureHTTPS {
+public:
+    TestFixtureHTTPS() {
+        resetDB();
+        setOptions(false, false, true, true);
+        initAll(0, false, true);
+    }
+
+    ~TestFixtureHTTPS() {
+        destroyEnclave();
+    }
+};
+
+
 
 TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
 
@@ -768,6 +783,28 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     REQUIRE(c.getServerStatus()["status"] == 0);
 
 }
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
+
+    REQUIRE(SGXRegistrationServer::getServer() != nullptr);
+
+    string csrFile = "insecure-samples/yourdomain.csr";
+
+    ifstream infile(csrFile);
+    infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ostringstream ss;
+    ss << infile.rdbuf();
+    infile.close();
+
+    auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
+
+    REQUIRE(result["status"] == 0);
+
+    result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
+
+    REQUIRE(result["status"] != 0);
+}
+
 
 
 TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {

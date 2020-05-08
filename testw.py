@@ -35,7 +35,8 @@ print("Starting build push")
 print("Top directory is:" + topDir)
 
 
-testList = ["[get-server-status]",
+testList = [ "[cert-sign]",
+            "[get-server-status]",
             "[ecdsa-key-gen]",
             "[ecdsa-key-sig-gen]",
             "[ecdsa-get-pub-key]",

@@ -43,7 +43,7 @@
 #include "SGXRegistrationServer.h"
 #include "LevelDB.h"
 
-#include "spdlog/spdlog.h"
+#include "Log.h"
 #include "common.h"
 
 int printDebugInfo = -1;
@@ -51,162 +51,135 @@ int useHTTPS = -1;
 int encryptKeys = -1;
 int autoconfirm = -1;
 
-SGXRegistrationServer *registrationServer = nullptr;
-HttpServer *httpServer2 = nullptr;
+shared_ptr <SGXRegistrationServer> SGXRegistrationServer::server = nullptr;
+shared_ptr <HttpServer> SGXRegistrationServer::httpServer = nullptr;
 
 SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
                                              serverVersion_t type, bool _autoSign)
-        : AbstractRegServer(connector, type), isCertCreated(false), autoSign(_autoSign) {}
+        : AbstractRegServer(connector, type), autoSign(_autoSign) {}
 
 
 Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
-    try {
-        spdlog::info("enter signCertificateImpl");
+    spdlog::info(__FUNCTION__);
+    INIT_RESULT(result)
 
-        string status = "1";
+    result["result"] = false;
+
+    try {
+
         string hash = cryptlite::sha256::hash_hex(_csr);
-        if (!_autoSign) {
-            string db_key = "CSR:HASH:" + hash;
-            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
+
+        if (system("ls " CERT_DIR "/" CERT_CREATE_COMMAND) != 0) {
+            spdlog::error("cert/create_client_cert does not exist");
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
         }
 
-        if (_autoSign) {
-            string csr_name = "cert/" + hash + ".csr";
-            ofstream outfile(csr_name);
-            outfile << _csr << endl;
-            outfile.close();
-            if (access(csr_name.c_str(), F_OK) != 0) {
-                throw SGXException(FILE_NOT_FOUND, "Csr does not exist");
-            }
 
-            string genCert = "cd cert && ./create_client_cert " + hash;
+        string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
+        ofstream outfile(csr_name);
+        outfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        outfile << _csr << endl;
+        outfile.close();
+
+        if (system(("ls " + csr_name).c_str()) != 0) {
+            spdlog::error("could not create csr file");
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
+        }
+
+        if (system(("openssl req -in " + csr_name).c_str()) != 0) {
+            spdlog::error("Incorrect CSR format: {}", _csr);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "Incorrect CSR format ");
+        }
+
+
+        if (_autoSign) {
+
+            string genCert = string("cd ") + CERT_DIR + "&& ./"
+                    + CERT_CREATE_COMMAND + " " + hash ;
+
 
             if (system(genCert.c_str()) == 0) {
-                spdlog::info("CLIENT CERTIFICATE IS SUCCESSFULLY GENERATED");
-                status = "0";
+                spdlog::info("Client cert " + hash + " generated");
+                string db_key = "CSR:HASH:" + hash + "STATUS:";
+                string status = "0";
+                LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
+
             } else {
-                spdlog::info("CLIENT CERTIFICATE GENERATION FAILED");
-                string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-                LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FAIL_TO_CREATE_CERTIFICATE));
+
+                spdlog::error("Client cert generation failed: {} ", genCert);
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-                //exit(-1);
             }
+        } else {
+            string db_key = "CSR:HASH:" + hash;
+            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
         }
 
         result["result"] = true;
         result["hash"] = hash;
 
-        string db_key = "CSR:HASH:" + hash + "STATUS:";
-        LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
-
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["result"] = false;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
-Json::Value GetSertificateImpl(const string &hash) {
+Json::Value getCertificateImpl(const string &hash) {
     Json::Value result;
 
     string cert;
     try {
         string db_key = "CSR:HASH:" + hash + "STATUS:";
-        shared_ptr<string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
+        shared_ptr <string> status_str_ptr = LevelDB::getCsrStatusDb()->readString(db_key);
         if (status_str_ptr == nullptr) {
-            throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
+            throw SGXException(CERT_REQUEST_DOES_NOT_EXIST, "Data with this name does not exist in csr db");
         }
         int status = atoi(status_str_ptr->c_str());
 
         if (status == 0) {
-            string crt_name = "cert/" + hash + ".crt";
-            //if (access(crt_name.c_str(), F_OK) == 0){
-            ifstream infile(crt_name);
-            if (!infile.is_open()) {
-                string status_db_key = "CSR:HASH:" + hash + "STATUS:";
-                LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
-                LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, to_string(FILE_NOT_FOUND));
+            string crtPath = "cert/" + hash + ".crt";
+
+            if (system(("ls " + crtPath).c_str()) != 0) {
                 throw SGXException(FILE_NOT_FOUND, "Certificate does not exist");
-            } else {
-                ostringstream ss;
-                ss << infile.rdbuf();
-                cert = ss.str();
-
-                infile.close();
-                string remove_crt = "cd cert && rm -rf " + hash + ".crt && rm -rf " + hash + ".csr";
-                if (system(remove_crt.c_str()) == 0) {
-                    //cerr << "cert removed" << endl;
-                    spdlog::info(" cert removed ");
-
-                } else {
-                    spdlog::info(" cert was not removed ");
-                }
-
             }
+
+            ifstream infile(crtPath);
+            infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            ostringstream ss;
+            ss << infile.rdbuf();
+            infile.close();
+            cert = ss.str();
         }
 
         result["status"] = status;
         result["cert"] = cert;
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 
 Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
-    spdlog::info("Enter signCertificate ");
-    lock_guard<recursive_mutex> lock(m);
+    spdlog::info(__FUNCTION__);
+    LOCK(m)
     return signCertificateImpl(csr, autoSign);
 }
 
 Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
-    lock_guard<recursive_mutex> lock(m);
-    return GetSertificateImpl(hash);
-}
-
-void SGXRegistrationServer::set_cert_created(bool b) {
-    sleep(100);
-    isCertCreated = b;
+    spdlog::info(__FUNCTION__);
+    LOCK(m)
+    return getCertificateImpl(hash);
 }
 
 
-int initRegistrationServer(bool _autoSign) {
+int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
-//  string certPath = "cert/SGXCACertificate.crt";
-//  string keyPath = "cert/SGXCACertificate.key";
-//
-//  if (access(certPath.c_str(), F_OK) != 0){
-//    cerr << "CERTIFICATE IS GOING TO BE CREATED" << endl;
-//
-//    string genCert = "cd cert && ./self-signed-tls -c=US -s=California -l=San-Francisco -o=\"Skale Labs\" -u=\"Department of Software Engineering\" -n=\"SGXCACertificate\" -e=info@skalelabs.com";
-//
-//    if (system(genCert.c_str()) == 0){
-//      cerr << "CERTIFICATE IS SUCCESSFULLY GENERATED" << endl;
-//    }
-//    else{
-//      cerr << "CERTIFICATE GENERATION FAILED" << endl;
-//      exit(-1);
-//    }
-//  }
+    httpServer = make_shared<HttpServer>(BASE_PORT + 1);
+    server = make_shared<SGXRegistrationServer>(*httpServer,
+                                                JSONRPC_SERVER_V2,
+                                                _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
 
-    httpServer2 = new HttpServer(BASE_PORT + 1);
-    registrationServer = new SGXRegistrationServer(*httpServer2,
-                                                   JSONRPC_SERVER_V2,
-                                                   _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
-
-    if (!registrationServer->StartListening()) {
-        spdlog::info("Registration server could not start listening");
+    if (!server->StartListening()) {
+        spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
         exit(-1);
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
@@ -214,5 +187,11 @@ int initRegistrationServer(bool _autoSign) {
 
 
     return 0;
+}
+
+
+shared_ptr<SGXRegistrationServer> SGXRegistrationServer::getServer() {
+    CHECK_STATE(server);
+    return server;
 }
 
