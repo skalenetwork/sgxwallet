@@ -111,6 +111,9 @@ int main(int argc, char *argv[]) {
             case '0':
                 useHTTPSOption = false;
                 break;
+            case 'n':
+                useHTTPSOption = false;
+                break;                
             case 'a':
                 encryptKeysOption = false;
                 break;
