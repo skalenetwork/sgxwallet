@@ -433,37 +433,26 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
 
 
-    try {
+    for (int i = 0; i <= 20; i++) {
 
+        try {
 
-        Json::Value genKey = c.generateECDSAKey();
-        cout << genKey << endl;
-        cout << c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), SAMPLE_HASH);
-        Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
+            Json::Value genKey = c.generateECDSAKey();
+            REQUIRE(genKey["status"].asInt() == 0);
 
-        Json::Value publicKeys;
-        publicKeys.append(SAMPLE_DKG_PUB_KEY_1);
-        publicKeys.append(SAMPLE_DKG_PUB_KEY_2);
+            auto keyName = genKey["keyName"].asString();
 
+            REQUIRE(keyName.size() == 68);
 
-        string share_big0 = "501e364a6ea516f4812b013bcc150cbb435a2c465c9fd525951264969d8441a986798fd3317c1c3e60f868bb26c4cff837d9185f4be6015d8326437cb5b69480495859cd5a385430ece51252acdc234d8dbde75708b600ac50b2974e813ee26bd87140d88647fcc44df7262bbba24328e8ce622cd627a15b508ffa0db9ae81e0e110fab42cfe40da66b524218ca3c8e5aa3363fbcadef748dc3523a7ffb95b8f5d8141a5163db9f69d1ab223494ed71487c9bb032a74c08a222d897a5e49a617";
-        string share_big = "03f749e2fcc28021895d757ec16d1636784446f5effcd3096b045136d8ab02657b32adc577f421330b81f5b7063df3b08a0621a897df2584b9046ca416e50ecc27e8c3277e981f7e650f8640289be128eecf0105f89a20e5ffb164744c45cf191d627ce9ab6c44e2ef96f230f2a4de742ea43b6f74b56849138026610b2d965605ececba527048a0f29f46334b1cec1d23df036248b24eccca99057d24764acee66c1a3f2f44771d0d237bf9d18c4177277e3ce3dc4e83686a2647fce1565ee0";
-        string share = share_big.substr(0, 192);
+            Json::Value sig = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), SAMPLE_HASH);
+            REQUIRE(sig["status"].asInt() == 0);
+            Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
+            REQUIRE(getPubKey["status"].asInt() == 0);
 
-        string publicShares = "1fc8154abcbf0c2ebf559571d7b57a8995c0e293a73d4676a8f76051a0d0ace30e00a87c9f087254c9c860c3215c4f11e8f85a3e8fae19358f06a0cbddf3df1924b1347b9b58f5bcb20958a19bdbdd832181cfa9f9e9fd698f6a485051cb47b829d10f75b6e227a7d7366dd02825b5718072cd42c39f0352071808622b7db6421b1069f519527e49052a8da6e3720cbda9212fc656eef945f5e56a4159c3b9622d883400460a9eff07fe1873f9b1ec50f6cf70098b9da0b90625b176f12329fa2ecc65082c626dc702d9cfb23a06770d4a2c7867e269efe84e3709b11001fb380a32d609855d1d46bc60f21140c636618b8ff55ed06d7788b6f81b498f96d3f9";
-
-        Json::Value SecretShare;
-        SecretShare.append(share_big0);
-        SecretShare.append(share_big);
-
-        string shares = "252122c309ed1f32faa897ede140c5b9c1bc07d5d9c94b7a22d4eeb13da7b7142aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b7637092c06c423b627c38ff86d1e66608bdc1496ef855b86e9f773441ac0b285d92aa466376a6008de4aab9858aa34848775282c4c3b56370bf25827321619c6e47701c8a32e3f4bb28f5a3b12a09800f318c550cedff6150e9a673ea56ece8b76";
-
-
-        string s_share = "13b871ad5025fed10a41388265b19886e78f449f758fe8642ade51440fcf850bb2083f87227d8fb53fdfb2854e2d0abec4f47e2197b821b564413af96124cd84a8700f8eb9ed03161888c9ef58d6e5896403de3608e634e23e92fba041aa283484427d0e6de20922216c65865cfe26edd2cf9cbfc3116d007710e8d82feafd9135c497bef0c800ca310ba6044763572681510dad5e043ebd87ffaa1a4cd45a899222207f3d05dec8110d132ad34c62d6a3b40bf8e9f40f875125c3035062d2ca";
-        string ethKeyName = SAMPLE_KEY_NAME;
-
-    } catch (JsonRpcException &e) {
-        cerr << e.what() << endl;
+        } catch (JsonRpcException &e) {
+            cerr << e.what() << endl;
+            throw;
+        }
     }
 
 }

@@ -50,7 +50,7 @@ testList = [ "[cert-sign]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
             "[dkg-pub-shares]",
-            "[many-threads-crypto]",
+#            "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
             "[aes-dkg]"]
 

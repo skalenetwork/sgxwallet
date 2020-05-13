@@ -21,20 +21,25 @@
     @date 2019
 */
 
-#include "ECDSACrypto.h"
-#include "BLSCrypto.h"
 #include "sgxwallet.h"
 
 #include "SGXException.h"
 
 #include <iostream>
+#include <fstream>
+
 #include <gmp.h>
 #include <random>
 
+
+
 #include "spdlog/spdlog.h"
+#include "common.h"
+
+#include "BLSCrypto.h"
+#include "ECDSACrypto.h"
 
 
-static default_random_engine randGen((unsigned int) time(0));
 
 string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
     string px = pub_key_x;
@@ -43,58 +48,53 @@ string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
     return result;
 }
 
+
+void fillRandomBuffer(vector<unsigned char>& _buffer) {
+    ifstream devRandom("/dev/urandom", ios::in|ios::binary);
+    devRandom.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    devRandom.read((char*) _buffer.data(), _buffer.size());
+    devRandom.close();
+}
+
 std::vector<std::string> genECDSAKey() {
-    char *errMsg = (char *) calloc(1024, 1);
+    vector<char> errMsg(1024, 0);
     int errStatus = 0;
-    uint8_t *encr_pr_key = (uint8_t *) calloc(1024, 1);
-    char *pub_key_x = (char *) calloc(1024, 1);
-    char *pub_key_y = (char *) calloc(1024, 1);
+    vector<uint8_t> encr_pr_key(1024, 0);
+    vector<char>pub_key_x(1024, 0);
+    vector<char>pub_key_y(1024, 0);
+
     uint32_t enc_len = 0;
 
     if (!encryptKeys)
-        status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(),
+                &enc_len, pub_key_x.data(), pub_key_y.data());
     else
-        status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg, encr_pr_key, &enc_len, pub_key_x, pub_key_y);
+        status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+                errMsg.data(), encr_pr_key.data(), &enc_len,
+                pub_key_x.data(), pub_key_y.data());
 
     if (status != SGX_SUCCESS || errStatus != 0) {
         spdlog::error("RPCException thrown with status {}", status);
-        throw SGXException(status, errMsg);
+        throw SGXException(status, errMsg.data());
     }
     std::vector<std::string> keys(3);
 
+    vector<char> hexEncrKey(BUF_LEN * 2, 0);
+    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data());
+    keys.at(0) = hexEncrKey.data();
+    keys.at(1) = std::string(pub_key_x.data()) + std::string(pub_key_y.data());
 
 
-    char *hexEncrKey = (char *) calloc(BUF_LEN * 2, 1);
-    carray2Hex(encr_pr_key, enc_len, hexEncrKey);
-    keys.at(0) = hexEncrKey;
-    keys.at(1) = std::string(pub_key_x) + std::string(pub_key_y);//concatPubKeyWith0x(pub_key_x, pub_key_y);//
+    vector<unsigned char> randBuffer(32,0);
+    fillRandomBuffer(randBuffer);
 
+    vector<char> rand_str(64,0);
 
-    unsigned long seed = randGen();
-    spdlog::debug("seed is {}", seed);
-    gmp_randstate_t state;
-    gmp_randinit_default(state);
+    carray2Hex(randBuffer.data(), 32, rand_str.data());
 
-    gmp_randseed_ui(state, seed);
+    keys.at(2) = rand_str.data();
 
-    mpz_t rand32;
-    mpz_init(rand32);
-    mpz_urandomb(rand32, state, 256);
-
-    char arr[mpz_sizeinbase(rand32, 16) + 2];
-    char *rand_str = mpz_get_str(arr, 16, rand32);
-
-    keys.at(2) = rand_str;
-
-
-    gmp_randclear(state);
-    mpz_clear(rand32);
-
-    free(errMsg);
-    free(pub_key_x);
-    free(pub_key_y);
-    free(encr_pr_key);
-    free(hexEncrKey);
+    CHECK_STATE(keys.at(2).size() == 64);
 
     return keys;
 }
