@@ -21,7 +21,12 @@
     @date 2019
 */
 
+#ifdef NO_SGX
+#include <gmp.h>
+#else
 #include <../tgmp-build/include/sgx_tgmp.h>
+#endif
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>

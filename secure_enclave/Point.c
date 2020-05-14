@@ -23,10 +23,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+
+#ifdef NO_SGX
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 #include "NumberTheory.h"
 

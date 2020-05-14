@@ -23,7 +23,12 @@
 
 #include "DKGUtils.h"
 
-#include <sgx_tgmp.h>
+#ifdef NO_SGX
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
+
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <../trusted_libff/libff/algebra/fields/fp.hpp>
 

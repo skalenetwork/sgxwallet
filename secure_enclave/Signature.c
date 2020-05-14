@@ -23,9 +23,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
 #include <assert.h>
+
+#ifdef NO_SGX
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
+
 #include "DomainParameters.h"
 #include "Point.h"
 #include "NumberTheory.h"

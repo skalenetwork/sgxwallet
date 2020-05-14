@@ -23,7 +23,11 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#ifdef NO_SGX
+#include <gmp.h>
+#else
 #include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 #include "DomainParameters.h"
 #include "Curves.h"

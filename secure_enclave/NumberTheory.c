@@ -23,8 +23,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
+
+#ifdef NO_SGX
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
+
 #include "NumberTheory.h"
 
 /*Calculate R = a^k mod P, using repeated square-and-multiply algorithm
