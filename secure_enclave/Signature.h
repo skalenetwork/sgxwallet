@@ -65,6 +65,63 @@ void signature_extract_public_key(point public_key, mpz_t private_key, domain_pa
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve);
 
 /*Verify the integrity of a message using it's signature*/
-bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve);
+static inline bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve) {
+
+    //Initialize variables
+    mpz_t one, w, u1, u2, t, tt2;
+    mpz_init(one); mpz_init(w); mpz_init(u1);
+    mpz_init(u2); mpz_init(t); mpz_init(tt2);
+
+    mpz_set_ui(one, 1);
+
+    point x = point_init();
+    point t1 = point_init();
+    point t2 = point_init();
+
+    bool result = false;
+
+
+    if (mpz_cmp(sig->r, one) < 0 &&
+        mpz_cmp(curve->n, sig->r) <= 0 &&
+        mpz_cmp(sig->s, one) < 0 &&
+        mpz_cmp(curve->n, sig->s) <= 0) {
+        goto clean;
+    }
+
+    //w = s¯¹ mod n
+    number_theory_inverse(w, sig->s, curve->n);
+
+    //u1 = message * w mod n
+    mpz_mod(tt2, message, curve->n);
+    mpz_mul(t, tt2, w);
+    mpz_mod(u1, t, curve->n);
+
+    //u2 = r*w mod n
+    mpz_mul(t, sig->r, w);
+    mpz_mod(u2, t, curve->n);
+
+    //x = u1*G+u2*Q
+    point_multiplication(t1, u1, curve->G, curve);
+    point_multiplication(t2, u2, public_key, curve);
+    point_addition(x, t1, t2, curve);
+
+    //Get the result, by comparing x value with r and verifying that x is NOT at infinity
+
+    result = mpz_cmp(sig->r, x->x) == 0 && !x->infinity;
+
+
+    clean:
+
+
+    point_clear(x);
+    point_clear(t1);
+    point_clear(t2);
+
+    mpz_clear(one); mpz_clear(w); mpz_clear(u1); mpz_clear(u2); mpz_clear(t);
+    mpz_clear(tt2);
+
+    return result;
+}
+
 
 #endif
