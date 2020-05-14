@@ -365,16 +365,14 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     signature_extract_public_key(publicKey, privateKeyMpz, curve);
 
+
+
     if (!signature_verify(msgMpz, sign, publicKey, curve)) {
         *errStatus = -2;
         snprintf(errString, BUF_LEN, "ECDSA sig not verified");
         LOG_WARN(errString);
         goto clean;
     }
-    
-    arrM = calloc(mpz_sizeinbase(msgMpz, 16) + 2 ,1);
-    mpz_get_str(arrM, 16, msgMpz);
-    
 
     arrR = calloc(mpz_sizeinbase(sign->r, base) + 2,1);
     mpz_get_str(arrR, base, sign->r);
@@ -396,9 +394,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     if (privateKey)
         free(privateKey);
 
-    if (arrM) {
-        free(arrM);
-    }
+
     if (arrR) {
         free(arrR);
     }
