@@ -645,8 +645,6 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *err_string, uint8_t *e
     memset(pub_key_x, 0, BUF_LEN);
     char pub_key_y[BUF_LEN];
     memset(pub_key_y, 0, BUF_LEN);
-    //char *pub_key_x = (char *)calloc(1024, 1);
-    // char *pub_key_y = (char *)calloc(1024, 1);
 
     uint32_t enc_len;
 

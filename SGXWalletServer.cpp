@@ -43,7 +43,6 @@
 
 #include "Log.h"
 
-
 void setFullOptions(int _printDebugInfo,
                     int _printTraceInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
     if (_printDebugInfo)
