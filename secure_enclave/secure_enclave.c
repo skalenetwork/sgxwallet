@@ -235,23 +235,23 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *err_string,
 
     //strncpy(err_string, skey, 1024);
 
-    mpz_t skey_mpz;
-    mpz_init(skey_mpz);
-    // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
-    if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1) {
+    mpz_t secretKeyMpz;
+    mpz_init(secretKeyMpz);
+    // mpz_import(secretKeyMpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
+    if (mpz_set_str(secretKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         snprintf(err_string, BUF_LEN, "wrong string to init private key");
         *errStatus = -10;
-        mpz_clear(skey_mpz);
+        mpz_clear(secretKeyMpz);
         return;
     }
 
     //Public key
     point Pkey = point_init();
 
-    signature_extract_public_key(Pkey, skey_mpz, curve);
+    signature_extract_public_key(Pkey, secretKeyMpz, curve);
 
     point Pkey_test = point_init();
-    point_multiplication(Pkey_test, skey_mpz, curve->G, curve);
+    point_multiplication(Pkey_test, secretKeyMpz, curve->G, curve);
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(err_string, BUF_LEN, "Points are not equal");
@@ -281,24 +281,26 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *err_string,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    mpz_clear(skey_mpz);
+    mpz_clear(secretKeyMpz);
     domain_parameters_clear(curve);
     point_clear(Pkey);
 }
 
 void trustedEcdsaSign(int *errStatus, char *err_string, uint8_t *encrypted_key, uint32_t dec_len,
-                 unsigned char *hash, char *sig_r, char *sig_s, uint8_t *sig_v, int base) {
+                 unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
 
     LOG_DEBUG (__FUNCTION__);
 
-    char* arr_m = NULL;
-    char* arr_r = NULL;
-    char* arr_s;
+    char* arrM = NULL;
+    char* arrR = NULL;
+    char* arrS = NULL;
 
-    mpz_t skey_mpz;
-    mpz_init(skey_mpz);
-    mpz_t msg_mpz;
-    mpz_init(msg_mpz);
+    char* secretKey = calloc(ECDSA_SKEY_LEN,1);
+
+    mpz_t secretKeyMpz;
+    mpz_init(secretKeyMpz);
+    mpz_t msgMpz;
+    mpz_init(msgMpz);
 
     signature sign = signature_init();
 
@@ -307,7 +309,7 @@ void trustedEcdsaSign(int *errStatus, char *err_string, uint8_t *encrypted_key, 
 
     point publicKey = point_init();
 
-    char* secretKey = calloc(ECDSA_SKEY_LEN,1);
+    
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encrypted_key, NULL, 0, secretKey, &dec_len);
@@ -320,65 +322,64 @@ void trustedEcdsaSign(int *errStatus, char *err_string, uint8_t *encrypted_key, 
 
     //snprintf(err_string, BUF_LEN, "pr key is %s length %d ", skey, strlen(skey));
 
-    if (mpz_set_str(skey_mpz, secretKey, ECDSA_SKEY_BASE) == -1) {
+    if (mpz_set_str(secretKeyMpz, secretKey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
         snprintf(err_string, BUF_LEN, "invalid secret key");
         goto clean;
     }
 
-    if (mpz_set_str(msg_mpz, hash, 16) == -1) {
+    if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = -1;
         snprintf(err_string, BUF_LEN, "invalid message hash");
         goto clean;
     }
-    //mpz_set_str(msg_mpz,"4b688df40bcedbe641ddb16ff0a1842d9c67ea1c3bf63f3e0471baa664531d1a", 16);
 
-    signature_sign(sign, msg_mpz, skey_mpz, curve);
+    signature_sign(sign, msgMpz, secretKeyMpz, curve);
 
-    signature_extract_public_key(publicKey, skey_mpz, curve);
+    signature_extract_public_key(publicKey, secretKeyMpz, curve);
 
-    if (!signature_verify(msg_mpz, sign, publicKey, curve)) {
+    if (!signature_verify(msgMpz, sign, publicKey, curve)) {
         *errStatus = -2;
         snprintf(err_string, BUF_LEN, "signature is not verified");
         goto clean;
     }
+    
+    arrM = calloc(mpz_sizeinbase(msgMpz, 16) + 2 ,1);
+    mpz_get_str(arrM, 16, msgMpz);
+    
 
-    //char arr_x[mpz_sizeinbase (Pkey->x, 16) + 2];
-    //char* px = mpz_get_str(arr_x, 16, Pkey->x);
-    //snprintf(err_string, BUF_LEN,"pub key x %s ", arr_x);
+    arrR = calloc(mpz_sizeinbase(sign->r, base) + 2,1);
+    mpz_get_str(arrR, base, sign->r);
+    strncpy(sigR, arrR, 1024);
 
-    arr_m = calloc(mpz_sizeinbase(msg_mpz, 16) + 2 ,1);
-    mpz_get_str(arr_m, 16, msg_mpz);
-
-    //snprintf(err_string, BUF_LEN, "message is %s ", arr_m);
-
-    arr_r = calloc(mpz_sizeinbase(sign->r, base) + 2,1);
-    mpz_get_str(arr_r, base, sign->r);
-    strncpy(sig_r, arr_r, 1024);
-
-    arr_s = calloc(mpz_sizeinbase(sign->s, base) + 2, 1);
-    mpz_get_str(arr_s, base, sign->s);
-    strncpy(sig_s, arr_s, 1024);
+    arrS = calloc(mpz_sizeinbase(sign->s, base) + 2, 1);
+    mpz_get_str(arrS, base, sign->s);
+    strncpy(sigS, arrS, 1024);
     *sig_v = sign->v;
 
     clean:
 
-    mpz_clear(skey_mpz);
-    mpz_clear(msg_mpz);
+    mpz_clear(secretKeyMpz);
+    mpz_clear(msgMpz);
     domain_parameters_clear(curve);
     point_clear(publicKey);
-    free(secretKey);
+    
+    
+    
     signature_free(sign);
 
-    if (arr_m != NULL) {
-        free(arr_m);
+    if (secretKey)
+        free(secretKey);
+
+    if (arrM) {
+        free(arrM);
     }
-    if (arr_r != NULL) {
-        free(arr_r);
+    if (arrR) {
+        free(arrR);
     }
 
-    if (arr_s != NULL) {
-        free(arr_s);
+    if (arrS) {
+        free(arrS);
     }
 
     return;
@@ -1064,23 +1065,23 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *err_string,
 
     strncpy(err_string, skey, 1024);
 
-    mpz_t skey_mpz;
-    mpz_init(skey_mpz);
-    // mpz_import(skey_mpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
-    if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1) {
+    mpz_t secretKeyMpz;
+    mpz_init(secretKeyMpz);
+    // mpz_import(secretKeyMpz, 32, 1, sizeof(skey[0]), 0, 0, skey);
+    if (mpz_set_str(secretKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         snprintf(err_string, BUF_LEN, "wrong string to init private key  - %s", skey);
         *errStatus = -10;
-        mpz_clear(skey_mpz);
+        mpz_clear(secretKeyMpz);
         return;
     }
 
     //Public key
     point Pkey = point_init();
 
-    signature_extract_public_key(Pkey, skey_mpz, curve);
+    signature_extract_public_key(Pkey, secretKeyMpz, curve);
 
     point Pkey_test = point_init();
-    point_multiplication(Pkey_test, skey_mpz, curve->G, curve);
+    point_multiplication(Pkey_test, secretKeyMpz, curve->G, curve);
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(err_string, BUF_LEN, "Points are not equal");
@@ -1110,13 +1111,13 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *err_string,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    mpz_clear(skey_mpz);
+    mpz_clear(secretKeyMpz);
     domain_parameters_clear(curve);
     point_clear(Pkey);
 }
 
 void trustedEcdsaSignAES(int *errStatus, char *err_string, uint8_t *encrypted_key, uint32_t enc_len,
-                    unsigned char *hash, char *sig_r, char *sig_s, uint8_t *sig_v, int base) {
+                    unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
 
     LOG_DEBUG (__FUNCTION__);
 
@@ -1136,56 +1137,56 @@ void trustedEcdsaSignAES(int *errStatus, char *err_string, uint8_t *encrypted_ke
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE - 1] = '\0';
 
     snprintf(err_string, BUF_LEN, "pr key is %s length %d ", skey, strlen(skey));
-    mpz_t skey_mpz;
-    mpz_init(skey_mpz);
-    if (mpz_set_str(skey_mpz, skey, ECDSA_SKEY_BASE) == -1) {
+    mpz_t secretKeyMpz;
+    mpz_init(secretKeyMpz);
+    if (mpz_set_str(secretKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
         snprintf(err_string, BUF_LEN, "invalid secret key");
-        mpz_clear(skey_mpz);
+        mpz_clear(secretKeyMpz);
         return;
     }
 
 
-    mpz_t msg_mpz;
-    mpz_init(msg_mpz);
-    if (mpz_set_str(msg_mpz, hash, 16) == -1) {
+    mpz_t msgMpz;
+    mpz_init(msgMpz);
+    if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = -1;
         snprintf(err_string, BUF_LEN, "invalid message hash");
-        mpz_clear(msg_mpz);
+        mpz_clear(msgMpz);
         return;
     }
 
     signature sign = signature_init();
 
-    signature_sign(sign, msg_mpz, skey_mpz, curve);
+    signature_sign(sign, msgMpz, secretKeyMpz, curve);
 
     point Pkey = point_init();
 
-    signature_extract_public_key(Pkey, skey_mpz, curve);
+    signature_extract_public_key(Pkey, secretKeyMpz, curve);
 
-    if (!signature_verify(msg_mpz, sign, Pkey, curve)) {
+    if (!signature_verify(msgMpz, sign, Pkey, curve)) {
         *errStatus = -2;
         snprintf(err_string, BUF_LEN, "signature is not verified! ");
         return;
     }
 
 
-    char arr_m[mpz_sizeinbase(msg_mpz, 16) + 2];
-    char *msg = mpz_get_str(arr_m, 16, msg_mpz);
-    snprintf(err_string, BUF_LEN, "message is %s ", arr_m);
+    char arrM[mpz_sizeinbase(msgMpz, 16) + 2];
+    char *msg = mpz_get_str(arrM, 16, msgMpz);
+    snprintf(err_string, BUF_LEN, "message is %s ", arrM);
 
-    char arr_r[mpz_sizeinbase(sign->r, base) + 2];
-    char *r = mpz_get_str(arr_r, base, sign->r);
-    strncpy(sig_r, arr_r, 1024);
+    char arrR[mpz_sizeinbase(sign->r, base) + 2];
+    char *r = mpz_get_str(arrR, base, sign->r);
+    strncpy(sigR, arrR, 1024);
 
-    char arr_s[mpz_sizeinbase(sign->s, base) + 2];
-    char *s = mpz_get_str(arr_s, base, sign->s);
-    strncpy(sig_s, arr_s, 1024);
+    char arrS[mpz_sizeinbase(sign->s, base) + 2];
+    char *s = mpz_get_str(arrS, base, sign->s);
+    strncpy(sigS, arrS, 1024);
 
     *sig_v = sign->v;
 
-    mpz_clear(skey_mpz);
-    mpz_clear(msg_mpz);
+    mpz_clear(secretKeyMpz);
+    mpz_clear(msgMpz);
     domain_parameters_clear(curve);
     signature_free(sign);
     point_clear(Pkey);
