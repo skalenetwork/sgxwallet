@@ -298,7 +298,7 @@ void logMsg(log_level _level, char* _msg) {
 EXTERNC void LOG_INFO(char* _msg) {
     logMsg(L_INFO, _msg);
 };
-EXTERNC void LOG_WARNING(char* _msg) {
+EXTERNC void LOG_WARN(char* _msg) {
     logMsg(L_WARNING, _msg);
 };
 
