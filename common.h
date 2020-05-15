@@ -16,7 +16,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.cpp
+    @file common.h
     @author Stan Kladko
     @date 2020
 */
@@ -33,8 +33,12 @@ using namespace std;
 #include <memory>
 
 
-
-
+#define USER_SPACE
+#include <gmp.h>
+#include "secure_enclave/Point.h"
+#include "secure_enclave/DomainParameters.h"
+#include "secure_enclave/NumberTheory.h"
+#include "secure_enclave/Signature.h"
 #include "InvalidStateException.h"
 
 
