@@ -452,7 +452,6 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
             vector <string> cur_coef = verifVector.at(i);
             for (int j = 0; j < 4; j++) {
                 result["verificationVector"][i][j] = cur_coef.at(j);
-                result["Verification Vector"][i][j] = cur_coef.at(j);
             }
         }
 
@@ -461,7 +460,6 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["verificationVector"] = "";
-        result["Verification Vector"] = "";
     }
 
     return result;
@@ -615,7 +613,6 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         vector <string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
         for (uint8_t i = 0; i < 4; i++) {
             result["blsPublicKeyShare"][i] = public_key_vect.at(i);
-            result["BlsPublicKeyShare"][i] = public_key_vect.at(i);
         }
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -638,7 +635,6 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
-        result["DHKey"] = DHKey;
 
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -665,14 +661,12 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
     INIT_RESULT(result)
 
     result["IsExist"] = false;
-    result["exists"] = false;
 
     try {
         std::shared_ptr <std::string> poly_str_ptr = LevelDB::getLevelDb()->readString(_polyName);
 
         if (poly_str_ptr != nullptr) {
             result["IsExist"] = true;
-            result["exists"] = true;
         }
     } HANDLE_SGX_EXCEPTION(result)
 
