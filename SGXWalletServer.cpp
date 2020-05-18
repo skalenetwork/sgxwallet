@@ -446,7 +446,6 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
         shared_ptr <string> encr_poly_ptr = readFromDb(_polyName);
 
         verifVector = get_verif_vect(encr_poly_ptr->c_str(), _t, _n);
-        //cerr << "verif vect size " << verifVector.size() << endl;
 
         for (int i = 0; i < _t; i++) {
             vector <string> cur_coef = verifVector.at(i);
@@ -496,7 +495,6 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
         result["secretShare"] = s;
 
     } catch (SGXException &_e) {
-        //cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         result["secretShare"] = "";
