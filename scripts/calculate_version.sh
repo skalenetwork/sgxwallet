@@ -41,7 +41,7 @@ fi
 
 for (( VERSION_NUMBER=0; ; VERSION_NUMBER++ ))
 do
-    if [ "$VERSION" = "1.49" ] && [ "$VERSION_NUMBER" < "4" ]
+    if [ "$VERSION" = "1.49" ] && [ "$VERSION_NUMBER" < 4 ]
     then
         VERSION_NUMBER=4
     fi

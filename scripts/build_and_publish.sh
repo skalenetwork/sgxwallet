@@ -10,13 +10,13 @@ DOCKERFILE=$2
 
 NAME=sgx
 REPO_NAME=skalenetwork/$NAME
-IMAGE_NAME=$REPO_NAME:$CONTAINER:$VERSION
+IMAGE_NAME=$REPO_NAME:$VERSION
 LATEST_IMAGE_NAME=$REPO_NAME:$CONTAINER:$BRANCH-latest
 
 # Build image
 
 echo "Building $IMAGE_NAME..."
-docker build -t "$IMAGE_NAME" --file "$DOCKERFILE" || exit $?
+docker build -f "$DOCKERFILE" -t "$IMAGE_NAME" || exit $?
 docker tag "$IMAGE_NAME" "$LATEST_IMAGE_NAME"
 
 echo "========================================================================================="
