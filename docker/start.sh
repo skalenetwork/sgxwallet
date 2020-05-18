@@ -54,6 +54,7 @@ echo "Test run requested"
 ./testw [is-poly
 #./testw [bls-sign]
 ./testw [aes-encrypt-decrypt]
+./testw [get-server-version]
 else
    ./sgxwallet $1 $2 $3 $4
 fi
