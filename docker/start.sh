@@ -42,7 +42,6 @@ echo "Test run requested"
 ./testw [dkg-encr-sshares]
 ./testw [dkg-verify]
 ./testw [get-server-status]
-./testw [ecdsa-api]
 ./testw [dkg-api]
 ./testw [dkg-poly-exists]
 ./testw [aes-encrypt-decrypt]

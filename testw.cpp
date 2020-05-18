@@ -875,11 +875,11 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
 
     Json::Value polyExists = c.isPolyExists(polyName);
 
-    REQUIRE(polyExists["exists"].asBool());
+    REQUIRE(polyExists["IsExist"].asBool());
 
     Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
 
-    REQUIRE(!polyDoesNotExist["exists"].asBool());
+    REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
 
 }
