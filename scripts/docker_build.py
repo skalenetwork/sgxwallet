@@ -50,24 +50,17 @@ import sys, os, subprocess, time
 
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-BRANCH = sys.argv[1]
-DOCKER_FILE_NAME = sys.argv[2]
-IMAGE_NAME = sys.argv[3]
-COMMIT_HASH = sys.argv[4]
-if (BRANCH == "develop"):
-    TAG_POSTFIX = "latest"
-else:
-    TAG_POSTFIX = "latest_commit"
+DOCKER_FILE_NAME = sys.argv[1]
+IMAGE_NAME = sys.argv[2]
+COMMIT_HASH = sys.argv[3]
+TAG_POSTFIX = "latest_commit"
 
 FULL_IMAGE_TAG = "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX
 COMMIT_HASH_TAG = "skalenetwork/" + IMAGE_NAME + ":" + COMMIT_HASH
 
-print("Starting build for branch " + BRANCH, flush=True)
+print("Starting build", flush=True)
 
 assert subprocess.call(["pwd"]) == 0
 
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
                         FULL_IMAGE_TAG]) == 0
-
-if (BRANCH == "develop"):
-    assert subprocess.call(["docker", "tag", FULL_IMAGE_TAG, COMMIT_HASH_TAG]) == 0
