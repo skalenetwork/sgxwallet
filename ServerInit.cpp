@@ -54,7 +54,6 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "SGXWalletServer.hpp"
-#include "SGXWALLET_VERSION"
 
 void initUserSpace() {
     libff::init_alt_bn128_params();

@@ -678,6 +678,15 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
     return result;
 }
 
+Json::Value SGXWalletServer::getServerVersionImpl() {
+
+    INIT_RESULT(result)
+
+    result["version"] = SGXWALLET_VERSION;
+
+    return result;
+}
+
 
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     LOCK(m)
@@ -774,6 +783,11 @@ Json::Value SGXWalletServer::isPolyExists(const string &polyName) {
 Json::Value SGXWalletServer::getServerStatus() {
     LOCK(m)
     return getServerStatusImpl();
+}
+
+Json::Value SGXWalletServer::getServerVersion() {
+    LOCK(m)
+    return getServerVersionImpl();
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
