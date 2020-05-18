@@ -19,6 +19,7 @@ jobs:
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
           export VERSION=$(cat VERSION)
+          echo "Version $VERSION"
           export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION sgxwallet)
           echo "::set-env name=VERSION::$VERSION"
           echo "Version $VERSION"
