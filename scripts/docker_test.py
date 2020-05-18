@@ -31,7 +31,7 @@ import sys, os, subprocess, socket, time
 
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting containerb test")
+print("Starting container test")
 print("Top directory is:" + topDir)
 SCRIPTS_DIR = topDir + "/scripts"
 

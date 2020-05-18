@@ -133,10 +133,10 @@ os.chdir(topDir)
 assert subprocess.call(["cp", "sgx_tgmp.h", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) == 0
 
 os.chdir(SSL_DIR)
-print "===>>> Downloading vanilla openssl source package"
+print("===>>> Downloading vanilla openssl source package")
 os.chdir(SSL_SOURCE_DIR)
 assert subprocess.call(["wget", "https://www.openssl.org/source/openssl-1.1.1b.tar.gz"]) == 0
-print "===>>> Making SSL  project"
+print("===>>> Making SSL  project")
 os.chdir(SSL_MAKE_DIR)
 #assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all", "test"]) == 0
 assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all" ]) == 0
