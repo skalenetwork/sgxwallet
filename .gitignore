@@ -1,11 +1,11 @@
 # Created by .ignore support plugin (hsz.mobi)
-.idea
-cmake-build-debug
-build
-sgx_data
-jsonrpc
-gmp-build
-tgmp-build
+.idea/
+cmake-build-debug/
+build/
+sgx_data/
+jsonrpc/
+gmp-build/
+tgmp-build/
 install-sh
 config.log
 config.status
@@ -28,8 +28,8 @@ sgxgmppi
 CMakeCache.txt
 cmake_install.cmake
 sgxd.cbp
-sgx-gmp
-sgx-sdk-build
+sgx-gmp/
+sgx-sdk-build/
 secure_enclave/Makefile
 secure_enclave/secure_enclave.signed.so
 secure_enclave/secure_enclave.so
@@ -41,14 +41,7 @@ autom4te.cache
 sgxwallet
 testw
 configure
-jsonrpc/zlib
-jsonrpc/argtable2
-jsonrpc/jsoncpp
-jsonrpc/libjson-rpc-cpp
-jsonrpc/curl-from-git.tar.gz
-jsonrpc/curl
-jsonrpc/libmicrohttpd
 secure_enclave/.deps
 test-driver
 /intel-sgx-ssl/
-/intel-sgx-ssl/
+
