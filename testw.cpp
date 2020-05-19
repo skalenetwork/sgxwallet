@@ -773,6 +773,13 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
 
 }
 
+TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+    REQUIRE(c.getServerVersion()["version"] == SGXWALLET_VERSION);
+
+}
+
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
 
     REQUIRE(SGXRegistrationServer::getServer() != nullptr);
@@ -875,11 +882,11 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
 
     Json::Value polyExists = c.isPolyExists(polyName);
 
-    REQUIRE(polyExists["exists"].asBool());
+    REQUIRE(polyExists["IsExist"].asBool());
 
     Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
 
-    REQUIRE(!polyDoesNotExist["exists"].asBool());
+    REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 
 
 }

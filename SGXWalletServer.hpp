@@ -86,6 +86,8 @@ public:
 
     virtual Json::Value getServerStatus();
 
+    virtual Json::Value getServerVersion();
+
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
     static void writeDataToDB(const string &Name, const string &value);
@@ -134,6 +136,8 @@ public:
     static Json::Value isPolyExistsImpl(const string &_polyName);
 
     static Json::Value getServerStatusImpl();
+
+    static Json::Value getServerVersionImpl();
 
     static void printDB();
 

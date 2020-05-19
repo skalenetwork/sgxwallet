@@ -151,8 +151,6 @@ bool hex2carray2(const char *_hex, uint64_t *_bin_len,
 bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
           char *_sig) {
 
-    //cerr << "ENTER SIGN" << endl;
-
     auto keyStr = make_shared<string>(_encryptedKeyHex);
 
     auto hash = make_shared<array<uint8_t, 32>>();
@@ -168,10 +166,7 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
 
     auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
-    //cerr << "keyShare created" << endl;
-    // {
     auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
-    // }
 
     auto sigShareStr = sigShare->toString();
 
@@ -184,15 +179,11 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     // auto sig_ptr = make_shared<string>(test_sig);
     // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
 
-    //cerr<< "sig " << _sig <<endl;
-
     return true;
 }
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char *_sig) {
-
-    //cerr << "ENTER SIGN" << endl;
 
     auto keyStr = make_shared<string>(_encryptedKeyHex);
 
@@ -208,10 +199,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
 //  auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 //
-//  //cerr << "keyShare created" << endl;
-//  // {
 //  auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
-//  // }
 //
 //  auto sigShareStr = sigShare->toString();
 //
@@ -296,8 +284,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     // auto sig_ptr = make_shared<string>(test_sig);
     // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
 
-    //cerr<< "sig " << _sig <<endl;
-
     return true;
 }
 
@@ -320,7 +306,6 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 
     unsigned int encryptedLen = 0;
 
-    //status = trustedEncryptKey(eid, errStatus, errMsg, keyArray, encryptedKey, &encryptedLen);
     status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     spdlog::debug("errStatus is {}", *errStatus);

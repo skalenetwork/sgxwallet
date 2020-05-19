@@ -179,7 +179,7 @@ int calc_secret_share(const char* decrypted_coeffs, char * s_share,
   }
 
   libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
-  string cur_share = ConvertToString(secret_share, 16);//stringFromFr(secret_share);
+  string cur_share = ConvertToString(secret_share, 16);
   int n_zeroes = 64 - cur_share.size();
   cur_share.insert(0, n_zeroes, '0');
 

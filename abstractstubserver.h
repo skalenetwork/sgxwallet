@@ -56,6 +56,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("isPolyExists", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::isPolyExistsI);
 
           this->bindAndAddMethod(jsonrpc::Procedure("getServerStatus", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerStatusI);
+          this->bindAndAddMethod(jsonrpc::Procedure("getServerVersion", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerVersionI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -133,6 +134,12 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           response = this->getServerStatus();
         }
 
+        inline virtual void getServerVersionI(const Json::Value &request, Json::Value &response)
+        {
+          (void)request;
+          response = this->getServerVersion();
+        }
+
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex ) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
@@ -152,6 +159,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value isPolyExists(const std::string& polyName) = 0;
 
         virtual Json::Value getServerStatus() = 0;
+        virtual Json::Value getServerVersion() = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

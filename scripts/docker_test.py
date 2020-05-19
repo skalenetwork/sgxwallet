@@ -24,21 +24,14 @@
 
 import sys, os, subprocess, socket, time
 
-
-
-
-
-
 os.chdir("..")
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting containerb test")
+print("Starting container test")
 print("Top directory is:" + topDir)
-SCRIPTS_DIR = topDir + "/scripts"
 
 BRANCH = sys.argv[1];
 DOCKER_FILE_NAME = sys.argv[2];
-IMAGE_NAME = sys.argv[3];
-COMMIT_HASH = sys.argv[4]
+IMAGE_NAME = sys.argv[3]
 
 if (BRANCH == "develop") :
     TAG_POSTFIX = "latest";
