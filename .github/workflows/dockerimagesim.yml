@@ -13,13 +13,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
-    - name: build
-      run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
-    - name: test
-      run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
-    - name: deploy docker image
-      #if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
-      run : |
+    - name: init enviroment variables:
+      run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
         export VERSION=$(cat VERSION)
@@ -29,7 +24,15 @@ jobs:
         echo "Version $VERSION"
         export RELEASE=true
         echo "::set-env name=RELEASE::$RELEASE"
-        bash ./scripts/build_and_publish.sh DockerfileSimulation
+        bash ./scripts/build_image.sh DockerfileSimulation
+    - name: build
+      run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
+    - name: test
+      run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
+    - name: deploy docker image
+      #if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
+      run : |
+        bash ./scripts/publish_image.sh DockerfileSimulation
     - name: Create Release
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       id: create_release
