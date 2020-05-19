@@ -32,7 +32,7 @@ jobs:
       run : |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
-        export VERSION=${env.VERSION}
+        export VERSION=${{env.VERSION}}
         echo "::set-env name=VERSION::$VERSION"
         echo "Version $VERSION"
         export RELEASE=true
