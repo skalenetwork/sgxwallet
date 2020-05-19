@@ -45,6 +45,7 @@ echo "Test run requested"
 ./testw [dkg-api]
 ./testw [dkg-poly-exists]
 ./testw [aes-encrypt-decrypt]
+./testw [get-server-version]
 else
    ./sgxwallet $1 $2 $3 $4
 fi

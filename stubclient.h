@@ -249,16 +249,26 @@ class StubClient : public jsonrpc::Client
     }
 
 
-        Json::Value getServerStatus() 
-        {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getServerStatus",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value getServerStatus()
+    {
+        Json::Value p;
+        p = Json::nullValue;
+        Json::Value result = this->CallMethod("getServerStatus",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
+
+    Json::Value getServerVersion() {
+        Json::Value p;
+        p = Json::nullValue;
+        Json::Value result = this->CallMethod("getServerVersion",p);
+        if (result.isObject())
+            return result;
+        else
+            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+    }
 
 };
 
