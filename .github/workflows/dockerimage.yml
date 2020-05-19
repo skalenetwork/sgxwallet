@@ -19,11 +19,13 @@ jobs:
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
           export VERSION=$(cat VERSION)
+          echo "Version $VERSION"
           export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION sgxwallet)
           echo "::set-env name=VERSION::$VERSION"
           echo "Version $VERSION"
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
-          bash ./scripts/build_and_publish.sh sgxwallet Dockerfile
+          bash ./scripts/build_image.sh Dockerfile
+          bash ./scripts/publish_image.sh Dockerfile
 
 
