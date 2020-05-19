@@ -45,7 +45,7 @@ do
     then
         VERSION_NUMBER=4
     fi
-    RESULT_VERSION="$CONTAINER:$VERSION-$LABEL.$VERSION_NUMBER"
+    RESULT_VERSION="$CONTAINER.$VERSION-$LABEL.$VERSION_NUMBER"
     if ! [ $(git tag -l ?$RESULT_VERSION) ]
     then
         echo "$RESULT_VERSION"
