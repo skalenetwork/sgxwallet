@@ -1,6 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
-.idea/
-sgx-gmp/
+.idea
+cmake-build-debug
+build
+sgx_data
+jsonrpc
 gmp-build
 tgmp-build
 install-sh
@@ -47,3 +50,5 @@ jsonrpc/curl
 jsonrpc/libmicrohttpd
 secure_enclave/.deps
 test-driver
+/intel-sgx-ssl/
+/intel-sgx-ssl/
