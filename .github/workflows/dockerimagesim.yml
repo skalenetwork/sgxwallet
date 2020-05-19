@@ -23,7 +23,6 @@ jobs:
         echo "::set-env name=VERSION::$VERSION"
         echo "Version $VERSION"
         bash ./scripts/build_image.sh DockerfileSimulation
-      run : bash ./scripts/build_image.sh DockerfileSimulation
     - name: build container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
     - name: test
