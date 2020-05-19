@@ -44,4 +44,5 @@ configure
 secure_enclave/.deps
 test-driver
 /intel-sgx-ssl/
-
+m4
+.testw.py.swp
