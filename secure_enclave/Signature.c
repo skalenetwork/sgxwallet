@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#ifdef NO_SGX
+#ifdef USER_SPACE
 #include <gmp.h>
 #else
 #include <../tgmp-build/include/sgx_tgmp.h>
