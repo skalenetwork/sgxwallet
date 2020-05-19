@@ -25,6 +25,6 @@ jobs:
           echo "Version $VERSION"
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
-          bash ./scripts/build_and_publish.sh sgxwallet Dockerfile
+          bash ./scripts/build_and_publish.sh Dockerfile
 
 
