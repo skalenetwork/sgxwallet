@@ -158,9 +158,24 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     spdlog::debug("encrypted len: {}", dec_len);
 
 
-    if (!encryptKeys)
+    if (!encryptKeys) {
         status = trustedEcdsaSign(eid, &errStatus, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
+        mpz_t msgMpz;
+        mpz_init(msgMpz);
+        if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
+            spdlog::error("invalid message hash {}", hashHex);
+            goto clean;
+        }
+
+
+        clean:
+
+        mpz_clear(msgMpz);
+
+
+
+    }
     else
         status = trustedEcdsaSignAES(eid, &errStatus, errMsg, encr_key, dec_len, (unsigned char *) hashHex, signature_r,
                                 signature_s, &signature_v, base);

@@ -300,7 +300,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_t privateKeyMpz;
     mpz_init(privateKeyMpz);
     mpz_t msgMpz;
-    mpz_init(msgMpz);
+
+
 
     signature sign = signature_init();
 
@@ -311,27 +312,36 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 
     if (!hash) {
-        *errStatus = -1;
-        LOG_WARN("NULL message hash");
-        snprintf(errString, BUF_LEN, "NULL message hash");
-        goto clean;
-    }
-
-    if (!hash) {
-        *errStatus = -1;
+        *errStatus = 1;
         char* msg = "NULL message hash";
         LOG_ERROR(msg);
         snprintf(errString, BUF_LEN, msg);
         goto clean;
     }
 
+    if (strnlen(hash, 64 ) > 64) {
+        *errStatus = 2;
+        char* msg = "Hash too long";
+        LOG_ERROR(msg);
+        snprintf(errString, BUF_LEN, msg);
+        goto clean;
+    }
+
+    mpz_init(msgMpz);
+
+    if (mpz_set_str(msgMpz, hash, 16) == -1) {
+        *errStatus = 1;
+        snprintf(errString, BUF_LEN, "invalid message hash %s", hash);
+        LOG_WARN(errString);
+        goto clean;
+    }
+
     if (!encryptedPrivateKey) {
-        *errStatus = -1;
+        *errStatus = 3;
         snprintf(errString, BUF_LEN, "NULL encrypted ECDSA private key");
         LOG_ERROR(errString);
         goto clean;
     }
-    
     
 
     sgx_status_t status = sgx_unseal_data(
@@ -354,12 +364,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     }
 
 
-    if (mpz_set_str(msgMpz, hash, 16) == -1) {
-        *errStatus = -1;
-        snprintf(errString, BUF_LEN, "invalid message hash %s", hash);
-        LOG_WARN(errString);
-        goto clean;
-    }
+
 
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
@@ -368,7 +373,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 
     if (!signature_verify(msgMpz, sign, publicKey, curve)) {
-        *errStatus = -2;
+        *errStatus = 2;
         snprintf(errString, BUF_LEN, "ECDSA sig not verified");
         LOG_WARN(errString);
         goto clean;
