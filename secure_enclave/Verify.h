@@ -22,6 +22,9 @@
 */
 #ifndef SGXWALLET_VERIFY_H
 #define SGXWALLET_VERIFY_H
+
+#define USER_SPACE 1
+
 #include "secure_enclave/Point.h"
 #include "secure_enclave/DomainParameters.h"
 #include "secure_enclave/NumberTheory.h"

@@ -28,6 +28,8 @@
 
 #ifdef USER_SPACE
 #include <gmp.h>
+
+
 #else
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
@@ -90,6 +92,7 @@ void signature_extract_public_key(point public_key, mpz_t private_key, domain_pa
     point_multiplication(public_key, private_key, curve->G, curve);
 }
 
+#ifndef USER_SPACE
 /*Generate signature for a message*/
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve) {
     //message must not have a bit length longer than that of n
@@ -177,7 +180,7 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 }
 
-
+#endif
 
 /*Release signature*/
 void signature_free(signature sig) {

@@ -31,6 +31,7 @@
 #endif
 
 #ifdef USER_SPACE
+
 #include <gmp.h>
 #else
 #include <../tgmp-build/include/sgx_tgmp.h>

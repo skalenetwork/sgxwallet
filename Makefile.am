@@ -45,7 +45,7 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 #AM_CPPFLAGS += -g -Og
 
 
-AM_CFLAGS = -g -Og -rdynamic -Wl,--no-as-needed -lSegFault
+AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault
 
 
@@ -68,11 +68,10 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp \
-             secure_enclave/DomainParameters.c ECDSACrypto.cpp \
+             ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c \
-             secure_enclave/NumberTheory.c secure_enclave/Signature.c \
-             secure_enclave/Curves.c secure_enclave/Point.c
+             ECDSAImpl.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwallet.c  $(COMMON_SRC)

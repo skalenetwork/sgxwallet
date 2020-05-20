@@ -33,7 +33,7 @@ using namespace std;
 #include <memory>
 
 
-#define USER_SPACE
+
 #include <gmp.h>
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
