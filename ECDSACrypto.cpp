@@ -39,7 +39,10 @@
 
 
 
+#include "secure_enclave/Verify.h"
+
 #include "BLSCrypto.h"
+
 #include "ECDSACrypto.h"
 
 
@@ -153,16 +156,23 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     }
 
 
-    spdlog::debug("encryptedKeyHex: {}", encryptedKeyHex);
-    spdlog::debug("HASH: {}", hashHex);
-    spdlog::debug("encrypted len: {}", dec_len);
-
 
     if (!encryptKeys) {
         status = trustedEcdsaSign(eid, &errStatus, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
+
+        domain_parameters curve = domain_parameters_init();
+        domain_parameters_load_curve(curve, secp256k1);
+
+        point publicKey = point_init();
+
+
         mpz_t msgMpz;
         mpz_init(msgMpz);
+
+
+
+
         if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
             spdlog::error("invalid message hash {}", hashHex);
             goto clean;
@@ -173,7 +183,8 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
 
         mpz_clear(msgMpz);
 
-
+        domain_parameters_clear(curve);
+        point_clear(publicKey);
 
     }
     else

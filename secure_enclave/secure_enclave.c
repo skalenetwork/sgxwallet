@@ -307,7 +307,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
-
     point publicKey = point_init();
 
 

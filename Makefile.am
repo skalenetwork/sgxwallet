@@ -10,7 +10,7 @@ include $(top_srcdir)/build-aux/sgx_app.am
 ##
 ## And a pattern rule for building prexoxy functions from EDL files:
 ##
-##   %_u.h %_u.c: %.edl
+##   %_u.h %_u.c: %.edl34
 ##
 ## And sets these Makefile variables:
 ##
@@ -67,9 +67,12 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp ECDSACrypto.cpp \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp \
+             secure_enclave/DomainParameters.c ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
-             sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c
+             sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c \
+             secure_enclave/NumberTheory.c secure_enclave/Signature.c \
+             secure_enclave/Curves.c secure_enclave/Point.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwallet.c  $(COMMON_SRC)

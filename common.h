@@ -35,10 +35,7 @@ using namespace std;
 
 #define USER_SPACE
 #include <gmp.h>
-#include "secure_enclave/Point.h"
-#include "secure_enclave/DomainParameters.h"
-#include "secure_enclave/NumberTheory.h"
-#include "secure_enclave/Signature.h"
+#include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
 
 
