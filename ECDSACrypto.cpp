@@ -129,13 +129,6 @@ std::string getECDSAPubKey(const char *_encryptedKeyHex) {
     }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
-        spdlog::debug("enc_len is {}", enc_len);
-        spdlog::debug("pubkey is {}", pubKey);
-        spdlog::debug("pubkey length is {}", pubKey.length());
-        spdlog::debug("err str is {}", errMsg.data());
-        spdlog::debug("err status is {}", errStatus);
-
-
     return pubKey;
 }
 
