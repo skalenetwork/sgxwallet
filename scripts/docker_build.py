@@ -56,7 +56,6 @@ COMMIT_HASH = sys.argv[3]
 TAG_POSTFIX = "latest_commit"
 
 FULL_IMAGE_TAG = "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX
-COMMIT_HASH_TAG = "skalenetwork/" + IMAGE_NAME + ":" + COMMIT_HASH
 
 print("Starting build", flush=True)
 
