@@ -998,6 +998,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >> > (coeffs_pkeys_map), t,
                                n);
+    libff::inhibit_profiling_info = true;
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
 
