@@ -256,3 +256,5 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     return result;
 
 }
+
+

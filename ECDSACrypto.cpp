@@ -135,9 +135,10 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
     return pubKey;
 }
 
-void verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
+bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS) {
 
+    bool result = false;
 
     signature sig = signature_init();
 
@@ -158,11 +159,14 @@ void verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
     }
 
     signature_set_str(sig, signatureR, signatureS, 16);
+
     point_set_hex(publicKey, r.c_str(), s.c_str());
     if (!signature_verify(msgMpz, sig, publicKey, curve)) {
         spdlog::error("ECDSA sig not verified");
         goto clean;
     }
+
+    result = true;
 
     clean:
 
@@ -171,10 +175,12 @@ void verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
     point_clear(publicKey);
     signature_free(sig);
 
+    return result;
+
 }
 
 vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, int base) {
-    vector <string> signature_vect(3);
+    vector <string> signatureVector(3);
 
     vector<char> errMsg(1024, 0);
     int errStatus = 0;
@@ -219,18 +225,21 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
         exception = make_shared<SGXException>(666, "failed to sign");
         goto clean;
     }
-    signature_vect.at(0) = to_string(signatureV);
+    signatureVector.at(0) = to_string(signatureV);
     if (base == 16) {
-        signature_vect.at(1) = "0x" + string(signatureR.data());
-        signature_vect.at(2) = "0x" + string(signatureS.data());
+        signatureVector.at(1) = "0x" + string(signatureR.data());
+        signatureVector.at(2) = "0x" + string(signatureS.data());
     } else {
-        signature_vect.at(1) = string(signatureR.data());
-        signature_vect.at(2) = string(signatureS.data());
+        signatureVector.at(1) = string(signatureR.data());
+        signatureVector.at(2) = string(signatureS.data());
     }
 
     /* Now verify signature */
 
-    verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data());
+    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data())) {
+        exception = make_shared<SGXException>(667, "ECDSA did not verify");
+        goto clean;
+    }
 
 
     clean:
@@ -238,5 +247,5 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
     if (exception)
         throw *exception;
 
-    return signature_vect;
+    return signatureVector;
 }
