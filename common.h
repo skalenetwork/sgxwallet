@@ -39,6 +39,8 @@ using namespace std;
 #include "InvalidStateException.h"
 
 
+#define SAFE_FREE(__POINTER__) {if (__POINTER__) {free(__POINTER__); __POINTER__ = NULL;}}
+
 inline std::string className(const std::string &prettyFunction) {
     size_t colons = prettyFunction.find("::");
     if (colons == std::string::npos)

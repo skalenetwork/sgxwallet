@@ -57,12 +57,12 @@ string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
 
 void fillRandomBuffer(vector<unsigned char>& _buffer) {
     ifstream devRandom("/dev/urandom", ios::in|ios::binary);
-    devRandom.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    devRandom.exceptions(ifstream::failbit | ifstream::badbit);
     devRandom.read((char*) _buffer.data(), _buffer.size());
     devRandom.close();
 }
 
-std::vector<std::string> genECDSAKey() {
+vector<string> genECDSAKey() {
     vector<char> errMsg(1024, 0);
     int errStatus = 0;
     vector<uint8_t> encr_pr_key(1024, 0);
@@ -83,12 +83,12 @@ std::vector<std::string> genECDSAKey() {
         spdlog::error("RPCException thrown with status {}", status);
         throw SGXException(status, errMsg.data());
     }
-    std::vector<std::string> keys(3);
+    vector<string> keys(3);
 
     vector<char> hexEncrKey(BUF_LEN * 2, 0);
     carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data());
     keys.at(0) = hexEncrKey.data();
-    keys.at(1) = std::string(pub_key_x.data()) + std::string(pub_key_y.data());
+    keys.at(1) = string(pub_key_x.data()) + string(pub_key_y.data());
 
 
     vector<unsigned char> randBuffer(32,0);
@@ -105,7 +105,7 @@ std::vector<std::string> genECDSAKey() {
     return keys;
 }
 
-std::string getECDSAPubKey(const char *_encryptedKeyHex) {
+string getECDSAPubKey(const char *_encryptedKeyHex) {
 
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
@@ -139,11 +139,15 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     int errStatus = 0;
     char *signature_r = (char *) calloc(1024, 1);
     char *signature_s = (char *) calloc(1024, 1);
+    uint8_t *encr_key = (uint8_t *) calloc(1024, 1);
     uint8_t signature_v = 0;
     uint64_t dec_len = 0;
 
+
+    signature sig = signature_init();
+
     //uint8_t encr_key[BUF_LEN];
-    uint8_t *encr_key = (uint8_t *) calloc(1024, 1);
+    
     if (!hex2carray(encryptedKeyHex, &dec_len, encr_key)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
@@ -154,30 +158,13 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
         status = trustedEcdsaSign(eid, &errStatus, errMsg, encr_key, ECDSA_ENCR_LEN, (unsigned char *) hashHex, signature_r,
                              signature_s, &signature_v, base);
 
-        domain_parameters curve = domain_parameters_init();
-        domain_parameters_load_curve(curve, secp256k1);
-
-        point publicKey = point_init();
-
-
-        mpz_t msgMpz;
-        mpz_init(msgMpz);
 
 
 
 
-        if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
-            spdlog::error("invalid message hash {}", hashHex);
-            goto clean;
-        }
 
 
-        clean:
-
-        mpz_clear(msgMpz);
-
-        domain_parameters_clear(curve);
-        point_clear(publicKey);
+        
 
     }
     else
@@ -188,8 +175,6 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
     }
 
 
-    spdlog::debug("signature r in  ecdsa_sign_hash: {}", signature_r);
-    spdlog::debug("signature s in  ecdsa_sign_hash: {}", signature_s);
 
 
     if (status != SGX_SUCCESS) {
@@ -204,10 +189,46 @@ vector<string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, i
         signature_vect.at(2) = string(signature_s);
     }
 
-    free(errMsg);
-    free(signature_r);
-    free(signature_s);
-    free(encr_key);
+
+
+    domain_parameters curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
+    point publicKey = point_init();
+
+
+    mpz_t msgMpz;
+    mpz_init(msgMpz);
+
+
+    if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
+        spdlog::error("invalid message hash {}", hashHex);
+        goto clean;
+    }
+
+
+    signature_set_str(sig, signature_r, signature_s, 16);
+
+
+    if (!signature_verify(msgMpz, sig, publicKey, curve)) {
+        spdlog::warn("ECDSA sig not verified");
+        goto clean;
+    }
+
+
+
+
+    clean:
+
+    mpz_clear(msgMpz);
+    domain_parameters_clear(curve);
+    point_clear(publicKey);
+
+    signature_free(sig);
+
+    SAFE_FREE(errMsg);
+    SAFE_FREE(signature_r);
+    SAFE_FREE(signature_s);
+    SAFE_FREE(encr_key);
 
     return signature_vect;
 }
