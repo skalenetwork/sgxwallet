@@ -82,14 +82,14 @@ void point_set(point R, point P)
 }
 
 /*Set point from strings of a base from 2-62*/
-void point_set_str(point p, char *x, char *y, int base)
+void point_set_str(point p, const  char *x, const char *y, int base)
 {
 	mpz_set_str(p->x, x, base);
 	mpz_set_str(p->y, y, base);
 }
 
 /*Set point from hexadecimal strings*/
-void point_set_hex(point p, char *x, char *y)
+void point_set_hex(point p, const char *x, const char *y)
 {
 	point_set_str(p,x,y,16);
 }

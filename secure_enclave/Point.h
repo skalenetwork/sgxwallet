@@ -46,7 +46,7 @@ EXTERNC void point_inverse(point R, point P, domain_parameters curve);
 EXTERNC void point_print(point p);
 
 /*Set point from hexadecimal strings*/
-EXTERNC void point_set_hex(point p, char *x, char *y);
+EXTERNC void point_set_hex(point p, const char *x, const char *y);
 
 /*Set point from decimal unsigned long ints*/
 EXTERNC void point_set_ui(point p, unsigned long int x, unsigned long int y);
@@ -61,7 +61,7 @@ EXTERNC void point_doubling(point R, point P, domain_parameters curve);
 EXTERNC void point_multiplication(point R, mpz_t multiplier, point P, domain_parameters curve);
 
 /*Set point from strings of a base from 2-62*/
-EXTERNC void point_set_str(point p, char *x, char *y, int base);
+EXTERNC void point_set_str(point p, const char *x, const char *y, int base);
 
 /*Compare two points return 1 if not the same, returns 0 if they are the same*/
 EXTERNC bool point_cmp(point P, point Q);

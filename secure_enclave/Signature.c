@@ -59,13 +59,13 @@ void signature_print(signature sig) {
 }
 
 /*Set signature from strings of a base from 2-62*/
-void signature_set_str(signature sig, char *r, char *s, int base) {
+void signature_set_str(signature sig, const char *r, const char *s, int base) {
     mpz_set_str(sig->r, r, base);
     mpz_set_str(sig->s, s, base);
 }
 
 /*Set signature from hexadecimal strings*/
-void signature_set_hex(signature sig, char *r, char *s) {
+void signature_set_hex(signature sig, const char *r, const char *s) {
     signature_set_str(sig, r, s, 16);
 }
 
