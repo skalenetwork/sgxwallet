@@ -776,7 +776,7 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
 TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    REQUIRE(c.getServerVersion()["version"] == SGXWALLET_VERSION);
+    REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
 
 }
 

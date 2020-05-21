@@ -678,12 +678,10 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
     return result;
 }
 
+
 Json::Value SGXWalletServer::getServerVersionImpl() {
-
     INIT_RESULT(result)
-
-    result["version"] = SGXWALLET_VERSION;
-
+    result["version"] = TOSTRING(SGXWALLET_VERSION);
     return result;
 }
 

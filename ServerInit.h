@@ -25,7 +25,6 @@
 #define SGXWALLET_SERVERINIT_H
 
 #include "stdint.h"
-#include "SGXWALLET_VERSION"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

@@ -33,7 +33,12 @@
 using namespace jsonrpc;
 using namespace std;
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 class SGXWalletServer : public AbstractStubServer {
+
+
 
     recursive_mutex m;
 
@@ -42,6 +47,11 @@ class SGXWalletServer : public AbstractStubServer {
 
 
 public:
+
+    static const char* getVersion() {
+        return TOSTRING(SGXWALLET_VERSION);
+    }
+
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);
 
     virtual Json::Value

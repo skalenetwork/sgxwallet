@@ -33,7 +33,7 @@ SUBDIRS=secure_enclave
 ##
 ## SGX_EDGER8R_FLAGS=
 
-
+WALLET_VERSION := $(shell cat VERSION)
 
 ## Needed to make our pattern rule work.
 
@@ -45,11 +45,11 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 #AM_CPPFLAGS += -g -Og
 
 
-AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault
-AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault
+AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
+AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
+AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
