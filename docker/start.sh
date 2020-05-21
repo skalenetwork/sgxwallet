@@ -38,15 +38,7 @@ fi
 
 if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
-# ./testw [bls-key-encrypt]
-# ./testw [dkg-encr-sshares]
-# ./testw [dkg-verify]
-# ./testw [get-server-status]
-# ./testw [dkg-api]
-# ./testw [dkg-poly-exists]
-# ./testw [aes-encrypt-decrypt]
-# ./testw [get-server-version]
-./testw
+./testw.py
 else
    ./sgxwallet $1 $2 $3 $4
 fi
