@@ -9,7 +9,6 @@
 -   [Contributing source code](../.github/CONTRIBUTING.md)
 -   [Security Bug Reporting](../SECURITY.md)
 
-
 ## Community
 
 -   [SKALE Discord](http://skale.chat)
