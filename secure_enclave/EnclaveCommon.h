@@ -53,7 +53,7 @@ EXTERNC void enclave_init();
 
 
 EXTERNC void LOG_INFO(char* msg);
-EXTERNC void LOG_WARNING(char* _msg);
+EXTERNC void LOG_WARN(char* _msg);
 EXTERNC void LOG_ERROR(char* _msg);
 EXTERNC void LOG_DEBUG(char* _msg);
 EXTERNC void LOG_TRACE(char* _msg);

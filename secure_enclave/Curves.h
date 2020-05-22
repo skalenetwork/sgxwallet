@@ -25,6 +25,12 @@
 #ifndef SGXWALLET_CURVES_H
 #define SGXWALLET_CURVES_H
 
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
+
 
 /*Curves that can be loaded using domain_parameters_load_curve()*/
 typedef enum {	secp112r1 = 0,
@@ -47,7 +53,7 @@ typedef enum {	secp112r1 = 0,
 #define NUMBER_OF_CURVES (secp521r1+1)
 
 /*Load a curve depending on it's curve number, defined by the enum*/
-void domain_parameters_load_curve(domain_parameters out, curve_list curve);
+EXTERNC void domain_parameters_load_curve(domain_parameters out, curve_list curve);
 
 /* REMARK:
 For some weird reason secp112r2 and secp128r2 doesn't want to be stable. Actually they work once in a while. However running the benchmark command gives -1 as operation time, sometimes and only sometimes!

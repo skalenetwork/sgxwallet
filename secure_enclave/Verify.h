@@ -16,28 +16,18 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerInit.h
+    @file Verify.h
     @author Stan Kladko
-    @date 2019
+    @date 2020
 */
+#ifndef SGXWALLET_VERIFY_H
+#define SGXWALLET_VERIFY_H
 
-#ifndef SGXWALLET_SERVERINIT_H
-#define SGXWALLET_SERVERINIT_H
+#define USER_SPACE 1
 
-#include "stdint.h"
-
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign);
-
-EXTERNC void initUserSpace();
-
-EXTERNC void initEnclave(uint32_t _logLevel);
-
-
-
-#endif //SGXWALLET_SERVERINIT_H
+#include "secure_enclave/Point.h"
+#include "secure_enclave/DomainParameters.h"
+#include "secure_enclave/NumberTheory.h"
+#include "secure_enclave/Signature.h"
+#include "secure_enclave/Curves.h"
+#endif //SGXWALLET_VERIFY_H

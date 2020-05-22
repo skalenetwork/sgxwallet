@@ -111,7 +111,7 @@ void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
     static int sgxServerInited;
 
-    cout << "Running sgxwallet version:" << SGXWALLET_VERSION << endl;
+    cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
 
     CHECK_STATE(sgxServerInited == 0)
     sgxServerInited = 1;

@@ -212,15 +212,15 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         if (!checkName(_keyShareName, "BLS_KEY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid BLSKey name");
         }
-        string cutHash = _messageHash;
-        if (cutHash[0] == '0' && (cutHash[1] == 'x' || cutHash[1] == 'X')) {
-            cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
+        string hashTmp = _messageHash;
+        if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-        while (cutHash[0] == '0') {
-            cutHash.erase(cutHash.begin(), cutHash.begin() + 1);
+        while (hashTmp[0] == '0') {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
         }
 
-        if (!checkHex(cutHash)) {
+        if (!checkHex(hashTmp)) {
             throw SGXException(INVALID_HEX, "Invalid hash");
         }
 
@@ -318,10 +318,10 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
             throw SGXException(UNKNOWN_ERROR, "invalid key name");
         }
 
-        shared_ptr <string> key_ptr = readFromDb(_tempKeyName);
+        shared_ptr <string> encryptedKey = readFromDb(_tempKeyName);
 
 
-        writeDataToDB(_keyName, *key_ptr);
+        writeDataToDB(_keyName, *encryptedKey);
         LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -339,40 +339,40 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
     result["signature_r"] = "";
     result["signature_s"] = "";
 
-    vector <string> sign_vect(3);
+    vector <string> signatureVector(3);
 
     try {
 
-        string cutHash = _messageHash;
-        if (cutHash[0] == '0' && (cutHash[1] == 'x' || cutHash[1] == 'X')) {
-            cutHash.erase(cutHash.begin(), cutHash.begin() + 2);
+        string hashTmp = _messageHash;
+        if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-        while (cutHash[0] == '0') {
-            cutHash.erase(cutHash.begin(), cutHash.begin() + 1);
+        while (hashTmp[0] == '0') {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
         }
 
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
-        if (!checkHex(cutHash)) {
+        if (!checkHex(hashTmp)) {
             throw SGXException(INVALID_HEX, "Invalid hash");
         }
         if (_base <= 0 || _base > 32) {
             throw SGXException(-22, "Invalid base");
         }
 
-        shared_ptr <string> key_ptr = readFromDb(_keyName, "");
+        shared_ptr <string> encryptedKey = readFromDb(_keyName, "");
 
-        sign_vect = ecdsaSignHash(key_ptr->c_str(), cutHash.c_str(), _base);
-        if (sign_vect.size() != 3) {
+        signatureVector = ecdsaSignHash(encryptedKey->c_str(), hashTmp.c_str(), _base);
+        if (signatureVector.size() != 3) {
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
 
-        spdlog::debug("got signature_s  {}", sign_vect.at(2));
+        spdlog::debug("got signature_s  {}", signatureVector.at(2));
 
-        result["signature_v"] = sign_vect.at(0);
-        result["signature_r"] = sign_vect.at(1);
-        result["signature_s"] = sign_vect.at(2);
+        result["signature_v"] = signatureVector.at(0);
+        result["signature_r"] = signatureVector.at(1);
+        result["signature_s"] = signatureVector.at(2);
 
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -443,14 +443,14 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
             throw SGXException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
         }
 
-        shared_ptr <string> encr_poly_ptr = readFromDb(_polyName);
+        shared_ptr<string> encrPoly = readFromDb(_polyName);
 
-        verifVector = get_verif_vect(encr_poly_ptr->c_str(), _t, _n);
+        verifVector = get_verif_vect(encrPoly->c_str(), _t, _n);
 
         for (int i = 0; i < _t; i++) {
-            vector <string> cur_coef = verifVector.at(i);
+            vector <string> currentCoef = verifVector.at(i);
             for (int j = 0; j < 4; j++) {
-                result["verificationVector"][i][j] = cur_coef.at(j);
+                result["verificationVector"][i][j] = currentCoef.at(j);
             }
         }
 
@@ -480,7 +480,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
 
-        shared_ptr <string> encr_poly_ptr = readFromDb(_polyName);
+        shared_ptr <string> encrPoly = readFromDb(_polyName);
 
         vector <string> pubKeysStrs;
         for (int i = 0; i < _n; i++) {
@@ -490,7 +490,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
 
-        string s = trustedGetSecretShares(_polyName, encr_poly_ptr->c_str(), pubKeysStrs, _t, _n);
+        string s = trustedGetSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
         //cerr << "result is " << s << endl;
         result["secretShare"] = s;
 
@@ -678,12 +678,10 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
     return result;
 }
 
+
 Json::Value SGXWalletServer::getServerVersionImpl() {
-
     INIT_RESULT(result)
-
-    result["version"] = SGXWALLET_VERSION;
-
+    result["version"] = TOSTRING(SGXWALLET_VERSION);
     return result;
 }
 

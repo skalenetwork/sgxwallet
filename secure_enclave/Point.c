@@ -23,10 +23,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+
+#ifdef USER_SPACE
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 #include "NumberTheory.h"
 
@@ -77,14 +82,14 @@ void point_set(point R, point P)
 }
 
 /*Set point from strings of a base from 2-62*/
-void point_set_str(point p, char *x, char *y, int base)
+void point_set_str(point p, const  char *x, const char *y, int base)
 {
 	mpz_set_str(p->x, x, base);
 	mpz_set_str(p->y, y, base);
 }
 
 /*Set point from hexadecimal strings*/
-void point_set_hex(point p, char *x, char *y)
+void point_set_hex(point p, const char *x, const char *y)
 {
 	point_set_str(p,x,y,16);
 }
