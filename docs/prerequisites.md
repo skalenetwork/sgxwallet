@@ -15,7 +15,7 @@ Sgxwallet may run on other Linux distributions,
 but the installation process is likely to be more complicated, 
 and the use of other distributions is not supported by their respective communities at this time.
 
-### Install Docker engine:
+### Install Docker engine
 
 Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as 
 described below
@@ -26,7 +26,7 @@ sudo apt-get install -y docker-io
 
 To verify a correct installation, run `sudo docker run hello-world`
 
-### Install Docker Compose:
+### Install Docker Compose
 
 ```bash
 sudo apt-get install -y docker-compose
@@ -36,7 +36,7 @@ To verify a correct installation, run `docker-compose version`
 
 For details on Docker installation, see <https://docs.docker.com/engine/installation/linux/ubuntu> and <https://docs.docker.com/compose/install/#install-compose>
 
-### Verify that your machine supports SGX
+### Verify SGX support
 
 Install cpuid and libelf-dev packages:
 
@@ -44,7 +44,7 @@ Install cpuid and libelf-dev packages:
 sudo apt-get install -y libelf-dev cpuid
 ```
 
-Verify your processor supports Intel SGX with:
+Verify processor support of Intel SGX:
 
 ```bash
 cpuid | grep SGX:
