@@ -1,5 +1,7 @@
 # Building SGX wallet from source
 
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 ## Clone this repository and its submodules
 
 `git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
@@ -10,8 +12,6 @@
 cd scripts; sudo ./install_packages.sh; cd ..
 ```
 
-
-
 ## Build dependencies
 
 Dependencies only need to be built once.
@@ -19,7 +19,8 @@ Dependencies only need to be built once.
 ```bash
 cd scripts; ./build_deps.py; cd ..
 ```
-## Set SGX environment variables 
+
+## Set SGX environment variables
 
 ```bash
 source sgx-sdk-build/sgxsdk/environment
@@ -47,7 +48,6 @@ make
 
 The base container includes software common to hardware mode and simulation mode.
 
-
 ```bash
 sudo docker build -t sgxwallet_base .
 
@@ -65,7 +65,6 @@ sudo docker build -t sgxwalletsim -f ./DockerfileSimulation .
 ```bash
 sudo docker build -t sgxwallet -f ./Dockerfile .
 ```
-
 
 ## Adding new source files
 
