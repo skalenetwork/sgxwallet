@@ -22,7 +22,7 @@ jobs:
         echo "Branch $BRANCH"
         export VERSION=$(cat VERSION)
         echo "Version $VERSION"
-        export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION sgxwalletsim)
+        export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
         echo "::set-env name=VERSION::$VERSION"
         echo "Version $VERSION"
         bash ./scripts/build_image.sh DockerfileSimulation
@@ -40,7 +40,7 @@ jobs:
         echo "Version $VERSION"
         export RELEASE=true
         echo "::set-env name=RELEASE::$RELEASE"
-        bash ./scripts/publish_image.sh DockerfileSimulation
+        bash ./scripts/publish_image.sh DockerfileSimulation sgxwalletsim
     - name: Create Release
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       id: create_release
