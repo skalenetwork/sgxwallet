@@ -16,7 +16,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.cpp
+    @file common.h
     @author Stan Kladko
     @date 2020
 */
@@ -34,9 +34,12 @@ using namespace std;
 
 
 
-
+#include <gmp.h>
+#include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
 
+
+#define SAFE_FREE(__POINTER__) {if (__POINTER__) {free(__POINTER__); __POINTER__ = NULL;}}
 
 inline std::string className(const std::string &prettyFunction) {
     size_t colons = prettyFunction.find("::");

@@ -30,7 +30,12 @@
 #define EXTERNC
 #endif
 
-#include <sgx_tgmp.h>
+#ifdef USER_SPACE
+
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 EXTERNC int gen_dkg_poly( char* secret, unsigned _t);
 

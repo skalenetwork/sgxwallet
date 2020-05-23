@@ -23,9 +23,17 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
 #include <assert.h>
+
+#ifdef USER_SPACE
+#include <gmp.h>
+
+
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
+
 #include "DomainParameters.h"
 #include "Point.h"
 #include "NumberTheory.h"
@@ -51,13 +59,13 @@ void signature_print(signature sig) {
 }
 
 /*Set signature from strings of a base from 2-62*/
-void signature_set_str(signature sig, char *r, char *s, int base) {
+void signature_set_str(signature sig, const char *r, const char *s, int base) {
     mpz_set_str(sig->r, r, base);
     mpz_set_str(sig->s, s, base);
 }
 
 /*Set signature from hexadecimal strings*/
-void signature_set_hex(signature sig, char *r, char *s) {
+void signature_set_hex(signature sig, const char *r, const char *s) {
     signature_set_str(sig, r, s, 16);
 }
 
@@ -84,6 +92,7 @@ void signature_extract_public_key(point public_key, mpz_t private_key, domain_pa
     point_multiplication(public_key, private_key, curve->G, curve);
 }
 
+#ifndef USER_SPACE
 /*Generate signature for a message*/
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve) {
     //message must not have a bit length longer than that of n
@@ -171,13 +180,26 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 }
 
+#endif
+
+/*Release signature*/
+void signature_free(signature sig) {
+    mpz_clear(sig->r);
+    mpz_clear(sig->s);
+    free(sig);
+}
+
 /*Verify the integrity of a message using it's signature*/
 bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve) {
 
     //Initialize variables
     mpz_t one, w, u1, u2, t, tt2;
-    mpz_init(one); mpz_init(w); mpz_init(u1);
-    mpz_init(u2); mpz_init(t); mpz_init(tt2);
+    mpz_init(one);
+    mpz_init(w);
+    mpz_init(u1);
+    mpz_init(u2);
+    mpz_init(t);
+    mpz_init(tt2);
 
     mpz_set_ui(one, 1);
 
@@ -224,15 +246,15 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     point_clear(t1);
     point_clear(t2);
 
-    mpz_clear(one); mpz_clear(w); mpz_clear(u1); mpz_clear(u2); mpz_clear(t);
+    mpz_clear(one);
+    mpz_clear(w);
+    mpz_clear(u1);
+    mpz_clear(u2);
+    mpz_clear(t);
     mpz_clear(tt2);
 
     return result;
+
 }
 
-/*Release signature*/
-void signature_free(signature sig) {
-    mpz_clear(sig->r);
-    mpz_clear(sig->s);
-    free(sig);
-}
+

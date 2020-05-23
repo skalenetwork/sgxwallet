@@ -1,6 +1,5 @@
 # Enabling SGX
 
-
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
 ### Verify Intel SGX is enabled in BIOS
@@ -11,10 +10,11 @@ The BIOS key varies by manufacturer and could be F10, F2, F12, F1, DEL, or ESC.
 Usually Intel SGX is disabled by default.
 
 To enable:
- * find the Intel SGX feature in BIOS Menu
-(it is usually under the "Advanced" or "Security" menu)
- * Set SGX in BIOS as `enabled` (preferrably) or `software-controlled`.
- * save your BIOS settings and exit BIOS.
+
+-   find the Intel SGX feature in BIOS Menu
+    (it is usually under the "Advanced" or "Security" menu)
+-   Set SGX in BIOS as `enabled` (preferably) or `software-controlled`.
+-   save your BIOS settings and exit BIOS.
 
 ## Enable "software-controlled" SGX
 
@@ -42,7 +42,6 @@ Install make and gcc if you do not have it
 apt-get install  build-essential
 ```
 
-
 Run the following command:
 
 ```bash
@@ -57,13 +56,12 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 
 If driver installation fails, you can also try installing driver from the 
 Intel github repository. Do 
- 
-```bash 
+
+```bash
 git clone https://github.com/intel/linux-sgx-driver
 ```
 
 And then follow instructions in README.md
-
 
 # Troubleshooting Installation
 

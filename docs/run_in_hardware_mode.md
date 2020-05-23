@@ -54,7 +54,6 @@ Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initia
 If you have a firewall on your network, please make sure these ports are open so clients are able to
 connect to the server. 
 
-
 ## Logging
 
 By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
