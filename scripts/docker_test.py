@@ -29,18 +29,13 @@ topDir = os.getcwd() + "/sgxwallet"
 print("Starting container test")
 print("Top directory is:" + topDir)
 
-BRANCH = sys.argv[1];
-DOCKER_FILE_NAME = sys.argv[2];
-IMAGE_NAME = sys.argv[3]
-
-if (BRANCH == "develop") :
-    TAG_POSTFIX = "latest";
-else :
-    TAG_POSTFIX = "latest_commit"
+DOCKER_FILE_NAME = sys.argv[1];
+IMAGE_NAME = sys.argv[2]
+TAG_POSTFIX = "latest_commit"
 
 FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
 
-print("Running tests for branch " + BRANCH);
+print("Running tests");
 
 dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
                             "-v", "/dev/urandom:/dev/random", "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
