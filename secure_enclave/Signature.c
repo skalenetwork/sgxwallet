@@ -59,14 +59,16 @@ void signature_print(signature sig) {
 }
 
 /*Set signature from strings of a base from 2-62*/
-void signature_set_str(signature sig, const char *r, const char *s, int base) {
-    mpz_set_str(sig->r, r, base);
-    mpz_set_str(sig->s, s, base);
+int signature_set_str(signature sig, const char *r, const char *s, int base) {
+    if ( mpz_set_str(sig->r, r, base) !=0 || mpz_set_str(sig->s, s, base) != 0) {
+        return 1;
+    }
+    return 0;
 }
 
 /*Set signature from hexadecimal strings*/
-void signature_set_hex(signature sig, const char *r, const char *s) {
-    signature_set_str(sig, r, s, 16);
+int signature_set_hex(signature sig, const char *r, const char *s) {
+    return signature_set_str(sig, r, s, 16);
 }
 
 /*Set signature from decimal unsigned long ints*/
