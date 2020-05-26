@@ -49,14 +49,7 @@ signature signature_init() {
     return sig;
 }
 
-/*Print signature to standart output stream*/
-void signature_print(signature sig) {
-    printf("\nSignature (r,s): \n\t(");
-    mpz_out_str(stdout, 10, sig->r);
-    printf(",\n\t");
-    mpz_out_str(stdout, 10, sig->s);
-    printf(")\n");
-}
+
 
 /*Set signature from strings of a base from 2-62*/
 int signature_set_str(signature sig, const char *r, const char *s, int base) {

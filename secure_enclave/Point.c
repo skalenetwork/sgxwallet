@@ -55,20 +55,7 @@ void point_at_infinity(point p)
 }
 
 /*Print point to standart output stream*/
-void point_print(point p)
-{
- //Write something if point is a infinity
-	if(p->infinity)
-	{	
-		printf("Point is at infinity!");
-	}else{
-		printf("\nPoint: (\n\t");
-		//mpz_out_str(stdout, 10, p->x);
-		printf("\n,\n\t");
-		//mpz_out_str(stdout, 10, p->y);
-		printf("\n)\n");
-	}
-}
+
 
 /*Set a point from another point*/
 void point_set(point R, point P)
