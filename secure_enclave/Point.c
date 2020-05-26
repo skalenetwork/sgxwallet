@@ -57,7 +57,7 @@ void point_at_infinity(point p)
 /*Print point to standart output stream*/
 void point_print(point p)
 {
- /*	//Write something if point is a infinity
+ //Write something if point is a infinity
 	if(p->infinity)
 	{	
 		printf("Point is at infinity!");
@@ -67,7 +67,7 @@ void point_print(point p)
 		printf("\n,\n\t");
 		//mpz_out_str(stdout, 10, p->y);
 		printf("\n)\n");
-	}*/
+	}
 }
 
 /*Set a point from another point*/
@@ -292,7 +292,7 @@ Loops through the integer bit per bit, if a bit is 1 then x is added to the resu
 This is not the most effecient method of point multiplication, but it's faster than P+P+P+... which is not computational feasiable.
 */
 		int bits = mpz_sizeinbase(multiplier, 2);
-		unsigned long int bit = 0;
+		long int bit = 0;
 		while(bit <= bits)
 		{
 			if(mpz_tstbit(multiplier, bit))

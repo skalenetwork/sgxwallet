@@ -51,11 +51,11 @@ signature signature_init() {
 
 /*Print signature to standart output stream*/
 void signature_print(signature sig) {
-    /*printf("\nSignature (r,s): \n\t(");
+    printf("\nSignature (r,s): \n\t(");
     mpz_out_str(stdout, 10, sig->r);
     printf(",\n\t");
     mpz_out_str(stdout, 10, sig->s);
-    printf(")\n");*/
+    printf(")\n");
 }
 
 /*Set signature from strings of a base from 2-62*/
