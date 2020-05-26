@@ -17,6 +17,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: build container for release
+      if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
@@ -29,7 +30,7 @@ jobs:
     - name: build container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
     - name: test
-      run: python3 scripts/docker_test.py ${GITHUB_REF##*/} DockerfileSimulation sgxwalletsim
+      run: python3 scripts/docker_test.py DockerfileSimulation sgxwalletsim
     - name: deploy docker image
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       run : |
