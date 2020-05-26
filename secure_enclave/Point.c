@@ -55,20 +55,7 @@ void point_at_infinity(point p)
 }
 
 /*Print point to standart output stream*/
-void point_print(point p)
-{
- /*	//Write something if point is a infinity
-	if(p->infinity)
-	{	
-		printf("Point is at infinity!");
-	}else{
-		printf("\nPoint: (\n\t");
-		//mpz_out_str(stdout, 10, p->x);
-		printf("\n,\n\t");
-		//mpz_out_str(stdout, 10, p->y);
-		printf("\n)\n");
-	}*/
-}
+
 
 /*Set a point from another point*/
 void point_set(point R, point P)
@@ -82,16 +69,19 @@ void point_set(point R, point P)
 }
 
 /*Set point from strings of a base from 2-62*/
-void point_set_str(point p, const  char *x, const char *y, int base)
+int point_set_str(point p, const  char *x, const char *y, int base)
 {
-	mpz_set_str(p->x, x, base);
-	mpz_set_str(p->y, y, base);
+	if (mpz_set_str(p->x, x, base) != 0 || mpz_set_str(p->y, y, base) != 0) {
+        return 1;
+    }
+
+    return 0;
 }
 
 /*Set point from hexadecimal strings*/
-void point_set_hex(point p, const char *x, const char *y)
+int point_set_hex(point p, const char *x, const char *y)
 {
-	point_set_str(p,x,y,16);
+	return point_set_str(p,x,y,16);
 }
 
 /*Set point from decimal unsigned long ints*/
@@ -292,7 +282,7 @@ Loops through the integer bit per bit, if a bit is 1 then x is added to the resu
 This is not the most effecient method of point multiplication, but it's faster than P+P+P+... which is not computational feasiable.
 */
 		int bits = mpz_sizeinbase(multiplier, 2);
-		unsigned long int bit = 0;
+		long int bit = 0;
 		while(bit <= bits)
 		{
 			if(mpz_tstbit(multiplier, bit))
@@ -392,6 +382,8 @@ char* point_compress(point P)
 /*Release point*/
 void point_clear(point p)
 {
+    if (!p)
+        return;
 	mpz_clear(p->x);
 	mpz_clear(p->y);
 	free(p);

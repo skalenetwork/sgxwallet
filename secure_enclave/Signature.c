@@ -49,24 +49,19 @@ signature signature_init() {
     return sig;
 }
 
-/*Print signature to standart output stream*/
-void signature_print(signature sig) {
-    /*printf("\nSignature (r,s): \n\t(");
-    mpz_out_str(stdout, 10, sig->r);
-    printf(",\n\t");
-    mpz_out_str(stdout, 10, sig->s);
-    printf(")\n");*/
-}
+
 
 /*Set signature from strings of a base from 2-62*/
-void signature_set_str(signature sig, const char *r, const char *s, int base) {
-    mpz_set_str(sig->r, r, base);
-    mpz_set_str(sig->s, s, base);
+int signature_set_str(signature sig, const char *r, const char *s, int base) {
+    if ( mpz_set_str(sig->r, r, base) !=0 || mpz_set_str(sig->s, s, base) != 0) {
+        return 1;
+    }
+    return 0;
 }
 
 /*Set signature from hexadecimal strings*/
-void signature_set_hex(signature sig, const char *r, const char *s) {
-    signature_set_str(sig, r, s, 16);
+int signature_set_hex(signature sig, const char *r, const char *s) {
+    return signature_set_str(sig, r, s, 16);
 }
 
 /*Set signature from decimal unsigned long ints*/
@@ -184,6 +179,8 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 /*Release signature*/
 void signature_free(signature sig) {
+    if (!sig)
+        return;
     mpz_clear(sig->r);
     mpz_clear(sig->s);
     free(sig);

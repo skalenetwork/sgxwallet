@@ -44,10 +44,10 @@ typedef struct signature_s* signature;
 EXTERNC signature signature_init();
 
 /*Set signature from strings of a base from 2-62*/
-EXTERNC void signature_set_str(signature sig, const char *r, const char *s, int base);
+EXTERNC int signature_set_str(signature sig, const char *r, const char *s, int base);
 
 /*Set signature from hexadecimal strings*/
-EXTERNC void signature_set_hex(signature sig, const char *r, const char *s);
+EXTERNC int signature_set_hex(signature sig, const char *r, const char *s);
 
 /*Set signature from decimal unsigned long ints*/
 EXTERNC void signature_set_ui(signature sig, unsigned long int r, unsigned long int s);

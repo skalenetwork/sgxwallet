@@ -94,6 +94,10 @@ void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, cha
 /*Release memory*/
 void domain_parameters_clear(domain_parameters curve)
 {
+
+    if (!curve)
+        return;
+
 	mpz_clear(curve->p);
 	mpz_clear(curve->a);
 	mpz_clear(curve->b);
