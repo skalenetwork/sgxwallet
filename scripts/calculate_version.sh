@@ -2,7 +2,6 @@
 
 BRANCH=$1
 VERSION=$2
-CONTAINER=$3
 
 if [ -z "$BRANCH" ]
 then
@@ -13,12 +12,6 @@ fi
 if [ -z "$VERSION" ]
 then
       echo "The base version is not set."
-      exit 1
-fi
-
-if [ -z "$CONTAINER" ]
-then
-      echo "The base container is not set."
       exit 1
 fi
 
@@ -45,7 +38,7 @@ do
     then
         VERSION_NUMBER=4
     fi
-    RESULT_VERSION="$CONTAINER.$VERSION-$LABEL.$VERSION_NUMBER"
+    RESULT_VERSION="$VERSION-$LABEL.$VERSION_NUMBER"
     if ! [ $(git tag -l ?$RESULT_VERSION) ]
     then
         echo "$RESULT_VERSION"
