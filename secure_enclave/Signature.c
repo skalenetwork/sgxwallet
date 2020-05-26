@@ -179,6 +179,8 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 /*Release signature*/
 void signature_free(signature sig) {
+    if (!sig)
+        return;
     mpz_clear(sig->r);
     mpz_clear(sig->s);
     free(sig);

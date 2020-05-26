@@ -382,6 +382,8 @@ char* point_compress(point P)
 /*Release point*/
 void point_clear(point p)
 {
+    if (!p)
+        return;
 	mpz_clear(p->x);
 	mpz_clear(p->y);
 	free(p);
