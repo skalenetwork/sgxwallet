@@ -209,8 +209,7 @@ void enter_SEK(){
 //  if (DEBUG_PRINT)
 //   std::cerr << "your key is " << SEK << std::endl;
 
-
-  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
+  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str());
   if (status != SGX_SUCCESS){
     cerr << "RPCException thrown with status " << status << endl;
     throw SGXException(status, errMsg.data());
@@ -226,12 +225,15 @@ void enter_SEK(){
 
 void initSEK(){
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
-  if (encr_SEK_ptr == nullptr){
-    spdlog::error("SEK was not created yet. Going to create SEK");
-    gen_SEK();
-  }
-  else{
-    trustedSetSEK(encr_SEK_ptr);
+  if (encryptKeys) {
+    enter_SEK();
+  } else {
+      if (encr_SEK_ptr == nullptr) {
+          spdlog::error("SEK was not created yet. Going to create SEK");
+          gen_SEK();
+      } else {
+          trustedSetSEK(encr_SEK_ptr);
+      }
   }
 }
 

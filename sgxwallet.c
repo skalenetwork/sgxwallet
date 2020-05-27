@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
                 encryptKeysOption = false;
                 break;
             case 'b':
-                encryptKeysOption = false;
+                encryptKeysOption = true;
                 break;
             case 'y':
                 autoconfirmOption = true;
@@ -131,8 +131,6 @@ int main(int argc, char *argv[]) {
     }
 
     setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
-
-
 
     uint32_t  enclaveLogLevel = L_INFO;
 
