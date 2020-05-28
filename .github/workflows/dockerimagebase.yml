@@ -31,5 +31,5 @@ jobs:
         echo "Version $VERSION"
         export RELEASE=true
         echo "::set-env name=RELEASE::$RELEASE"
-        bash ./scripts/build_image.sh DockerfileBase
-        bash ./scripts/publish_image.sh DockerfileBase sgxwallet_base
+        bash ./scripts/build_image.sh DockerfileBase sgxwallet_base
+        bash ./scripts/publish_image.sh sgxwallet_base

@@ -3,13 +3,14 @@
 set -e
 
 DOCKERFILE=$1
+CONTAINER_NAME=$2
 
 : "${VERSION?Need to set VERSION}"
 : "${BRANCH?Need to set BRANCH}"
 
 NAME=sgx
 REPO_NAME=skalenetwork/$NAME
-IMAGE_NAME=$REPO_NAME:$VERSION
+IMAGE_NAME=$REPO_NAME.$CONTAINER_NAME:$VERSION
 LATEST_IMAGE_NAME=$REPO_NAME:$BRANCH-latest
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
