@@ -2,8 +2,7 @@
 
 set -e
 
-DOCKERFILE=$1
-CONTAINER_NAME=$2
+CONTAINER_NAME=$1
 
 : "${VERSION?Need to set VERSION}"
 : "${BRANCH?Need to set BRANCH}"
