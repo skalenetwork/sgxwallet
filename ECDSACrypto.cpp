@@ -67,6 +67,10 @@ vector <string> genECDSAKey() {
 
     uint32_t enc_len = 0;
 
+//    status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+//                                        errMsg.data(), encr_pr_key.data(), &enc_len,
+//                                        pub_key_x.data(), pub_key_y.data());
+
     if (!encryptKeys)
         status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(),
                                          &enc_len, pub_key_x.data(), pub_key_y.data());
@@ -114,6 +118,9 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
     if (!hex2carray(_encryptedKeyHex, &enc_len, encrPrKey.data())) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
+
+//    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
+//                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
 
     if (!encryptKeys)
         status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
@@ -200,6 +207,11 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
     }
 
     pubKeyStr = getECDSAPubKey(encryptedKeyHex);
+
+//    status = trustedEcdsaSignAES(eid, &errStatus,
+//            errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
+//                                 signatureR.data(),
+//                                 signatureS.data(), &signatureV, base);
 
 
     if (!encryptKeys) {
