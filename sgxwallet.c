@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    while ((opt = getopt(argc, argv, "cshd0abyvV")) != -1) {
+    while ((opt = getopt(argc, argv, "cshd0abyvVn")) != -1) {
         switch (opt) {
             case 'h':
                 printUsage();
