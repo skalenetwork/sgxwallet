@@ -53,7 +53,8 @@ testList = [ "[cert-sign]",
             "[dkg-pub-shares]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
-            "[aes-dkg]"]
+            "[aes-dkg]",
+            "[aes-not-aes]"]
 
 
 for t in testList:
