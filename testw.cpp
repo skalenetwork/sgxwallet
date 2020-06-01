@@ -332,8 +332,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
 
     uint32_t encLen = 0;
 
-    //printf("before %p\n", pubKeyX);
-
     status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen, pubKeyX.data(),
                                      pubKeyY.data());
 
@@ -955,8 +953,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
 
     uint64_t binLen;
 
@@ -1037,4 +1034,70 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
     for (auto &thread : threads) {
         thread.join();
     }
+}
+
+TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
+    domain_parameters curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
+
+    gmp_randstate_t state;
+    gmp_randinit_default(state);
+
+    mpz_t rand;
+    mpz_init(rand);
+    mpz_urandomb(rand, state, 256);
+
+    mpz_t seed;
+    mpz_init(seed);
+    mpz_mod(seed, rand, curve->p);
+
+    mpz_t skey;
+    mpz_init(skey);
+    mpz_mod(skey, seed, curve->p);
+    mpz_clear(seed);
+
+    char skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
+    char *s = mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
+    gmp_randclear(state);
+
+    int errStatus = 0;
+    vector<char> errMsg(BUF_LEN, 0);
+    vector <uint8_t> encrPrivKey(BUF_LEN, 0);
+    uint32_t enc_len = 0;
+    trustedEncryptKey(eid, &errStatus, errMsg.data(), skey_str, encrPrivKey.data(), &enc_len);
+    REQUIRE(errStatus == SGX_SUCCESS);
+
+    int errStatusAES = 0;
+    vector<char> errMsgAES(BUF_LEN, 0);
+    vector <uint8_t> encrPrivKeyAES(BUF_LEN, 0);
+    uint32_t enc_lenAES = 0;
+    trustedEncryptKeyAES(eid, &errStatusAES, errMsgAES.data(), skey_str, encrPrivKeyAES.data(), &enc_lenAES);
+    REQUIRE( errStatusAES == SGX_SUCCESS );
+
+    errMsg.clear();
+    string hex = SAMPLE_HEX_HASH;
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    uint8_t signatureV = 0;
+
+    uint32_t dec_len = 0;
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), dec_len, (unsigned char *) hex.data(),
+                              signatureR.data(),
+                              signatureS.data(), &signatureV, 16);
+    REQUIRE( status == SGX_SUCCESS );
+
+    errMsgAES.clear();
+    vector<char> signatureRAES(BUF_LEN, 0);
+    vector<char> signatureSAES(BUF_LEN, 0);
+    uint8_t signatureVAES = 0;
+
+    uint32_t dec_lenAES = 0;
+    status = trustedEcdsaSignAES(eid, &errStatusAES, errMsgAES.data(), encrPrivKeyAES.data(), dec_lenAES, (unsigned char *) hex.data(),
+                              signatureRAES.data(),
+                              signatureSAES.data(), &signatureVAES, 16);
+    REQUIRE( status == SGX_SUCCESS );
+
+    REQUIRE( signatureR == signatureRAES );
+    REQUIRE( signatureS == signatureSAES );
+    REQUIRE( signatureV == signatureVAES );
 }

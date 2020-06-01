@@ -159,13 +159,6 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     mpz_mod(skey, seed, curve->p);
     mpz_clear(seed);
 
-    //mpz_set_str(skey, "e7af72d241d4dd77bc080ce9234d742f6b22e35b3a660e8c197517b909f63ca8", 16);
-    //mpz_set_str(skey, "4160780231445160889237664391382223604576", 10);
-    //mpz_set_str(skey, "4160780231445160889237664391382223604184857153814275770598791864649971919844", 10);
-    //mpz_set_str(skey, "1", 10);
-    //mpz_set_str(skey, "ebb2c082fd7727890a28ac82f6bdf97bad8de9f5d7c9028692de1a255cad3e0f", 16);
-    // mpz_set_str(skey, "D30519BCAE8D180DBFCC94FE0B8383DC310185B0BE97B4365083EBCECCD75759", 16);
-
     //Public key
     point Pkey = point_init();
 
@@ -309,7 +302,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     domain_parameters_load_curve(curve, secp256k1);
     point publicKey = point_init();
 
-
     if (!hash) {
         *errStatus = 1;
         char* msg = "NULL message hash";
@@ -341,7 +333,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         LOG_ERROR(errString);
         goto clean;
     }
-    
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, privateKey, &dec_len);
@@ -361,9 +352,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         LOG_ERROR(errString);
         goto clean;
     }
-
-
-
 
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
