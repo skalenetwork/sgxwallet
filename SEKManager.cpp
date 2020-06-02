@@ -129,12 +129,11 @@ void gen_SEK(){
   vector<uint8_t> encr_SEK(1024, 0);
   uint32_t enc_len = 0;
 
-  //vector<char> SEK(65, 0);
   char SEK[65];
   memset(SEK, 0, 65);
 
   status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
-  if (status != SGX_SUCCESS ||  err_status != 0  ){
+  if ( status != SGX_SUCCESS || err_status != 0  ) {
     throw SGXException(status, errMsg.data()) ;
   }
 
@@ -143,7 +142,7 @@ void gen_SEK(){
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
   cout << "ATTENTION! THIS IS YOUR KEY FOR BACK UP. PLEASE COPY IT TO THE SAFE PLACE" << endl;
-  cout << "key is " << SEK << endl;
+  cout << "YOUR KEY IS " << SEK << endl;
 
   if (!autoconfirm) {
     std::string confirm_str = "I confirm";
@@ -200,8 +199,6 @@ void enter_SEK(){
     SEK = "";
     std::cin >> SEK;
   }
-//  if (DEBUG_PRINT)
-//   std::cerr << "your key is " << SEK << std::endl;
 
   status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str());
   if (status != SGX_SUCCESS){
