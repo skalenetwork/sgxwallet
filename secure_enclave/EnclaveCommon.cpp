@@ -106,55 +106,6 @@ void enclave_init() {
     libff::init_alt_bn128_params();
 }
 
-void checkKey(int *errStatus, char *err_string, const char *_keyString) {
-
-    uint64_t keyLen = strnlen(_keyString, MAX_KEY_LENGTH);
-
-    // check that key is zero terminated string
-
-    if (keyLen == MAX_KEY_LENGTH) {
-        snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
-        return;
-    }
-
-
-    *errStatus = -2;
-
-
-    if (_keyString == nullptr) {
-        snprintf(err_string, BUF_LEN, "Null key");
-        return;
-    }
-
-    *errStatus = -3;
-
-     //check that key is padded with 0s
-
-    for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
-        if (_keyString[i] != 0) {
-            snprintf(err_string, BUF_LEN, "Unpadded key");
-        }
-    }
-
-//    string ks(_keyString);
-//
-//    // string  keyString =
-//    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
-//
-//    auto key = keyFromString(ks.c_str());
-//
-//    auto s1 = stringFromKey(key);
-//
-//    if (s1->compare(ks) != 0) {
-//        throw exception();
-//    }
-
-    *errStatus = 0;
-
-   // return;
-}
-
-
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
           char* sig) {
 

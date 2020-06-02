@@ -1004,7 +1004,7 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
 
 
     int errStatus = -1;
-    vector<char> errMsg(BUF_LEN, 0);;
+    vector<char> errMsg(BUF_LEN, 0);
     uint32_t encLen;
     string key = SAMPLE_AES_KEY;
     vector <uint8_t> encrypted_key(BUF_LEN, 0);
@@ -1012,12 +1012,39 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
 
     REQUIRE(status == 0);
+    REQUIRE( errStatus == 0 );
 
 
     vector<char> decr_key(BUF_LEN, 0);
     status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
+    REQUIRE( errStatus == 0 );
+    REQUIRE(key.compare(decr_key.data()) == 0);
+
+}
+
+
+TEST_CASE_METHOD(TestFixture, "SGX encrypt/decrypt", "[sgx-encrypt-decrypt]") {
+
+
+    int errStatus = -1;
+    vector<char> errMsg(BUF_LEN, 0);
+    uint32_t encLen;
+    string key = SAMPLE_AES_KEY;
+    vector <uint8_t> encrypted_key(BUF_LEN, 0);
+
+    status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
+
+    REQUIRE(status == 0);
+    REQUIRE( errStatus == 0 );
+
+
+    vector<char> decr_key(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
+
+    REQUIRE(status == 0);
+    REQUIRE( errStatus == 0 );
     REQUIRE(key.compare(decr_key.data()) == 0);
 
 }
@@ -1037,41 +1064,20 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
 }
 
 TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
-
-    gmp_randstate_t state;
-    gmp_randinit_default(state);
-
-    mpz_t rand;
-    mpz_init(rand);
-    mpz_urandomb(rand, state, 256);
-
-    mpz_t seed;
-    mpz_init(seed);
-    mpz_mod(seed, rand, curve->p);
-
-    mpz_t skey;
-    mpz_init(skey);
-    mpz_mod(skey, seed, curve->p);
-    mpz_clear(seed);
-
-    char skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
-    char *s = mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
-    gmp_randclear(state);
+    std::string key = SAMPLE_AES_KEY;
 
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
     vector <uint8_t> encrPrivKey(BUF_LEN, 0);
     uint32_t enc_len = 0;
-    trustedEncryptKey(eid, &errStatus, errMsg.data(), skey_str, encrPrivKey.data(), &enc_len);
+    trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrPrivKey.data(), &enc_len);
     REQUIRE(errStatus == SGX_SUCCESS);
 
     int errStatusAES = 0;
     vector<char> errMsgAES(BUF_LEN, 0);
     vector <uint8_t> encrPrivKeyAES(BUF_LEN, 0);
     uint32_t enc_lenAES = 0;
-    trustedEncryptKeyAES(eid, &errStatusAES, errMsgAES.data(), skey_str, encrPrivKeyAES.data(), &enc_lenAES);
+    trustedEncryptKeyAES(eid, &errStatusAES, errMsgAES.data(), key.c_str(), encrPrivKeyAES.data(), &enc_lenAES);
     REQUIRE( errStatusAES == SGX_SUCCESS );
 
     errMsg.clear();
@@ -1080,11 +1086,12 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     vector<char> signatureS(BUF_LEN, 0);
     uint8_t signatureV = 0;
 
-    uint32_t dec_len = 0;
-    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), dec_len, (unsigned char *) hex.data(),
+    //uint32_t dec_len = 0;
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), enc_len, (unsigned char *) hex.data(),
                               signatureR.data(),
                               signatureS.data(), &signatureV, 16);
     REQUIRE( status == SGX_SUCCESS );
+    REQUIRE( errStatus == SGX_SUCCESS );
 
     errMsgAES.clear();
     vector<char> signatureRAES(BUF_LEN, 0);

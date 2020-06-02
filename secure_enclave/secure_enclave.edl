@@ -47,7 +47,7 @@ enclave {
 		public void trustedEncryptKey (
                                 [user_check] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = SMALL_BUF_SIZE] char* key,
+                                [in, count = SMALL_BUF_SIZE] const char* key,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [user_check] uint32_t *enc_len);
 

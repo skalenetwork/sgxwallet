@@ -163,7 +163,6 @@ void gen_SEK(){
 void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK){
   vector<char> errMsg(1024,0);
   int err_status = 0;
-  //vector<uint8_t> encr_SEK(1024, 0);
 
   uint8_t encr_SEK[BUF_LEN];
   memset(encr_SEK, 0, BUF_LEN);
@@ -179,7 +178,6 @@ void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK){
     cerr << "RPCException thrown" << endl;
     throw SGXException(status, errMsg.data()) ;
   }
-
 }
 
 void enter_SEK(){
@@ -225,7 +223,7 @@ void initSEK(){
     enter_SEK();
   } else {
       if (encr_SEK_ptr == nullptr) {
-          spdlog::error("SEK was not created yet. Going to create SEK");
+          spdlog::warn("SEK was not created yet. Going to create SEK");
           gen_SEK();
       } else {
           trustedSetSEK(encr_SEK_ptr);

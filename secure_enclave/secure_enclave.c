@@ -169,7 +169,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     int len = mpz_sizeinbase(Pkey->x, base) + 2;
     //snprintf(errString, BUF_LEN, "len = %d\n", len);
     char arr_x[len];
-    char *px = mpz_get_str(arr_x, base, Pkey->x);
+    mpz_get_str(arr_x, base, Pkey->x);
     //snprintf(errString, BUF_LEN, "arr=%p px=%p\n", arr_x, px);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -179,14 +179,14 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
     char arr_y[mpz_sizeinbase(Pkey->y, base) + 2];
-    char *py = mpz_get_str(arr_y, base, Pkey->y);
+    mpz_get_str(arr_y, base, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
     char skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
-    char *s = mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
+    mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
     snprintf(errString, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
@@ -391,7 +391,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 }
 
 
-void trustedEncryptKey(int *errStatus, char *errString, char *key,
+void trustedEncryptKey(int *errStatus, char *errString, const char *key,
                  uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
 
     LOG_DEBUG (__FUNCTION__);
@@ -400,15 +400,7 @@ void trustedEncryptKey(int *errStatus, char *errString, char *key,
 
     memset(errString, 0, BUF_LEN);
 
-    checkKey(errStatus, errString, key);
-
-    if (*errStatus != 0) {
-        snprintf(errString + strlen(errString), BUF_LEN, "check_key failed");
-        return;
-    }
-
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
-
 
     if (sealedLen > BUF_LEN) {
         *errStatus = ENCRYPTED_KEY_TOO_LONG;
@@ -931,7 +923,6 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 }
 
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint64_t encr_len) {
-
     LOG_DEBUG (__FUNCTION__);
 
     uint8_t aes_key_hex[SGX_AESGCM_KEY_SIZE * 2];
@@ -947,7 +938,6 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
 
     uint64_t len;
     hex2carray(aes_key_hex, &len, (uint8_t *) AES_key);
-
 }
 
 void trustedSetSEK_backup(int *errStatus, char *errString,
