@@ -281,7 +281,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
 void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t dec_len,
                  unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
-
     LOG_DEBUG (__FUNCTION__);
 
     char* arrM = NULL;
@@ -289,12 +288,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     char* arrS = NULL;
 
     char* privateKey = calloc(ECDSA_SKEY_LEN,1);
-
-    mpz_t privateKeyMpz;
-    mpz_init(privateKeyMpz);
-    mpz_t msgMpz;
-
-
 
     signature sign = signature_init();
 
@@ -318,8 +311,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         goto clean;
     }
 
+    mpz_t msgMpz;
     mpz_init(msgMpz);
-
     if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = 1;
         snprintf(errString, BUF_LEN, "invalid message hash %s", hash);
@@ -345,7 +338,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         goto clean;
     }
     
-
+    mpz_t privateKeyMpz;
+    mpz_init(privateKeyMpz);
     if (mpz_set_str(privateKeyMpz, privateKey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "mpz_set_str(privateKeyMpz ...) failed");
@@ -356,8 +350,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
     signature_extract_public_key(publicKey, privateKeyMpz, curve);
-
-
 
     if (!signature_verify(msgMpz, sign, publicKey, curve)) {
         *errStatus = 2;
@@ -383,9 +375,9 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     
     signature_free(sign);
 
-    if (privateKey)
+    if (privateKey) {
         free(privateKey);
-
+     }
 
     if (arrR) {
         free(arrR);
@@ -396,7 +388,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     }
 
     return;
-
 }
 
 

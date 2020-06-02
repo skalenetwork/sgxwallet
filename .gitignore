@@ -46,3 +46,7 @@
 /m4
 /.testw.py.swp
 /cert_util
+/secure_enclave/*.o
+/*.user
+/cert/*.csr
+/cert/*.crt
