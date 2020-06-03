@@ -336,6 +336,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
                                      pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
+    REQUIRE(errStatus == SGX_SUCCESS);
 
 
     string hex = SAMPLE_HEX_HASH;
@@ -347,7 +348,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
                               signatureR.data(),
                               signatureS.data(), &signatureV, 16);
     REQUIRE(status == SGX_SUCCESS);
-
+    REQUIRE(errStatus == SGX_SUCCESS);
 }
 
 TEST_CASE_METHOD(TestFixture, "ECDSA key gen", "[ecdsa-key-gen]") {
@@ -363,6 +364,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen", "[ecdsa-key-gen]") {
                                      pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
+    REQUIRE(errStatus == SGX_SUCCESS);
 }
 
 TEST_CASE_METHOD(TestFixture, "ECDSA get public key", "[ecdsa-get-pub-key]") {
@@ -387,7 +389,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA get public key", "[ecdsa-get-pub-key]") {
     status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, receivedPubKeyX.data(),
                                       receivedPubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
-
+    REQUIRE(errStatus == SGX_SUCCESS);
 }
 
 
@@ -455,33 +457,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
 }
 
-
-TEST_CASE_METHOD(TestFixture, "ECDSA key gen and sign", "[ecdsa-key-gen-sign-api]") {
-
-
-    HttpClient client(RPC_ENDPOINT);
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-
-    Json::Value genKey = c.generateECDSAKey();
-
-    REQUIRE(genKey["status"].asInt() == 0);
-
-    Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
-
-    REQUIRE(getPubKey["status"].asInt() == 0);
-    REQUIRE(getPubKey["publicKey"].asString() == genKey["publicKey"].asString());
-
-    Json::Value ecdsaSign = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(),
-                                                   "0x09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db");
-
-    REQUIRE(ecdsaSign["status"].asInt() == 0);
-
-
-}
-
 TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {
-
     auto key = encryptTestKey();
     REQUIRE(key != nullptr);
 }
@@ -593,36 +569,6 @@ TEST_CASE_METHOD(TestFixture, "DKG encrypted secret shares test", "[dkg-encr-ssh
                                             (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
-}
-
-TEST_CASE_METHOD(TestFixture, "DKG verification test", "[dkg-verify]") {
-
-    vector<char> errMsg(BUF_LEN, 0);
-    vector<char> result(BUF_LEN, 0);
-
-    int errStatus = 0;
-    uint32_t encLen = 0;
-
-    vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
-
-    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
-    REQUIRE(status == SGX_SUCCESS);
-
-
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data());
-    REQUIRE(status == SGX_SUCCESS);
-    vector <uint8_t> encrPrDHKey(BUF_LEN, 0);
-
-    string pub_keyB = SAMPLE_PUBLIC_KEY_B;
-
-    vector<char> s_shareG2(BUF_LEN, 0);
-
-    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPrDHKey.data(), &encLen, result.data(),
-                                            s_shareG2.data(),
-                                            (char *) pub_keyB.data(), 2, 2, 1);
-    REQUIRE(status == SGX_SUCCESS);
-
-
 }
 
 
