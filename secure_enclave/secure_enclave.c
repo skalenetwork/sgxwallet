@@ -336,7 +336,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     }
 
     sgx_status_t status = sgx_unseal_data(
-            (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, privateKey, &dec_len);
+            (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, (uint8_t *)privateKey, &dec_len);
 
     if (status != SGX_SUCCESS) {
         *errStatus = status;
@@ -590,7 +590,7 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
 
     char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
     uint32_t decr_len;
-    trustedDecryptDkgSecret(errStatus, errString, (uint8_t *) encrypted_dkg_secret, decrypted_dkg_secret, &decr_len);
+    trustedDecryptDkgSecret(errStatus, errString, (uint8_t *) encrypted_dkg_secret, (uint8_t *)decrypted_dkg_secret, &decr_len);
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "trustedDecryptDkgSecret failed with status %d", *errStatus);
         return;
@@ -876,7 +876,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
         AES_key[i] = SEK_raw[i];
     }
 
-    sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, SEK_hex, sealedLen,
+    sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, (uint8_t *)SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "seal SEK failed");
@@ -914,7 +914,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(SEK_hex) + 1);
 
-    sgx_status_t status = sgx_seal_data(0, NULL, strlen(SEK_hex) + 1, SEK_hex, sealedLen,
+    sgx_status_t status = sgx_seal_data(0, NULL, strlen(SEK_hex) + 1, (uint8_t *)SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "seal SEK failed with status %d", status);
@@ -1326,7 +1326,7 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
                        uint32_t *dec_len) {
     LOG_DEBUG (__FUNCTION__);
 
-    int status = AES_decrypt(encrypted_dkg_secret, dec_len, decrypted_dkg_secret);
+    int status = AES_decrypt(encrypted_dkg_secret, dec_len, (char *)decrypted_dkg_secret);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
@@ -1339,7 +1339,7 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     LOG_DEBUG (__FUNCTION__);
 
     memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
-    int status = AES_decrypt(encrypted_poly, *enc_len, decryptedDkgPoly);
+    int status = AES_decrypt(encrypted_poly, *enc_len, (char *)decryptedDkgPoly);
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
