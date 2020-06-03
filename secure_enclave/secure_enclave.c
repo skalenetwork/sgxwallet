@@ -979,6 +979,11 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     if (stat != 0) {
         snprintf(errString, BUF_LEN, "ecdsa private key encryption failed");
         *errStatus = stat;
+
+        mpz_clear(skey);
+        domain_parameters_clear(curve);
+        point_clear(Pkey);
+
         return;
     }
 
@@ -1010,6 +1015,9 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     if (status != 0) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed with status %d", status);
         *errStatus = status;
+
+        domain_parameters_clear(curve);
+
         return;
     }
 
@@ -1022,7 +1030,10 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         snprintf(errString, BUF_LEN, "wrong string to init private key  - %s", skey);
         *errStatus = -10;
+
         mpz_clear(privateKeyMpz);
+        domain_parameters_clear(curve);
+
         return;
     }
 
@@ -1037,6 +1048,11 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
         *errStatus = -11;
+
+        mpz_clear(privateKeyMpz);
+        domain_parameters_clear(curve);
+        point_clear(Pkey);
+
         return;
     }
 
@@ -1120,11 +1136,13 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (!signature_verify(msgMpz, sign, Pkey, curve)) {
         *errStatus = -2;
         snprintf(errString, BUF_LEN, "signature is not verified! ");
+
         mpz_clear(privateKeyMpz);
         mpz_clear(msgMpz);
         domain_parameters_clear(curve);
         signature_free(sign);
         point_clear(Pkey);
+
         return;
     }
 
@@ -1264,7 +1282,7 @@ void
 trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
     LOG_DEBUG (__FUNCTION__);
 
-    char dkg_secret[DKG_BUFER_LENGTH];// = (char*)calloc(DKG_BUFER_LENGTH, 1);
+    char dkg_secret[DKG_BUFER_LENGTH];
     memset(dkg_secret, 0, DKG_BUFER_LENGTH);
 
     if (gen_dkg_poly(dkg_secret, _t) != 0) {

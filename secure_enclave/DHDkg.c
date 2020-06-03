@@ -61,7 +61,7 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
     point_multiplication(session_key, skey, pub_keyB, curve);
 
     char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
-    char* x = mpz_get_str(arr_x, 16, session_key->x);
+    mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for ( int i = 0; i < n_zeroes; i++){
       common_key[i] = '0';

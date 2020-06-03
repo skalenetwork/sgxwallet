@@ -194,10 +194,6 @@ void calc_secret_shareG2_old(const char* decrypted_coeffs, char * s_shareG2,
   libff::init_alt_bn128_params();
   char symbol = ':';
   vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
-//  if ( poly.size() != _t){
-//    //"t != poly.size()" +
-//    //strncpy(s_shareG2, to_string(poly.size()).c_str(), 18);
-//  }
 
   libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
 
@@ -231,6 +227,8 @@ int calc_secret_shareG2(const char* s_share, char * s_shareG2){
   string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
 
   strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);
+
+  mpz_clear(share);
 
   return 0;
 }
@@ -299,17 +297,6 @@ int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int in
     pub_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
     pub_share.Z = libff::alt_bn128_Fq2::one();
 
-
-    //for ( int j = 0; j < 4; j++) {
-      //uint64_t pos0 = share_length * j;
-      //string coord = ConvertHexToDec(pub_shares_str.substr(pos0 + j * coord_length, coord_length));
-//      if ( i == 0) {
-//        memset(public_shares, 0, strlen(public_shares));
-//    string coord = ConvertToString(pub_share.Y.c1);
-//    strncpy(public_shares, coord.c_str(), coord.length());
-//  }
-    //}
-
     pub_shares.push_back(pub_share);
   }
 
@@ -361,7 +348,8 @@ int calc_bls_public_key(char* skey_hex, char* pub_key){
 
   mpz_t skey;
   mpz_init(skey);
-  if (mpz_set_str(skey, skey_hex, 16) == -1){
+  if (mpz_set_str(skey, skey_hex, 16) == -1) {
+    mpz_clear(skey);
     return 1;
   }
 
