@@ -22,13 +22,9 @@
 #    @date 2020
 #
 
-import sys, getpass,os, subprocess, socket, time
-
+import getpass, os, subprocess
 
 username = getpass.getuser()
-
-
-
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Starting build push")

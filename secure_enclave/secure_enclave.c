@@ -1302,7 +1302,6 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
 
     *enc_len = strlen(dkg_secret) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-
     char decr_dkg_secret[DKG_BUFER_LENGTH];
     memset(decr_dkg_secret, 0, DKG_BUFER_LENGTH);
 
