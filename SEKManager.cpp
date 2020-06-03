@@ -129,12 +129,11 @@ void gen_SEK(){
   vector<uint8_t> encr_SEK(1024, 0);
   uint32_t enc_len = 0;
 
-  //vector<char> SEK(65, 0);
   char SEK[65];
   memset(SEK, 0, 65);
 
   status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
-  if (status != SGX_SUCCESS ||  err_status != 0  ){
+  if ( status != SGX_SUCCESS || err_status != 0  ) {
     throw SGXException(status, errMsg.data()) ;
   }
 
@@ -143,7 +142,7 @@ void gen_SEK(){
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
   cout << "ATTENTION! THIS IS YOUR KEY FOR BACK UP. PLEASE COPY IT TO THE SAFE PLACE" << endl;
-  cout << "key is " << SEK << endl;
+  cout << "YOUR KEY IS " << SEK << endl;
 
   if (!autoconfirm) {
     std::string confirm_str = "I confirm";
@@ -155,10 +154,6 @@ void gen_SEK(){
     } while (case_insensitive_match(confirm_str, buffer)); //(strcmp(confirm_str.c_str(), buffer.c_str()) != 0);
   }
 
-  if (system("reset") != 0) {
-      cerr << "Could not execute reset" << endl;
-  }
-
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
   create_test_key();
@@ -167,7 +162,6 @@ void gen_SEK(){
 void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK){
   vector<char> errMsg(1024,0);
   int err_status = 0;
-  //vector<uint8_t> encr_SEK(1024, 0);
 
   uint8_t encr_SEK[BUF_LEN];
   memset(encr_SEK, 0, BUF_LEN);
@@ -183,7 +177,6 @@ void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK){
     cerr << "RPCException thrown" << endl;
     throw SGXException(status, errMsg.data()) ;
   }
-
 }
 
 void enter_SEK(){
@@ -206,11 +199,8 @@ void enter_SEK(){
     SEK = "";
     std::cin >> SEK;
   }
-//  if (DEBUG_PRINT)
-//   std::cerr << "your key is " << SEK << std::endl;
 
-
-  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str() );
+  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str());
   if (status != SGX_SUCCESS){
     cerr << "RPCException thrown with status " << status << endl;
     throw SGXException(status, errMsg.data());
@@ -226,12 +216,15 @@ void enter_SEK(){
 
 void initSEK(){
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
-  if (encr_SEK_ptr == nullptr){
-    spdlog::error("SEK was not created yet. Going to create SEK");
-    gen_SEK();
-  }
-  else{
-    trustedSetSEK(encr_SEK_ptr);
+  if (encryptKeys) {
+    enter_SEK();
+  } else {
+      if (encr_SEK_ptr == nullptr) {
+          spdlog::warn("SEK was not created yet. Going to create SEK");
+          gen_SEK();
+      } else {
+          trustedSetSEK(encr_SEK_ptr);
+      }
   }
 }
 

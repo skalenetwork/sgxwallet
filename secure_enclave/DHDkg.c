@@ -39,7 +39,6 @@
 #include <string.h>
 
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
-
     char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, pb_keyB, 64);
     pb_keyB_x[64] = 0;
@@ -62,8 +61,7 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
     point_multiplication(session_key, skey, pub_keyB, curve);
 
     char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
-    char* x = mpz_get_str(arr_x, 16, session_key->x);
-    //strncpy(common_key, arr_x, 64);
+    mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for ( int i = 0; i < n_zeroes; i++){
       common_key[i] = '0';
@@ -79,7 +77,6 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
 }
 
 void session_key_recover(const char *skey_str, const char* sshare, char* common_key){
-
     char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, sshare + 64, 64);
     pb_keyB_x[64] = 0;
@@ -95,6 +92,12 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     mpz_init(skey);
     if (mpz_set_str(skey, skey_str, 16) == -1){
         common_key = NULL;
+
+        mpz_clear(skey);
+        domain_parameters_clear(curve);
+        free(pb_keyB_x);
+        free(pb_keyB_y);
+
         return;
     }
 
@@ -105,14 +108,12 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     point_multiplication(session_key, skey, pub_keyB, curve);
 
     char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
-    char* x = mpz_get_str(arr_x, 16, session_key->x);
-    //strncpy(common_key, arr_x, 64);
+    mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for ( int i = 0; i < n_zeroes; i++){
         common_key[i] = '0';
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
-    //strncpy(common_key , sshare, 64);
 
     mpz_clear(skey);
     point_clear(pub_keyB);
@@ -123,14 +124,13 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
 }
 
 void xor_encrypt(char* key, char* message, char* cypher){
-
    uint8_t cypher_bin[33];
 
-   //uint8_t key_bin[33];
    uint8_t* key_bin = (uint8_t*)calloc(33,1);
    uint64_t key_length;
    if (!hex2carray(key, &key_length, key_bin)){
      cypher = NULL;
+     free(key_bin);
      return;
    }
 
@@ -138,6 +138,7 @@ void xor_encrypt(char* key, char* message, char* cypher){
    uint8_t msg_bin[33];//[ECDSA_BIN_LEN];
    if (!hex2carray(message, &msg_length, msg_bin)){
      cypher = NULL;
+     free(key_bin);
      return;
    }
 
@@ -152,21 +153,21 @@ void xor_encrypt(char* key, char* message, char* cypher){
 }
 
 void xor_decrypt(char* key, char* cypher, char* message){
-
     uint8_t msg_bin[33];
 
-    //uint8_t key_bin[33];
     uint8_t* key_bin = (uint8_t*)calloc(33,1);
     uint64_t key_length;
     if (!hex2carray(key, &key_length, key_bin)){
       message = NULL;
+      free(key_bin);
       return;
     }
 
     uint64_t cypher_length;
-    uint8_t cypher_bin[33];//[ECDSA_BIN_LEN];
+    uint8_t cypher_bin[33];
     if (!hex2carray(cypher, &cypher_length, cypher_bin)){
       message = NULL;
+      free(key_bin);
       return;
     }
 

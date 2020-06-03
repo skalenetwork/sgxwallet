@@ -22,13 +22,9 @@
 #    @date 2020
 #
 
-import sys, getpass,os, subprocess, socket, time
-
+import getpass, os, subprocess
 
 username = getpass.getuser()
-
-
-
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Starting build push")
@@ -53,7 +49,10 @@ testList = [ "[cert-sign]",
             "[dkg-pub-shares]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
-            "[aes-dkg]"]
+            "[sgx-encrypt-decrypt]",
+            "[aes-dkg]"#,
+            #"[aes-not-aes]" <- this test doesn't pass for now - will fix it later
+            ]
 
 
 for t in testList:

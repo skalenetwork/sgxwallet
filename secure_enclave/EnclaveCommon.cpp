@@ -34,11 +34,10 @@
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
 
-using namespace  std;
+using namespace std;
 
 
 string *stringFromKey(libff::alt_bn128_Fr *_key) {
-
     mpz_t t;
     mpz_init(t);
 
@@ -53,7 +52,6 @@ string *stringFromKey(libff::alt_bn128_Fr *_key) {
 }
 
 string *stringFromFq(libff::alt_bn128_Fq *_fq) {
-
     mpz_t t;
     mpz_init(t);
 
@@ -68,8 +66,6 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 }
 
 string *stringFromG1(libff::alt_bn128_G1 *_g1) {
-
-
     _g1->to_affine_coordinates();
 
     auto sX = stringFromFq(&_g1->X);
@@ -81,7 +77,6 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     delete (sY);
 
     return sG1;
-
 }
 
 
@@ -91,7 +86,8 @@ libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
     mpz_set_str(skey, _keyStringHex, 16);
 
     char skey_dec[mpz_sizeinbase (skey, 10) + 2];
-    char * skey_str = mpz_get_str(skey_dec, 10, skey);
+    mpz_get_str(skey_dec, 10, skey);
+    mpz_clear(skey);
 
     return new libff::alt_bn128_Fr(skey_dec);
 }
@@ -106,61 +102,9 @@ void enclave_init() {
     libff::init_alt_bn128_params();
 }
 
-void checkKey(int *errStatus, char *err_string, const char *_keyString) {
-
-    uint64_t keyLen = strnlen(_keyString, MAX_KEY_LENGTH);
-
-    // check that key is zero terminated string
-
-    if (keyLen == MAX_KEY_LENGTH) {
-        snprintf(err_string, MAX_ERR_LEN, "keyLen != MAX_KEY_LENGTH");
-        return;
-    }
-
-
-    *errStatus = -2;
-
-
-    if (_keyString == nullptr) {
-        snprintf(err_string, BUF_LEN, "Null key");
-        return;
-    }
-
-    *errStatus = -3;
-
-     //check that key is padded with 0s
-
-    for (int i = keyLen; i < MAX_KEY_LENGTH; i++) {
-        if (_keyString[i] != 0) {
-            snprintf(err_string, BUF_LEN, "Unpadded key");
-        }
-    }
-
-//    string ks(_keyString);
-//
-//    // string  keyString =
-//    // "4160780231445160889237664391382223604184857153814275770598791864649971919844";
-//
-//    auto key = keyFromString(ks.c_str());
-//
-//    auto s1 = stringFromKey(key);
-//
-//    if (s1->compare(ks) != 0) {
-//        throw exception();
-//    }
-
-    *errStatus = 0;
-
-   // return;
-}
-
-
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
           char* sig) {
-
-
     libff::init_alt_bn128_params();
-
 
     auto key = keyFromString(_keyString);
 
@@ -179,23 +123,15 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
     sign.to_affine_coordinates();
 
-
-
     auto r = stringFromG1(&sign);
 
     memset(sig, 0, BUF_LEN);
-
-
 
     strncpy(sig, r->c_str(), BUF_LEN);
 
     delete r;
 
-
-
     return true;
-
-
 }
 
 void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
@@ -224,9 +160,7 @@ int char2int(char _input) {
 
 bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                  uint8_t* _bin, const int _max_length ) {
-
     int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
-
 
     if (len == 0 && len % 2 == 1)
         return false;
@@ -245,14 +179,11 @@ bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
     }
 
     return true;
-
 }
 
 bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                 uint8_t* _bin ) {
-
   int len = strnlen(_hex, 2 * BUF_LEN);
-
 
   if (len == 0 && len % 2 == 1)
     return false;
@@ -271,7 +202,6 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
   }
 
   return true;
-
 }
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
@@ -279,7 +209,7 @@ enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4
 
 uint32_t globalLogLevel_ = 2;
 
-void logMsg(log_level _level, char* _msg) {
+void logMsg(log_level _level, const char* _msg) {
 
     if (_level < globalLogLevel_)
         return;
