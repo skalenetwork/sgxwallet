@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
     setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
-    uint32_t  enclaveLogLevel = L_INFO;
+    uint32_t enclaveLogLevel = L_INFO;
 
     if (printTraceInfoOption) {
         enclaveLogLevel = L_TRACE;

@@ -123,7 +123,6 @@ bool check_SEK(std::string SEK){
 }
 
 void gen_SEK(){
-
   vector<char> errMsg(1024,0);
   int err_status = 0;
   vector<uint8_t> encr_SEK(1024, 0);

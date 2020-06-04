@@ -144,7 +144,6 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS) {
-
     bool result = false;
 
     signature sig = signature_init();
@@ -158,8 +157,6 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
 
     mpz_t msgMpz;
     mpz_init(msgMpz);
-
-
     if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
         spdlog::error("invalid message hash {}", hashHex);
         goto clean;
