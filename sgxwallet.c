@@ -113,6 +113,8 @@ int main(int argc, char *argv[]) {
                 break;
             case 'n':
                 useHTTPSOption = false;
+                checkClientCertOption = false;
+                autoSignClientCertOption = true;
                 break;                
             case 'a':
                 encryptKeysOption = false;
@@ -132,7 +134,7 @@ int main(int argc, char *argv[]) {
 
     setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
-    uint32_t  enclaveLogLevel = L_INFO;
+    uint32_t enclaveLogLevel = L_INFO;
 
     if (printTraceInfoOption) {
         enclaveLogLevel = L_TRACE;

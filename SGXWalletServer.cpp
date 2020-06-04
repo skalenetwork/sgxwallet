@@ -53,8 +53,11 @@ void setFullOptions(int _printDebugInfo,
         spdlog::set_level(spdlog::level::info);
     }
     useHTTPS = _useHTTPS;
+    spdlog::info("useHTTPS set to " + std::to_string(_useHTTPS));
     autoconfirm = _autoconfirm;
+    spdlog::info("autoconfirm set to " + std::to_string(autoconfirm));
     encryptKeys = _encryptKeys;
+    spdlog::info("encryptKeys set to " + std::to_string(encryptKeys));
 }
 
 
