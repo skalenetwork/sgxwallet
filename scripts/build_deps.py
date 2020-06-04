@@ -46,8 +46,6 @@ BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
-#subprocess.call(["git", "submodule",  "update", "--init"])
-
 print("Cleaning")
 
 subprocess.call(["rm", "-f",  "install-sh"])
