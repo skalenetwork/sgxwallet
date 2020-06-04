@@ -113,8 +113,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 'n':
                 useHTTPSOption = false;
-                checkClientCertOption = false;
-                autoSignClientCertOption = true;
                 break;                
             case 'a':
                 encryptKeysOption = false;
