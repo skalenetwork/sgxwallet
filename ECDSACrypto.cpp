@@ -67,17 +67,9 @@ vector <string> genECDSAKey() {
 
     uint32_t enc_len = 0;
 
-//    status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
-//                                        errMsg.data(), encr_pr_key.data(), &enc_len,
-//                                        pub_key_x.data(), pub_key_y.data());
-
-    if (!encryptKeys)
-        status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encr_pr_key.data(),
-                                         &enc_len, pub_key_x.data(), pub_key_y.data());
-    else
-        status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
-                                            errMsg.data(), encr_pr_key.data(), &enc_len,
-                                            pub_key_x.data(), pub_key_y.data());
+    status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+                                        errMsg.data(), encr_pr_key.data(), &enc_len,
+                                        pub_key_x.data(), pub_key_y.data());
 
     if (status != SGX_SUCCESS || errStatus != 0) {
         spdlog::error("RPCException thrown with status {}", status);
@@ -119,15 +111,9 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-//    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
-//                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
+                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
 
-    if (!encryptKeys)
-        status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(),
-                                          pubKeyY.data());
-    else
-        status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
-                                             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
     if (errStatus != 0) {
         throw SGXException(-666, errMsg.data());
     }
@@ -205,24 +191,11 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
 
     pubKeyStr = getECDSAPubKey(encryptedKeyHex);
 
-//    status = trustedEcdsaSignAES(eid, &errStatus,
-//            errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
-//                                 signatureR.data(),
-//                                 signatureS.data(), &signatureV, base);
+    status = trustedEcdsaSignAES(eid, &errStatus,
+            errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
+                                 signatureR.data(),
+                                 signatureS.data(), &signatureV, base);
 
-
-    if (!encryptKeys) {
-        status = trustedEcdsaSign(eid, &errStatus, errMsg.data(),
-                 encryptedKey.data(), ECDSA_ENCR_LEN, (unsigned char *) hashHex,
-                                  signatureR.data(),
-                                  signatureS.data(), &signatureV, base);
-
-
-    } else
-        status = trustedEcdsaSignAES(eid, &errStatus,
-                errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
-                                     signatureR.data(),
-                                     signatureS.data(), &signatureV, base);
     if (errStatus != 0) {
         exception = make_shared<SGXException>(666, errMsg.data());
         goto clean;

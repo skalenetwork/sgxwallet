@@ -421,16 +421,11 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 
 TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
-
-
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
-
     for (int i = 0; i <= 20; i++) {
-
         try {
-
             Json::Value genKey = c.generateECDSAKey();
             REQUIRE(genKey["status"].asInt() == 0);
 
@@ -442,13 +437,11 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
             REQUIRE(sig["status"].asInt() == 0);
             Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
             REQUIRE(getPubKey["status"].asInt() == 0);
-
         } catch (JsonRpcException &e) {
             cerr << e.what() << endl;
             throw;
         }
     }
-
 }
 
 TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {

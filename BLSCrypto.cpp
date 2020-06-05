@@ -290,11 +290,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char *_sig) {
 
-    if (!encryptKeys) {
-        return sign(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
-    } else {
-        return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
-    }
+    return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
 }
 
 char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
