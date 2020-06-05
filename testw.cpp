@@ -221,7 +221,6 @@ void sendRPCRequest() {
         }
     }
 
-
     int k = 0;
 
     vector <string> secShares(n);
@@ -234,7 +233,6 @@ void sendRPCRequest() {
 
             k++;
         }
-
 
     BLSSigShareSet sigShareSet(t, n);
 
@@ -249,14 +247,12 @@ void sendRPCRequest() {
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
-
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
-                              n);
+        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
 
         string hash = SAMPLE_HASH;

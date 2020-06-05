@@ -55,7 +55,7 @@ testList = [ "[cert-sign]",
             "[aes-encrypt-decrypt]",
             "[sgx-encrypt-decrypt]",
             "[aes-dkg]",
-            "[aes-not-aes]" 
+            "[aes-not-aes]"
             ]
 
 
