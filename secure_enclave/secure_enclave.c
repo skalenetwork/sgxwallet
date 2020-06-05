@@ -407,17 +407,17 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
 
     memset(errString, 0, BUF_LEN);
 
-    uint32_t sealedLen = sgx_calc_sealed_data_size(0, MAX_KEY_LENGTH);
+    uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
-    if (sealedLen > BUF_LEN) {
-        *errStatus = ENCRYPTED_KEY_TOO_LONG;
-        snprintf(errString, BUF_LEN, "sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
-        return;
-    }
+     if (sealedLen > BUF_LEN) {
+         *errStatus = ENCRYPTED_KEY_TOO_LONG;
+         snprintf(errString, BUF_LEN, "sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
+         return;
+     }
 
     memset(encryptedPrivateKey, 0, BUF_LEN);
 
-    sgx_status_t status = sgx_seal_data(0, NULL, MAX_KEY_LENGTH, (uint8_t *) key, sealedLen,
+    sgx_status_t status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *) key, sealedLen,
                                         (sgx_sealed_data_t *) encryptedPrivateKey);
     if (status != SGX_SUCCESS) {
         *errStatus = SEAL_KEY_FAILED;

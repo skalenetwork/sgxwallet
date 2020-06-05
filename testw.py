@@ -27,9 +27,7 @@ import getpass, os, subprocess
 username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build push")
 print("Top directory is:" + topDir)
-
 
 testList = [ "[cert-sign]",
             "[get-server-status]",

@@ -322,8 +322,6 @@ public:
 
 
 TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig-gen]") {
-
-
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
     vector <uint8_t> encrPrivKey(BUF_LEN, 0);
@@ -331,10 +329,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
     vector<char> pubKeyY(BUF_LEN, 0);
 
     uint32_t encLen = 0;
-
     status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen, pubKeyX.data(),
                                      pubKeyY.data());
-
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -352,8 +348,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
 }
 
 TEST_CASE_METHOD(TestFixture, "ECDSA key gen", "[ecdsa-key-gen]") {
-
-
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
     vector <uint8_t> encrPrivKey(BUF_LEN, 0);
