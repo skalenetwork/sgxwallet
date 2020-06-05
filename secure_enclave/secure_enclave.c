@@ -1538,7 +1538,10 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         if (decr_sshare == NULL) {
             *errStatus = 1;
             snprintf(errString, BUF_LEN, "invalid common_key");
+            LOG_ERROR(common_key);
+
             mpz_clear(sum);
+
             return;
         }
         decr_sshare[64] = 0;
@@ -1548,7 +1551,11 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
             *errStatus = 111;
             snprintf(errString, BUF_LEN, decr_sshare);
+            LOG_ERROR(decr_sshare);
+
             mpz_clear(decr_secret_share);
+            mpz_clear(sum);
+
             return;
         }
 
@@ -1574,9 +1581,11 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "aes encrypt bls private key failed with status %d ", status);
+
         mpz_clear(bls_key);
         mpz_clear(sum);
         mpz_clear(q);
+
         return;
     }
     *enc_bls_key_len = strlen(key_share) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;

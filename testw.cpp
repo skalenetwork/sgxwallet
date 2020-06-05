@@ -238,8 +238,7 @@ void sendRPCRequest() {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
