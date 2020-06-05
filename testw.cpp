@@ -1011,6 +1011,7 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
 
 TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     std::string key = SAMPLE_AES_KEY;
+    std::string hex = SAMPLE_HEX_HASH;
 
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
@@ -1019,6 +1020,17 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrPrivKey.data(), &enc_len);
     REQUIRE(errStatus == SGX_SUCCESS);
 
+    errMsg.clear();
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    uint8_t signatureV = 0;
+
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), enc_len, (unsigned char *) hex.data(),
+                              signatureR.data(),
+                              signatureS.data(), &signatureV, 16);
+    REQUIRE( status == SGX_SUCCESS );
+    REQUIRE( errStatus == SGX_SUCCESS );
+
     int errStatusAES = 0;
     vector<char> errMsgAES(BUF_LEN, 0);
     vector <uint8_t> encrPrivKeyAES(BUF_LEN, 0);
@@ -1026,29 +1038,16 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     trustedEncryptKeyAES(eid, &errStatusAES, errMsgAES.data(), key.c_str(), encrPrivKeyAES.data(), &enc_lenAES);
     REQUIRE( errStatusAES == SGX_SUCCESS );
 
-    errMsg.clear();
-    string hex = SAMPLE_HEX_HASH;
-    vector<char> signatureR(BUF_LEN, 0);
-    vector<char> signatureS(BUF_LEN, 0);
-    uint8_t signatureV = 0;
-
-    //uint32_t dec_len = 0;
-    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), enc_len, (unsigned char *) hex.data(),
-                              signatureR.data(),
-                              signatureS.data(), &signatureV, 16);
-    REQUIRE( status == SGX_SUCCESS );
-    REQUIRE( errStatus == SGX_SUCCESS );
-
     errMsgAES.clear();
     vector<char> signatureRAES(BUF_LEN, 0);
     vector<char> signatureSAES(BUF_LEN, 0);
     uint8_t signatureVAES = 0;
 
-    uint32_t dec_lenAES = 0;
-    status = trustedEcdsaSignAES(eid, &errStatusAES, errMsgAES.data(), encrPrivKeyAES.data(), dec_lenAES, (unsigned char *) hex.data(),
+    status = trustedEcdsaSignAES(eid, &errStatusAES, errMsgAES.data(), encrPrivKeyAES.data(), enc_lenAES, (unsigned char *) hex.data(),
                               signatureRAES.data(),
                               signatureSAES.data(), &signatureVAES, 16);
     REQUIRE( status == SGX_SUCCESS );
+    REQUIRE( errStatusAES == SGX_SUCCESS );
 
     REQUIRE( signatureR == signatureRAES );
     REQUIRE( signatureS == signatureSAES );

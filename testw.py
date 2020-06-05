@@ -50,8 +50,8 @@ testList = [ "[cert-sign]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
             "[sgx-encrypt-decrypt]",
-            "[aes-dkg]"#,
-            #"[aes-not-aes]" <- this test doesn't pass for now - will fix it later
+            "[aes-dkg]",
+            "[aes-not-aes]" 
             ]
 
 

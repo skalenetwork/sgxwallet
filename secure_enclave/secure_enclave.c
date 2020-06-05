@@ -1097,7 +1097,9 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (status != 0) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
+
         domain_parameters_clear(curve);
+
         return;
     }
 
@@ -1109,8 +1111,10 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid secret key");
+
         mpz_clear(privateKeyMpz);
         domain_parameters_clear(curve);
+
         return;
     }
 
@@ -1119,9 +1123,11 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid message hash");
+
         mpz_clear(privateKeyMpz);
         mpz_clear(msgMpz);
         domain_parameters_clear(curve);
+
         return;
     }
 
@@ -1352,7 +1358,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     LOG_DEBUG(__FUNCTION__);
 
     char skey[ECDSA_SKEY_LEN];
-    memset(skey, 0, BUF_LEN);
+    memset(skey, 0, ECDSA_SKEY_LEN);
     char pub_key_x[BUF_LEN];
     memset(pub_key_x, 0, BUF_LEN);
     char pub_key_y[BUF_LEN];
