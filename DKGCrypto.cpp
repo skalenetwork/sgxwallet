@@ -104,14 +104,11 @@ string gen_dkg_poly(int _t) {
 }
 
 vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n) {
-
     vector<char> errMsg1(BUF_LEN, 0);
 
     int errStatus = 0;
 
-
     spdlog::debug("got encr poly size {}", char_traits<char>::length(encryptedPolyHex));
-
 
     vector<char> pubShares(10000, 0);
 
@@ -152,12 +149,10 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
 string trustedGetSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys,
                               int _t,
                               int _n) {
-
     vector<char> errMsg1(BUF_LEN, 0);
     vector<char> hexEncrKey(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t encLen = 0;
-
 
     vector<uint8_t> encrDKGPoly(BUF_LEN, 0);
 
@@ -172,7 +167,6 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
     }
 
     string result;
-
 
     for (int i = 0; i < _n; i++) {
         vector<uint8_t> encryptedSkey(BUF_LEN, 0);
@@ -252,10 +246,8 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 }
 
 bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *encryptedKeyHex) {
-
     spdlog::debug("ENTER CreateBLSShare");
 
-    // char* errMsg1 = (char*) calloc(1024,1);
     char errMsg[BUF_LEN];
     int errStatus = 0;
 
@@ -278,9 +270,7 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
         spdlog::error("status {}", errStatus);
         throw SGXException(ERROR_IN_ENCLAVE, "Create BLS private key failed in enclave");
     } else {
-
         char hexBLSKey[2 * BUF_LEN];
-
 
         carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
 
@@ -288,11 +278,9 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
         return true;
     }
-
 }
 
 vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
-
     char errMsg1[BUF_LEN];
 
     int errStatus = 0;
@@ -323,7 +311,6 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
 }
 
 string decryptDHKey(const string &polyName, int ind) {
-
     vector<char> errMsg1(1024, 0);
     int errStatus = 0;
 
@@ -341,7 +328,6 @@ string decryptDHKey(const string &polyName, int ind) {
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);
     spdlog::debug("hex encr DH key length is {}", hexEncrKeyPtr->length());
-
 
     char DHKey[ECDSA_SKEY_LEN];
 
