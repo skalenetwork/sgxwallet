@@ -526,14 +526,16 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
-    vector<char> secret(BUF_LEN, 0);
+    vector<char> secret(2490, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
-    uint32_t dec_len;
     status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
-                                     (uint8_t *) secret.data(), &dec_len);
+                                     (uint8_t *) secret.data(), &encLen);
 
     REQUIRE( status == SGX_SUCCESS);
+    for (auto& elem : errMsg1) {
+        std::cout << elem;
+    }
     REQUIRE( errStatus == SGX_SUCCESS);
 }
 

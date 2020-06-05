@@ -42,7 +42,7 @@ testList = [ "[cert-sign]",
             "[ecdsa-key-gen-sign-api]",
             "[bls-key-encrypt]",
             "[dkg-gen]",
-            #"[dkg-aes-gen]", <- fix it
+            "[dkg-aes-gen]",
             "[dkg-encr-sshares]",
             "[dkg-aes-encr-sshares]",
             "[dkg-verify]",
@@ -50,7 +50,7 @@ testList = [ "[cert-sign]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
             "[dkg-pub-shares]",
-            #"[dkg-aes-pub-shares]", <- fix it
+            #"[dkg-aes-pub-shares]", <- fix it, doesn't work but never used
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
             "[sgx-encrypt-decrypt]",

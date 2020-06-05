@@ -1332,7 +1332,7 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
                        uint32_t *dec_len) {
     LOG_DEBUG (__FUNCTION__);
 
-    int status = AES_decrypt(encrypted_dkg_secret, dec_len, (char *)decrypted_dkg_secret);
+    int status = AES_decrypt(encrypted_dkg_secret, *dec_len, (char *)decrypted_dkg_secret);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
