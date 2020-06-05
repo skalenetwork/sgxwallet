@@ -1103,7 +1103,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         return;
     }
 
-    skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE - 1] = '\0';
+    //skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE - 1] = '\0';
 
     snprintf(errString, BUF_LEN, "pr key is %s length %d ", skey, strlen(skey));
     mpz_t privateKeyMpz;
