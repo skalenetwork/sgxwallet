@@ -1024,6 +1024,14 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     REQUIRE( status == SGX_SUCCESS );
     REQUIRE( errStatus == SGX_SUCCESS );
 
+    errMsg.clear();
+    vector<char> receivedPubKeyX(BUF_LEN, 0);
+    vector<char> receivedPubKeyY(BUF_LEN, 0);
+    status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), enc_len, receivedPubKeyX.data(),
+                                      receivedPubKeyY.data());
+    REQUIRE(status == SGX_SUCCESS);
+    REQUIRE(errStatus == SGX_SUCCESS);
+
     int errStatusAES = 0;
     vector<char> errMsgAES(BUF_LEN, 0);
     vector <uint8_t> encrPrivKeyAES(BUF_LEN, 0);
@@ -1041,4 +1049,15 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
                               signatureSAES.data(), &signatureVAES, 16);
     REQUIRE( status == SGX_SUCCESS );
     REQUIRE( errStatusAES == SGX_SUCCESS );
+
+    errMsgAES.clear();
+    vector<char> receivedPubKeyXAES(BUF_LEN, 0);
+    vector<char> receivedPubKeyYAES(BUF_LEN, 0);
+    status = trustedGetPublicEcdsaKeyAES(eid, &errStatusAES, errMsgAES.data(), encrPrivKeyAES.data(), enc_lenAES, receivedPubKeyXAES.data(),
+                                      receivedPubKeyYAES.data());
+    REQUIRE(status == SGX_SUCCESS);
+    REQUIRE(errStatusAES == SGX_SUCCESS);
+
+    REQUIRE( receivedPubKeyX == receivedPubKeyXAES );
+    REQUIRE( receivedPubKeyY == receivedPubKeyYAES );
 }
