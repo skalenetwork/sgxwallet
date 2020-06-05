@@ -56,7 +56,6 @@
 
 
 std::string *FqToString(libff::alt_bn128_Fq *_fq) {
-
     mpz_t t;
     mpz_init(t);
 
@@ -82,7 +81,6 @@ int char2int(char _input) {
 
 
 void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
-
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
@@ -92,13 +90,11 @@ void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
     }
 
     _hexArray[_len * 2] = 0;
-
 }
 
 
 bool hex2carray(const char *_hex, uint64_t *_bin_len,
                 uint8_t *_bin) {
-
     int len = strnlen(_hex, 2 * BUF_LEN);
 
 
@@ -119,12 +115,10 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
     }
 
     return true;
-
 }
 
 bool hex2carray2(const char *_hex, uint64_t *_bin_len,
                  uint8_t *_bin, const int _max_length) {
-
     int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
 
 
@@ -145,12 +139,10 @@ bool hex2carray2(const char *_hex, uint64_t *_bin_len,
     }
 
     return true;
-
 }
 
 bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
           char *_sig) {
-
     auto keyStr = make_shared<string>(_encryptedKeyHex);
 
     auto hash = make_shared<array<uint8_t, 32>>();
@@ -160,9 +152,6 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
-
-
-
 
     auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 
@@ -184,7 +173,6 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char *_sig) {
-
     auto keyStr = make_shared<string>(_encryptedKeyHex);
 
     auto hash = make_shared<array<uint8_t, 32>>();
@@ -194,8 +182,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     if (!hex2carray(_hashHex, &binLen, hash->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
-
-
 
 //  auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
 //
@@ -243,7 +229,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     size_t sz = 0;
 
-
     uint8_t encryptedKey[BUF_LEN];
 
     bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey);
@@ -257,16 +242,13 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
             trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
 
-
     if (status != SGX_SUCCESS) {
         cerr << "SGX enclave call  to trustedBlsSignMessage failed:" << status << std::endl;
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
     }
 
-
     std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
                        hash_with_hint.second;
-
 
     std::string sig = signature;
 
@@ -289,7 +271,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
 bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char *_sig) {
-
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
 }
 
@@ -327,8 +308,6 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
 }
 
 char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
-
-
     *errStatus = -1;
 
     uint64_t decodedLen = 0;
@@ -341,7 +320,6 @@ char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encry
 
     char *plaintextKey = (char *) calloc(BUF_LEN, 1);
 
-    //status = trustedDecryptKey(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
     status = trustedDecryptKeyAES(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
 
     if (status != SGX_SUCCESS) {
@@ -353,5 +331,4 @@ char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encry
     }
 
     return plaintextKey;
-
 }
