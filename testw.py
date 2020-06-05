@@ -50,7 +50,7 @@ testList = [ "[cert-sign]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
             "[dkg-pub-shares]",
-            #"[dkg-aes-pub-shares]", <- fix it, doesn't work but never used
+            "[dkg-aes-pub-shares]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
             "[sgx-encrypt-decrypt]",
