@@ -751,7 +751,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
 
-        auto response = c.generateDKGPoly(polyName, t);
+        Json::Value response = c.generateDKGPoly(polyName, t);
         REQUIRE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
@@ -782,7 +782,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value responce = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
-                                         j)["result"].asBool();
+                                         j);
             REQUIRE(responce["status"] == 0);
 
             bool res = responce["result"].asBool();
