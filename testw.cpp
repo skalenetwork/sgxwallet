@@ -757,7 +757,6 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     for (uint8_t i = 0; i < n; i++) {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
-        cout << secretShares[i] << endl;
         REQUIRE(secretShares[i]["status"] == 0);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
@@ -767,7 +766,6 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
             }
         }
     }
-
 
     int k = 0;
 
@@ -794,16 +792,13 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     BLSSigShareSet sigShareSet(t, n);
 
-
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
-
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffsPubKeysMap;
 
@@ -812,9 +807,12 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        c.createBLSPrivateKey(blsName, etnKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        auto response = c.createBLSPrivateKey(blsName, etnKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        REQUIRE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        REQUIRE(pubBLSKeys[i]["status"] == 0);
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        REQUIRE(blsSigShares[i]["status"] == 0);
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
@@ -828,7 +826,6 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
         coeffsPubKeysMap[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
     }
-
 
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >> > (coeffsPubKeysMap), t,
@@ -1051,14 +1048,12 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     REQUIRE(status == 0);
     REQUIRE( errStatus == 0 );
 
-
     vector<char> decr_key(BUF_LEN, 0);
     status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
     REQUIRE( errStatus == 0 );
     REQUIRE(key.compare(decr_key.data()) == 0);
-
 }
 
 TEST_CASE_METHOD(TestFixture, "SGX encrypt/decrypt", "[sgx-encrypt-decrypt]") {
@@ -1072,7 +1067,6 @@ TEST_CASE_METHOD(TestFixture, "SGX encrypt/decrypt", "[sgx-encrypt-decrypt]") {
 
     REQUIRE(status == 0);
     REQUIRE( errStatus == 0 );
-
 
     vector<char> decr_key(BUF_LEN, 0);
     status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
