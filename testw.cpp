@@ -533,9 +533,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
                                      (uint8_t *) secret.data(), &encLen);
 
     REQUIRE( status == SGX_SUCCESS);
-    for (auto& elem : errMsg1) {
-        std::cout << elem;
-    }
     REQUIRE( errStatus == SGX_SUCCESS);
 }
 
@@ -559,6 +556,8 @@ TEST_CASE_METHOD(TestFixture, "DKG public shares test", "[dkg-pub-shares]") {
 
     status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
                                     encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
+    REQUIRE(status == SGX_SUCCESS);
+    REQUIRE( errStatus == SGX_SUCCESS );
 
     vector <string> g2Strings = splitString(pubShares.data(), ',');
     vector <libff::alt_bn128_G2> pubSharesG2;
@@ -612,6 +611,8 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
 
     status = trustedGetPublicSharesAES(eid, &errStatus, errMsg1.data(),
                                     encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
+    REQUIRE(status == SGX_SUCCESS);
+    REQUIRE( errStatus == SGX_SUCCESS );
 
     vector <string> g2Strings = splitString(pubShares.data(), ',');
     vector <libff::alt_bn128_G2> pubSharesG2;
@@ -746,10 +747,12 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         etnKeys[i] = c.generateECDSAKey();
+        REQUIRE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
 
-        c.generateDKGPoly(polyName, t);
+        auto response = c.generateDKGPoly(polyName, t);
+        REQUIRE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         REQUIRE(verifVects[i]["status"] == 0);
@@ -778,11 +781,14 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         for (int j = 0; j < n; j++) {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            bool res = c.dkgVerification(pubShares[i], etnKeys[j]["keyName"].asString(), secretShare, t, n,
+            auto responce = c.dkgVerification(pubShares[i], etnKeys[j]["keyName"].asString(), secretShare, t, n,
                                          j)["result"].asBool();
-            k++;
+            REQUIRE(responce["status"] == 0);
 
+            bool res = responce["result"].asBool();
             REQUIRE(res);
+
+            k++;
 
             pSharesBad[i][0] = 'q';
             Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], etnKeys[j]["keyName"].asString(), secretShare, t,
@@ -924,13 +930,13 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
 
     string polyName = SAMPLE_POLY_NAME;
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
+    REQUIRE(genPoly["status"] == 0);
 
     Json::Value polyExists = c.isPolyExists(polyName);
-
+    REQUIRE(polyExists["status"] == 0);
     REQUIRE(polyExists["IsExist"].asBool());
 
     Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
-
     REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 }
 
@@ -952,20 +958,24 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
+        REQUIRE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         REQUIRE(ethKeys[i]["status"] == 0);
-        c.generateDKGPoly(polyName, t);
+        auto response = c.generateDKGPoly(polyName, t);
+        REQUIRE(response["status"] == 0);
+
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
+        REQUIRE(verifVects[i]["status"] == 0);
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
 
     for (uint8_t i = 0; i < n; i++) {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
-
         REQUIRE(secretShares[i]["status"] == 0);
+
         for (uint8_t k = 0; k < t; k++)
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = verifVects[i]["verificationVector"][k][j].asString();
@@ -981,13 +991,13 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            REQUIRE(verif["status"] == 0);
             bool res = verif["result"].asBool();
             k++;
             REQUIRE(res);
         }
 
     Json::Value complaintResponse = c.complaintResponse(polyNames[1], 0);
-
     REQUIRE(complaintResponse["status"] == 0);
 
     BLSSigShareSet sigShareSet(t, n);
@@ -1007,14 +1017,14 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
-        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        REQUIRE(response["status"] == 0);
 
+        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         REQUIRE(pubBLSKeys[i]["status"] == 0);
 
         string hash = SAMPLE_HASH;
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
-
         REQUIRE(blsSigShares[i]["status"] == 0);
 
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
