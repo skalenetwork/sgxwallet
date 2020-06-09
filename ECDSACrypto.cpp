@@ -82,7 +82,6 @@ vector <string> genECDSAKey() {
     keys.at(0) = hexEncrKey.data();
     keys.at(1) = string(pub_key_x.data()) + string(pub_key_y.data());
 
-
     vector<unsigned char> randBuffer(32, 0);
     fillRandomBuffer(randBuffer);
 

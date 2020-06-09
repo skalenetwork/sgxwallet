@@ -265,7 +265,6 @@ bool CreateBLSShare(const string &blsKeyName, const char *s_shares, const char *
     trustedCreateBlsKeyAES(eid, &errStatus, errMsg, s_shares, encr_key, decKeyLen, encr_bls_key, &enc_bls_len);
 
     if (errStatus != 0) {
-
         spdlog::error(errMsg);
         spdlog::error("status {}", errStatus);
         throw SGXException(ERROR_IN_ENCLAVE, "Create BLS private key failed in enclave");

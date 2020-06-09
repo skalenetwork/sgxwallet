@@ -201,9 +201,11 @@ void sendRPCRequest() {
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
+        REQUIRE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
-        c.generateDKGPoly(polyName, t);
+        auto response = c.generateDKGPoly(polyName, t);
+        REQUIRE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         REQUIRE(verifVects[i]["status"] == 0);
@@ -230,6 +232,7 @@ void sendRPCRequest() {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            REQUIRE(verif["status"] == 0);
 
             k++;
         }
@@ -251,7 +254,8 @@ void sendRPCRequest() {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        REQUIRE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
 
         string hash = SAMPLE_HASH;

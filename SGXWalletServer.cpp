@@ -557,11 +557,11 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
         if (!check_n_t(_t, _n)) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
-        vector <string> sshares_vect;
+        vector< string > sshares_vect;
 
         spdlog::debug("secret shares from json are - {}", _secretShare);
 
-        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+        shared_ptr< string > encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
         bool res = CreateBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
         if (res) {
