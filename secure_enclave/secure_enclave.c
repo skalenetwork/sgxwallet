@@ -971,7 +971,14 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
     char skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
-    mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
+    //mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
+    char arr_skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
+    mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
+    n_zeroes = 64 - strlen(arr_skey_str);
+    for (int i = 0; i < n_zeroes; i++) {
+        skey_str[i] = '0';
+    }
+    strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
     snprintf(errString, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
 
     int stat = AES_encrypt(skey_str, encryptedPrivateKey);
@@ -992,7 +999,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     stat = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str);
     if (stat != 0) {
         snprintf(errString + 19 + strlen(skey_str), BUF_LEN, "ecdsa private key decr failed with status %d", stat);
-        errStatus = stat;
+        *errStatus = stat;
         return;
     }
 
@@ -1529,7 +1536,10 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         if (common_key == NULL) {
             *errStatus = 1;
             snprintf(errString, BUF_LEN, "invalid common_key");
+            LOG_ERROR(errString);
+
             mpz_clear(sum);
+
             return;
         }
 
@@ -1539,6 +1549,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
             *errStatus = 1;
             snprintf(errString, BUF_LEN, "invalid common_key");
             LOG_ERROR(common_key);
+            LOG_ERROR(errString);
 
             mpz_clear(sum);
 
