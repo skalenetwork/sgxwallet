@@ -734,7 +734,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     int n = 16, t = 16;
-    Json::Value etnKeys[n];
+    Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
     Json::Value secretShares[n];
@@ -746,7 +746,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     int schainID = randGen();
     int dkgID = randGen();
     for (uint8_t i = 0; i < n; i++) {
-        etnKeys[i] = c.generateECDSAKey();
+        ethKeys[i] = c.generateECDSAKey();
         REQUIRE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
@@ -756,7 +756,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         REQUIRE(verifVects[i]["status"] == 0);
-        pubEthKeys.append(etnKeys[i]["publicKey"]);
+        pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
 
     for (uint8_t i = 0; i < n; i++) {
@@ -781,7 +781,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         for (int j = 0; j < n; j++) {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            auto responce = c.dkgVerification(pubShares[i], etnKeys[j]["keyName"].asString(), secretShare, t, n,
+            Json::Value responce = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
                                          j)["result"].asBool();
             REQUIRE(responce["status"] == 0);
 
@@ -791,7 +791,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
             k++;
 
             pSharesBad[i][0] = 'q';
-            Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], etnKeys[j]["keyName"].asString(), secretShare, t,
+            Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], ethKeys[j]["keyName"].asString(), secretShare, t,
                                                        n, j);
             res = wrongVerif["result"].asBool();
             REQUIRE(!res);
@@ -814,7 +814,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        auto response = c.createBLSPrivateKey(blsName, etnKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         REQUIRE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         REQUIRE(pubBLSKeys[i]["status"] == 0);
