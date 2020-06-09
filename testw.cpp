@@ -257,6 +257,7 @@ void sendRPCRequest() {
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         REQUIRE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        REQUIRE(pubBLSKeys[i]["status"] == 0);
 
         string hash = SAMPLE_HASH;
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
