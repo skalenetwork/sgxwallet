@@ -970,7 +970,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
         pub_key_y[i] = '0';
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
-    char skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
+    char skey_str[ECDSA_SKEY_LEN];
     //mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
     char arr_skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
@@ -979,6 +979,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
         skey_str[i] = '0';
     }
     strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
+    skey_str[ECDSA_SKEY_LEN - 1] = 0;
     snprintf(errString, BUF_LEN, "skey is %s len %d\n", skey_str, strlen(skey_str));
 
     int stat = AES_encrypt(skey_str, encryptedPrivateKey);
@@ -1233,8 +1234,6 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
                      uint32_t enc_len, char *key) {
     LOG_DEBUG(__FUNCTION__);
 
-    uint32_t decLen;
-
     *errStatus = -9;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, key);
@@ -1242,12 +1241,6 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
     if (status != 0) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
-        return;
-    }
-
-    if (decLen > MAX_KEY_LENGTH) {
-        *errStatus = 1;
-        snprintf(errString, BUF_LEN, "wrong decLen");//"decLen != MAX_KEY_LENGTH");
         return;
     }
 
@@ -1622,6 +1615,7 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     skey_hex[ECDSA_SKEY_LEN - 1] = 0;
 
     if (calc_bls_public_key(skey_hex, bls_pub_key) != 0) {
+        LOG_ERROR(skey_hex);
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "could not calculate bls public key");
         return;

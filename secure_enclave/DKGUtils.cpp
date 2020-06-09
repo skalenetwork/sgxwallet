@@ -40,7 +40,7 @@
 
 #include "DHDkg.h"
 
-using namespace  std;
+using namespace std;
 
 string stringFromFr(libff::alt_bn128_Fr& _el) {
 
