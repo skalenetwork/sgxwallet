@@ -47,7 +47,6 @@ shared_ptr<jsonrpc::HttpServer> CSRManagerServer::hs3 = nullptr;
 CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
                                    serverVersion_t type) : abstractCSRManagerServer(connector, type) {}
 
-
 Json::Value getUnsignedCSRsImpl() {
     spdlog::info(__FUNCTION__);
     INIT_RESULT(result)

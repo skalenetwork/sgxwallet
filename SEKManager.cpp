@@ -59,8 +59,6 @@ void create_test_key(){
     throw SGXException(status, errMsg.data()) ;
   }
 
-  //std::cerr << "enc len is " << enc_len << std::endl;
-
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
   carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
@@ -77,49 +75,41 @@ void create_test_key(){
 
 bool check_SEK(std::string SEK){
    std::shared_ptr <std::string> test_key_ptr = LevelDB::getLevelDb() -> readString("TEST_KEY");
-//  if (test_key_ptr == nullptr){
-//    spdlog::error("empty db" );
-//    exit(-1);
-//  }
-//  else{
-    vector<uint8_t> encr_test_key(BUF_LEN, 0);
-    uint64_t len;
-    if ( !hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data())){
-      spdlog::error("wrong test key" );
-      exit(-1);
-    }
+  vector<uint8_t> encr_test_key(BUF_LEN, 0);
+  uint64_t len;
+  if ( !hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data())){
+    spdlog::error("wrong test key" );
+    exit(-1);
+  }
 
-    vector<char> decr_key(1024,0);
-    vector<char> errMsg(1024,0);
-    int err_status = 0;
+  vector<char> decr_key(1024,0);
+  vector<char> errMsg(1024,0);
+  int err_status = 0;
 
-    vector<uint8_t> encr_SEK(1024,0);
+  vector<uint8_t> encr_SEK(1024,0);
 
-    uint32_t l = len;
-    std::cerr << " l is " << l << std::endl;
+  uint32_t l = len;
 
-    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
-    if (status != SGX_SUCCESS){
-      cerr << "RPCException thrown with status " << status << endl;
-      throw SGXException(status, errMsg.data());
-    }
+  status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str() );
+  if (status != SGX_SUCCESS){
+    cerr << "RPCException thrown with status " << status << endl;
+    throw SGXException(status, errMsg.data());
+  }
 
-    status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
-    if (status != SGX_SUCCESS || err_status != 0){
-      spdlog::error("failed to decrypt test key" );
-      spdlog::error(errMsg.data());
-      exit(-1);
-    }
+  status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+  if (status != SGX_SUCCESS || err_status != 0){
+    spdlog::error("failed to decrypt test key" );
+    spdlog::error(errMsg.data());
+    exit(-1);
+  }
 
-
-    std::string test_key = TEST_VALUE;
-    if (test_key.compare(decr_key.data())!= 0){
-      std::cerr << "decrypted key is " << decr_key.data() << std::endl;
-      spdlog::error("Invalid SEK" );
-      return false;
-    }
-    return true;
- // }
+  std::string test_key = TEST_VALUE;
+  if (test_key.compare(decr_key.data()) != 0){
+    std::cerr << "decrypted key is " << decr_key.data() << std::endl;
+    spdlog::error("Invalid SEK" );
+    return false;
+  }
+  return true;
 }
 
 void gen_SEK(){

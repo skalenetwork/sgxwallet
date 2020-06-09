@@ -50,7 +50,6 @@ string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
     return result;
 }
 
-
 void fillRandomBuffer(vector<unsigned char> &_buffer) {
     ifstream devRandom("/dev/urandom", ios::in | ios::binary);
     devRandom.exceptions(ifstream::failbit | ifstream::badbit);
@@ -97,7 +96,6 @@ vector <string> genECDSAKey() {
 }
 
 string getECDSAPubKey(const char *_encryptedKeyHex) {
-
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
@@ -139,7 +137,6 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
     domain_parameters_load_curve(curve, secp256k1);
     point publicKey = point_init();
 
-
     mpz_t msgMpz;
     mpz_init(msgMpz);
     if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
@@ -165,7 +162,6 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
     signature_free(sig);
 
     return result;
-
 }
 
 vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, int base) {
@@ -200,7 +196,6 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
         goto clean;
     }
 
-
     if (status != SGX_SUCCESS) {
         spdlog::error("failed to sign {}", status);
         exception = make_shared<SGXException>(666, "failed to sign");
@@ -221,7 +216,6 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
         exception = make_shared<SGXException>(667, "ECDSA did not verify");
         goto clean;
     }
-
 
     clean:
 

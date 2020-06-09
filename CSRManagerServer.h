@@ -32,14 +32,10 @@
 #include "abstractCSRManagerServer.h"
 #include "LevelDB.h"
 
-
-
-
 using namespace jsonrpc;
 using namespace std;
 
 class CSRManagerServer : public abstractCSRManagerServer {
-
   recursive_mutex m;
 
   static shared_ptr<HttpServer> hs3;

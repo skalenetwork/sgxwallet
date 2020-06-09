@@ -1576,8 +1576,17 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
 
     mpz_mod(bls_key, sum, q);
 
-    char key_share[mpz_sizeinbase(bls_key, 16) + 2];
-    mpz_get_str(key_share, 16, bls_key);
+//    char key_share[mpz_sizeinbase(bls_key, 16) + 2];
+//    mpz_get_str(key_share, 16, bls_key);
+    char key_share[BLS_KEY_LENGTH];
+    char arr_skey_str[mpz_sizeinbase(bls_key, 16) + 2];
+    mpz_get_str(arr_skey_str, 16, bls_key);
+    int n_zeroes = 64 - strlen(arr_skey_str);
+    for (int i = 0; i < n_zeroes; i++) {
+        key_share[i] = '0';
+    }
+    strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
+    key_share[BLS_KEY_LENGTH - 1] = 0;
     snprintf(errString, BUF_LEN, " bls private key is %s", key_share);
 
     status = AES_encrypt(key_share, encr_bls_key);

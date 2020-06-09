@@ -41,6 +41,8 @@
 
 #define SECRET_SHARE_NUM_BYTES 96
 
+#define BLS_KEY_LENGTH 65
+
 #define ECDSA_SKEY_LEN 65
 #define ECDSA_SKEY_BASE 16
 #define ECDSA_ENCR_LEN 93

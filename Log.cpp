@@ -34,7 +34,6 @@ void Log::setGlobalLogLevel(string &_s) {
 }
 
 level_enum Log::logLevelFromString(string &_s) {
-
     level_enum  result = trace;
 
     if (_s == "trace")

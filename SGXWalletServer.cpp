@@ -170,7 +170,6 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     char *encryptedKeyShareHex = nullptr;
 
     try {
-
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
 
         if (encryptedKeyShareHex == nullptr) {
@@ -184,7 +183,6 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         result["encryptedKeyShare"] = string(encryptedKeyShareHex);
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
-
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -304,7 +302,6 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
     result["encryptedKey"] = "";
 
     try {
-
         string prefix = _tempKeyName.substr(0, 8);
         if (prefix != "tmp_NEK:") {
             throw SGXException(UNKNOWN_ERROR, "invalid temp key name");
@@ -446,7 +443,6 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
                 result["verificationVector"][i][j] = currentCoef.at(j);
             }
         }
-
     } catch (SGXException &_e) {
         cerr << " err str " << _e.errString << endl;
         result["status"] = _e.status;
@@ -485,7 +481,6 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
         string s = trustedGetSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
         result["secretShare"] = s;
-
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -522,7 +517,6 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         if (!verifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
             result["result"] = false;
         }
-
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
@@ -787,7 +781,6 @@ shared_ptr <string> SGXWalletServer::readKeyShare(const string &_keyShareName) {
     }
 
     return keyShareStr;
-
 }
 
 void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t) {

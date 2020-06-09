@@ -29,7 +29,6 @@ void Exception::logNested(const std::exception &e, int level)
 {
     string prefix;
 
-
     if (level == 0) {
         prefix = "!Exception:";
     } else {
