@@ -370,9 +370,9 @@ char* point_compress(point P)
 	//Determine if it's odd or even
 	mpz_mod_ui(t1, P->y, 2);
 	if(mpz_cmp_ui(t1, 0))
-		strncpy(result, "02", 2);
+		strncpy(result, "02", 3);
 	else
-		strncpy(result, "03", 2);
+		strncpy(result, "03", 3);
 
 	mpz_clear(t1);
 
