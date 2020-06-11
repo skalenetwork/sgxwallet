@@ -34,18 +34,13 @@
 
 #include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
-
-//#include "../sgxwallet_common.h"
 #include "EnclaveConstants.h"
 #include <cstdio>
 #include <stdio.h>
 
 #include "DHDkg.h"
 
-using namespace  std;
-
-
-
+using namespace std;
 
 string stringFromFr(libff::alt_bn128_Fr& _el) {
 
@@ -136,15 +131,10 @@ int gen_dkg_poly( char* secret, unsigned _t ){
 }
 
 libff::alt_bn128_Fr PolynomialValue(const vector<libff::alt_bn128_Fr>& pol, libff::alt_bn128_Fr point, unsigned _t) {
-
-
   libff::alt_bn128_Fr value = libff::alt_bn128_Fr::zero();
 
   libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
   for (unsigned i = 0; i < pol.size(); ++i) {
-//    if (i == _t - 1 && pol[i] == libff::alt_bn128_Fr::zero()) {
-//        //snprintf(err_string, BUF_LEN,"sgx_unseal_data failed with status
-//    }
      value += pol[i] * pow;
      pow *= point;
   }
@@ -165,12 +155,10 @@ void calc_secret_shares(const char* decrypted_coeffs, char * secret_shares,     
     result += ":";
   }
   strncpy(secret_shares, result.c_str(), result.length() + 1);
-  //strncpy(secret_shares, decrypted_coeffs, 3650);
 }
 
 int calc_secret_share(const char* decrypted_coeffs, char * s_share,
                         unsigned _t, unsigned _n, unsigned ind) {
-
   libff::init_alt_bn128_params();
   char symbol = ':';
   vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
@@ -185,12 +173,10 @@ int calc_secret_share(const char* decrypted_coeffs, char * s_share,
 
   strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
   return 0;
-
 }
 
 void calc_secret_shareG2_old(const char* decrypted_coeffs, char * s_shareG2,
-                                            unsigned _t, unsigned ind){
-
+                                            unsigned _t, unsigned ind) {
   libff::init_alt_bn128_params();
   char symbol = ':';
   vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
@@ -202,7 +188,6 @@ void calc_secret_shareG2_old(const char* decrypted_coeffs, char * s_shareG2,
   string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
 
   strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);
-  //strncpy(s_shareG2, decrypted_coeffs, 320);
 }
 
 int calc_secret_shareG2(const char* s_share, char * s_shareG2){
@@ -253,7 +238,6 @@ int calc_public_shares(const char* decrypted_coeffs, char * public_shares,
   return 0;
 }
 
-//extern "C" int __gmpz_set_str (mpz_ptr, const char *, int);
 string ConvertHexToDec(string hex_str){
   mpz_t dec;
   mpz_init(dec);
@@ -271,8 +255,7 @@ string ConvertHexToDec(string hex_str){
   return result;
 }
 
-int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int ind ){
-
+int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int ind ) {
   string pub_shares_str = public_shares;
   libff::init_alt_bn128_params();
 
@@ -303,44 +286,25 @@ int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int in
   libff::alt_bn128_G2 val = libff::alt_bn128_G2::zero();
    for (int i = 0; i < _t; ++i) {
     val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares[i];
-  }
+   }
 
   char arr[mpz_sizeinbase (decr_secret_share, 10) + 2];
   char * tmp = mpz_get_str(arr, 10, decr_secret_share);
 
   libff::alt_bn128_Fr sshare(tmp);
 
- // strncpy(public_shares, tmp, strlen(tmp));
-//  string res = ConvertHexToDec("fe43567238abcdef98760");
-//  strncpy(public_shares, res.c_str(), res.length());
-
-
-
   libff::alt_bn128_G2  val2 = sshare * libff::alt_bn128_G2::one();
 
-   memset(public_shares, 0, strlen(public_shares));
+  memset(public_shares, 0, strlen(public_shares));
   strncpy(public_shares, tmp, strlen(tmp));
-//   strncpy(public_shares, ConvertToString(val2.X.c0).c_str(), ConvertToString(val2.X.c0).length());
-//   strncpy(public_shares + ConvertToString(val2.X.c0).length(), ":", 1);
-//  strncpy(public_shares + ConvertToString(val2.X.c0).length() + 1, ConvertToString(val2.X.c1).c_str(), 77);
-
-
 
   val.to_affine_coordinates();
   val2.to_affine_coordinates();
-//  strncpy(public_shares + strlen(tmp), ":", 1);
   strncpy(public_shares, ConvertToString(val.X.c0).c_str(), ConvertToString(val.X.c0).length());
   strncpy(public_shares + ConvertToString(val.X.c0).length(), ":", 1);
   strncpy(public_shares + ConvertToString(val.X.c0).length() + 1, ConvertToString(val2.X.c0).c_str(), ConvertToString(val2.X.c0).length());
-  /*strncpy(public_shares + 77 + 77 + 79, "\n", 1);
-  strncpy(public_shares + 144 + 79, ConvertToString(val2.X.c0).c_str(), 77);
-  strncpy(public_shares + 144 + 78, ":", 1);
-  strncpy(public_shares + 144 + 77, ConvertToString(val2.X.c1).c_str(), 77);*/
-
-
 
   return (val == sshare * libff::alt_bn128_G2::one());
-
 }
 
 int calc_bls_public_key(char* skey_hex, char* pub_key){
@@ -354,7 +318,7 @@ int calc_bls_public_key(char* skey_hex, char* pub_key){
   }
 
   char skey_dec[mpz_sizeinbase (skey, 10) + 2];
-  char * skey_str = mpz_get_str(skey_dec, 10, skey);
+  mpz_get_str(skey_dec, 10, skey);
 
   libff::alt_bn128_Fr bls_skey(skey_dec);
 

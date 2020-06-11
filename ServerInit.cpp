@@ -60,12 +60,9 @@ void initUserSpace() {
     LevelDB::initDataFolderAndDBs();
 }
 
-
 void initEnclave(uint32_t _logLevel) {
-
     eid = 0;
     updated = 0;
-
 
 #ifndef SGX_HW_SIM
     unsigned long support;
@@ -77,7 +74,6 @@ void initEnclave(uint32_t _logLevel) {
 #endif
 
     spdlog::debug("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
-
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);
@@ -101,14 +97,9 @@ void initEnclave(uint32_t _logLevel) {
     }
 
     spdlog::info("Enclave libtgmp library and logging initialized successfully");
-
 }
 
-
-
-
 void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
-
     static int sgxServerInited;
 
     cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
