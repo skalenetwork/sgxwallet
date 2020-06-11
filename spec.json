@@ -50,8 +50,8 @@
       "status": 0,
       "errorMessage": "12345",
       "encryptedKey": "12345",
-      "KeyName": "tmp:123",
-      "PublicKey": "12345"
+      "keyName": "tmp:123",
+      "publicKey": "12345"
     }
   },
 
@@ -59,7 +59,7 @@
     "name": "renameECDSAKey",
     "params": {
       "tempKeyName": "key1",
-      "KeyName": "key2"
+      "keyName": "key2"
     },
     "returns": {
       "status": 0,
@@ -75,7 +75,7 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "PublicKey": "12345"
+      "publicKey": "12345"
     }
   },
 
@@ -132,15 +132,15 @@
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "SecretShare": "123"
+      "secretShare": "123"
     }
   },
   {
-    "name": "DKGVerification",
+    "name": "dkgVerification",
     "params": {
       "publicShares": "123",
-      "EthKeyName":"NEK:hex",
-      "SecretShare": "f_ij",
+      "ethKeyName":"NEK:hex",
+      "secretShare": "f_ij",
       "n": 3,
       "t": 3,
       "index" : 2
@@ -152,36 +152,36 @@
     }
   },
   {
-    "name": "CreateBLSPrivateKey",
+    "name": "createBLSPrivateKey",
     "params": {
-      "BLSKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID: ",
-      "EthKeyName":"NEK:hex",
+      "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID: ",
+      "ethKeyName":"NEK:hex",
       "polyName":"POLY:SCHAIN_ID :NODE_ID :DKG_ID: ",
-      "SecretShare": "122",
+      "secretShare": "122",
       "n": 3,
       "t": 3
     },
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "BLSKeyName": "key"
+      "blsKeyName": "key"
     }
   },
 
   {
-    "name": "GetBLSPublicKeyShare",
+    "name": "getBLSPublicKeyShare",
     "params": {
-      "BLSKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID"
+      "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID"
     },
     "returns": {
       "status": 0,
       "errorMessage": "12345",
-      "BLSPublicKeyShare": []
+      "blsPublicKeyShare": []
     }
   },
 
   {
-    "name": "ComplaintResponse",
+    "name": "complaintResponse",
     "params": {
       "polyName": "p1",
       "n": 3,
@@ -192,7 +192,7 @@
       "status": 0,
       "errorMessage": "12345",
       "share*G2": "123",
-      "DHKey": "123"
+      "dhKey": "123"
     }
   },
 

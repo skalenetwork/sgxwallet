@@ -33,16 +33,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <stdbool.h>
 
-#include "sgxwallet.h"
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include <stdbool.h>
+#include "SEKManager.h"
+#include "SGXWalletServer.h"
+#include "sgxwallet.h"
+
 
 void usage() {
-  fprintf(stderr, "usage: sgxwallet\n");
-  exit(1);
+    fprintf(stderr, "usage: sgxwallet\n");
+    exit(1);
 }
 
 sgx_launch_token_t token = {0};
@@ -50,45 +53,98 @@ sgx_enclave_id_t eid;
 sgx_status_t status;
 int updated;
 
+void printUsage() {
+    fprintf(stderr, "Available flags:\n");
+    fprintf(stderr, "-c  do not verify client certificate\n");
+    fprintf(stderr, "-s  sign client certificate without human confirmation \n");
+    fprintf(stderr, "-d  turn on debug output\n");
+    fprintf(stderr, "-v  verbose mode: turn on debug output\n");
+    fprintf(stderr, "-vv  detailed verbose mode: turn on debug and trace outputs\n");
+    fprintf(stderr, "-n  launch SGXWalletServer using http (not https)\n");
+    fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
+    fprintf(stderr, "-y  Do not ask user to acknowledge receipt of backup key \n");
+}
+
+enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
+
 int main(int argc, char *argv[]) {
 
-  bool check_client_cert = true;
-  bool sign_automatically = false;
-  int opt;
+    bool encryptKeysOption  = false;
+    bool useHTTPSOption = true;
+    bool printDebugInfoOption = false;
+    bool printTraceInfoOption = false;
+    bool autoconfirmOption = false;
+    bool checkClientCertOption = true;
+    bool autoSignClientCertOption = false;
 
-  if (argc > 1 && strlen(argv[1])==1){
-    fprintf(stderr, "option is too short %s\n", argv[1]);
-    exit(1);
-  }
+    int opt;
 
-  while ((opt = getopt(argc, argv, "csh")) != -1) {
-    switch (opt) {
-    case 'h':
-      if (strlen(argv[1]) == 2 ) {
-        fprintf(stderr, "-c  client certificate will not be checked\n");
-        fprintf(stderr, "-s  client certificate will be signed automatically\n");
-        exit(0);
-      } else {
-        fprintf(stderr, "unknown flag %s\n", argv[1]);
+    if (argc > 1 && strlen(argv[1]) == 1) {
+        printUsage();
         exit(1);
-      }
-    case 'c':
-      check_client_cert = false;
-      break;
-    case 's':
-      sign_automatically = true;
-      break;
-    case '?': // fprintf(stderr, "unknown flag\n");
-      exit(1);
-    default:
-      break;
     }
-  }
-  init_all(check_client_cert, sign_automatically);
 
-  while (true) {
-      sleep(10);
-  }
 
-  return 0;
+
+
+    while ((opt = getopt(argc, argv, "cshd0abyvVn")) != -1) {
+        switch (opt) {
+            case 'h':
+                printUsage();
+                exit(0);
+            case 'c':
+                checkClientCertOption = false;
+                break;
+            case 's':
+                autoSignClientCertOption = true;
+                break;
+            case 'd':
+                printDebugInfoOption = true;
+                break;
+            case 'v':
+                printDebugInfoOption = true;
+                break;
+            case 'V':
+                printDebugInfoOption = true;
+                printTraceInfoOption = true;
+                break;
+            case '0':
+                useHTTPSOption = false;
+                break;
+            case 'n':
+                useHTTPSOption = false;
+                break;                
+            case 'a':
+                encryptKeysOption = false;
+                break;
+            case 'b':
+                encryptKeysOption = true;
+                break;
+            case 'y':
+                autoconfirmOption = true;
+                break;
+            default:
+                printUsage();
+                exit(1);
+                break;
+        }
+    }
+
+    setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
+
+    uint32_t enclaveLogLevel = L_INFO;
+
+    if (printTraceInfoOption) {
+        enclaveLogLevel = L_TRACE;
+    } else if (printDebugInfoOption) {
+        enclaveLogLevel = L_DEBUG;
+    }
+
+    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
+
+    while (true) {
+        sleep(10);
+    }
+
+    return 0;
 }

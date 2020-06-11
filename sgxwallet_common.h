@@ -30,10 +30,23 @@
 #include <stdint.h>
 #include <string.h>
 
-
 #include <stdbool.h>
 
-#define BUF_LEN 1024
+
+
+
+
+extern int useHTTPS;
+extern int encryptKeys;
+extern int autoconfirm;
+
+
+
+
+
+
+
+#define BUF_LEN 4096
 
 #define  MAX_KEY_LENGTH 128
 #define  MAX_COMPONENT_LENGTH 80
@@ -45,14 +58,11 @@
 
 #define ADD_ENTROPY_SIZE 32
 
-#define  DKG_BUFER_LENGTH 2490//3060
-#define  DKG_MAX_SEALED_LEN 3050
-
 #define SECRET_SHARE_NUM_BYTES 96
 
 #define ECDSA_SKEY_LEN 65
 #define ECDSA_SKEY_BASE 16
-#define ECDSA_ENCR_LEN 625
+#define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
 
 #define UNKNOWN_ERROR -1
@@ -71,8 +81,12 @@
 #define INVALID_DKG_PARAMS -12
 #define INVALID_SECRET_SHARES_LENGTH -13
 
+#define CERT_REQUEST_DOES_NOT_EXIST -14
+
+
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
+#define INVALID_ECSDA_SIGNATURE -22
 
 #define ERROR_IN_ENCLAVE -33
 
@@ -86,11 +100,11 @@
 
 #define BASE_PORT 1026
 
-#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"//
+#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
+#define SGXDATA_FOLDER "sgx_data/"
 
-
-
+#define TEST_VALUE "1234567890"
 
 
 

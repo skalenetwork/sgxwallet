@@ -24,17 +24,20 @@
 #ifndef SGXWALLET_SERVERINIT_H
 #define SGXWALLET_SERVERINIT_H
 
+#include "stdint.h"
+
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else
 #define EXTERNC
 #endif
 
-EXTERNC void init_all(bool check_cert, bool sign_automatically);
+EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign);
 
-EXTERNC void init_daemon();
+EXTERNC void initUserSpace();
 
-EXTERNC  void init_enclave();
+EXTERNC void initEnclave(uint32_t _logLevel);
+
 
 
 #endif //SGXWALLET_SERVERINIT_H

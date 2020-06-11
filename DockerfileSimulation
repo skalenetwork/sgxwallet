@@ -1,0 +1,17 @@
+FROM skalenetwork/sgxwallet_base:latest
+
+
+
+RUN ccache -sz
+
+COPY . /usr/src/sdk
+WORKDIR /usr/src/sdk
+RUN ./autoconf.bash && \
+    ./configure --enable-sgx-simulation && \
+    bash -c "make" && \
+    ccache -sz && \
+    mkdir /usr/src/sdk/sgx_data
+
+COPY docker/start.sh ./
+
+ENTRYPOINT ["/usr/src/sdk/start.sh"]

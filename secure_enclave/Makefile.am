@@ -50,7 +50,7 @@ include $(top_srcdir)/build-aux/sgx_enclave.am
 
 ENCLAVE=secure_enclave
 ENCLAVE_CONFIG=$(ENCLAVE).config.xml
-ENCLAVE_KEY=$(ENCLAVE)_private.pem
+ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 
 ## Provide additional flags to sgx_sign when signing the enclave.
@@ -65,7 +65,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 
 AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./trusted_libff -I../trusted_libff -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
-AM_CXXFLAGS += -fno-builtin
+AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
 ## Additional files to remove with 'make clean'. This list needs
@@ -85,8 +85,8 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	curves.c domain_parameters.c numbertheory.c point.c signature.c DH_dkg.c \
-    DKGUtils.cpp   BLSEnclave.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+	Curves.c DomainParameters.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
+    DKGUtils.cpp   EnclaveCommon.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 

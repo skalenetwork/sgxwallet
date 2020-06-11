@@ -1,14 +1,32 @@
-name: Docker Image CI
-
+name: Build, test and push SGX container
 on: [push]
-
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-    - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: cd docker; docker build . --file Dockerfile --tag sgxcontainer:$(date +%s)
+      - name: Login to docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
+        run: docker login -u skalelabs -p ${GITHUB_TOKEN}
+      - uses: actions/checkout@v1
+      - name: submodule update
+        run: git submodule update --init --recursive
+      - name: build
+        run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
+      - name: deploy docker image
+        if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
+        run : |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export VERSION=$(cat VERSION)
+          echo "Version $VERSION"
+          export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
+          echo "::set-env name=VERSION::$VERSION"
+          echo "Version $VERSION"
+          export RELEASE=true
+          echo "::set-env name=RELEASE::$RELEASE"
+          bash ./scripts/build_image.sh Dockerfile sgxwallet
+          bash ./scripts/publish_image.sh sgxwallet

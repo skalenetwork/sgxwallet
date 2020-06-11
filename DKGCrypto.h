@@ -27,23 +27,25 @@
 #include <string>
 #include <vector>
 
-std::string gen_dkg_poly( int _t);
+using namespace std;
 
-std::vector <std::vector<std::string>> get_verif_vect(const char* encryptedPolyHex, int t, int n);
+string gen_dkg_poly( int _t);
 
-std::vector<std::string> SplitString(const char* koefs, const char symbol);
+vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int n);
 
-std::string get_secret_shares(const std::string& polyName, const char* encryptedPolyHex, const std::vector<std::string>& publicKeys, int t, int n);
+vector<string> splitString(const char* coeffs, const char symbol);
 
-bool VerifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex,  int t, int n, int ind);
+string trustedGetSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
 
-std::string decrypt_DHKey(const std::string& polyName, int ind);
+bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
 
-bool CreateBLSShare( const std::string& BLSKeyName, const char * s_shares, const char * encryptedKeyHex);
+string decryptDHKey(const string& polyName, int ind);
 
-std::vector<std::string> GetBLSPubKey(const char * encryptedKeyHex);
+bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 
-std::vector<std::string> mult_G2(const std::string& x);
+vector<string> GetBLSPubKey(const char * encryptedKeyHex);
+
+vector<string> mult_G2(const string& x);
 
 
 

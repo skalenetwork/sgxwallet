@@ -31,38 +31,41 @@
 #include "leveldb/db.h"
 
 #include "sgxwallet_common.h"
-#include "RPCException.h"
+#include "SGXException.h"
 #include "LevelDB.h"
 
+#include "ServerInit.h"
+
+#include "spdlog/spdlog.h"
+#include "common.h"
+
+
 using namespace leveldb;
+
 
 
 static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
 
-LevelDB* levelDb = nullptr;
-LevelDB* csrDb = nullptr;
-LevelDB* csrStatusDb = nullptr;
 
 
-std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
+std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    auto result = std::make_shared<std::string>();
+    auto result = std::make_shared<string>();
 
     if (db == nullptr) {
-        throw RPCException(NULL_DATABASE, "Null db");
+        throw SGXException(NULL_DATABASE, "Null db");
     }
 
     auto status = db->Get(readOptions, _key, &*result);
 
-//    if (result == nullptr) {
-//      throw RPCException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
-//    }
 
-    std::cerr << "key to read from db: " << _key <<std::endl;
+      spdlog::debug("key to read from db: {}",_key );
+      //std::cerr << "key to read from db: " << _key << std::endl;
+
 
     throwExceptionOnError(status);
 
@@ -72,7 +75,7 @@ std::shared_ptr<std::string> LevelDB::readString(const std::string &_key) {
     return result;
 }
 
-void LevelDB::writeString(const std::string &_key, const std::string &_value) {
+void LevelDB::writeString(const string &_key, const string &_value) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -80,41 +83,33 @@ void LevelDB::writeString(const std::string &_key, const std::string &_value) {
 
     throwExceptionOnError(status);
 
-    std::cerr << "written key " << _key << std::endl;//<< " value " << _value << std::endl;
+
+        spdlog::debug("written key: {}",_key );
+       // std::cerr << "written key " << _key  << std::endl;
+
 }
 
 
-void LevelDB::deleteDHDKGKey (const std::string &_key) {
+void LevelDB::deleteDHDKGKey (const string &_key) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    std::string full_key = "DKG_DH_KEY_" + _key;
+    string full_key = "DKG_DH_KEY_" + _key;
 
     auto status = db->Delete(writeOptions, Slice(_key));
 
     throwExceptionOnError(status);
 
-    std::cerr << "key deleted " << full_key << std::endl;
+      spdlog::debug("key deleted: {}",full_key );
+      //std::cerr << "key deleted " << full_key << std::endl;
+
 }
 
-void LevelDB::deleteOlegKey (const std::string &_key) {
+void LevelDB::deleteTempNEK(const string &_key){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    std::string full_key = "key" + _key;
-
-    auto status = db->Delete(writeOptions, Slice(_key));
-
-    throwExceptionOnError(status);
-
-    std::cerr << "key deleted " << full_key << std::endl;
-}
-
-void LevelDB::deleteTempNEK(const std::string &_key){
-
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
-    std::string prefix = _key.substr(0,8);
+    string prefix = _key.substr(0,8);
     if (prefix != "tmp_NEK:") {
       return;
     }
@@ -126,7 +121,7 @@ void LevelDB::deleteTempNEK(const std::string &_key){
     std::cerr << "key deleted " << _key << std::endl;
 }
 
-void LevelDB::deleteKey(const std::string &_key){
+void LevelDB::deleteKey(const string &_key){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -134,7 +129,9 @@ void LevelDB::deleteKey(const std::string &_key){
 
     throwExceptionOnError(status);
 
-    std::cerr << "key deleted " << _key << std::endl;
+      spdlog::debug("key deleted: {}",_key );
+      // std::cerr << "key deleted " << _key << std::endl;
+
 }
 
 
@@ -150,7 +147,7 @@ void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value
 }
 
 
-void LevelDB::writeByteArray(std::string &_key, const char *value,
+void LevelDB::writeByteArray(string &_key, const char *value,
                              size_t _valueLen) {
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
@@ -166,7 +163,7 @@ void LevelDB::throwExceptionOnError(Status _status) {
         return;
 
     if (!_status.ok()) {
-        throw RPCException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
+        throw SGXException(COULD_NOT_ACCESS_DATABASE, ("Could not access database database:" + _status.ToString()).c_str());
     }
 
 }
@@ -189,13 +186,13 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVi
     return readCounter;
 }
 
-std::vector<std::string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
+std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
   uint64_t readCounter = 0;
-  std::vector<std::string> keys;
+  std::vector<string> keys;
 
   leveldb::Iterator *it = db->NewIterator(readOptions);
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    std::string cur_key(it->key().data(), it->key().size());
+    string cur_key(it->key().data(), it->key().size());
     keys.push_back(cur_key);
    // keys.push_back(it->key().data());
     readCounter++;
@@ -209,21 +206,24 @@ std::vector<std::string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
   return keys;
 }
 
-void LevelDB::writeDataUnique(const std::string & Name, const std::string &value) {
+void LevelDB::writeDataUnique(const string & Name, const string &value) {
 
   auto key = Name;
 
   if (readString(Name) != nullptr) {
-    std::cerr << "name " << Name << " already exists" << std::endl;
-    throw RPCException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
+    spdlog::debug("name {}",Name, " already exists");
+     // std::cerr << "name " << Name << " already exists" << std::endl;
+    throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
   writeString(key, value);
-  std::cerr << Name << " is written to db " << std::endl;
+
+      spdlog::debug("{}",Name, " is written to db");
+
 }
 
 
-LevelDB::LevelDB(std::string &filename) {
+LevelDB::LevelDB(string &filename) {
 
 
     leveldb::Options options;
@@ -240,9 +240,81 @@ LevelDB::LevelDB(std::string &filename) {
 }
 
 LevelDB::~LevelDB() {
-    if (db != nullptr)
-        delete db;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getLevelDb() {
+    CHECK_STATE(levelDb)
+    return levelDb;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getCsrDb() {
+    CHECK_STATE(csrDb)
+    return csrDb;
+}
+
+const std::shared_ptr<LevelDB> &LevelDB::getCsrStatusDb() {
+    CHECK_STATE(csrStatusDb)
+    return csrStatusDb;
 }
 
 
+std::shared_ptr<LevelDB> LevelDB::levelDb = nullptr;
 
+std::shared_ptr<LevelDB> LevelDB::csrDb = nullptr;
+
+std::shared_ptr<LevelDB> LevelDB::csrStatusDb = nullptr;
+
+string LevelDB::sgx_data_folder;
+
+bool LevelDB::isInited = false;
+
+void LevelDB::initDataFolderAndDBs() {
+
+    CHECK_STATE(!isInited)
+    isInited = true;
+
+    spdlog::info("Initing wallet database ... ");
+
+
+    char cwd[PATH_MAX];
+
+
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        spdlog::error("could not get current workin directory");
+        exit(-1);
+    }
+
+    sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
+
+    struct stat info;
+    if (stat(sgx_data_folder.c_str(), &info) !=0 ){
+        spdlog::info("sgx_data folder does not exist. Creating ...");
+
+        if (system(("mkdir " + sgx_data_folder).c_str()) == 0){
+            spdlog::info("Successfully created sgx_data folder");
+        }
+        else{
+            spdlog::error("Couldnt create creating sgx_data folder");
+            exit(-1);
+        }
+    }
+
+
+    spdlog::info("Opening wallet databases");
+
+    auto dbName = sgx_data_folder +  WALLETDB_NAME;
+    levelDb = make_shared<LevelDB>(dbName);
+
+    auto csr_dbname = sgx_data_folder + "CSR_DB";
+    csrDb = make_shared<LevelDB>(csr_dbname);
+
+    auto csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
+    csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
+
+    spdlog::info("Successfully opened databases");
+
+}
+
+const string &LevelDB::getSgxDataFolder() {
+    return sgx_data_folder;
+}

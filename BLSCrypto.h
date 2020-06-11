@@ -30,13 +30,10 @@
 #define EXTERNC
 #endif
 
-//EXTERNC void init_all();
-//
-//EXTERNC void init_daemon();
-//
-//EXTERNC  void init_enclave();
+#include "stddef.h"
+#include "stdint.h"
 
-EXTERNC bool sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
+EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n,
         size_t signerIndex, char* _sig);
 
 EXTERNC int char2int(char _input);
@@ -49,8 +46,8 @@ EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
 
 
 
-EXTERNC  char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
+char * encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
 
-EXTERNC char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
+char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey);
 
 #endif //SGXWALLET_BLSCRYPTO_H

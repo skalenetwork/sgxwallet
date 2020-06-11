@@ -16,10 +16,11 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file stubclient.cpp
+    @file SGXRegistrationServer.cpp
     @author Stan Kladko
     @date 2019
 */
+
 
 #include <iostream>
 
