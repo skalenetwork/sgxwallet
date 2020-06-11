@@ -40,6 +40,6 @@ if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 ./testw.py
 else
-   ./sgxwallet $1 $2 $3 $4
+   ./sgxwallet $1 $2 $3 $4 $5
 fi
 
