@@ -362,10 +362,8 @@ char* point_compress(point P)
 	int l = mpz_sizeinbase(P->x, 16) + 2;
 	char* result = (char*)calloc(l + 1, 1);
 	result[l] = '\0';
-	mpz_t t1;mpz_init(t1);
-
-	//Add x coordinat in hex to result
-	mpz_get_str(result +2, 16, P->x);
+	mpz_t t1;
+	mpz_init(t1);
 
 	//Determine if it's odd or even
 	mpz_mod_ui(t1, P->y, 2);
@@ -375,6 +373,9 @@ char* point_compress(point P)
 		strncpy(result, "03", 3);
 
 	mpz_clear(t1);
+
+	//Add x coordinat in hex to result
+	mpz_get_str(result +2, 16, P->x);
 
 	return result;
 }
