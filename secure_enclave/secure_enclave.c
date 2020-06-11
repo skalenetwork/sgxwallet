@@ -1389,7 +1389,6 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     char *s_share[ECDSA_SKEY_LEN];
 
-
     if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
 
@@ -1430,14 +1429,18 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
         *errStatus = status;
+        free(decrypted_dkg_secret);
         return;
     }
 
     if (calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "t does not match polynomial in db");
+        free(decrypted_dkg_secret);
         return;
     }
+
+    free(decrypted_dkg_secret);
 }
 
 void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_shares, const char *s_share,
@@ -1448,7 +1451,6 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     memset(skey, 0, ECDSA_SKEY_LEN);
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
 
-
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed (in trustedDkgVerifyAES)  with status %d", status);
         *errStatus = status;
@@ -1458,7 +1460,6 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     char encr_sshare[ECDSA_SKEY_LEN];
     memset(encr_sshare, 0, ECDSA_SKEY_LEN);
     strncpy(encr_sshare, s_share, ECDSA_SKEY_LEN - 1);
-
 
     char common_key[ECDSA_SKEY_LEN];
     memset(common_key, 0, ECDSA_SKEY_LEN);
