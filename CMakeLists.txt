@@ -9,8 +9,6 @@ include_directories(sgx-software-enable)
 include_directories(tgmp-build)
 include_directories(tgmp-build/include)
 
-aux_source_directory(secure_enclave)
-
 add_executable(sgxwallet
         secure_enclave/AESUtils.c
         secure_enclave/AESUtils.h
