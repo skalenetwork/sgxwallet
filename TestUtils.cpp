@@ -57,7 +57,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SGXWalletServer.hpp"
 
 #include "catch.hpp"
-#include "stubclient.h"
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "BLSPublicKeyShare.h"

@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TestUtils.h"
 
+#include "testw.h"
 #include "sgxwall.h"
 #include "sgxwallet.h"
 
@@ -51,22 +52,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 void SGXWallet::usage() {
-    fprintf(stderr, "usage: sgxwallet\n");
+    cerr << "usage: sgxwallet\n";
     exit(1);
 }
 
 
 
 void SGXWallet::printUsage() {
-    fprintf(stderr, "Available flags:\n");
-    fprintf(stderr, "-c  do not verify client certificate\n");
-    fprintf(stderr, "-s  sign client certificate without human confirmation \n");
-    fprintf(stderr, "-d  turn on debug output\n");
-    fprintf(stderr, "-v  verbose mode: turn on debug output\n");
-    fprintf(stderr, "-vv  detailed verbose mode: turn on debug and trace outputs\n");
-    fprintf(stderr, "-n  launch SGXWalletServer using http (not https)\n");
-    fprintf(stderr, "-b  Restore from back up (you will need to enter backup key) \n");
-    fprintf(stderr, "-y  Do not ask user to acknowledge receipt of backup key \n");
+    cerr << "Available flags:\n";
+    cerr << "-c  do not verify client certificate\n";
+    cerr << "-s  sign client certificate without human confirmation \n";
+    cerr << "-d  turn on debug output\n";
+    cerr << "-v  verbose mode: turn on debug output\n";
+    cerr << "-vv  detailed verbose mode: turn on debug and trace outputs\n";
+    cerr << "-n  launch SGXWalletServer using http (not https)\n";
+    cerr << "-b  Restore from back up (you will need to enter backup key) \n";
+    cerr << "-y  Do not ask user to acknowledge receipt of backup key \n";
 }
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
@@ -92,7 +93,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    while ((opt = getopt(argc, argv, "cshd0abyvVn")) != -1) {
+    while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
@@ -151,7 +152,27 @@ int main(int argc, char *argv[]) {
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
 
     if (generateTestKeys) {
-        SGXWallet::genTestKeys();
+
+        cerr << "Generating test keys ..." << endl;
+
+        HttpClient client(RPC_ENDPOINT);
+        StubClient c(client, JSONRPC_CLIENT_V2);
+
+        vector<string> ecdsaKeyNames;
+        vector<string> blsKeyNames;
+
+        int schainID = 1;
+        int dkgID = 1;
+
+        TestUtils::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+
+        schainID = 2;
+        dkgID = 2;
+
+        TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+
+        cerr << "Successfully completed generating test keys into sgx_data" << endl;
+
     }
 
     while (true) {

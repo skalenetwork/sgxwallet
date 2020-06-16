@@ -23,8 +23,12 @@
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <sgx_tcrypto.h>
 #include "stubclient.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "abstractstubserver.h"
 
 using namespace std;
+
+using namespace jsonrpc;
 
 
 class TestUtils {
