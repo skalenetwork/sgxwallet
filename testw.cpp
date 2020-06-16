@@ -551,6 +551,7 @@ void doDKG(StubClient &c, int n, int t,
     vector<string> pubShares(n);
     vector<string> polyNames(n);
 
+
     _ecdsaKeyNames.clear();
     _blsKeyNames.clear();
 
@@ -625,7 +626,7 @@ void doDKG(StubClient &c, int n, int t,
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
-    map<size_t, shared_ptr<BLSPublicKeyShare>> coeffsPubKeysMap;
+    map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
 
 
     for (int i = 0; i < n; i++) {
@@ -641,6 +642,24 @@ void doDKG(StubClient &c, int n, int t,
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
     }
 
+    for (int i = 0; i < t; i++) {
+
+        vector<string> pubKeyVect;
+        for (uint8_t j = 0; j < 4; j++) {
+            pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
+        }
+        BLSPublicKeyShare pubKey(make_shared<vector<string >>(pubKeyVect), t, n);
+
+        pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    }
+
+
+    // create pub key
+
+    BLSPublicKey blsPublicKey(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare >>>(pubKeyShares), t,
+                              n);
+
+    // sign verify a sample sig
 
     for (int i = 0; i < t; i++) {
 
@@ -651,19 +670,14 @@ void doDKG(StubClient &c, int n, int t,
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
 
-        vector<string> pubKeyVect;
-        for (uint8_t j = 0; j < 4; j++) {
-            pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
-        }
-        BLSPublicKeyShare pubKey(make_shared<vector<string >>(pubKeyVect), t, n);
-        CHECK_STATE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+        auto pubKey = pubKeyShares[i+1];
 
-        coeffsPubKeysMap[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+        CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-    BLSPublicKey blsPublicKey(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare >>>(coeffsPubKeysMap), t,
-                              n);
+
     CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
     for (auto&& i : _ecdsaKeyNames)
@@ -671,6 +685,8 @@ void doDKG(StubClient &c, int n, int t,
 
     for (auto&& i : _blsKeyNames)
         cerr << i << endl;
+
+
 }
 
 
