@@ -49,7 +49,7 @@ assert dockerRun.returncode == 0;
 assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
 assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d",
                         "--name", "sgxwallet",
-                    "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-ynT"]) == 0
+                    "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"]) == 0
 
 time.sleep(5);
 
