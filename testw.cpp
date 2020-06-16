@@ -536,8 +536,11 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
 
 
-void doDKG(StubClient &c, int n, int t, vector<string>& _blsPrivateKeyNames,
-        int schainID, int dkgID) {
+void doDKG(StubClient &c, int n, int t,
+           vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+           int schainID, int dkgID) {
+
+
 
     Json::Value ethKeys[n];
     Json::Value verifVects[n];
@@ -548,13 +551,21 @@ void doDKG(StubClient &c, int n, int t, vector<string>& _blsPrivateKeyNames,
     vector<string> pubShares(n);
     vector<string> polyNames(n);
 
-    _blsPrivateKeyNames.clear();
+    _ecdsaKeyNames.clear();
+    _blsKeyNames.clear();
 
 
 
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
+
         CHECK_STATE(ethKeys[i]["status"] == 0);
+
+        auto keyName = ethKeys[i]["keyName"].asString();
+        CHECK_STATE(keyName.size() == ECDSA_KEY_NAME_SIZE);
+
+        _ecdsaKeyNames.push_back(keyName);
+
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
 
@@ -620,7 +631,7 @@ void doDKG(StubClient &c, int n, int t, vector<string>& _blsPrivateKeyNames,
     for (int i = 0; i < n; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        _blsPrivateKeyNames.push_back(blsName);
+        _blsKeyNames.push_back(blsName);
         string secretShare = secretShares[i]["secretShare"].asString();
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
@@ -655,7 +666,10 @@ void doDKG(StubClient &c, int n, int t, vector<string>& _blsPrivateKeyNames,
                               n);
     CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
 
-    for (auto&& i : _blsPrivateKeyNames)
+    for (auto&& i : _ecdsaKeyNames)
+        cerr << i << endl;
+
+    for (auto&& i : _blsKeyNames)
         cerr << i << endl;
 }
 
@@ -664,12 +678,13 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
+    vector<string> ecdsaKeyNames;
     vector<string> blsKeyNames;
 
     int schainID = TestUtils::randGen();
     int dkgID = TestUtils::randGen();
 
-    doDKG(c, 4, 1, blsKeyNames, schainID, dkgID);
+    doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
     REQUIRE(blsKeyNames.size() == 4);
 
@@ -677,7 +692,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     schainID = TestUtils::randGen();
     dkgID = TestUtils::randGen();
 
-    doDKG(c, 16, 5, blsKeyNames, schainID, dkgID);
+    doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
 }
 
