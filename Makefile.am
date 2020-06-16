@@ -74,7 +74,7 @@ COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.c
              ECDSAImpl.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c  $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwallet.c sgxwall.cpp $(COMMON_SRC)
 
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
