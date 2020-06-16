@@ -535,13 +535,8 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
 
 
+void doDKG(StubClient& c, int n, int  t) {
 
-
-TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
-    HttpClient client(RPC_ENDPOINT);
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-    int n = 16, t = 16;
     Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
@@ -555,12 +550,12 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     int dkgID = TestUtils::randGen();
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
-        REQUIRE(ethKeys[i]["status"] == 0);
+        CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
 
         Json::Value response = c.generateDKGPoly(polyName, t);
-        REQUIRE(response["status"] == 0);
+        CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         REQUIRE(verifVects[i]["status"] == 0);
@@ -569,11 +564,11 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     for (uint8_t i = 0; i < n; i++) {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
-        REQUIRE(secretShares[i]["status"] == 0);
+        CHECK_STATE(secretShares[i]["status"] == 0);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = verifVects[i]["verificationVector"][k][j].asString();
-                REQUIRE(pubShare.length() > 60);
+                CHECK_STATE(pubShare.length() > 60);
                 pubShares[i] += TestUtils::convertDecToHex(pubShare);
             }
         }
@@ -589,12 +584,12 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         for (int j = 0; j < n; j++) {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value responce = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
-                                         j);
-            REQUIRE(responce["status"] == 0);
+            Json::Value response = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+                                                     j);
+            CHECK_STATE(response["status"] == 0);
 
-            bool res = responce["result"].asBool();
-            REQUIRE(res);
+            bool res = response["result"].asBool();
+            CHECK_STATE(res);
 
             k++;
 
@@ -602,7 +597,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
             Json::Value wrongVerif = c.dkgVerification(pSharesBad[i], ethKeys[j]["keyName"].asString(), secretShare, t,
                                                        n, j);
             res = wrongVerif["result"].asBool();
-            REQUIRE(!res);
+            CHECK_STATE(!res);
         }
 
     BLSSigShareSet sigShareSet(t, n);
@@ -623,11 +618,11 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
         string secretShare = secretShares[i]["secretShare"].asString();
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
-        REQUIRE(response["status"] == 0);
+        CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
-        REQUIRE(pubBLSKeys[i]["status"] == 0);
+        CHECK_STATE(pubBLSKeys[i]["status"] == 0);
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
-        REQUIRE(blsSigShares[i]["status"] == 0);
+        CHECK_STATE(blsSigShares[i]["status"] == 0);
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
@@ -637,7 +632,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
             pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
         }
         BLSPublicKeyShare pubKey(make_shared < vector < string >> (pubKeyVect), t, n);
-        REQUIRE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+        CHECK_STATE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
 
         coeffsPubKeysMap[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
     }
@@ -645,8 +640,18 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >> > (coeffsPubKeysMap), t,
                                n);
-    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    CHECK_STATE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 }
+
+
+TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    doDKG(c, 4, 1);
+}
+
+
 
 TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     HttpClient client(RPC_ENDPOINT);
