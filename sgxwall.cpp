@@ -76,6 +76,7 @@ enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4
 
 
 
+
 void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName) {
 
     Json::Value top(Json::objectValue);
