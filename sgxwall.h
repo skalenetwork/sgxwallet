@@ -40,6 +40,8 @@ public:
 
     static void usage();
     static void printUsage();
-    static void genTestKeys();
+
+    static void serializeKeys(
+            vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName);
 
 };

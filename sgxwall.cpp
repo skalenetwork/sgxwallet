@@ -42,6 +42,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SGXWalletServer.h"
 
 
+#include <fstream>
+
 #include "TestUtils.h"
 
 #include "testw.h"
@@ -72,9 +74,35 @@ void SGXWallet::printUsage() {
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
-void SGXWallet::genTestKeys() {
+
+
+void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName) {
+
+    Json::Value top(Json::objectValue);
+    Json::Value ecdsaKeysJson(Json::objectValue);
+    Json::Value blsKeysJson(Json::objectValue);
+
+    for (uint i = 0; i < _ecdsaKeyNames.size(); i++) {
+        auto key = to_string(i + 1);
+        ecdsaKeysJson[key] = _ecdsaKeyNames[i];
+        blsKeysJson[key] = _blsKeyNames[i];
+    }
+
+    top["ecdsaKeyNames"] = ecdsaKeysJson;
+    top["blsKeyNames"] = blsKeysJson;
+
+
+    ofstream fs;
+
+    fs.open(_fileName);
+
+    fs << top;
+
+    fs.close();
+
 
 }
+
 
 int main(int argc, char *argv[]) {
     bool encryptKeysOption  = false;
@@ -166,10 +194,14 @@ int main(int argc, char *argv[]) {
 
         TestUtils::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
+        SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
+
         schainID = 2;
         dkgID = 2;
 
         TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+
+        SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
 
