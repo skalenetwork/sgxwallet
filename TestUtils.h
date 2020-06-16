@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <sgx_tcrypto.h>
+#include "stubclient.h"
 
 using namespace std;
 
@@ -51,6 +52,10 @@ public:
     static void sendRPCRequest();
 
     static void destroyEnclave();
+
+    static void doDKG(StubClient &c, int n, int t,
+                                 vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+                                 int schainID, int dkgID);
 };
 
 #endif //SGXWALLET_TESTW_H
