@@ -24,5 +24,7 @@
 //openssl req -new -newkey rsa:2048 -nodes -keyout yourdomain.key -out yourdomain.csr^
 #define SAMPLE_CSR_FILE_NAME "samples/yourdomain.csr"
 
+#define ECDSA_KEY_NAME_SIZE 68
+
 
 #endif //SGXWALLET_TESTW_H

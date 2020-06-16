@@ -267,22 +267,27 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 */
 
 
+string genECDSAKeyAPI(StubClient& _c) {
+    Json::Value genKey = _c.generateECDSAKey();
+    CHECK_STATE(genKey["status"].asInt() == 0);
+    auto keyName = genKey["keyName"].asString();
+    CHECK_STATE(keyName.size() == ECDSA_KEY_NAME_SIZE);
+    return keyName;
+}
+
+
 TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     for (int i = 0; i <= 20; i++) {
         try {
-            Json::Value genKey = c.generateECDSAKey();
-            REQUIRE(genKey["status"].asInt() == 0);
 
-            auto keyName = genKey["keyName"].asString();
+            auto keyName = genECDSAKeyAPI(c);
 
-            REQUIRE(keyName.size() == 68);
-
-            Json::Value sig = c.ecdsaSignMessageHash(16, genKey["keyName"].asString(), SAMPLE_HASH);
+            Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
             REQUIRE(sig["status"].asInt() == 0);
-            Json::Value getPubKey = c.getPublicECDSAKey(genKey["keyName"].asString());
+            Json::Value getPubKey = c.getPublicECDSAKey(keyName);
             REQUIRE(getPubKey["status"].asInt() == 0);
         } catch (JsonRpcException &e) {
             cerr << e.what() << endl;

@@ -34,12 +34,9 @@ public:
 
     static string stringFromFr(libff::alt_bn128_Fr &el);
 
-
     static string convertDecToHex(string dec, int numBytes = 32);
 
     static void genTestKeys();
-
-    static int updated;
 
     static void resetDB();
 
