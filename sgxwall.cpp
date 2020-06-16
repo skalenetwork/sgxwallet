@@ -40,20 +40,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
+
+
+#include "TestUtils.h"
+
+#include "sgxwall.h"
 #include "sgxwallet.h"
 
 
-void usage() {
+
+
+void SGXWallet::usage() {
     fprintf(stderr, "usage: sgxwallet\n");
     exit(1);
 }
 
-sgx_launch_token_t token = {0};
-sgx_enclave_id_t eid;
-sgx_status_t status;
-int updated;
 
-void printUsage() {
+
+void SGXWallet::printUsage() {
     fprintf(stderr, "Available flags:\n");
     fprintf(stderr, "-c  do not verify client certificate\n");
     fprintf(stderr, "-s  sign client certificate without human confirmation \n");
@@ -67,6 +71,10 @@ void printUsage() {
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
+void SGXWallet::genTestKeys() {
+
+}
+
 int main(int argc, char *argv[]) {
     bool encryptKeysOption  = false;
     bool useHTTPSOption = true;
@@ -75,18 +83,19 @@ int main(int argc, char *argv[]) {
     bool autoconfirmOption = false;
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
+    bool generateTestKeys = false;
 
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
-        printUsage();
+        SGXWallet::printUsage();
         exit(1);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVn")) != -1) {
         switch (opt) {
             case 'h':
-                printUsage();
+                SGXWallet::printUsage();
                 exit(0);
             case 'c':
                 checkClientCertOption = false;
@@ -119,8 +128,11 @@ int main(int argc, char *argv[]) {
             case 'y':
                 autoconfirmOption = true;
                 break;
+            case 'T':
+                generateTestKeys = true;
+                break;
             default:
-                printUsage();
+                SGXWallet::printUsage();
                 exit(1);
                 break;
         }
@@ -137,6 +149,10 @@ int main(int argc, char *argv[]) {
     }
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
+
+    if (generateTestKeys) {
+        SGXWallet::genTestKeys();
+    }
 
     while (true) {
         sleep(10);
