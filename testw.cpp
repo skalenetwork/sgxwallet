@@ -536,7 +536,8 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
 
 
-void doDKG(StubClient &c, int n, int t) {
+void doDKG(StubClient &c, int n, int t, vector<string>& _blsPrivateKeyNames,
+        int schainID, int dkgID) {
 
     Json::Value ethKeys[n];
     Json::Value verifVects[n];
@@ -547,8 +548,10 @@ void doDKG(StubClient &c, int n, int t) {
     vector<string> pubShares(n);
     vector<string> polyNames(n);
 
-    int schainID = TestUtils::randGen();
-    int dkgID = TestUtils::randGen();
+    _blsPrivateKeyNames.clear();
+
+
+
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
         CHECK_STATE(ethKeys[i]["status"] == 0);
@@ -617,6 +620,7 @@ void doDKG(StubClient &c, int n, int t) {
     for (int i = 0; i < n; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        _blsPrivateKeyNames.push_back(blsName);
         string secretShare = secretShares[i]["secretShare"].asString();
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
@@ -647,17 +651,34 @@ void doDKG(StubClient &c, int n, int t) {
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-    BLSPublicKey common_public(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare >>>(coeffsPubKeysMap), t,
-                               n);
-    CHECK_STATE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    BLSPublicKey blsPublicKey(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare >>>(coeffsPubKeysMap), t,
+                              n);
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
+
+    for (auto&& i : _blsPrivateKeyNames)
+        cerr << i << endl;
 }
 
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    doDKG(c, 4, 1);
-    doDKG(c, 16, 5);
+
+    vector<string> blsKeyNames;
+
+    int schainID = TestUtils::randGen();
+    int dkgID = TestUtils::randGen();
+
+    doDKG(c, 4, 1, blsKeyNames, schainID, dkgID);
+
+    REQUIRE(blsKeyNames.size() == 4);
+
+
+    schainID = TestUtils::randGen();
+    dkgID = TestUtils::randGen();
+
+    doDKG(c, 16, 5, blsKeyNames, schainID, dkgID);
+
 }
 
 
