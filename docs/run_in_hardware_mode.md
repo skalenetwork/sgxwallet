@@ -1,14 +1,58 @@
-# Configuring sgxwallet server in hardware secure mode
-
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
+# Run in hardware secure mode
+
+-   [Docker Compose configuration](#docker-compose-configuration)
+-   [Run sgxwallet in secure mode](#run-sgxwallet-in-secure-mode)
+-   [Start, stop and upgrade sgxwallet containers](#start-stop-and-upgrade-sgxwallet-containers)
+-   [Logging](#logging)
 
 ## Docker Compose configuration
 
-Install docker-compose if you do not have it.
+Install docker-compose:
 
 ```bash
 sudo apt-get install docker.io docker-compose
 ```
+
+Edit `docker-compose.yml` as needed with the appropriate devices, ports, command flags, and healthcheck.
+
+### Devices
+
+Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
+as `/dev/bs0`. In this case please edit  `docker-compose.yml` to specify the correct 
+device to use. 
+
+### Ports
+
+sgxwallet operates on the following network ports:
+
+-   1026 (https)
+-   1027 (http for initial SSL certification signing)
+-   1028 (localhost for admin )
+-   1029 (http only operation)
+
+If operating with a firewall, please make sure these ports are open so clients are able to connect to the server. 
+
+### Command Flags
+
+-   \-c   Do not verify client certificate
+-   \-s   Sign client certificate without human confirmation
+-   \-d   Turn on debug output
+-   \-v   Verbose mode: turn on debug output
+-   \-vv  Detailed verbose mode: turn on debug and trace outputs
+-   \-n   Launch SGXWalletServer using http (not https)
+-   \-b   Restore from back up (you will need to enter backup key) 
+-   \-y   Do not ask user to acknowledge receipt of backup key 
+
+### Healthcheck
+
+Healthcheck devices should match the same devices specified under `devices`.
+
+Note: All docker-compose commands herein need to be issued from `run_sgx` directory. If running in simulation mode, use `run_sgx_sim`.
+
+Note: sgxwallet places all its data into the `sgx_data` directory, which is created when sgxwallet is initialized.
+**This directory must be backed up. Do not remove this directory!**
 
 ## Run sgxwallet in secure mode
 
@@ -16,15 +60,11 @@ sudo apt-get install docker.io docker-compose
 cd run_sgx; sudo docker-compose up -d
 ```
 
-You should see "SGX Server started" message.
+The server should display: "SGX Server started".
 
-Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
-as "/dev/bs0". In this case please edit  `docker-compose.yml` on your machine to specify the correct 
-device to use. 
+If not, confirm that the SGX device drivers are correctly configured to the machine.
 
 ## Start, stop and upgrade sgxwallet containers
-
-As any docker-compose application sgxwallet is super easy to use. 
 
 To run the server as a daemon, do
 
@@ -39,20 +79,22 @@ To view server logs do
 
     sudo docker-compose logs
 
-To upgrade sgxwallet to the latest version do 
+To upgrade sgxwallet to a different version:
+
+1.  First stop the container:
 
     sudo docker-compose stop
+
+2.  Edit `docker-compose.yml` with the appropriate container tag:
+
+```yaml
+image: skalenetwork/sgxwallet:<TAG>
+```
+
+3.  Pull and start the container:
+
     sudo docker-compose pull
     sudo docker-compose up
-
-Note: all docker-compose commands need to be issued from run_sgx_sim directory.
-
-Note: sgxwallet places all its data into the sgx_data directory, which is created the first time you run sgxwallet.
-Do not remove this directory!
-
-Note: sgxwallet operates on network ports 1026 (https) and 1027 (http for initial registration). 
-If you have a firewall on your network, please make sure these ports are open so clients are able to
-connect to the server. 
 
 ## Logging
 
