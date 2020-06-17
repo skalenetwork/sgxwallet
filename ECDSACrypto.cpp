@@ -131,7 +131,7 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
 }
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
-        const char *signatureS) {
+        const char *signatureS, int base) {
     bool result = false;
 
     signature sig = signature_init();
@@ -149,7 +149,7 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
         goto clean;
     }
 
-    if (signature_set_str(sig, signatureR, signatureS, 16) != 0) {
+    if (signature_set_str(sig, signatureR, signatureS, base) != 0) {
         spdlog::error("Failed to set str signature");
         goto clean;
     }
@@ -220,7 +220,7 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
 
     /* Now verify signature */
 
-    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data())) {
+    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
         exception = make_shared<SGXException>(667, "ECDSA did not verify");
         goto clean;
     }
