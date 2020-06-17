@@ -33,9 +33,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "sgxwallet.h"
 
-sgx_launch_token_t token = {0};
-sgx_enclave_id_t eid;
-sgx_status_t status;
-int updated;
+class SGXWallet {
+
+public:
+
+    static void usage();
+    static void printUsage();
+
+    static void serializeKeys(
+            vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName);
+
+};
