@@ -24,7 +24,6 @@ command: -s -y -d -b
 ```
 
 2.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
-
 3.  Execute:
 
 ```bash
@@ -32,5 +31,4 @@ docker-compose up
 ```
 
 4.  Enter the backup key when prompted.
-
 5.  Edit the `docker-compose.yml` file and remove the `-b` flag.
