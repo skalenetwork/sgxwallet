@@ -361,7 +361,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     if (!signature_verify(msgMpz, sign, publicKey, curve)) {
         *errStatus = 2;
-        snprintf(errString, BUF_LEN, "ECDSA sig not verified");
+        snprintf(errString, BUF_LEN, "ECDSA signature is not verified");
         LOG_WARN(errString);
         goto clean;
     }
