@@ -36,14 +36,16 @@ If operating with a firewall, please make sure these ports are open so clients a
 
 ### Command Flags
 
--   \-c   Do not verify client certificate
--   \-s   Sign client certificate without human confirmation
--   \-d   Turn on debug output
--   \-v   Verbose mode: turn on debug output
--   \-vv  Detailed verbose mode: turn on debug and trace outputs
--   \-n   Launch SGXWalletServer using http (not https)
--   \-b   Restore from back up (you will need to enter backup key) 
--   \-y   Do not ask user to acknowledge receipt of backup key 
+-   \-h     Display available flags
+-   \-c     Do not verify client certificate
+-   \-s     Sign client certificate without human confirmation
+-   \-d     Turn on debug output
+-   \-v     Verbose mode: turn on debug output
+-   \-vv    Detailed verbose mode: turn on debug and trace outputs
+-   \-n     Launch SGXWalletServer using http (not https)
+-   \-b     Restore from back up (you will need to enter backup key) 
+-   \-y     Do not ask user to acknowledge receipt of backup key 
+-   \-T     Generate test keys     
 
 ### Healthcheck
 
