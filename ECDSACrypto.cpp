@@ -114,6 +114,11 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
     if (errStatus != 0) {
         throw SGXException(-666, errMsg.data());
     }
+
+    if (status != SGX_SUCCESS) {
+        spdlog::error("failed to get ECDSA public key {}", status);
+        throw SGXException(666, "failed to get ECDSA public key");
+    }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
 
 
@@ -126,13 +131,13 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
 }
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
-        const char *signatureS) {
+        const char *signatureS, int base) {
     bool result = false;
 
     signature sig = signature_init();
 
-    auto r = pubKeyStr.substr(0, 64);
-    auto s = pubKeyStr.substr(64, 128);
+    auto x = pubKeyStr.substr(0, 64);
+    auto y = pubKeyStr.substr(64, 128);
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
     point publicKey = point_init();
@@ -144,9 +149,12 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
         goto clean;
     }
 
-    signature_set_str(sig, signatureR, signatureS, 16);
+    if (signature_set_str(sig, signatureR, signatureS, base) != 0) {
+        spdlog::error("Failed to set str signature");
+        goto clean;
+    }
 
-    point_set_hex(publicKey, r.c_str(), s.c_str());
+    point_set_hex(publicKey, x.c_str(), y.c_str());
     if (!signature_verify(msgMpz, sig, publicKey, curve)) {
         spdlog::error("ECDSA sig not verified");
         goto clean;
@@ -212,7 +220,7 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
 
     /* Now verify signature */
 
-    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data())) {
+    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
         exception = make_shared<SGXException>(667, "ECDSA did not verify");
         goto clean;
     }

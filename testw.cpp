@@ -296,6 +296,21 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
             throw;
         }
     }
+
+    for (int i = 0; i <= 20; i++) {
+        try {
+
+            auto keyName = genECDSAKeyAPI(c);
+
+            Json::Value sig = c.ecdsaSignMessageHash(10, keyName, SAMPLE_HASH);
+            REQUIRE(sig["status"].asInt() == 0);
+            Json::Value getPubKey = c.getPublicECDSAKey(keyName);
+            REQUIRE(getPubKey["status"].asInt() == 0);
+        } catch (JsonRpcException &e) {
+            cerr << e.what() << endl;
+            throw;
+        }
+    }
 }
 
 TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {
