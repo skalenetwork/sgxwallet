@@ -193,14 +193,14 @@ int main(int argc, char *argv[]) {
         int schainID = 1;
         int dkgID = 1;
 
-        TestUtils::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+        TestUtils::doDKG(c, 4, 3, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
 
         schainID = 2;
         dkgID = 2;
 
-        TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+        TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
 
