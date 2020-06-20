@@ -23,13 +23,13 @@ docker-compose down
 command: -s -y -d -b
 ```
 
-2.  Edit the `docker-compose.yml` and add `stdin_open: true` option.
+2.  Edit the `docker-compose.yml` and add `stdin_open: true` option. For example:
 
 ```yaml
 version: "3"
 services:
-  app:
-    image: app:1.2.3
+  sgxwallet:
+    image: skalenetwork/sgxwallet:latest
     stdin_open: true
 ```
 
@@ -43,4 +43,4 @@ docker-compose up -d
 5.  Open another terminal window and run `docker attach container_name` there.
 
 6.  Enter the backup key when prompted.
-7.  Edit the `docker-compose.yml` file and remove the `-b` flag `stdin_open: true` option.
+7.  Edit the `docker-compose.yml` file, remove the `-b` flag and `stdin_open: true` option.
