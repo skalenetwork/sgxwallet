@@ -180,7 +180,9 @@ int main(int argc, char *argv[]) {
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
 
-    if (generateTestKeys) {
+    ifstream is("sgx_data/4node.json");
+
+    if (generateTestKeys && !is.good()) {
 
         cerr << "Generating test keys ..." << endl;
 
@@ -196,6 +198,7 @@ int main(int argc, char *argv[]) {
         TestUtils::doDKG(c, 4, 3, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
+
 
         schainID = 2;
         dkgID = 2;
