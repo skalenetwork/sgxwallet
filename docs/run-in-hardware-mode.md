@@ -70,22 +70,30 @@ If not, confirm that the SGX device drivers are correctly configured to the mach
 
 To run the server as a daemon, do
 
-    sudo docker-compose up -d
+```bash
+sudo docker-compose up -d
+```
 
 To stop/start the server do 
 
-    sudo docker-compose stop
-    sudo docker-compose start
+```bash
+sudo docker-compose stop
+sudo docker-compose start
+```
 
 To view server logs do 
 
-    sudo docker-compose logs
+```bash
+sudo docker-compose logs
+```
 
 To upgrade sgxwallet to a different version:
 
 1.  First stop the container:
 
-    sudo docker-compose stop
+```bash
+sudo docker-compose stop
+```
 
 2.  Edit `docker-compose.yml` with the appropriate container tag:
 
@@ -95,8 +103,10 @@ image: skalenetwork/sgxwallet:<TAG>
 
 3.  Pull and start the container:
 
-    sudo docker-compose pull
-    sudo docker-compose up
+```bash
+sudo docker-compose pull
+sudo docker-compose up
+```
 
 ## Logging
 
