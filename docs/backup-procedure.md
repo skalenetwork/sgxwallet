@@ -23,12 +23,24 @@ docker-compose down
 command: -s -y -d -b
 ```
 
-2.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
-3.  Execute:
+2.  Edit the `docker-compose.yml` and add `stdin_open: true` option.
 
-```bash
-docker-compose up
+```yaml
+version: "3"
+services:
+  app:
+    image: app:1.2.3
+    stdin_open: true
 ```
 
-4.  Enter the backup key when prompted.
-5.  Edit the `docker-compose.yml` file and remove the `-b` flag.
+3.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
+4.  Execute:
+
+```bash
+docker-compose up -d
+```
+
+5.  Open another terminal window and run `docker attach container_name` there.
+
+6.  Enter the backup key when prompted.
+7.  Edit the `docker-compose.yml` file and remove the `-b` flag `stdin_open: true` option.
