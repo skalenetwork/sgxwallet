@@ -257,8 +257,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
 
-    printf("_sig is: %s\n", sig.c_str());
-
     //string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
     //strncpy(_sig, sigShareStr.c_str(), BUF_LEN);
 
