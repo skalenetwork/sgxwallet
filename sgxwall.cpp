@@ -207,6 +207,7 @@ int main(int argc, char *argv[]) {
         schainID = 2;
         dkgID = 2;
 
+
         TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
