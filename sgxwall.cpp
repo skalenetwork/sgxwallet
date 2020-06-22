@@ -85,8 +85,12 @@ void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _b
 
     for (uint i = 0; i < _ecdsaKeyNames.size(); i++) {
         auto key = to_string(i + 1);
-        ecdsaKeysJson[key] = _ecdsaKeyNames[i];
-        blsKeysJson[key] = _blsKeyNames[i];
+
+        string keyFull(3 - key.size(), '0');
+        keyFull.append(key);
+
+        ecdsaKeysJson[keyFull] = _ecdsaKeyNames[i];
+        blsKeysJson[keyFull] = _blsKeyNames[i];
     }
 
     top["ecdsaKeyNames"] = ecdsaKeysJson;
@@ -180,7 +184,9 @@ int main(int argc, char *argv[]) {
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
 
-    if (generateTestKeys) {
+    ifstream is("sgx_data/4node.json");
+
+    if (generateTestKeys && !is.good()) {
 
         cerr << "Generating test keys ..." << endl;
 
@@ -193,14 +199,16 @@ int main(int argc, char *argv[]) {
         int schainID = 1;
         int dkgID = 1;
 
-        TestUtils::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+        TestUtils::doDKG(c, 4, 3, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
+
 
         schainID = 2;
         dkgID = 2;
 
-        TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+
+        TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
 

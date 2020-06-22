@@ -376,6 +376,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
+
     }
 
     for (int i = 0; i < t; i++) {
