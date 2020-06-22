@@ -71,10 +71,10 @@ COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.c
              ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c \
-             ECDSAImpl.c
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
-sgxwallet_SOURCES = sgxwallet.c  $(COMMON_SRC)
+sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
 
 
 nodist_sgxwallet_SOURCES = $(COMMON_ENCLAVE_SRC)
@@ -105,7 +105,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
    intel-sgx-ssl/Linux/package/lib64/libsgx_usgxssl.a \
    intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a \
-   -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread
+    -lboost_system -lboost_thread -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread
 
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)

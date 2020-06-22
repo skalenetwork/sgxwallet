@@ -90,7 +90,7 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
 
     mpz_t skey;
     mpz_init(skey);
-    if (mpz_set_str(skey, skey_str, 16) == -1){
+    if (mpz_set_str(skey, skey_str, 16) == -1) {
         common_key = NULL;
 
         mpz_clear(skey);

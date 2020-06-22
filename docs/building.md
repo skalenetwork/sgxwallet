@@ -1,6 +1,6 @@
-# Building SGX wallet from source
-
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
+# Building SGX wallet from source
 
 ## Clone this repository and its submodules
 

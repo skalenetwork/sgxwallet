@@ -66,14 +66,12 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
     result["result"] = false;
 
     try {
-
         string hash = cryptlite::sha256::hash_hex(_csr);
 
         if (system("ls " CERT_DIR "/" CERT_CREATE_COMMAND) != 0) {
             spdlog::error("cert/create_client_cert does not exist");
             throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
         }
-
 
         string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
         ofstream outfile(csr_name);
@@ -91,21 +89,16 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
             throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "Incorrect CSR format ");
         }
 
-
         if (_autoSign) {
-
             string genCert = string("cd ") + CERT_DIR + "&& ./"
                     + CERT_CREATE_COMMAND + " " + hash ;
-
 
             if (system(genCert.c_str()) == 0) {
                 spdlog::info("Client cert " + hash + " generated");
                 string db_key = "CSR:HASH:" + hash + "STATUS:";
                 string status = "0";
                 LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
-
             } else {
-
                 spdlog::error("Client cert generation failed: {} ", genCert);
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
             }
@@ -172,7 +165,6 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 
 
 int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
-
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
     server = make_shared<SGXRegistrationServer>(*httpServer,
                                                 JSONRPC_SERVER_V2,
@@ -185,7 +177,6 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
     }
 
-
     return 0;
 }
 
@@ -194,4 +185,3 @@ shared_ptr<SGXRegistrationServer> SGXRegistrationServer::getServer() {
     CHECK_STATE(server);
     return server;
 }
-

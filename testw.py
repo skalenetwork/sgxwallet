@@ -27,31 +27,35 @@ import getpass, os, subprocess
 username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build push")
 print("Top directory is:" + topDir)
-
 
 testList = [ "[cert-sign]",
             "[get-server-status]",
             "[get-server-version]",
             "[ecdsa-key-gen]",
+            "[ecdsa-aes-key-gen]",
             "[ecdsa-key-sig-gen]",
+            "[ecdsa-aes-key-sig-gen]",
             "[ecdsa-get-pub-key]",
+            "[ecdsa-aes-get-pub-key]",
             "[ecdsa-key-gen-api]",
             "[ecdsa-key-gen-sign-api]",
             "[bls-key-encrypt]",
             "[dkg-gen]",
+            "[dkg-aes-gen]",
             "[dkg-encr-sshares]",
+            "[dkg-aes-encr-sshares]",
             "[dkg-verify]",
             "[dkg-api]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
             "[dkg-pub-shares]",
+            "[dkg-aes-pub-shares]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
             "[sgx-encrypt-decrypt]",
-            "[aes-dkg]"#,
-            #"[aes-not-aes]" <- this test doesn't pass for now - will fix it later
+            "[aes-dkg]",
+            "[aes-not-aes]"
             ]
 
 
