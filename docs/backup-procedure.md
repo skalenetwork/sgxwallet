@@ -5,7 +5,9 @@
 When SGXWallet is initialized, the server will print the backup key. 
 **This key must be securely recorded and stored.**
 
-## Backup SGXWallet
+Master-Slave replication is recommended to support the SGXWallet backup strategy. Below are general instructions for a basic backup and recovery process.
+
+## Backup SGXWallet (manual copy)
 
 1.  Stop the container:
 
