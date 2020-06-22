@@ -1,6 +1,6 @@
-# SKALE sgxwallet Prerequisites
-
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
+# SKALE sgxwallet Prerequisites
 
 sgxwallet depends on several freely available
 software components. These must be installed and configured before
@@ -9,7 +9,7 @@ This document describes how to install and configure these required components.
 
 ## Recommended host system
 
-sgxwallet should be ran on Ubuntu 18.04. Sgxwallet has been tested on Ubuntu 18.04.
+sgxwallet has been tested and should be run on Ubuntu 18.04.
 
 Sgxwallet may run on other Linux distributions, 
 but the installation process is likely to be more complicated, 
@@ -50,4 +50,4 @@ Verify processor support of Intel SGX:
 cpuid | grep SGX:
 ```
 
-The printout should read  `SGX: Software Guard Extensions supported = true`
+The printout should read: `SGX: Software Guard Extensions supported = true`
