@@ -32,28 +32,18 @@
 
 #include <stdbool.h>
 
-
-
-
-
 extern int useHTTPS;
 extern int encryptKeys;
 extern int autoconfirm;
 
-
-
-
-
-
-
 #define BUF_LEN 4096
 
-#define  MAX_KEY_LENGTH 128
-#define  MAX_COMPONENT_LENGTH 80
-#define  MAX_COMPONENT_HEX_LENGTH MAX_COMPONENT_LENGTH * 2
-#define  MAX_ENCRYPTED_KEY_LENGTH 1024
-#define  MAX_SIG_LEN 1024
-#define  MAX_ERR_LEN 1024
+#define MAX_KEY_LENGTH 128
+#define MAX_COMPONENT_LENGTH 80
+#define MAX_COMPONENT_HEX_LENGTH MAX_COMPONENT_LENGTH * 2
+#define MAX_ENCRYPTED_KEY_LENGTH 1024
+#define MAX_SIG_LEN 1024
+#define MAX_ERR_LEN 1024
 #define SHA_256_LEN 32
 
 #define ADD_ENTROPY_SIZE 32
@@ -83,7 +73,6 @@ extern int autoconfirm;
 
 #define CERT_REQUEST_DOES_NOT_EXIST -14
 
-
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 #define INVALID_ECSDA_SIGNATURE -22
@@ -105,7 +94,5 @@ extern int autoconfirm;
 #define SGXDATA_FOLDER "sgx_data/"
 
 #define TEST_VALUE "1234567890"
-
-
 
 #endif //SGXWALLET_SGXWALLET_COMMON_H

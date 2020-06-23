@@ -50,52 +50,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgxwall.h"
 #include "sgxwallet.h"
 
-
-
-
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";
     exit(1);
 }
 
-
-
 void SGXWallet::printUsage() {
     cerr << "Available flags:\n";
-    cerr << "-c  do not verify client certificate\n";
-    cerr << "-s  sign client certificate without human confirmation \n";
-    cerr << "-d  turn on debug output\n";
-    cerr << "-v  verbose mode: turn on debug output\n";
-    cerr << "-vv  detailed verbose mode: turn on debug and trace outputs\n";
-    cerr << "-n  launch SGXWalletServer using http (not https)\n";
+    cerr << "-c  Do not verify client certificate\n";
+    cerr << "-s  Sign client certificate without human confirmation \n";
+    cerr << "-d  Turn on debug output\n";
+    cerr << "-v  Verbose mode: turn on debug output\n";
+    cerr << "-vv Detailed verbose mode: turn on debug and trace outputs\n";
+    cerr << "-n  Launch SGXWalletServer using http (not https)\n";
     cerr << "-b  Restore from back up (you will need to enter backup key) \n";
     cerr << "-y  Do not ask user to acknowledge receipt of backup key \n";
+    cerr << "-T  Generate test keys \n";
 }
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
-
-
-
-void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName) {
-
+void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector<string>& _blsKeyNames, const string& _fileName) {
     Json::Value top(Json::objectValue);
     Json::Value ecdsaKeysJson(Json::objectValue);
     Json::Value blsKeysJson(Json::objectValue);
 
     for (uint i = 0; i < _ecdsaKeyNames.size(); i++) {
         auto key = to_string(i + 1);
-
-        string keyFull(3 - key.size(), '0');
-        keyFull.append(key);
-
-        ecdsaKeysJson[keyFull] = _ecdsaKeyNames[i];
-        blsKeysJson[keyFull] = _blsKeyNames[i];
+        ecdsaKeysJson[key] = _ecdsaKeyNames[i];
+        blsKeysJson[key] = _blsKeyNames[i];
     }
 
     top["ecdsaKeyNames"] = ecdsaKeysJson;
     top["blsKeyNames"] = blsKeysJson;
-
 
     ofstream fs;
 
@@ -104,8 +91,6 @@ void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _b
     fs << top;
 
     fs.close();
-
-
 }
 
 
@@ -184,10 +169,7 @@ int main(int argc, char *argv[]) {
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
 
-    ifstream is("sgx_data/4node.json");
-
-    if (generateTestKeys && !is.good()) {
-
+    if (generateTestKeys) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
@@ -199,21 +181,18 @@ int main(int argc, char *argv[]) {
         int schainID = 1;
         int dkgID = 1;
 
-        TestUtils::doDKG(c, 4, 3, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+        TestUtils::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
-
 
         schainID = 2;
         dkgID = 2;
 
-
-        TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+        TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
-
     }
 
     while (true) {

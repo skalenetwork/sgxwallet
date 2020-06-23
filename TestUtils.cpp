@@ -71,10 +71,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "testw.h"
 #include "TestUtils.h"
 
-
 using namespace jsonrpc;
 using namespace std;
-
 
 default_random_engine TestUtils::randGen((unsigned int) time(0));
 
@@ -105,9 +103,6 @@ string TestUtils::convertDecToHex(string dec, int numBytes) {
     return result;
 }
 
-
-
-
 void TestUtils::resetDB() {
     CHECK_STATE(system("bash -c \"rm -rf " SGXDATA_FOLDER "* \"") == 0);
 }
@@ -123,7 +118,6 @@ shared_ptr <string> TestUtils::encryptTestKey() {
 
     return make_shared<string>(encryptedKeyHex);
 }
-
 
 vector <libff::alt_bn128_Fr> TestUtils::splitStringToFr(const char *coeffs, const char symbol) {
     string str(coeffs);
@@ -275,9 +269,6 @@ void TestUtils::destroyEnclave() {
 void TestUtils::doDKG(StubClient &c, int n, int t,
            vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
            int schainID, int dkgID) {
-
-
-
     Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
@@ -287,11 +278,8 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     vector<string> pubShares(n);
     vector<string> polyNames(n);
 
-
     _ecdsaKeyNames.clear();
     _blsKeyNames.clear();
-
-
 
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
@@ -364,7 +352,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
 
-
     for (int i = 0; i < n; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
@@ -376,11 +363,9 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
-
     }
 
     for (int i = 0; i < t; i++) {
-
         vector<string> pubKeyVect;
         for (uint8_t j = 0; j < 4; j++) {
             pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
@@ -389,7 +374,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
         pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
     }
-
 
     // create pub key
 
@@ -410,7 +394,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         auto pubKey = pubKeyShares[i+1];
 
         CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
-
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
@@ -422,6 +405,4 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     for (auto&& i : _blsKeyNames)
         cerr << i << endl;
-
-
 }

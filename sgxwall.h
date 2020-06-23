@@ -41,7 +41,7 @@ public:
     static void usage();
     static void printUsage();
 
-    static void serializeKeys(
-            vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName);
+    static void serializeKeys( const vector<string>& _ecdsaKeyNames,
+                               const vector<string>& _blsKeyNames, const string& _fileName);
 
 };

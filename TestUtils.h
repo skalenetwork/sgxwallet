@@ -5,7 +5,6 @@
 #ifndef SGXWALLET_TESTUTILS_H
 #define SGXWALLET_TESTUTILS_H
 
-
 #include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -30,11 +29,9 @@ using namespace std;
 
 using namespace jsonrpc;
 
-
 class TestUtils {
 
 public:
-
     static default_random_engine randGen;
 
     static string stringFromFr(libff::alt_bn128_Fr &el);

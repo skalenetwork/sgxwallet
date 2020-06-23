@@ -183,21 +183,12 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
-//  auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
-//
-//  auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
-//
-//  auto sigShareStr = sigShare->toString();
-//
-//  strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
     shared_ptr<signatures::Bls> obj;
     obj = make_shared<signatures::Bls>(signatures::Bls(_t, _n));
 
-    std::pair<libff::alt_bn128_G1, std::string> hash_with_hint =
-            obj->HashtoG1withHint(hash);
+    std::pair<libff::alt_bn128_G1, std::string> hash_with_hint = obj->HashtoG1withHint(hash);
 
     int errStatus = 0;
-
 
     string *xStr = FqToString(&(hash_with_hint.first.X));
 
@@ -212,7 +203,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         std::cerr << "Null yStr" << std::endl;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
-
 
     char errMsg[BUF_LEN];
     memset(errMsg, 0, BUF_LEN);
@@ -257,13 +247,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
 
-    //string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
-    //strncpy(_sig, sigShareStr.c_str(), BUF_LEN);
-
-    // string test_sig = "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855:9810286616503120081238481858289626967170509983220853777870754480048381194141:5";
-    // auto sig_ptr = make_shared<string>(test_sig);
-    // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
-
     return true;
 }
 
@@ -286,9 +269,7 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     spdlog::debug("errStatus is {}", *errStatus);
     spdlog::debug(" errMsg is ", errMsg->data());
 
-
     if (status != SGX_SUCCESS) {
-
         *errStatus = -1;
         return nullptr;
     }
@@ -296,7 +277,6 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     if (*errStatus != 0) {
         throw SGXException(-666, errMsg->data());
     }
-
 
     char *result = (char *) calloc(2 * BUF_LEN, 1);
 

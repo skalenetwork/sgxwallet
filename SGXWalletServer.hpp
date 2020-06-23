@@ -42,17 +42,11 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
-
-
-
     Lock m;
 
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
-
-
 public:
-
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);
     }
