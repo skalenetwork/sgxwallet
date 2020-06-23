@@ -119,7 +119,7 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
 
 bool hex2carray2(const char *_hex, uint64_t *_bin_len,
                  uint8_t *_bin, const int _max_length) {
-    int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
+    int len = strnlen(_hex, _max_length);
 
 
     if (len == 0 && len % 2 == 1)
@@ -160,13 +160,6 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     auto sigShareStr = sigShare->toString();
 
     strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
-
-    //string sigShareStr = keyShare->signWithHelperSGXstr(hash, _signerIndex);
-    //strncpy(_sig, sigShareStr.c_str(), BUF_LEN);
-
-    // string test_sig = "8175162913343900215959836578795929492705714455632345516427532159927644835012:15265825550804683171644566522808807137117748565649051208189914766494241035855:9810286616503120081238481858289626967170509983220853777870754480048381194141:5";
-    // auto sig_ptr = make_shared<string>(test_sig);
-    // strncpy(_sig, sig_ptr->c_str(), BUF_LEN);
 
     return true;
 }
@@ -269,13 +262,13 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     spdlog::debug("errStatus is {}", *errStatus);
     spdlog::debug(" errMsg is ", errMsg->data());
 
+    if (*errStatus != 0) {
+        throw SGXException(-666, errMsg->data());
+    }
+
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
         return nullptr;
-    }
-
-    if (*errStatus != 0) {
-        throw SGXException(-666, errMsg->data());
     }
 
     char *result = (char *) calloc(2 * BUF_LEN, 1);
@@ -283,30 +276,4 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
     carray2Hex(encryptedKey->data(), encryptedLen, result);
 
     return result;
-}
-
-char *decryptBLSKeyShareFromHex(int *errStatus, char *errMsg, const char *_encryptedKey) {
-    *errStatus = -1;
-
-    uint64_t decodedLen = 0;
-
-    uint8_t decoded[BUF_LEN];
-
-    if (!(hex2carray(_encryptedKey, &decodedLen, decoded))) {
-        return nullptr;
-    }
-
-    char *plaintextKey = (char *) calloc(BUF_LEN, 1);
-
-    status = trustedDecryptKeyAES(eid, errStatus, errMsg, decoded, decodedLen, plaintextKey);
-
-    if (status != SGX_SUCCESS) {
-        return nullptr;
-    }
-
-    if (*errStatus != 0) {
-        return nullptr;
-    }
-
-    return plaintextKey;
 }

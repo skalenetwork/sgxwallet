@@ -58,7 +58,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
 
-
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
 void *(*oc_realloc_func)(void *, size_t, size_t);
@@ -71,15 +70,10 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
-
-
 void trustedEnclaveInit(uint32_t _logLevel) {
-
     LOG_DEBUG (__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
-
-
 
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
@@ -135,7 +129,6 @@ void trustedEMpzMul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 void trustedEMpzDiv(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
 void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
-
 
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                         uint8_t *encryptedPrivateKey, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
