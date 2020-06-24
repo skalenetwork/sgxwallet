@@ -162,7 +162,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
-    char *encryptedKeyShareHex = nullptr;
+    string encryptedKeyShareHex;
 
     try {
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, &errMsg.front(), _keyShare.c_str());
@@ -171,20 +171,16 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
             throw SGXException(errStatus, errMsg.data());
         }
 
-        if (encryptedKeyShareHex == nullptr) {
+        if (encryptedKeyShareHex.empty()) {
             throw SGXException(UNKNOWN_ERROR, "");
         }
 
-        result["encryptedKeyShare"] = string(encryptedKeyShareHex);
+        result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex.data(), _index, n, t);
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
-    }
-
-    if (encryptedKeyShareHex != nullptr) {
-        free(encryptedKeyShareHex);
     }
 
     return result;

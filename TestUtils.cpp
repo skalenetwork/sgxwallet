@@ -111,9 +111,9 @@ shared_ptr <string> TestUtils::encryptTestKey() {
     const char *key = TEST_BLS_KEY_SHARE;
     int errStatus = -1;
     vector<char> errMsg(BUF_LEN, 0);;
-    char *encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg.data(), key);
+    string encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg.data(), key);
 
-    CHECK_STATE(encryptedKeyHex != nullptr);
+    CHECK_STATE(!encryptedKeyHex.empty());
     CHECK_STATE(errStatus == 0);
 
     return make_shared<string>(encryptedKeyHex);

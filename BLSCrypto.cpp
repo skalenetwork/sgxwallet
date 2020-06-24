@@ -23,17 +23,14 @@
 
 #include <memory>
 
-
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 
 #include "bls.h"
 #include <bls/BLSutils.h>
 
-
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include "BLSPrivateKeyShareSGX.h"
-
 
 #include "sgxwallet_common.h"
 #include "create_enclave.h"
@@ -53,7 +50,6 @@
 
 #include "spdlog/spdlog.h"
 #include "common.h"
-
 
 std::string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_t t;
@@ -79,7 +75,6 @@ int char2int(char _input) {
     return -1;
 }
 
-
 void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -92,11 +87,8 @@ void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
     _hexArray[_len * 2] = 0;
 }
 
-
-bool hex2carray(const char *_hex, uint64_t *_bin_len,
-                uint8_t *_bin) {
+bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin) {
     int len = strnlen(_hex, 2 * BUF_LEN);
-
 
     if (len == 0 && len % 2 == 1)
         return false;
@@ -120,7 +112,6 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
 bool hex2carray2(const char *_hex, uint64_t *_bin_len,
                  uint8_t *_bin, const int _max_length) {
     int len = strnlen(_hex, _max_length);
-
 
     if (len == 0 && len % 2 == 1)
         return false;
@@ -166,8 +157,6 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
               char *_sig) {
-    auto keyStr = make_shared<string>(_encryptedKeyHex);
-
     auto hash = make_shared<array<uint8_t, 32>>();
 
     uint64_t binLen;
@@ -180,8 +169,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     obj = make_shared<signatures::Bls>(signatures::Bls(_t, _n));
 
     std::pair<libff::alt_bn128_G1, std::string> hash_with_hint = obj->HashtoG1withHint(hash);
-
-    int errStatus = 0;
 
     string *xStr = FqToString(&(hash_with_hint.first.X));
 
@@ -221,6 +208,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
     }
 
+    int errStatus = 0;
+
     sgx_status_t status =
             trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
@@ -230,8 +219,12 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
     }
 
-    std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
-                       hash_with_hint.second;
+    if (errStatus != 0) {
+        cerr << "SGX enclave call  to trustedBlsSignMessage failed:" << errStatus << std::endl;
+        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
+    }
+
+    std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
     std::string sig = signature;
 
@@ -248,7 +241,7 @@ bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
 }
 
-char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
     auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
@@ -271,9 +264,9 @@ char *encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key)
         return nullptr;
     }
 
-    char *result = (char *) calloc(2 * BUF_LEN, 1);
+    std::string result(2 * BUF_LEN, '\0');
 
-    carray2Hex(encryptedKey->data(), encryptedLen, result);
+    carray2Hex(encryptedKey->data(), encryptedLen, &result.front());
 
     return result;
 }
