@@ -219,7 +219,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         value = readFromDb(_keyShareName);
-    } catch (SGXException _e) {
+    } catch (SGXException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         return result;
@@ -786,7 +786,7 @@ void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
     Json::FastWriter writer;
 
     val["value"] = value;
-    string json = writer.write(val);
+    writer.write(val);
 
     auto key = Name;
 

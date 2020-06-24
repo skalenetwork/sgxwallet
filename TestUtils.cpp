@@ -256,7 +256,7 @@ void TestUtils::sendRPCRequest() {
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
     }
 
-    shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
+    sigShareSet.merge();
 }
 
 void TestUtils::destroyEnclave() {

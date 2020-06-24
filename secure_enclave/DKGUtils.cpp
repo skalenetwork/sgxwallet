@@ -72,7 +72,7 @@ template<class T> string ConvertToString(const T& field_elem, int base = 10) {
   return output;
 }
 
-string ConvertG2ToString(const libff::alt_bn128_G2 & elem, int base = 10, string delim = ":") {
+string ConvertG2ToString(const libff::alt_bn128_G2 & elem, int base = 10, const string& delim = ":") {
   string result;
   result += ConvertToString(elem.X.c0);
   result += delim;
