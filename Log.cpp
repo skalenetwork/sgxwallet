@@ -51,12 +51,8 @@ level_enum Log::logLevelFromString(string &_s) {
     return result;
 }
 
-
 void Log::handleSGXException(Json::Value& _result, SGXException& _e ) {
     spdlog::error("Responding with JSON error:" +  _e.errString);
     _result["status"] = _e.status;
     _result["errorMessage"] = _e.errString;
 }
-
-
-

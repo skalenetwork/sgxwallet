@@ -198,7 +198,6 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     result["errorMessage"] = "Unknown server error";
     result["signatureShare"] = "";
 
-    // char *signature = (char *) calloc(BUF_LEN, 1); // remove
     string signature(BUF_LEN, '\0');
 
     shared_ptr <string> value = nullptr;
@@ -244,9 +243,10 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         return result;
     }
 
+    auto it = std::find(signature.begin(), signature.end(), '\0');
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signatureShare"] = signature;
+    result["signatureShare"] = std::string(signature.begin(), it);
     return result;
 }
 

@@ -38,7 +38,7 @@
 #include "EnclaveCommon.h"
 #include <string.h>
 
-void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
+void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
     char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, pb_keyB, 64);
     pb_keyB_x[64] = 0;
@@ -76,7 +76,7 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key){
     free(pb_keyB_y);
 }
 
-void session_key_recover(const char *skey_str, const char* sshare, char* common_key){
+void session_key_recover(const char *skey_str, const char* sshare, char* common_key) {
     char* pb_keyB_x = (char*)calloc(65, 1);
     strncpy(pb_keyB_x, sshare + 64, 64);
     pb_keyB_x[64] = 0;
@@ -123,7 +123,7 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     free(pb_keyB_y);
 }
 
-void xor_encrypt(char* key, char* message, char* cypher){
+void xor_encrypt(char* key, char* message, char* cypher) {
    uint8_t cypher_bin[33];
 
    uint8_t* key_bin = (uint8_t*)calloc(33,1);
@@ -135,13 +135,12 @@ void xor_encrypt(char* key, char* message, char* cypher){
    }
 
    uint64_t msg_length;
-   uint8_t msg_bin[33];//[ECDSA_BIN_LEN];
+   uint8_t msg_bin[33];
    if (!hex2carray(message, &msg_length, msg_bin)){
      cypher = NULL;
      free(key_bin);
      return;
    }
-
 
    for (int i = 0; i < 32; i++){
      cypher_bin[i] = msg_bin[i] ^ key_bin[i];
@@ -152,7 +151,7 @@ void xor_encrypt(char* key, char* message, char* cypher){
    free(key_bin);
 }
 
-void xor_decrypt(char* key, char* cypher, char* message){
+void xor_decrypt(char* key, char* cypher, char* message) {
     uint8_t msg_bin[33];
 
     uint8_t* key_bin = (uint8_t*)calloc(33,1);
@@ -170,7 +169,6 @@ void xor_decrypt(char* key, char* cypher, char* message){
       free(key_bin);
       return;
     }
-
 
     for (int i = 0; i < 32; i++){
         msg_bin[i] = cypher_bin[i] ^ key_bin[i];
