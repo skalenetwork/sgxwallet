@@ -242,7 +242,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     trustedDkgVerifyAES(eid, &errStatus, errMsg, pshares, encr_sshare, encr_key, decKeyLen, t, ind, &result);
 
     if (errStatus != 0) {
-        throw SGXException(-666, errMsg1.data());
+        throw SGXException(-666, errMsg);
     }
 
     if (result == 2) {

@@ -36,7 +36,6 @@
 
 using namespace std;
 
-
 string *stringFromKey(libff::alt_bn128_Fr *_key) {
     mpz_t t;
     mpz_init(t);
@@ -79,7 +78,6 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     return sG1;
 }
 
-
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
     mpz_t skey;
     mpz_init(skey);
@@ -91,7 +89,6 @@ libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
 
     return new libff::alt_bn128_Fr(skey_dec);
 }
-
 
 int inited = 0;
 
@@ -116,10 +113,9 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
     libff::alt_bn128_Fq hashY(_hashYString);
     libff::alt_bn128_Fq hashZ = 1;
 
-
     libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
 
-    libff::alt_bn128_G1 sign = key->as_bigint() * hash;  // sign
+    libff::alt_bn128_G1 sign = key->as_bigint() * hash;
 
     sign.to_affine_coordinates();
 
@@ -135,7 +131,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 }
 
 void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
-
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
@@ -145,7 +140,6 @@ void  carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
     }
 
     _hexArray[_len * 2] = 0;
-
 }
 
 int char2int(char _input) {
@@ -160,7 +154,7 @@ int char2int(char _input) {
 
 bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                  uint8_t* _bin, const int _max_length ) {
-    int len = strnlen(_hex, _max_length);//2 * BUF_LEN);
+    int len = strnlen(_hex, _max_length);
 
     if (len == 0 && len % 2 == 1)
         return false;
@@ -204,13 +198,11 @@ bool hex2carray(const char * _hex, uint64_t  *_bin_len,
   return true;
 }
 
-enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
-
+enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2, L_WARNING = 3,  L_ERROR = 4 };
 
 uint32_t globalLogLevel_ = 2;
 
 void logMsg(log_level _level, const char* _msg) {
-
     if (_level < globalLogLevel_)
         return;
 

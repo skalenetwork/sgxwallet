@@ -42,8 +42,7 @@
 
 using namespace std;
 
-string stringFromFr(libff::alt_bn128_Fr& _el) {
-
+string stringFromFr(const libff::alt_bn128_Fr& _el) {
     mpz_t t;
     mpz_init(t);
 
@@ -57,8 +56,7 @@ string stringFromFr(libff::alt_bn128_Fr& _el) {
     return string(tmp);
 }
 
-template<class T>
-string ConvertToString(T field_elem, int base = 10) {
+template<class T> string ConvertToString(const T& field_elem, int base = 10) {
   mpz_t t;
   mpz_init(t);
 
@@ -74,7 +72,7 @@ string ConvertToString(T field_elem, int base = 10) {
   return output;
 }
 
-string ConvertG2ToString(const libff::alt_bn128_G2 & elem, int base = 10, string delim = ":"){
+string ConvertG2ToString(const libff::alt_bn128_G2 & elem, int base = 10, string delim = ":") {
   string result;
   result += ConvertToString(elem.X.c0);
   result += delim;
@@ -87,7 +85,7 @@ string ConvertG2ToString(const libff::alt_bn128_G2 & elem, int base = 10, string
   return result;
 }
 
-vector<libff::alt_bn128_Fr> SplitStringToFr(const char* coeffs, const char symbol){
+vector<libff::alt_bn128_Fr> SplitStringToFr(const char* coeffs, const char symbol) {
     string str(coeffs);
     string delim;
     delim.push_back(symbol);
@@ -109,7 +107,7 @@ vector<libff::alt_bn128_Fr> SplitStringToFr(const char* coeffs, const char symbo
     return tokens;
 }
 
-int gen_dkg_poly( char* secret, unsigned _t ){
+int gen_dkg_poly( char* secret, unsigned _t ) {
   libff::init_alt_bn128_params();
   string result;
   for (size_t i = 0; i < _t; ++i) {
@@ -147,11 +145,11 @@ void calc_secret_shares(const char* decrypted_coeffs, char * secret_shares,     
   // calculate for each node a list of secret values that will be used for verification
   string result;
   char symbol = ':';
-  vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
+  vector<libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
 
-    for (size_t i = 0; i < _n; ++i) {
+  for (size_t i = 0; i < _n; ++i) {
     libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(i + 1), _t);
-    result += ConvertToString(secret_share);//stringFromFr(secret_share);
+    result += ConvertToString(secret_share);
     result += ":";
   }
   strncpy(secret_shares, result.c_str(), result.length() + 1);
@@ -161,8 +159,8 @@ int calc_secret_share(const char* decrypted_coeffs, char * s_share,
                         unsigned _t, unsigned _n, unsigned ind) {
   libff::init_alt_bn128_params();
   char symbol = ':';
-  vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
-  if ( poly.size() != _t){
+  vector<libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
+  if ( poly.size() != _t) {
     return 1;
   }
 
@@ -190,7 +188,7 @@ void calc_secret_shareG2_old(const char* decrypted_coeffs, char * s_shareG2,
   strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);
 }
 
-int calc_secret_shareG2(const char* s_share, char * s_shareG2){
+int calc_secret_shareG2(const char* s_share, char * s_shareG2) {
   libff::init_alt_bn128_params();
 
   mpz_t share;
@@ -225,7 +223,7 @@ int calc_public_shares(const char* decrypted_coeffs, char * public_shares,
   string result;
   char symbol = ':';
   vector<libff::alt_bn128_Fr> poly =  SplitStringToFr(decrypted_coeffs, symbol);
-  if (poly.size() != _t){
+  if (poly.size() != _t) {
     return 1;
   }
   for (size_t i = 0; i < _t; ++i) {
@@ -255,7 +253,7 @@ string ConvertHexToDec(string hex_str){
   return result;
 }
 
-int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int ind ) {
+int Verification( char * public_shares, mpz_t decr_secret_share, int _t, int ind ) {
   string pub_shares_str = public_shares;
   libff::init_alt_bn128_params();
 
@@ -307,7 +305,7 @@ int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int in
   return (val == sshare * libff::alt_bn128_G2::one());
 }
 
-int calc_bls_public_key(char* skey_hex, char* pub_key){
+int calc_bls_public_key(char* skey_hex, char* pub_key) {
   libff::init_alt_bn128_params();
 
   mpz_t skey;
@@ -333,7 +331,3 @@ int calc_bls_public_key(char* skey_hex, char* pub_key){
 
   return 0;
 }
-
-
-
-

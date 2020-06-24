@@ -56,7 +56,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LevelDB.h"
 #include "SGXWalletServer.hpp"
 
-
 #define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
@@ -75,10 +74,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TestUtils.h"
 #include "testw.h"
 
-
 using namespace jsonrpc;
 using namespace std;
-
 
 class TestFixture {
 public:
@@ -277,14 +274,12 @@ string genECDSAKeyAPI(StubClient &_c) {
     return keyName;
 }
 
-
 TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     for (int i = 0; i <= 20; i++) {
         try {
-
             auto keyName = genECDSAKeyAPI(c);
 
             Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
@@ -299,7 +294,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
     for (int i = 0; i <= 20; i++) {
         try {
-
             auto keyName = genECDSAKeyAPI(c);
 
             Json::Value sig = c.ecdsaSignMessageHash(10, keyName, SAMPLE_HASH);
@@ -406,12 +400,6 @@ TEST_CASE_METHOD(TestFixture, "DKG public shares test", "[dkg-pub-shares]") {
     for (uint32_t i = 0; i < pubSharesDkg.size(); i++) {
         libff::alt_bn128_G2 el = pubSharesDkg.at(i);
         el.to_affine_coordinates();
-        libff::alt_bn128_Fq x_c0_el = el.X.c0;
-        mpz_t x_c0;
-        mpz_init(x_c0);
-        x_c0_el.as_bigint().to_mpz(x_c0);
-
-        mpz_clear(x_c0);
     }
     REQUIRE(pubSharesG2 == pubSharesDkg);
 }
@@ -461,12 +449,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     for (uint32_t i = 0; i < pubSharesDkg.size(); i++) {
         libff::alt_bn128_G2 el = pubSharesDkg.at(i);
         el.to_affine_coordinates();
-        libff::alt_bn128_Fq x_c0_el = el.X.c0;
-        mpz_t x_c0;
-        mpz_init(x_c0);
-        x_c0_el.as_bigint().to_mpz(x_c0);
-
-        mpz_clear(x_c0);
     }
     REQUIRE(pubSharesG2 == pubSharesDkg);
 }
@@ -482,7 +464,6 @@ TEST_CASE_METHOD(TestFixture, "DKG encrypted secret shares test", "[dkg-encr-ssh
     auto status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
-
 
     status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -568,12 +549,10 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     REQUIRE(blsKeyNames.size() == 4);
 
-
     schainID = TestUtils::randGen();
     dkgID = TestUtils::randGen();
 
     TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
-
 }
 
 
@@ -616,6 +595,7 @@ TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {
     string polyName = SAMPLE_POLY_NAME;
 
     Json::Value genPoly = c.generateDKGPoly(polyName, 2);
+    REQUIRE(genPoly["status"].asInt() == 0);
 
     Json::Value publicKeys;
     publicKeys.append(SAMPLE_DKG_PUB_KEY_1);
