@@ -87,8 +87,6 @@ public:
 
     void deleteKey(const string &_key);
 
-    void deleteDkgPoly( const std::string& name );
-
 public:
 
 

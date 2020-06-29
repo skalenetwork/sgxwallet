@@ -113,17 +113,6 @@ void LevelDB::deleteKey(const string &_key) {
     spdlog::debug("key deleted: {}",_key );
 }
 
-void LevelDB::deleteDkgPoly( const std::string& name ) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
-    auto status = db->Delete(writeOptions, Slice(name));
-
-    throwExceptionOnError(status);
-
-    spdlog::debug("key deleted: {}", name);
-}
-
-
 
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
                              size_t _valueLen) {

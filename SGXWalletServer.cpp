@@ -569,7 +569,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteDHDKGKey(name);
             string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
-            LevelDB::getLevelDb()->deleteDkgPoly(_polyName`);
+            LevelDB::getLevelDb()->deleteKey(_polyName);
         }
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -666,10 +666,10 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
 
     result["deleted"] = false;
     try {
-        if (!checkName(_blsKeyName, "BLS_KEY")) {
+        if (!checkName(name, "BLS_KEY")) {
             throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name");
         }
-        LevelDB::getLevelDb()->deleteBlsKey(name);
+        LevelDB::getLevelDb()->deleteKey(name);
     } HANDLE_SGX_EXCEPTION(result)
     return result;
 }
@@ -777,9 +777,9 @@ Json::Value SGXWalletServer::getServerVersion() {
     return getServerVersionImpl();
 }
 
-Json::Value SGXWalletServer::deleteBlsKey() {
+Json::Value SGXWalletServer::deleteBlsKey(const std::string& name) {
     READ_LOCK(m)
-    return deleteBlsKeyImpl();
+    return deleteBlsKeyImpl(name);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

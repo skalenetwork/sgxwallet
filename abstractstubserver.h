@@ -141,7 +141,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           response = this->getServerVersion();
         }
 
-        inline virtual deleteBlsKeyI(const Json::Value& request, Json::Value& response) {
+        inline virtual void deleteBlsKeyI(const Json::Value& request, Json::Value& response) {
             response = this->deleteBlsKey(request["blsKeyName"].asString());
         }
 
@@ -165,7 +165,6 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
 
         virtual Json::Value getServerStatus() = 0;
         virtual Json::Value getServerVersion() = 0;
-        virtual Json::Value deleteBlsKey(const std::string& name) = 0;
         virtual Json::Value deleteBlsKey(const std::string& name) = 0;
 };
 
