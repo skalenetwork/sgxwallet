@@ -574,8 +574,11 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
     TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
-}
+    for (const auto& name : blsKeyNames) {
+      REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
+    }
 
+}
 
 TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     HttpClient client(RPC_ENDPOINT);
