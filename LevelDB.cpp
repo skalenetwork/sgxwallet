@@ -114,7 +114,6 @@ void LevelDB::deleteKey(const string &_key) {
 }
 
 
-
 void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
                              size_t _valueLen) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
