@@ -30,7 +30,7 @@ jobs:
     - name: build container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
     - name: test
-      if: contains(github.ref, 'develop')
+      if: ! contains(github.ref, 'develop')
       run: python3 scripts/docker_test.py DockerfileSimulation sgxwalletsim
     - name: deploy docker image
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
