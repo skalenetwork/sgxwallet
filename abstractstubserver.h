@@ -57,6 +57,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
 
           this->bindAndAddMethod(jsonrpc::Procedure("getServerStatus", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerStatusI);
           this->bindAndAddMethod(jsonrpc::Procedure("getServerVersion", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerVersionI);
+          this->bindAndAddMethod(jsonrpc::Procedure("deleteBlsKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName", jsonrpc::JSON_STRING, NULL), &AbstractStubServer::deleteBlsKeyI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -140,6 +141,10 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           response = this->getServerVersion();
         }
 
+        inline virtual deleteBlsKeyI(const Json::Value& request, Json::Value& response) {
+            response = this->deleteBlsKey(request["blsKeyName"].asString());
+        }
+
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex ) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
@@ -160,6 +165,8 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
 
         virtual Json::Value getServerStatus() = 0;
         virtual Json::Value getServerVersion() = 0;
+        virtual Json::Value deleteBlsKey(const std::string& name) = 0;
+        virtual Json::Value deleteBlsKey(const std::string& name) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_
