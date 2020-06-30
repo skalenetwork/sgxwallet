@@ -1,5 +1,7 @@
 /* Definitions for GNU multiple precision functions.   -*- mode: c -*-
 
+Modifications Copyright (C) 2019 SKALE Labs
+
 Copyright 1991, 1993-1997, 1999-2016 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
