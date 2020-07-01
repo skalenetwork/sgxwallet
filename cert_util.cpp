@@ -16,7 +16,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.cpp
+    @file cert_util.cpp
     @author Stan Kladko
     @date 2019
 */
