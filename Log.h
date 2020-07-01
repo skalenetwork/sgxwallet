@@ -32,7 +32,7 @@
 #include <memory>
 
 #include "json/json.h"
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 
 
 #include "SGXException.h"
