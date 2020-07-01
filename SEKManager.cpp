@@ -34,7 +34,7 @@
 #include "sgxwallet.h"
 
 #include "ServerDataChecker.h"
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 
 bool case_insensitive_match(string s1, string s2) {
   //convert s1 and s2 into lower case strings

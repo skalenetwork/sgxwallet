@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <spdlog/details/console_globals.h>
-#include <spdlog/details/synchronous_factory.h>
-#include <spdlog/sinks/sink.h>
+#include <third_party/spdlog/details/console_globals.h>
+#include <third_party/spdlog/details/synchronous_factory.h>
+#include <third_party/spdlog/sinks/sink.h>
 #include <cstdio>
 
 namespace spdlog {

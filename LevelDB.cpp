@@ -36,7 +36,7 @@
 
 #include "ServerInit.h"
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 using namespace leveldb;

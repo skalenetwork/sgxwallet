@@ -4,11 +4,11 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-#include <spdlog/sinks/basic_file_sink.h>
+#include <third_party/spdlog/sinks/basic_file_sink.h>
 #endif
 
-#include <spdlog/common.h>
-#include <spdlog/details/os.h>
+#include <third_party/spdlog/common.h>
+#include <third_party/spdlog/details/os.h>
 
 namespace spdlog {
 namespace sinks {

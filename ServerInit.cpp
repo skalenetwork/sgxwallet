@@ -35,7 +35,7 @@
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 

@@ -27,7 +27,7 @@
 
 #include <iostream>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 vector<string> SplitString(const string& str, const string& delim = ":"){

@@ -31,7 +31,7 @@
 #include <gmp.h>
 #include <random>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 #include "secure_enclave/Verify.h"

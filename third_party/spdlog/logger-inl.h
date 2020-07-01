@@ -4,12 +4,12 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-#include <spdlog/logger.h>
+#include <third_party/spdlog/logger.h>
 #endif
 
-#include <spdlog/sinks/sink.h>
-#include <spdlog/details/backtracer.h>
-#include <spdlog/details/pattern_formatter.h>
+#include <third_party/spdlog/sinks/sink.h>
+#include <third_party/spdlog/details/backtracer.h>
+#include <third_party/spdlog/details/pattern_formatter.h>
 
 #include <cstdio>
 

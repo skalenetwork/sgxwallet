@@ -4,11 +4,11 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-#include <spdlog/details/file_helper.h>
+#include <third_party/spdlog/details/file_helper.h>
 #endif
 
-#include <spdlog/details/os.h>
-#include <spdlog/common.h>
+#include <third_party/spdlog/details/os.h>
+#include <third_party/spdlog/common.h>
 
 #include <cerrno>
 #include <chrono>

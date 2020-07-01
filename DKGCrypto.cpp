@@ -32,7 +32,7 @@
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 #define DKG_MAX_SEALED_LEN 3100

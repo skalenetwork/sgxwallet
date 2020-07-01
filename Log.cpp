@@ -21,7 +21,7 @@
     @date 2019
 */
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "SGXException.h"

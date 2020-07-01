@@ -4,10 +4,10 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-#include <spdlog/details/os.h>
+#include <third_party/spdlog/details/os.h>
 #endif
 
-#include <spdlog/common.h>
+#include <third_party/spdlog/common.h>
 
 #include <algorithm>
 #include <chrono>

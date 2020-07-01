@@ -48,7 +48,7 @@
 
 #include "SGXException.h"
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 std::string *FqToString(libff::alt_bn128_Fq *_fq) {
