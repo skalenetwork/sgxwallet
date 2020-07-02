@@ -135,7 +135,8 @@ void gen_SEK(){
   sek_file.clear();
 
   cout << "ATTENTION! YOUR BACKUP KEY WILL BE WROTE INTO backup_key.txt.\n" <<
-          "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY" << endl;
+          "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY RUNNING FOLLOWING COMMAND:\n" <<
+          "`sudo apt-get install secure-delete && srm -vz backup_key.txt`" << endl;
   sek_file << SEK;
 
   if (!autoconfirm) {
