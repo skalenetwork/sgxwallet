@@ -580,6 +580,18 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 
 }
 
+TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+    std::ifstream sek_file("backup_key.txt");
+    REQUIRE(sek_file.good());
+
+    std::string sek;
+    sek_file >> sek;
+
+    REQUIRE(sek.size() == 32);
+}
+
 TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
