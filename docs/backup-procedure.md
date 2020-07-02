@@ -4,7 +4,8 @@
 
 When SGXWallet is initialized, the server will print the backup key. 
 **This key must be securely recorded and stored.**
-The key will be stored in file "backup_key.txt". Remove it once you store it in a safe place with following command:
+Be sure to store this key in a safe place, then securely remove it with the following command:
+
 ```bash
 sudo apt-get install secure-delete && srm -vz backup_key.txt
 ```
