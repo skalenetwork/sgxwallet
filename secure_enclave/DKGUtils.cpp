@@ -57,8 +57,7 @@ string stringFromFr(libff::alt_bn128_Fr& _el) {
     return string(tmp);
 }
 
-template<class T>
-string ConvertToString(T field_elem, int base = 10) {
+template<class T> string ConvertToString(T field_elem, int base = 10) {
   mpz_t t;
   mpz_init(t);
 

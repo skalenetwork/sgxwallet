@@ -573,11 +573,29 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     dkgID = TestUtils::randGen();
 
     TestUtils::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+}
 
-    for (const auto& name : blsKeyNames) {
-      REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
-    }
+TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035438182864059942098934847");
+    std::string key_str = TestUtils::stringFromFr(key);
+    c.importBLSKeyShare(key_str, name, 1, 2, 1);
 
+    REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
+}
+
+TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+    std::ifstream sek_file("backup_key.txt");
+    REQUIRE(sek_file.good());
+
+    std::string sek;
+    sek_file >> sek;
+
+    REQUIRE(sek.size() == 32);
 }
 
 TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {

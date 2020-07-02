@@ -32,6 +32,8 @@ print("Top directory is:" + topDir)
 testList = [ "[cert-sign]",
             "[get-server-status]",
             "[get-server-version]",
+            "[backup-key]",
+            "[delete-bls-key]",
             "[ecdsa-key-gen]",
             "[ecdsa-aes-key-gen]",
             "[ecdsa-key-sig-gen]",
