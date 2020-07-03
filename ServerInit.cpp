@@ -42,9 +42,9 @@
 
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
-#include "create_enclave.h"
+#include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
-#include "sgx_detect.h"
+#include "third_party/intel/sgx_detect.h"
 #include "sgxwallet.h"
 #include "LevelDB.h"
 #include "SGXWalletServer.h"

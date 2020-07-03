@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "create_enclave.h"
-#include "sgx_stub.h"
+#include "third_party/intel/sgx_stub.h"
 #include <limits.h>
 #include <stdio.h>
 #include <sgx_urts.h>

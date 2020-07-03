@@ -61,7 +61,6 @@ ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 
 ## Additional Automake flags needed to build the enclave.
-## ## -I./trusted_libff -I../trusted_libff
 
 AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx \
               -I../intel-sgx-ssl/Linux/package/include
