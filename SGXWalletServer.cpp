@@ -185,7 +185,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex.data(), _index, n, t);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
