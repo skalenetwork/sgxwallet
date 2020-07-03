@@ -29,10 +29,10 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
-#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <../trusted_libff/libff/algebra/fields/fp.hpp>
+#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <../SCIPR/libff/algebra/fields/fp.hpp>
 
-#include <../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
+#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 #include "EnclaveConstants.h"
 #include <cstdio>

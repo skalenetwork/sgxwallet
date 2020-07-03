@@ -26,8 +26,8 @@
 #include <string.h>
 #include <cstdint>
 
-#include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
-#include "../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
+#include "../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
 #include "secure_enclave_t.h"
 
