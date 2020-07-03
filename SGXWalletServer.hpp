@@ -97,6 +97,8 @@ public:
 
     virtual Json::Value getServerVersion();
 
+    virtual Json::Value deleteBlsKey( const std::string& name );
+
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
     static void writeDataToDB(const string &Name, const string &value);
@@ -147,6 +149,8 @@ public:
     static Json::Value getServerStatusImpl();
 
     static Json::Value getServerVersionImpl();
+
+    static Json::Value deleteBlsKeyImpl(const std::string& name);
 
     static void printDB();
 

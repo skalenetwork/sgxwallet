@@ -70,6 +70,7 @@ extern int autoconfirm;
 #define INVALID_POLY_NAME -11
 #define INVALID_DKG_PARAMS -12
 #define INVALID_SECRET_SHARES_LENGTH -13
+#define INVALID_BLS_NAME -15
 
 #define CERT_REQUEST_DOES_NOT_EXIST -14
 

@@ -220,6 +220,18 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value deleteBlsKey(const std::string & polyName)
+        {
+            Json::Value p;
+            p["blsKeyName"] = polyName;
+
+            Json::Value result = this->CallMethod("deleteBlsKey",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
 
     ////CSRManagerServer
 

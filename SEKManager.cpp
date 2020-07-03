@@ -26,6 +26,7 @@
 #include "BLSCrypto.h"
 #include "LevelDB.h"
 
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 
@@ -143,8 +144,13 @@ void gen_SEK() {
 
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
-  cout << "ATTENTION! THIS IS YOUR KEY FOR BACK UP. PLEASE COPY IT TO THE SAFE PLACE" << endl;
-  cout << "YOUR KEY IS " << SEK << endl;
+  std::ofstream sek_file("backup_key.txt");
+  sek_file.clear();
+
+  cout << "ATTENTION! YOUR BACKUP KEY WILL BE WRITTEN INTO backup_key.txt.\n" <<
+          "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY BY RUNNING THE FOLLOWING COMMAND:\n" <<
+          "`sudo apt-get install secure-delete && srm -vz backup_key.txt`" << endl;
+  sek_file << SEK;
 
   if (!autoconfirm) {
     std::string confirm_str = "I confirm";

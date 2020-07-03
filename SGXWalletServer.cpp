@@ -536,7 +536,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
         if (!checkName(_blsKeyName, "BLS_KEY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid BLS key name");
+            throw SGXException(INVALID_BLS_NAME, "Invalid BLS key name");
         }
         if (!check_n_t(_t, _n)) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
@@ -559,6 +559,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteDHDKGKey(name);
             string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
+            LevelDB::getLevelDb()->deleteKey(_polyName);
         }
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -571,7 +572,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
 
     try {
         if (!checkName(_blsKeyName, "BLS_KEY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid BLSKey name");
+            throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name");
         }
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
         spdlog::debug("encr_bls_key_share is {}", *encryptedKeyHex_ptr);
@@ -643,6 +644,29 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
 Json::Value SGXWalletServer::getServerVersionImpl() {
     INIT_RESULT(result)
     result["version"] = TOSTRING(SGXWALLET_VERSION);
+    return result;
+}
+
+Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
+    INIT_RESULT(result)
+
+    result["deleted"] = false;
+    try {
+        if (!checkName(name, "BLS_KEY")) {
+            throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name format");
+        }
+        std::string key = "BLSKEYSHARE:" + name;
+        std::shared_ptr <std::string> bls_ptr = LevelDB::getLevelDb()->readString(key);
+
+        if (bls_ptr != nullptr) {
+            result["deleted"] = true;
+            return result;
+        } else {
+            std::string error_msg = "BLS key with such name not found: " + name;
+            throw SGXException(INVALID_BLS_NAME, error_msg.c_str());
+          }
+        LevelDB::getLevelDb()->deleteKey(name);
+    } HANDLE_SGX_EXCEPTION(result)
     return result;
 }
 
@@ -743,6 +767,11 @@ Json::Value SGXWalletServer::getServerStatus() {
 Json::Value SGXWalletServer::getServerVersion() {
     READ_LOCK(m)
     return getServerVersionImpl();
+}
+
+Json::Value SGXWalletServer::deleteBlsKey(const std::string& name) {
+    READ_LOCK(m)
+    return deleteBlsKeyImpl(name);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
