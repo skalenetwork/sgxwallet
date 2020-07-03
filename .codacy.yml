@@ -2,4 +2,4 @@
 exclude_paths:
   - 'scripts/**'
   - '.github/**'
-  - 'SCIPR/**'
+  - 'third_party/SCIPR/**'
