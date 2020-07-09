@@ -24,19 +24,13 @@
 #ifndef SGXWALLET_ENCLAVECOMMON_H
 #define SGXWALLET_ENCLAVECOMMON_H
 
-
-
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else
 #define EXTERNC
 #endif
 
-//#include <stdint.h>
-
 EXTERNC void check_key(int *errStatus, char *err_string, const char* _keyString);
-
-
 
 EXTERNC bool enclave_sign(const char *_keyString, const char* _hashXString, const char* _hashYString, char* _sig);
 
@@ -49,16 +43,12 @@ EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                          uint8_t* _bin, const int _max_length );
 EXTERNC void enclave_init();
 
-
 EXTERNC void LOG_INFO(char* msg);
 EXTERNC void LOG_WARN(char* _msg);
 EXTERNC void LOG_ERROR(char* _msg);
 EXTERNC void LOG_DEBUG(char* _msg);
 EXTERNC void LOG_TRACE(char* _msg);
 
-
 extern uint32_t globalLogLevel_;
-
-
 
 #endif //SGXWALLET_ENCLAVECOMMON_H

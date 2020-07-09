@@ -30,13 +30,12 @@
 #include "SGXWalletServer.hpp"
 #include "SGXException.h"
 
-//#include <libBLS/libff/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
-#define  DKG_MAX_SEALED_LEN 3100
+#define DKG_MAX_SEALED_LEN 3100
 
 vector<string> splitString(const char *coeffs, const char symbol) {
     string str(coeffs);
@@ -58,8 +57,7 @@ vector<string> splitString(const char *coeffs, const char symbol) {
     return G2_strings;
 }
 
-template<class T>
-string ConvertToString(T field_elem, int base = 10) {
+template<class T> string ConvertToString(T field_elem, int base = 10) {
     mpz_t t;
     mpz_init(t);
 
@@ -86,11 +84,16 @@ string gen_dkg_poly(int _t) {
     status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
 
     if (errStatus != 0) {
+        spdlog::debug("trustedGenDkgSecret, status {}", errStatus, " err msg ", errMsg.data());
+        spdlog::debug("in DKGCrypto encr len is {}", enc_len);
         throw SGXException(-666, errMsg.data());
     }
 
-    spdlog::debug("trustedGenDkgSecret, status {}", errStatus, " err msg ", errMsg.data());
-    spdlog::debug("in DKGCrypto encr len is {}", enc_len);
+    if (status != 0) {
+        spdlog::debug("trustedGenDkgSecret, status {}", status, " err msg ", errMsg.data());
+        spdlog::debug("in DKGCrypto encr len is {}", enc_len);
+        throw SGXException(-666, errMsg.data());
+    }
 
     uint64_t length = DKG_MAX_SEALED_LEN;
     length = enc_len;
@@ -104,7 +107,7 @@ string gen_dkg_poly(int _t) {
 }
 
 vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n) {
-    vector<char> errMsg1(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
 
@@ -123,14 +126,18 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
     spdlog::debug("hex_encr_poly length is {}", strlen(encryptedPolyHex));
     spdlog::debug("enc len {}", encLen);
 
-    status = trustedGetPublicSharesAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen,
+    status = trustedGetPublicSharesAES(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
                                         pubShares.data(), t, n);
 
     if (errStatus != 0) {
-        throw SGXException(-666, errMsg1.data());
+        throw SGXException(-666, errMsg.data());
     }
 
-    spdlog::debug("err msg is {}", errMsg1.data());
+    if (status != 0) {
+        throw SGXException(-666, errMsg.data());
+    }
+
+    spdlog::debug("err msg is {}", errMsg.data());
 
     spdlog::debug("public_shares:");
     spdlog::debug("{}", pubShares.data());;
@@ -149,8 +156,8 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
 string trustedGetSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys,
                               int _t,
                               int _n) {
-    vector<char> errMsg1(BUF_LEN, 0);
     vector<char> hexEncrKey(BUF_LEN, 0);
+    vector<char> errMsg1(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t encLen = 0;
 
@@ -208,7 +215,6 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
         SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
 
         spdlog::debug("errMsg: {}", errMsg1.data());
-
     }
 
     return result;
@@ -234,6 +240,10 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     strncpy(pshares, publicShares, strlen(publicShares));
 
     trustedDkgVerifyAES(eid, &errStatus, errMsg, pshares, encr_sshare, encr_key, decKeyLen, t, ind, &result);
+
+    if (errStatus != 0) {
+        throw SGXException(-666, errMsg);
+    }
 
     if (result == 2) {
         throw SGXException(INVALID_HEX, "Invalid public shares");
@@ -333,7 +343,7 @@ string decryptDHKey(const string &polyName, int ind) {
     trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
 
     if (errStatus != 0) {
-        throw SGXException(/*ERROR_IN_ENCLAVE*/ errStatus, "decrypt key failed in enclave");
+        throw SGXException(errStatus, "decrypt key failed in enclave");
     }
 
     return DHKey;

@@ -1,37 +1,26 @@
 /*
+    Copyright (C) 2019-Present SKALE Labs
 
-Modifications Copyright (C) 2019 SKALE Labs
+    This file is part of sgxwallet.
 
-Copyright 2018 Intel Corporation
+    sgxwallet is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
+    sgxwallet is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-1. Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
+    You should have received a copy of the GNU Affero General Public License
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-2. Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+    @file TestUtils.cpp
+    @author Stan Kladko
+    @date 2020
 */
+
 #include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -40,9 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include "sgxwallet_common.h"
-#include "create_enclave.h"
+#include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
-#include "sgx_detect.h"
+#include "third_party/intel/sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 #include <stdio.h>
@@ -71,10 +60,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "testw.h"
 #include "TestUtils.h"
 
-
 using namespace jsonrpc;
 using namespace std;
-
 
 default_random_engine TestUtils::randGen((unsigned int) time(0));
 
@@ -105,9 +92,6 @@ string TestUtils::convertDecToHex(string dec, int numBytes) {
     return result;
 }
 
-
-
-
 void TestUtils::resetDB() {
     CHECK_STATE(system("bash -c \"rm -rf " SGXDATA_FOLDER "* \"") == 0);
 }
@@ -116,14 +100,13 @@ shared_ptr <string> TestUtils::encryptTestKey() {
     const char *key = TEST_BLS_KEY_SHARE;
     int errStatus = -1;
     vector<char> errMsg(BUF_LEN, 0);;
-    char *encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg.data(), key);
+    string encryptedKeyHex = encryptBLSKeyShare2Hex(&errStatus, errMsg.data(), key);
 
-    CHECK_STATE(encryptedKeyHex != nullptr);
+    CHECK_STATE(!encryptedKeyHex.empty());
     CHECK_STATE(errStatus == 0);
 
     return make_shared<string>(encryptedKeyHex);
 }
-
 
 vector <libff::alt_bn128_Fr> TestUtils::splitStringToFr(const char *coeffs, const char symbol) {
     string str(coeffs);
@@ -262,7 +245,7 @@ void TestUtils::sendRPCRequest() {
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
     }
 
-    shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
+    sigShareSet.merge();
 }
 
 void TestUtils::destroyEnclave() {
@@ -275,9 +258,6 @@ void TestUtils::destroyEnclave() {
 void TestUtils::doDKG(StubClient &c, int n, int t,
            vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
            int schainID, int dkgID) {
-
-
-
     Json::Value ethKeys[n];
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
@@ -287,11 +267,8 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     vector<string> pubShares(n);
     vector<string> polyNames(n);
 
-
     _ecdsaKeyNames.clear();
     _blsKeyNames.clear();
-
-
 
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
@@ -364,7 +341,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
 
-
     for (int i = 0; i < n; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
@@ -376,11 +352,9 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
-
     }
 
     for (int i = 0; i < t; i++) {
-
         vector<string> pubKeyVect;
         for (uint8_t j = 0; j < 4; j++) {
             pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
@@ -389,7 +363,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
         pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
     }
-
 
     // create pub key
 
@@ -410,7 +383,6 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         auto pubKey = pubKeyShares[i+1];
 
         CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
-
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
@@ -422,6 +394,4 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     for (auto&& i : _blsKeyNames)
         cerr << i << endl;
-
-
 }

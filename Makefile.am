@@ -70,7 +70,7 @@ COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.c
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp \
              ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
-             sgx_stub.c sgx_detect_linux.c create_enclave.c oc_alloc.c \
+             third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
              ECDSAImpl.c TestUtils.cpp sgxwallet.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 

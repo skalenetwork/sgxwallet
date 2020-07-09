@@ -27,14 +27,6 @@
 #include <vector>
 #include <string>
 
-
-
-/*#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif*/
-
 using namespace std;
 
 vector<string> genECDSAKey();

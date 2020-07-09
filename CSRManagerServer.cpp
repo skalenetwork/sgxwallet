@@ -21,28 +21,20 @@
     @date 2019
 */
 
-
 #include <iostream>
 #include <fstream>
 
-
-
-
 #include <jsonrpccpp/server/connectors/httpserver.h>
-
 
 #include "CSRManagerServer.h"
 #include "SGXException.h"
 #include "sgxwallet_common.h"
 
-
 #include "Log.h"
 #include "common.h"
 
-
 shared_ptr<CSRManagerServer> CSRManagerServer::cs = nullptr;
 shared_ptr<jsonrpc::HttpServer> CSRManagerServer::hs3 = nullptr;
-
 
 CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
                                    serverVersion_t type) : abstractCSRManagerServer(connector, type) {}
@@ -112,7 +104,6 @@ Json::Value signByHashImpl(const string &hash, int status) {
 
     return result;
 }
-
 
 Json::Value CSRManagerServer::getUnsignedCSRs() {
     LOCK(m)

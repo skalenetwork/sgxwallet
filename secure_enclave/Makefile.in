@@ -322,7 +322,7 @@ SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
 AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -Wall \
 	-Wno-implicit-function-declaration $(TGMP_CPPFLAGS) \
-	-I./trusted_libff -I../trusted_libff \
+	-I./third_party/SCIPR -I../third_party/SCIPR \
 	-I../sgx-sdk-build/sgxsdk/include/libcxx \
 	-I../intel-sgx-ssl/Linux/package/include
 AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin \
@@ -339,9 +339,9 @@ ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
 	Curves.c DomainParameters.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
-    DKGUtils.cpp   EnclaveCommon.cpp ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-                ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
-                ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+    DKGUtils.cpp   EnclaveCommon.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+                ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
+                ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
@@ -477,47 +477,47 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-alt_bn128_init.o: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+alt_bn128_init.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
 
-alt_bn128_init.obj: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
+alt_bn128_init.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
 
-alt_bn128_g2.o: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.o -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+alt_bn128_g2.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.o -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
 
-alt_bn128_g2.obj: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
+alt_bn128_g2.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
 
-alt_bn128_g1.o: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+alt_bn128_g1.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 
-alt_bn128_g1.obj: ../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
+alt_bn128_g1.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../trusted_libff/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

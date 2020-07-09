@@ -47,9 +47,6 @@ vector<string> GetBLSPubKey(const char * encryptedKeyHex);
 
 vector<string> mult_G2(const string& x);
 
-
-
 bool TestCreateBLSShare( const char * s_shares);
-
 
 #endif //SGXD_DKGCRYPTO_H

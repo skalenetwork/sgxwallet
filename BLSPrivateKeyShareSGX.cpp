@@ -21,8 +21,6 @@
   @date 2019
 */
 
-
-
 #include "BLSSigShare.h"
 #include "BLSSignature.h"
 #include "BLSutils.h"
@@ -36,7 +34,6 @@
 #include "common.h"
 
 #include "BLSPrivateKeyShareSGX.h"
-
 
 std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
   mpz_t t;
@@ -66,15 +63,11 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
   return sG1;
 }
 
-
-
 BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
     shared_ptr<string> _encryptedKeyHex, size_t _requiredSigners,
     size_t _totalSigners) {
-
   requiredSigners = _requiredSigners;
   totalSigners = _totalSigners;
-
 
   if (requiredSigners > totalSigners) {
     throw std::invalid_argument("requiredSigners > totalSigners");

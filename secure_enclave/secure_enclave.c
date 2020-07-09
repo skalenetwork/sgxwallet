@@ -1,5 +1,7 @@
 /*
 
+Modifications Copyright (C) 2019-2020 SKALE Labs
+
 Copyright 2018 Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
@@ -42,8 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sgx_tgmp.h>
 #include <sgx_trts.h>
 
-
-
 #include "Point.h"
 #include "DomainParameters.h"
 
@@ -52,12 +52,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DHDkg.h"
 #include "AESUtils.h"
 
-
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
 
 uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
-
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -71,15 +69,10 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
-
-
 void trustedEnclaveInit(uint32_t _logLevel) {
-
     LOG_DEBUG (__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
-
-
 
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
@@ -136,7 +129,6 @@ void trustedEMpzDiv(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
 void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
-
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                         uint8_t *encryptedPrivateKey, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_DEBUG (__FUNCTION__);
@@ -163,11 +155,9 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    uint8_t base = 16;
-
-    int len = mpz_sizeinbase(Pkey->x, base) + 2;
+    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
     char arr_x[len];
-    mpz_get_str(arr_x, base, Pkey->x);
+    mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_x[i] = '0';
@@ -175,8 +165,8 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, base) + 2];
-    mpz_get_str(arr_y, base, Pkey->y);
+    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
@@ -207,7 +197,6 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     domain_parameters_clear(curve);
     point_clear(Pkey);
 }
-
 
 void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
                           uint8_t *encryptedPrivateKey, uint32_t dec_len, char *pub_key_x, char *pub_key_y) {
@@ -262,11 +251,9 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
         return;
     }
 
-    int base = 16;
-
-    int len = mpz_sizeinbase(Pkey->x, base) + 2;
+    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
     char arr_x[len];
-    mpz_get_str(arr_x, base, Pkey->x);
+    mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_x[i] = '0';
@@ -274,8 +261,8 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, base) + 2];
-    mpz_get_str(arr_y, base, Pkey->y);
+    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
@@ -398,7 +385,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     return;
 }
 
-
 void trustedEncryptKey(int *errStatus, char *errString, const char *key,
                  uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
     LOG_DEBUG (__FUNCTION__);
@@ -472,7 +458,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     }
 
     if (decLen > MAX_KEY_LENGTH) {
-        snprintf(errString, BUF_LEN, "wrong decLen");//"decLen != MAX_KEY_LENGTH");
+        snprintf(errString, BUF_LEN, "wrong decLen");
         return;
     }
 
@@ -488,7 +474,6 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     *errStatus = 0;
     return;
 }
-
 
 void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                       uint32_t enc_len, char *_hashX,
@@ -531,8 +516,7 @@ void trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg
 
     snprintf(errString, BUF_LEN, "poly is %s ", dkg_secret);
 
-    uint32_t sealedLen = sgx_calc_sealed_data_size(0,
-                                                   DKG_BUFER_LENGTH);//sizeof(sgx_sealed_data_t) +  sizeof(dkg_secret);
+    uint32_t sealedLen = sgx_calc_sealed_data_size(0, DKG_BUFER_LENGTH);
 
     sgx_status_t status = sgx_seal_data(0, NULL, DKG_BUFER_LENGTH, (uint8_t *) dkg_secret, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_dkg_secret);
@@ -593,6 +577,7 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
     trustedDecryptDkgSecret(errStatus, errString, (uint8_t *) encrypted_dkg_secret, (uint8_t *)decrypted_dkg_secret, &decr_len);
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "trustedDecryptDkgSecret failed with status %d", *errStatus);
+        free(decrypted_dkg_secret);
         return;
     }
 
@@ -604,7 +589,6 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
     }
     free(decrypted_dkg_secret);
 }
-
 
 void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encrypted_poly) {
     LOG_DEBUG(__FUNCTION__);
@@ -653,7 +637,6 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     char *common_key[ECDSA_SKEY_LEN];
     gen_session_key(skey, pub_keyB, common_key);
     char *s_share[ECDSA_SKEY_LEN]; ;
-
 
     if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
@@ -741,6 +724,7 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     }
 
     *result = Verification(public_shares, s, _t, _ind);
+    mpz_clear(s);
 
     snprintf(errString, BUF_LEN, "common_key in verification is %s", common_key);
 }
@@ -951,11 +935,9 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    uint8_t base = 16;
-
-    int len = mpz_sizeinbase(Pkey->x, base) + 2;
+    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
     char arr_x[len];
-    mpz_get_str(arr_x, base, Pkey->x);
+    mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_x[i] = '0';
@@ -963,15 +945,14 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, base) + 2];
-    mpz_get_str(arr_y, base, Pkey->y);
+    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
     char skey_str[ECDSA_SKEY_LEN];
-    //mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
     char arr_skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
     n_zeroes = 64 - strlen(arr_skey_str);
@@ -1001,6 +982,11 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     if (stat != 0) {
         snprintf(errString + 19 + strlen(skey_str), BUF_LEN, "ecdsa private key decr failed with status %d", stat);
         *errStatus = stat;
+
+        mpz_clear(skey);
+        domain_parameters_clear(curve);
+        point_clear(Pkey);
+
         return;
     }
 
@@ -1019,6 +1005,9 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     char skey[ECDSA_SKEY_LEN];
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
+    skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
+    LOG_INFO("ENCRYPTED SKEY");
+    LOG_INFO(skey);
 
     if (status != 0) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed with status %d", status);
@@ -1028,8 +1017,6 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
         return;
     }
-
-    skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
 
     strncpy(errString, skey, 1024);
 
@@ -1044,14 +1031,17 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
         return;
     }
+    LOG_INFO("SET STR SUCCESS");
 
     //Public key
     point Pkey = point_init();
 
     signature_extract_public_key(Pkey, privateKeyMpz, curve);
+    LOG_INFO("SIGNATURE EXTRACT PK SUCCESS");
 
     point Pkey_test = point_init();
     point_multiplication(Pkey_test, privateKeyMpz, curve->G, curve);
+    LOG_INFO("POINT MULTIPLICATION SUCCESS");
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
@@ -1060,16 +1050,18 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
         mpz_clear(privateKeyMpz);
         domain_parameters_clear(curve);
         point_clear(Pkey);
+        point_clear(Pkey_test);
 
         return;
     }
+    LOG_INFO("POINTS CMP SUCCESS");
 
-    int base = 16;
-
-    int len = mpz_sizeinbase(Pkey->x, base) + 2;
+    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
     char arr_x[len];
-    mpz_get_str(arr_x, base, Pkey->x);
+    mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
+    LOG_INFO("GET STR X SUCCESS");
+    LOG_INFO(arr_x);
 
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1078,17 +1070,20 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, base) + 2];
-    mpz_get_str(arr_y, base, Pkey->y);
+    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
+    LOG_INFO("GET STR Y SUCCESS");
+    LOG_INFO(arr_y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
     }
-    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes); // ??????????????????????????????????? SIGSEGV
 
     mpz_clear(privateKeyMpz);
     domain_parameters_clear(curve);
     point_clear(Pkey);
+    point_clear(Pkey_test);
 }
 
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
@@ -1218,7 +1213,6 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
         snprintf(errString, BUF_LEN, "Decrypted key is not null terminated");
         return;
     }
-
 
     *errStatus = -8;
 
@@ -1382,7 +1376,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     }
     snprintf(errString, BUF_LEN, "unsealed random skey is %s\n", skey);
 
-    *dec_len = enc_len;// + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+    *dec_len = enc_len;
 
     char *common_key[ECDSA_SKEY_LEN];
     gen_session_key(skey, pub_keyB, common_key);
@@ -1491,6 +1485,7 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     }
 
     *result = Verification(public_shares, s, _t, _ind);
+    mpz_clear(s);
 
     snprintf(errString, BUF_LEN, "secret share dec %s", public_shares);
 }
@@ -1577,8 +1572,6 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
 
     mpz_mod(bls_key, sum, q);
 
-//    char key_share[mpz_sizeinbase(bls_key, 16) + 2];
-//    mpz_get_str(key_share, 16, bls_key);
     char key_share[BLS_KEY_LENGTH];
     char arr_skey_str[mpz_sizeinbase(bls_key, 16) + 2];
     mpz_get_str(arr_skey_str, 16, bls_key);

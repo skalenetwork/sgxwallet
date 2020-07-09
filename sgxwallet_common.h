@@ -1,24 +1,36 @@
 /*
-    Copyright (C) 2019-Present SKALE Labs
 
-    This file is part of sgxwallet.
+Modifications Copyright (C) 2019-2020 SKALE Labs
 
-    sgxwallet is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Copyright 2018 Intel Corporation
 
-    sgxwallet is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-    You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
 
-    @file sgxwallet_common.h
-    @author Stan Kladko
-    @date 2019
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 */
 
 #ifndef SGXD_SGXD_COMMON_H
@@ -32,28 +44,18 @@
 
 #include <stdbool.h>
 
-
-
-
-
 extern int useHTTPS;
 extern int encryptKeys;
 extern int autoconfirm;
 
-
-
-
-
-
-
 #define BUF_LEN 4096
 
-#define  MAX_KEY_LENGTH 128
-#define  MAX_COMPONENT_LENGTH 80
-#define  MAX_COMPONENT_HEX_LENGTH MAX_COMPONENT_LENGTH * 2
-#define  MAX_ENCRYPTED_KEY_LENGTH 1024
-#define  MAX_SIG_LEN 1024
-#define  MAX_ERR_LEN 1024
+#define MAX_KEY_LENGTH 128
+#define MAX_COMPONENT_LENGTH 80
+#define MAX_COMPONENT_HEX_LENGTH MAX_COMPONENT_LENGTH * 2
+#define MAX_ENCRYPTED_KEY_LENGTH 1024
+#define MAX_SIG_LEN 1024
+#define MAX_ERR_LEN 1024
 #define SHA_256_LEN 32
 
 #define ADD_ENTROPY_SIZE 32
@@ -84,7 +86,6 @@ extern int autoconfirm;
 
 #define CERT_REQUEST_DOES_NOT_EXIST -14
 
-
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 #define INVALID_ECSDA_SIGNATURE -22
@@ -106,7 +107,5 @@ extern int autoconfirm;
 #define SGXDATA_FOLDER "sgx_data/"
 
 #define TEST_VALUE "1234567890"
-
-
 
 #endif //SGXWALLET_SGXWALLET_COMMON_H

@@ -35,16 +35,16 @@
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 
 
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
-#include "create_enclave.h"
+#include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
-#include "sgx_detect.h"
+#include "third_party/intel/sgx_detect.h"
 #include "sgxwallet.h"
 #include "LevelDB.h"
 #include "SGXWalletServer.h"

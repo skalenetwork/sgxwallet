@@ -64,4 +64,4 @@ testList = [ "[cert-sign]",
 for t in testList:
     print("Starting " + t)
     assert subprocess.call(["./testw", t]) == 0
-    print("Ending " + t) 
+    print("Ending " + t)

@@ -1,36 +1,24 @@
 /*
+    Copyright (C) 2019-Present SKALE Labs
 
-Modifications Copyright (C) 2019 SKALE Labs
+    This file is part of sgxwallet.
 
-Copyright 2018 Intel Corporation
+    sgxwallet is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
+    sgxwallet is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-1. Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
+    You should have received a copy of the GNU Affero General Public License
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-2. Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+    @file sgxwall.cpp
+    @author Stan Kladko
+    @date 2020
 */
 
 #include <stdbool.h>
@@ -50,35 +38,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgxwall.h"
 #include "sgxwallet.h"
 
-
-
-
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";
     exit(1);
 }
 
-
-
 void SGXWallet::printUsage() {
     cerr << "Available flags:\n";
-    cerr << "-c  do not verify client certificate\n";
-    cerr << "-s  sign client certificate without human confirmation \n";
-    cerr << "-d  turn on debug output\n";
-    cerr << "-v  verbose mode: turn on debug output\n";
-    cerr << "-vv  detailed verbose mode: turn on debug and trace outputs\n";
-    cerr << "-n  launch SGXWalletServer using http (not https)\n";
+    cerr << "-c  Do not verify client certificate\n";
+    cerr << "-s  Sign client certificate without human confirmation \n";
+    cerr << "-d  Turn on debug output\n";
+    cerr << "-v  Verbose mode: turn on debug output\n";
+    cerr << "-vv Detailed verbose mode: turn on debug and trace outputs\n";
+    cerr << "-n  Launch SGXWalletServer using http (not https)\n";
     cerr << "-b  Restore from back up (you will need to enter backup key) \n";
     cerr << "-y  Do not ask user to acknowledge receipt of backup key \n";
+    cerr << "-T  Generate test keys \n";
 }
 
 enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
 
-
-
-
-void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames, string _fileName) {
-
+void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector<string>& _blsKeyNames, const string& _fileName) {
     Json::Value top(Json::objectValue);
     Json::Value ecdsaKeysJson(Json::objectValue);
     Json::Value blsKeysJson(Json::objectValue);
@@ -96,7 +76,6 @@ void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _b
     top["ecdsaKeyNames"] = ecdsaKeysJson;
     top["blsKeyNames"] = blsKeysJson;
 
-
     ofstream fs;
 
     fs.open(_fileName);
@@ -104,8 +83,6 @@ void SGXWallet::serializeKeys(vector<string>& _ecdsaKeyNames, vector<string>& _b
     fs << top;
 
     fs.close();
-
-
 }
 
 
@@ -187,7 +164,6 @@ int main(int argc, char *argv[]) {
     ifstream is("sgx_data/4node.json");
 
     if (generateTestKeys && !is.good()) {
-
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
@@ -203,17 +179,14 @@ int main(int argc, char *argv[]) {
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
 
-
         schainID = 2;
         dkgID = 2;
-
 
         TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 
         SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/16node.json");
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
-
     }
 
     while (true) {

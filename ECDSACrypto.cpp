@@ -31,24 +31,14 @@
 #include <gmp.h>
 #include <random>
 
-
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
-
 
 #include "secure_enclave/Verify.h"
 
 #include "BLSCrypto.h"
 
 #include "ECDSACrypto.h"
-
-
-string concatPubKeyWith0x(char *pub_key_x, char *pub_key_y) {
-    string px = pub_key_x;
-    string py = pub_key_y;
-    string result = "0x" + px + py;
-    return result;
-}
 
 void fillRandomBuffer(vector<unsigned char> &_buffer) {
     ifstream devRandom("/dev/urandom", ios::in | ios::binary);

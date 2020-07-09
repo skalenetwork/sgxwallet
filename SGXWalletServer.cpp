@@ -1,18 +1,26 @@
 /*
+    Copyright (C) 2019-Present SKALE Labs
 
-    Modifications Copyright (C) 2019-Present SKALE Labs
-    
+    This file is part of sgxwallet.
+
+    sgxwallet is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sgxwallet is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+
+    @file SGXWalletServer.cpp
+    @author Stan Kladko
+    @date 2019
 */
 
-
-/*************************************************************************
- * libjson-rpc-cpp
- *************************************************************************
- * @file    stubserver.cpp
- * @date    02.05.2013
- * @author  Peter Spiess-Knafl <dev@spiessknafl.at>
- * @license See attached LICENSE.txt
- ************************************************************************/
 #include <iostream>
 
 #include "abstractstubserver.h"
@@ -21,7 +29,6 @@
 #include <stdio.h>
 
 #include "sgxwallet_common.h"
-
 
 #include "SGXException.h"
 #include "LevelDB.h"
@@ -60,21 +67,18 @@ void setFullOptions(int _printDebugInfo,
     spdlog::info("encryptKeys set to " + std::to_string(encryptKeys));
 }
 
-
 void setOptions(int _printDebugInfo,
                 int _printTraceInfo, int _useHTTPS, int _autoconfirm) {
     setFullOptions(_printDebugInfo,
                    _printTraceInfo, _useHTTPS, _autoconfirm, false);
 }
 
-
-bool isStringDec(string &_str) {
+bool isStringDec(const string &_str) {
     auto res = find_if_not(_str.begin(), _str.end(), [](char c) -> bool {
         return isdigit(c);
     });
     return !_str.empty() && res == _str.end();
 }
-
 
 shared_ptr<SGXWalletServer> SGXWalletServer::server = nullptr;
 shared_ptr<HttpServer> SGXWalletServer::httpServer = nullptr;
@@ -144,7 +148,6 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     return 0;
 }
 
-
 int SGXWalletServer::initHttpServer() { //without ssl
     httpServer = make_shared<HttpServer>(BASE_PORT + 3);
     server = make_shared<SGXWalletServer>(*httpServer,
@@ -161,35 +164,31 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     Json::Value result;
 
     int errStatus = UNKNOWN_ERROR;
-    char *errMsg = (char *) calloc(BUF_LEN, 1);
+    string errMsg(BUF_LEN, '\0');
 
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
-    char *encryptedKeyShareHex = nullptr;
+    string encryptedKeyShareHex;
 
     try {
-        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, errMsg, _keyShare.c_str());
+        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, &errMsg.front(), _keyShare.c_str());
 
-        if (encryptedKeyShareHex == nullptr) {
+        if (errStatus != 0) {
+            throw SGXException(errStatus, errMsg.data());
+        }
+
+        if (encryptedKeyShareHex.empty()) {
             throw SGXException(UNKNOWN_ERROR, "");
         }
 
-        if (errStatus != 0) {
-            throw SGXException(errStatus, errMsg);
-        }
-
-        result["encryptedKeyShare"] = string(encryptedKeyShareHex);
+        result["encryptedKeyShare"] = encryptedKeyShareHex;
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
     } catch (SGXException &_e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
-    }
-
-    if (encryptedKeyShareHex != nullptr) {
-        free(encryptedKeyShareHex);
     }
 
     return result;
@@ -203,7 +202,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     result["errorMessage"] = "Unknown server error";
     result["signatureShare"] = "";
 
-    char *signature = (char *) calloc(BUF_LEN, 1);
+    string signature(BUF_LEN, '\0');
 
     shared_ptr <string> value = nullptr;
 
@@ -224,7 +223,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         value = readFromDb(_keyShareName);
-    } catch (SGXException _e) {
+    } catch (SGXException& _e) {
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         return result;
@@ -237,7 +236,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     }
 
     try {
-        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, signature)) {
+        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, &signature.front())) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
@@ -248,12 +247,12 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         return result;
     }
 
+    auto it = std::find(signature.begin(), signature.end(), '\0');
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signatureShare"] = signature;
+    result["signatureShare"] = std::string(signature.begin(), it);
     return result;
 }
-
 
 Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_key, const string &_keyName) {
     Json::Value result;
@@ -263,13 +262,11 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_key, const string
     return result;
 }
 
-
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
     Json::Value result;
     result["status"] = 0;
     result["errorMessage"] = "";
     result["encryptedKey"] = "";
-
 
     vector <string> keys;
 
@@ -291,7 +288,6 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         result["publicKey"] = keys.at(1);
         result["PublicKey"] = keys.at(1);
         result["keyName"] = keyName;
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
@@ -319,12 +315,10 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
 
         writeDataToDB(_keyName, *encryptedKey);
         LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
-
 
 Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName, const string &_messageHash) {
     INIT_RESULT(result)
@@ -366,7 +360,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         result["signature_v"] = signatureVector.at(0);
         result["signature_r"] = signatureVector.at(1);
         result["signature_s"] = signatureVector.at(2);
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
@@ -391,7 +384,6 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
 
         result["PublicKey"] = publicKey;
         result["publicKey"] = publicKey;
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
@@ -412,8 +404,6 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
         }
         encrPolyHex = gen_dkg_poly(_t);
         writeDataToDB(_polyName, encrPolyHex);
-
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
@@ -611,11 +601,9 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
-
 }
 
 Json::Value SGXWalletServer::multG2Impl(const string &_x) {
@@ -626,7 +614,6 @@ Json::Value SGXWalletServer::multG2Impl(const string &_x) {
         for (uint8_t i = 0; i < 4; i++) {
             result["x*G2"][i] = xG2_vect.at(i);
         }
-
     } HANDLE_SGX_EXCEPTION(result)
 
     return result;
@@ -653,7 +640,6 @@ Json::Value SGXWalletServer::getServerStatusImpl() {
 
     return result;
 }
-
 
 Json::Value SGXWalletServer::getServerVersionImpl() {
     INIT_RESULT(result)
@@ -683,7 +669,6 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
     } HANDLE_SGX_EXCEPTION(result)
     return result;
 }
-
 
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     WRITE_LOCK(m)
@@ -720,7 +705,6 @@ Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
     return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
-
 Json::Value SGXWalletServer::generateECDSAKey() {
     WRITE_LOCK(m)
     return generateECDSAKeyImpl();
@@ -736,13 +720,11 @@ Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
     return getPublicECDSAKeyImpl(_keyName);
 }
 
-
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash) {
     READ_LOCK(m)
     spdlog::debug("MessageHash first {}", _messageHash);
     return ecdsaSignMessageHashImpl(_base, _keyShareName, _messageHash);
 }
-
 
 Json::Value
 SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n,
@@ -837,7 +819,7 @@ void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
     Json::FastWriter writer;
 
     val["value"] = value;
-    string json = writer.write(val);
+    writer.write(val);
 
     auto key = Name;
 
@@ -848,4 +830,3 @@ void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
 
     LevelDB::getLevelDb()->writeString(key, value);
 }
-
