@@ -105,8 +105,6 @@ public:
 
     static void writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t);
 
-    static shared_ptr<string> readKeyShare(const string &_keyShare);
-
     static Json::Value
     importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index);
 
