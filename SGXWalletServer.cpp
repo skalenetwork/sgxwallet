@@ -654,8 +654,7 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
         if (!checkName(name, "BLS_KEY")) {
             throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name format");
         }
-        std::string key = "BLSKEYSHARE:" + name;
-        std::shared_ptr <std::string> bls_ptr = LevelDB::getLevelDb()->readString(key);
+        std::shared_ptr <std::string> bls_ptr = LevelDB::getLevelDb()->readString(name);
 
         if (bls_ptr != nullptr) {
             LevelDB::getLevelDb()->deleteKey(name);
@@ -781,16 +780,6 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     }
 
     return dataStr;
-}
-
-shared_ptr <string> SGXWalletServer::readKeyShare(const string &_keyShareName) {
-    auto keyShareStr = LevelDB::getLevelDb()->readString("BLSKEYSHARE:" + _keyShareName);
-
-    if (keyShareStr == nullptr) {
-        throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Key share with this name does not exist");
-    }
-
-    return keyShareStr;
 }
 
 void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t) {
