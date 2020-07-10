@@ -783,23 +783,11 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
 }
 
 void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t) {
-    Json::Value val;
-    Json::FastWriter writer;
-
-    val["value"] = _value;
-    val["t"] = _t;
-    val["index"] = _index;
-    val["n'"] = _n;
-
-    string json = writer.write(val);
-
-    auto key = "BLSKEYSHARE:" + _keyShareName;
-
     if (LevelDB::getLevelDb()->readString(_keyShareName) != nullptr) {
         throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
 
-    LevelDB::getLevelDb()->writeString(key, _value);
+    LevelDB::getLevelDb()->writeString(_keyShareName, _value);
 }
 
 void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
