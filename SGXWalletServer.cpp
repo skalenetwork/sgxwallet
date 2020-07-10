@@ -637,7 +637,6 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
 
 Json::Value SGXWalletServer::getServerStatusImpl() {
     INIT_RESULT(result)
-
     return result;
 }
 
@@ -659,13 +658,13 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
         std::shared_ptr <std::string> bls_ptr = LevelDB::getLevelDb()->readString(key);
 
         if (bls_ptr != nullptr) {
+            LevelDB::getLevelDb()->deleteKey(name);
             result["deleted"] = true;
             return result;
         } else {
             std::string error_msg = "BLS key with such name not found: " + name;
             throw SGXException(INVALID_BLS_NAME, error_msg.c_str());
           }
-        LevelDB::getLevelDb()->deleteKey(name);
     } HANDLE_SGX_EXCEPTION(result)
     return result;
 }
