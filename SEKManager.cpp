@@ -149,7 +149,7 @@ void gen_SEK() {
 
   cout << "ATTENTION! YOUR BACKUP KEY WILL BE WRITTEN INTO backup_key.txt.\n" <<
           "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY BY RUNNING THE FOLLOWING COMMAND:\n" <<
-          "`sudo apt-get install secure-delete && srm -vz backup_key.txt`" << endl;
+          "`docker exec -it <SGX_CONTAINER_NAME> bash && apt-get install secure-delete && srm -vz backup_key.txt`" << endl;
   sek_file << SEK;
 
   if (!autoconfirm) {
