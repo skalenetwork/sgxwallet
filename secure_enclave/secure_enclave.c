@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "secure_enclave_t.h"
 #include "sgx_tcrypto.h"
@@ -130,10 +131,11 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 
 void get_global_random(unsigned char* _randBuff) {
     sgx_sha_state_handle_t shaStateHandle;
-    sgx_sha256_init(&shaStateHandle);
-    sgx_sha256_update(globalRandom, 32, shaStateHandle);
-    sgx_sha256_get_hash(shaStateHandle, globalRandom);
-    sgx_sha256_close(shaStateHandle);
+    assert(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
+    assert(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
+    assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
+    assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
+    assert(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
     memcpy(_randBuff, globalRandom, 32);
 }
 
