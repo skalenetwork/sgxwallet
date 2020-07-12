@@ -101,7 +101,7 @@ void enclave_init() {
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
           char* sig) {
-    libff::init_alt_bn128_params();
+
 
     auto key = keyFromString(_keyString);
 
