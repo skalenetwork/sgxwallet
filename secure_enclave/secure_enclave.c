@@ -129,14 +129,15 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-void get_global_random(unsigned char* _randBuff) {
+void get_global_random(unsigned char* _randBuff, uint64_t _size) {
+    assert(_size <= 32);
     sgx_sha_state_handle_t shaStateHandle;
     assert(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     assert(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
     assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
     assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
     assert(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
-    memcpy(_randBuff, globalRandom, 32);
+    memcpy(_randBuff, globalRandom, _size);
 }
 
 
@@ -156,7 +157,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     domain_parameters_load_curve(curve, secp256k1);
 
     unsigned char *rand_char = (unsigned char *) calloc(32, 1);
-    sgx_read_rand(rand_char, 32);
+    get_global_random(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
@@ -936,7 +937,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     domain_parameters_load_curve(curve, secp256k1);
 
     unsigned char *rand_char = (unsigned char *) calloc(32, 1);
-    sgx_read_rand(rand_char, 32);
+    get_global_random(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
