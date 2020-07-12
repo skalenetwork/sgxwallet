@@ -93,7 +93,7 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     //message must not have a bit length longer than that of n
     //see: Guide to Elliptic Curve Cryptography, section 4.4.1.
 
-    for (int i = 0; i < 5000; i++ ) {
+    for (int i = 0; i < 1; i++ ) {
 
         assert(mpz_sizeinbase(message, 2) <= mpz_sizeinbase(curve->n, 2));
 
