@@ -103,15 +103,15 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     unsigned char *rand_char = (unsigned char *) calloc(32,1);
 
-    sgx_read_rand(rand_char, 32);
+    get_global_random(rand_char);
 
     gmp_randstate_t r_state;
 
     signature_sign_start:
 
     //Set k
-    sgx_read_rand(rand_char, 32);
-;
+    get_global_random(rand_char);
+
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
     mpz_mod(k, seed, curve->p);

@@ -69,6 +69,8 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
+unsigned char* globalRandom;
+
 void trustedEnclaveInit(uint32_t _logLevel) {
     LOG_DEBUG (__FUNCTION__);
 
@@ -79,6 +81,11 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
     mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
+
+
+    globalRandom = (unsigned char *) calloc(32,1);
+
+    sgx_read_rand(globalRandom, 32);
 
     enclave_init();
 
@@ -120,6 +127,11 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 
     return (void *) nptr;
 }
+
+void get_global_random(unsigned char* _randBuff) {
+    memcpy(_randBuff, globalRandom, 32);
+}
+
 
 void trustedEMpzAdd(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 

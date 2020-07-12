@@ -43,6 +43,10 @@ EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                          uint8_t* _bin, const int _max_length );
 EXTERNC void enclave_init();
 
+
+
+void get_global_random(unsigned char* _randBuff);
+
 EXTERNC void LOG_INFO(char* msg);
 EXTERNC void LOG_WARN(char* _msg);
 EXTERNC void LOG_ERROR(char* _msg);
@@ -50,5 +54,8 @@ EXTERNC void LOG_DEBUG(char* _msg);
 EXTERNC void LOG_TRACE(char* _msg);
 
 extern uint32_t globalLogLevel_;
+
+extern unsigned char* globalRandom;
+
 
 #endif //SGXWALLET_ENCLAVECOMMON_H
