@@ -3,12 +3,12 @@
 ## Build from source code
 
 -   [Install prerequisites](prerequisites.md)
--   [Enable SGX](enabling-sgx.md)
--   [Build SGX](building.md)
--   [Example Usage](examples.md)
+-   [Enable SGX mode on your machine](enabling-sgx.md)
+-   [Build sgxwallet ](building.md)
+-   [Sgxwallet example usage](examples.md)
 -   [Contributing source code](../.github/CONTRIBUTING.md)
--   [Security Bug Reporting](../SECURITY.md)
+-   [Security bug reporting](../SECURITY.md)
 
 ## Community
 
--   [SKALE Discord](http://skale.chat)
+-   [SKALE discord](http://skale.chat)

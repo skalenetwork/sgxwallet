@@ -101,7 +101,7 @@ void enclave_init() {
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
           char* sig) {
-    libff::init_alt_bn128_params();
+
 
     auto key = keyFromString(_keyString);
 
@@ -217,20 +217,20 @@ void logMsg(log_level _level, const char* _msg) {
 }
 
 
-EXTERNC void LOG_INFO(char* _msg) {
+EXTERNC void LOG_INFO(const char* _msg) {
     logMsg(L_INFO, _msg);
 };
-EXTERNC void LOG_WARN(char* _msg) {
+EXTERNC void LOG_WARN(const char* _msg) {
     logMsg(L_WARNING, _msg);
 };
 
-EXTERNC void LOG_ERROR(char* _msg) {
+EXTERNC void LOG_ERROR(const char* _msg) {
     logMsg(L_ERROR, _msg);
 };
-EXTERNC void LOG_DEBUG(char* _msg) {
+EXTERNC void LOG_DEBUG(const char* _msg) {
     logMsg(L_DEBUG, _msg);
 };
-EXTERNC void LOG_TRACE(char* _msg) {
+EXTERNC void LOG_TRACE(const char* _msg) {
     logMsg(L_TRACE, _msg);
 };
 

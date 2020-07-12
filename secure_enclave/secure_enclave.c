@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "secure_enclave_t.h"
 #include "sgx_tcrypto.h"
@@ -69,6 +70,8 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
+unsigned char* globalRandom;
+
 void trustedEnclaveInit(uint32_t _logLevel) {
     LOG_DEBUG (__FUNCTION__);
 
@@ -79,6 +82,11 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
     mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
+
+
+    globalRandom = (unsigned char *) calloc(32,1);
+
+    sgx_read_rand(globalRandom, 32);
 
     enclave_init();
 
@@ -121,6 +129,18 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
+void get_global_random(unsigned char* _randBuff, uint64_t _size) {
+    assert(_size <= 32);
+    sgx_sha_state_handle_t shaStateHandle;
+    assert(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
+    assert(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
+    assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
+    assert(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
+    assert(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
+    memcpy(_randBuff, globalRandom, _size);
+}
+
+
 void trustedEMpzAdd(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
 
 void trustedEMpzMul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
@@ -137,7 +157,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     domain_parameters_load_curve(curve, secp256k1);
 
     unsigned char *rand_char = (unsigned char *) calloc(32, 1);
-    sgx_read_rand(rand_char, 32);
+    get_global_random(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
@@ -917,7 +937,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     domain_parameters_load_curve(curve, secp256k1);
 
     unsigned char *rand_char = (unsigned char *) calloc(32, 1);
-    sgx_read_rand(rand_char, 32);
+    get_global_random(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);

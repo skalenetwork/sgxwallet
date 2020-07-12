@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include <libff/common/profiling.hpp>
 #include "bls.h"
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -56,7 +57,12 @@
 #include "SGXWalletServer.hpp"
 
 void initUserSpace() {
+
+    libff::inhibit_profiling_counters = true;
+    libff::inhibit_profiling_info = true;
+
     libff::init_alt_bn128_params();
+
     LevelDB::initDataFolderAndDBs();
 }
 
