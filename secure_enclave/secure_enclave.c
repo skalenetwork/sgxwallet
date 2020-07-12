@@ -129,6 +129,11 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 }
 
 void get_global_random(unsigned char* _randBuff) {
+    sgx_sha_state_handle_t shaStateHandle;
+    sgx_sha256_init(&shaStateHandle);
+    sgx_sha256_update(globalRandom, 32, shaStateHandle);
+    sgx_sha256_get_hash(shaStateHandle, globalRandom);
+    sgx_sha256_close(shaStateHandle);
     memcpy(_randBuff, globalRandom, 32);
 }
 
