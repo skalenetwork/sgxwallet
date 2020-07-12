@@ -27,6 +27,14 @@ The sgxwallet server is still in active development and therefore should be rega
 
 ## Running sgxwallet
 
+### Clone this repo
+
+As you probably suspect, the first thing to do is to clone this repository and all it is sub-repositories. 
+
+```bash
+git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
+```
+
 ### Try in simulation mode
 
 The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
@@ -55,12 +63,12 @@ Never run a production sgxserver in simulation mode.
 If you are a SKALE validator and want to run sgxwallet for testnet or mainnet usage, you need
  a SGX-capable server.  
 Please refer to Admin guide for details on how to setup sgxwallet in a secure hardware mode 
- [docs/admin_guide.md](docs/admin_guide.md).
+ [docs/admin-guide.md](docs/admin-guide.md).
 
 ## Developer guide
 
 If you are a SKALE developer and want to build sgxwallet from source, please refer to Developer
-guide [docs/developer_guide.md](docs/developer_guide.md).
+guide [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Contributing
 
