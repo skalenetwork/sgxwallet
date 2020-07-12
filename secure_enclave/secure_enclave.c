@@ -1147,7 +1147,6 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid secret key");
         LOG_ERROR(skey);
-
         mpz_clear(privateKeyMpz);
         return;
     }
