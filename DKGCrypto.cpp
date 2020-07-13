@@ -351,7 +351,6 @@ string decryptDHKey(const string &polyName, int ind) {
 
 vector<string> mult_G2(const string &x) {
     vector<string> result(4);
-    libff::init_alt_bn128_params();
     libff::alt_bn128_Fr el(x.c_str());
     libff::alt_bn128_G2 elG2 = el * libff::alt_bn128_G2::one();
     elG2.to_affine_coordinates();
