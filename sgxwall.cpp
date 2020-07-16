@@ -163,12 +163,12 @@ int main(int argc, char *argv[]) {
 
     uint32_t enclaveLogLevel = L_INFO;
 
-    if (printTraceInfoOption) {
-        enclaveLogLevel = L_TRACE;
-    }
-
     if (printDebugInfoOption) {
         enclaveLogLevel = L_DEBUG;
+    }
+
+    if (printTraceInfoOption) {
+        enclaveLogLevel = L_TRACE;
     }
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
