@@ -53,7 +53,7 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
         throw SGXException(NULL_DATABASE, "Null db");
     }
 
-    spdlog::info("key to read from db: {}",_key );
+    spdlog::debug("key to read from db: {}",_key );
 
     auto status = db->Get(readOptions, _key, &*result);
 
