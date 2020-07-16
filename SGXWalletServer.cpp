@@ -29,6 +29,8 @@
 #include <stdio.h>
 
 #include "sgxwallet_common.h"
+#include "sgxwallet.h"
+
 
 #include "SGXException.h"
 #include "LevelDB.h"
@@ -50,27 +52,30 @@
 
 #include "Log.h"
 
-void setFullOptions(int _printDebugInfo,
-                    int _printTraceInfo, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
-    if (_printDebugInfo)
-        spdlog::set_level(spdlog::level::debug);
-    else if (_printTraceInfo) {
+using namespace std;
+
+void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
+
+    CHECK_STATE(_logLevel <= 2)
+
+    if (_logLevel == L_TRACE) {
         spdlog::set_level(spdlog::level::trace);
-    } else if (_printTraceInfo) {
+    } else if (_logLevel == L_DEBUG) {
+        spdlog::set_level(spdlog::level::debug);
+    } else {
         spdlog::set_level(spdlog::level::info);
     }
+
     useHTTPS = _useHTTPS;
-    spdlog::info("useHTTPS set to " + std::to_string(_useHTTPS));
+    spdlog::info("useHTTPS set to " + to_string(_useHTTPS));
     autoconfirm = _autoconfirm;
-    spdlog::info("autoconfirm set to " + std::to_string(autoconfirm));
+    spdlog::info("autoconfirm set to " + to_string(autoconfirm));
     encryptKeys = _encryptKeys;
-    spdlog::info("encryptKeys set to " + std::to_string(encryptKeys));
+    spdlog::info("encryptKeys set to " + to_string(encryptKeys));
 }
 
-void setOptions(int _printDebugInfo,
-                int _printTraceInfo, int _useHTTPS, int _autoconfirm) {
-    setFullOptions(_printDebugInfo,
-                   _printTraceInfo, _useHTTPS, _autoconfirm, false);
+void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm) {
+    setFullOptions(_logLevel, _useHTTPS, _autoconfirm, false);
 }
 
 bool isStringDec(const string &_str) {

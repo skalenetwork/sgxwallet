@@ -51,4 +51,6 @@ extern sgx_status_t status;
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
+enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
+
 #endif //SGXWALLET_SGXWALLET_H

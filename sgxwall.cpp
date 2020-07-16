@@ -56,7 +56,7 @@ void SGXWallet::printUsage() {
     cerr << "-T  Generate test keys \n";
 }
 
-enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
+
 
 void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector<string>& _blsKeyNames, const string& _fileName) {
     Json::Value top(Json::objectValue);
@@ -149,14 +149,26 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    setFullOptions(printDebugInfoOption, printTraceInfoOption, useHTTPSOption, autoconfirmOption, encryptKeysOption);
+    uint64_t logLevel = L_INFO;
+
+    if (printDebugInfoOption) {
+        logLevel = L_DEBUG;
+    }
+
+    if (printTraceInfoOption) {
+        logLevel = L_TRACE;
+    }
+
+    setFullOptions(logLevel, useHTTPSOption, autoconfirmOption, encryptKeysOption);
 
     uint32_t enclaveLogLevel = L_INFO;
 
+    if (printDebugInfoOption) {
+        enclaveLogLevel = L_DEBUG;
+    }
+
     if (printTraceInfoOption) {
         enclaveLogLevel = L_TRACE;
-    } else if (printDebugInfoOption) {
-        enclaveLogLevel = L_DEBUG;
     }
 
     initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);

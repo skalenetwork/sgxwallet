@@ -90,7 +90,7 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     enclave_init();
 
-    LOG_DEBUG("SUCCESS");
+    LOG_INFO("Successfully inited enclave");
 }
 
 void free_function(void *ptr, size_t sz) {
@@ -1034,8 +1034,8 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
-    LOG_INFO("ENCRYPTED SKEY");
-    LOG_INFO(skey);
+    LOG_TRACE("ENCRYPTED SKEY");
+    LOG_TRACE(skey);
 
     if (status != 0) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed with status %d", status);
@@ -1059,17 +1059,17 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
         return;
     }
-    LOG_INFO("SET STR SUCCESS");
+    LOG_TRACE("SET STR SUCCESS");
 
     //Public key
     point Pkey = point_init();
 
     signature_extract_public_key(Pkey, privateKeyMpz, curve);
-    LOG_INFO("SIGNATURE EXTRACT PK SUCCESS");
+    LOG_TRACE("SIGNATURE EXTRACT PK SUCCESS");
 
     point Pkey_test = point_init();
     point_multiplication(Pkey_test, privateKeyMpz, curve->G, curve);
-    LOG_INFO("POINT MULTIPLICATION SUCCESS");
+    LOG_TRACE("POINT MULTIPLICATION SUCCESS");
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
@@ -1082,14 +1082,14 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
         return;
     }
-    LOG_INFO("POINTS CMP SUCCESS");
+    LOG_TRACE("POINTS CMP SUCCESS");
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
     char arr_x[len];
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
-    LOG_INFO("GET STR X SUCCESS");
-    LOG_INFO(arr_x);
+    LOG_TRACE("GET STR X SUCCESS");
+    LOG_TRACE(arr_x);
 
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1100,8 +1100,8 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
-    LOG_INFO("GET STR Y SUCCESS");
-    LOG_INFO(arr_y);
+    LOG_TRACE("GET STR Y SUCCESS");
+    LOG_TRACE(arr_y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
