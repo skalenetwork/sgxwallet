@@ -89,7 +89,7 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
-    vector <uint8_t> encrPrKey(BUF_LEN, 0);
+    vector<uint8_t> encrPrKey(BUF_LEN, 0);
 
     int errStatus = 0;
     uint64_t enc_len = 0;
@@ -102,6 +102,7 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
                                          errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
 
     if (errStatus != 0) {
+        spdlog::error("failed to get ECDSA public key {}", status);
         throw SGXException(-666, errMsg.data());
     }
 
@@ -109,8 +110,7 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
         spdlog::error("failed to get ECDSA public key {}", status);
         throw SGXException(666, "failed to get ECDSA public key");
     }
-    string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());//concatPubKeyWith0x(pub_key_x, pub_key_y);//
-
+    string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());
 
     if (pubKey.size() != 128) {
         spdlog::error("Incorrect pub key size", status);

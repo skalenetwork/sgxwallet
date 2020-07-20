@@ -59,7 +59,6 @@
 void initUserSpace() {
 
     libff::inhibit_profiling_counters = true;
-    libff::inhibit_profiling_info = true;
 
     libff::init_alt_bn128_params();
 
