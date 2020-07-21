@@ -1137,7 +1137,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
 
-    snprintf(errString, BUF_LEN, "pr key length is %d ", strlen(skey));
+    snprintf(errString, BUF_LEN, "pr key length is %u ", strlen(skey));
     mpz_t privateKeyMpz;
     mpz_init(privateKeyMpz);
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
