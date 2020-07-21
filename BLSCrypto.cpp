@@ -253,7 +253,7 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
     status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
     spdlog::debug("errStatus is {}", *errStatus);
-    spdlog::debug(" errMsg is ", errMsg->data());
+    spdlog::debug("errMsg is ", errMsg->data());
 
     if (*errStatus != 0) {
         throw SGXException(-666, errMsg->data());
