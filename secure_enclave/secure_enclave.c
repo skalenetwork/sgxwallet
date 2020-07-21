@@ -663,7 +663,6 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
         snprintf(errString, BUF_LEN, "\nt does not match poly degree\n");
         return;
     }
-    snprintf(errString + 88, BUF_LEN, "\nsecret share is %s", s_share);
 
     if (calc_secret_shareG2(s_share, s_shareG2) != 0) {
         *errStatus = -1;
