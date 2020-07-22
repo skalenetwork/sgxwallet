@@ -822,7 +822,6 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
 
     char key_share[mpz_sizeinbase(bls_key, 16) + 2];
     mpz_get_str(key_share, 16, bls_key);
-    snprintf(errString, BUF_LEN, " bls private key is %s", key_share);
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
     status = sgx_seal_data(0, NULL, ECDSA_SKEY_LEN, (uint8_t *) key_share, sealedLen,
@@ -1341,7 +1340,6 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     }
 
     if (strcmp(dkg_secret, decr_dkg_secret) != 0) {
-        snprintf(errString, BUF_LEN, "poly is %s ", dkg_secret);
         snprintf(errString + strlen(dkg_secret) + 8, BUF_LEN - strlen(dkg_secret) - 8,
                  "encrypted poly is not equal to decrypted poly");
         *errStatus = -333;
@@ -1399,7 +1397,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
     if (status != SGX_SUCCESS) {
-        snprintf(errString, BUF_LEN, "AES_decrypt failed (in trustedGetEncryptedSecretShareAES)  with status %d",
+        snprintf(errString, BUF_LEN, "AES_decrypt failed (in trustedGetEncryptedSecretShareAES) with status %d",
                  status);
         *errStatus = status;
         return;
@@ -1415,7 +1413,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
 
-        snprintf(errString, BUF_LEN, decryptedDkgPoly);
+        snprintf(errString, BUF_LEN, "calc secret share failed");
         return;
     }
 
@@ -1515,7 +1513,7 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     *result = Verification(public_shares, s, _t, _ind);
     mpz_clear(s);
 
-    snprintf(errString, BUF_LEN, "secret share dec %s", public_shares);
+    snprintf(errString, BUF_LEN, "public shares %s", public_shares);
 }
 
 void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_shares,
@@ -1579,8 +1577,8 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         mpz_init(decr_secret_share);
         if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
             *errStatus = 111;
-            snprintf(errString, BUF_LEN, decr_sshare);
-            LOG_ERROR(decr_sshare);
+            snprintf(errString, BUF_LEN, "invalid decrypted secret share";
+            LOG_ERROR(errString);
 
             mpz_clear(decr_secret_share);
             mpz_clear(sum);
