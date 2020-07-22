@@ -51,6 +51,20 @@
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
+std::string *FqToString(libff::alt_bn128_Fq *_fq) {
+    mpz_t t;
+    mpz_init(t);
+
+    _fq->as_bigint().to_mpz(t);
+
+    char arr[mpz_sizeinbase(t, 10) + 2];
+
+    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_clear(t);
+
+    return new std::string(tmp);
+}
+
 int char2int(char _input) {
     if (_input >= '0' && _input <= '9')
         return _input - '0';
@@ -156,29 +170,38 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     std::pair<libff::alt_bn128_G1, std::string> hash_with_hint = obj->HashtoG1withHint(hash);
 
-    string xStr = BLSutils::ConvertToString(hash_with_hint.first.X);
+    string *xStr = FqToString(&(hash_with_hint.first.X));
 
-    if (xStr.empty()) {
-        std::cerr << "Empty xStr" << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("Empty xStr"));
+    if (xStr == nullptr) {
+        std::cerr << "Null xStr" << std::endl;
+        BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
     }
 
-    string yStr = BLSutils::ConvertToString(hash_with_hint.first.Y);
+    string *yStr = FqToString(&(hash_with_hint.first.Y));
 
-    if (yStr.empty()) {
-        std::cerr << "Empty yStr" << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("Empty yStr"));
+    if (yStr == nullptr) {
+        std::cerr << "Null yStr" << std::endl;
+        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
-    vector<char> errMsg(BUF_LEN, 0);
+    char errMsg[BUF_LEN];
+    memset(errMsg, 0, BUF_LEN);
 
-    vector<char> signature(BUF_LEN);
+    char xStrArg[BUF_LEN];
+    char yStrArg[BUF_LEN];
+    char signature[BUF_LEN];
+
+    memset(xStrArg, 0, BUF_LEN);
+    memset(yStrArg, 0, BUF_LEN);
+
+    strncpy(xStrArg, xStr->c_str(), BUF_LEN);
+    strncpy(yStrArg, yStr->c_str(), BUF_LEN);
 
     size_t sz = 0;
 
-    vector<uint8_t> encryptedKey(BUF_LEN);
+    uint8_t encryptedKey[BUF_LEN];
 
-    bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey.data());
+    bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey);
 
     if (!result) {
         cerr << "Invalid hex encrypted key" << endl;
@@ -188,8 +211,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     int errStatus = 0;
 
     sgx_status_t status =
-            trustedBlsSignMessageAES(eid, &errStatus, &errMsg.front(), encryptedKey.data(),
-                                 sz, &xStr.front(), &yStr.front(), &signature.front());
+            trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
+                                 sz, xStrArg, yStrArg, signature);
 
     if (status != SGX_SUCCESS) {
         cerr << "SGX enclave call  to trustedBlsSignMessage failed:" << status << std::endl;
@@ -201,14 +224,17 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
     }
 
-    std::string hint = yStr + ":" + hash_with_hint.second;
+    std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
-    std::string sig(signature.begin(), signature.end());
+    std::string sig = signature;
 
     sig.append(":");
     sig.append(hint);
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
+
+    delete xStr;
+    delete yStr;
 
     return true;
 }
