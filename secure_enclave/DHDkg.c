@@ -71,6 +71,7 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
 
     mpz_clear(skey);
     point_clear(pub_keyB);
+    point_clear(session_key);
     domain_parameters_clear(curve);
     free(pb_keyB_x);
     free(pb_keyB_y);

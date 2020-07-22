@@ -140,7 +140,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 
   if (!result) {
-    cerr <<   "Invalid hex encrypted key" << endl;
+    cerr << "Invalid hex encrypted key" << endl;
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
@@ -175,6 +175,9 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   sig.append(":");
   sig.append(hint);
+
+  delete xStr;
+  delete yStr;
 
   return sig;
 }

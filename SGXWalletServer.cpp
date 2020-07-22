@@ -355,7 +355,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
 
-        spdlog::debug("got signature_s  {}", signatureVector.at(2));
+        spdlog::debug("got signature_s {}", signatureVector.at(2));
 
         result["signature_v"] = signatureVector.at(0);
         result["signature_r"] = signatureVector.at(1);
