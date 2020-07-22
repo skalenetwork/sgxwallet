@@ -1577,7 +1577,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         mpz_init(decr_secret_share);
         if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
             *errStatus = 111;
-            snprintf(errString, BUF_LEN, "invalid decrypted secret share";
+            snprintf(errString, BUF_LEN, "invalid decrypted secret share");
             LOG_ERROR(errString);
 
             mpz_clear(decr_secret_share);

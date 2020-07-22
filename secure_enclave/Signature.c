@@ -119,8 +119,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
         get_global_random(rand_char, 32);
 
-        gmp_randstate_t r_state;
-
         signature_sign_start:
 
 
