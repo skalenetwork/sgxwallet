@@ -1,20 +1,20 @@
 /*
   Copyright (C) 2018-2019 SKALE Labs
 
-  This file is part of libBLS.
+  This file is part of sgxwallet.
 
-  libBLS is free software: you can redistribute it and/or modify
+  sgxwallet is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published
   by the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  libBLS is distributed in the hope that it will be useful,
+  sgxwallet is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
 
   You should have received a copy of the GNU Affero General Public License
-  along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
+  along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
   @file BLSPrivateKeyShare.cpp
   @author Stan Kladko
@@ -94,7 +94,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   shared_ptr<signatures::Bls> obj;
 
   if (hash_byte_arr == nullptr) {
-    std::cerr <<   "Hash is null" << std::endl;
+    std::cerr << "Hash is null" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Hash is null"));
   }
 
@@ -109,14 +109,14 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   string* xStr = stringFromFq(&(hash_with_hint.first.X));
 
   if (xStr == nullptr) {
-    std::cerr <<   "Null xStr" << std::endl;
+    std::cerr << "Null xStr" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
   }
 
   string* yStr = stringFromFq(&(hash_with_hint.first.Y));
 
   if (yStr == nullptr) {
-    std::cerr <<   "Null yStr" << std::endl;
+    std::cerr << "Null yStr" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 

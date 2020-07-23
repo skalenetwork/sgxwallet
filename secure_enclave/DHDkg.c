@@ -179,4 +179,3 @@ void xor_decrypt(char* key, char* cypher, char* message) {
 
     free(key_bin);
 }
-

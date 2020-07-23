@@ -70,8 +70,8 @@ class TestFixture {
 public:
     TestFixture() {
         TestUtils::resetDB();
-        setOptions(false, false, false, true);
-        initAll(2, false, true);
+        setOptions(L_INFO, false, true);
+        initAll(L_INFO, false, true);
     }
 
     ~TestFixture() {
@@ -83,7 +83,7 @@ class TestFixtureHTTPS {
 public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
-        setOptions(false, false, true, true);
+        setOptions(L_INFO, true, true);
         initAll(0, false, true);
     }
 
