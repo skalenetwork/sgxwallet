@@ -233,6 +233,9 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
 
+    delete xStr;
+    delete yStr;
+
     return true;
 }
 

@@ -176,6 +176,9 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   sig.append(":");
   sig.append(hint);
 
+  delete xStr;
+  delete yStr;
+
   return sig;
 }
 

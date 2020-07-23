@@ -1091,7 +1091,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
     }
-    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes); // ??????????????????????????????????? SIGSEGV
+    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
     mpz_clear(privateKeyMpz);
     domain_parameters_clear(curve);

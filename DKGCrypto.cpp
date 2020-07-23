@@ -35,8 +35,6 @@
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
-#define DKG_MAX_SEALED_LEN 3100
-
 vector<string> splitString(const char *coeffs, const char symbol) {
     string str(coeffs);
     string delim;
@@ -95,8 +93,7 @@ string gen_dkg_poly(int _t) {
         throw SGXException(-666, errMsg.data());
     }
 
-    uint64_t length = DKG_MAX_SEALED_LEN;
-    length = enc_len;
+    uint64_t length = enc_len;;
 
     vector<char> hexEncrPoly(2 * length + 1, 0);
     CHECK_STATE(encrypted_dkg_secret.size() >= length);

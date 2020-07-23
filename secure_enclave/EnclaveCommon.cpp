@@ -115,6 +115,8 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
     libff::alt_bn128_G1 sign = key->as_bigint() * hash;
 
+    delete key;
+
     sign.to_affine_coordinates();
 
     auto r = stringFromG1(&sign);

@@ -37,5 +37,5 @@ RUN    apt update && \
        cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
        cd /usr/src/sdk && \
        ./autoconf.bash && \
-        ./configure  && \
+       ./configure  && \
        bash -c "make -j$(nproc)"

@@ -111,13 +111,10 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
     vector<char> signatureS(BUF_LEN, 0);
     uint8_t signatureV = 0;
 
-
-
-
-        status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
-                                  (unsigned char *) hex.data(),
-                                  signatureR.data(),
-                                  signatureS.data(), &signatureV, 16);
+    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
+                              (unsigned char *) hex.data(),
+                              signatureR.data(),
+                              signatureS.data(), &signatureV, 16);
 
 
     REQUIRE(status == SGX_SUCCESS);
@@ -137,7 +134,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
                                              pubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
-
 
     string hex = SAMPLE_HEX_HASH;
     vector<char> signatureR(BUF_LEN, 0);
