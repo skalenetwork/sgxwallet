@@ -182,8 +182,6 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
         goto clean;
     }
 
-    pubKeyStr = getECDSAPubKey(encryptedKeyHex);
-
     status = trustedEcdsaSignAES(eid, &errStatus,
             errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
                                  signatureR.data(),
@@ -209,6 +207,8 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
     }
 
     /* Now verify signature */
+
+    pubKeyStr = getECDSAPubKey(encryptedKeyHex);
 
     if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
         exception = make_shared<SGXException>(667, "ECDSA did not verify");
