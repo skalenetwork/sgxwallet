@@ -36,6 +36,8 @@ namespace leveldb {
     class Slice;
 }
 
+enum bls_key_status {absent = 0, exists_in_storage = 1, wrong_format = 2};
+
 class LevelDB {
 
     recursive_mutex mutex;
@@ -52,9 +54,11 @@ class LevelDB {
 
     static string sgx_data_folder;
 
+    shared_ptr<map<string, string>> blsKeysStorage;
+
+    bls_key_status checkBlsName(const string& name);
 
 public:
-
 
     static void initDataFolderAndDBs();
 
@@ -66,9 +70,7 @@ public:
 
 public:
 
-
     shared_ptr<string> readString(const string& _key);
-
 
     void writeString(const string &key1, const string &value1);
 
@@ -76,7 +78,6 @@ public:
 
     void writeByteArray(const char *_key, size_t _keyLen, const char *value,
                         size_t _valueLen);
-
 
     void writeByteArray(string& _key, const char *value,
                         size_t _valueLen);

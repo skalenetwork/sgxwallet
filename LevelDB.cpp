@@ -44,6 +44,16 @@ using namespace leveldb;
 static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
+bls_key_status LevelDB::checkBlsName(const string& name) {
+    if (this->blsKeysStorage->find(name) == this->blsKeysStorage->end()) {
+        if (name.substr(0, 7) == "BLS_KEY") {
+            return wrong_format;
+        }
+        return absent;
+    }
+    return exists_in_storage;
+}
+
 std::shared_ptr<string> LevelDB::readString(const string &_key) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -54,6 +64,10 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
     }
 
     spdlog::debug("key to read from db: {}",_key );
+
+    if (this->checkBlsName(_key) == exists_in_storage) {
+        return std::make_shared<string>(this->blsKeysStorage->at(_key));
+    }
 
     auto status = db->Get(readOptions, _key, &*result);
 
@@ -68,6 +82,10 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
 void LevelDB::writeString(const string &_key, const string &_value) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    if (this->checkBlsName(_key) == absent) {
+        (*this->blsKeysStorage)[_key] = _value;
+    }
 
     auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
 
