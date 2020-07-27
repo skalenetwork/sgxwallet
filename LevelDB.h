@@ -54,7 +54,7 @@ class LevelDB {
 
     static string sgx_data_folder;
 
-    shared_ptr<map<string, string>> blsKeysStorage;
+    map<string, string> blsKeysStorage;
 
     bls_key_status checkBlsName(const string& name);
 
