@@ -1,5 +1,0 @@
-#include "secure_enclave/Point.c"
-#include "secure_enclave/DomainParameters.c"
-#include "secure_enclave/NumberTheory.c"
-#include "secure_enclave/Signature.c"
-#include "secure_enclave/Curves.c"

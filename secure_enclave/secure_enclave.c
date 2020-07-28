@@ -998,9 +998,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     *enc_len = strlen(skey_str) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-
     stat = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str);
-
 
     if (stat != 0) {
         snprintf(errString + 19 + strlen(skey_str), BUF_LEN, "ecdsa private key decr failed with status %d", stat);
@@ -1102,7 +1100,6 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 static uint64_t sigCounter = 0;
 static domain_parameters ecdsaCurve = NULL;
 
-
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
                          unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
     LOG_DEBUG(__FUNCTION__);
@@ -1111,7 +1108,6 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         ecdsaCurve = domain_parameters_init();
         domain_parameters_load_curve(ecdsaCurve, secp256k1);
     }
-
 
     char skey[ECDSA_SKEY_LEN];
 

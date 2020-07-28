@@ -54,8 +54,7 @@ AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBIN
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
 
-CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl \
-	secure_enclave.signed.so
+CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 
 ## The build target
@@ -67,11 +66,10 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
-             ECDSACrypto.cpp \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
-             ECDSAImpl.c TestUtils.cpp sgxwallet.c
+             TestUtils.cpp sgxwallet.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
