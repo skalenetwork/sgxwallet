@@ -353,7 +353,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(-22, "Invalid base");
         }
 
-        shared_ptr <string> encryptedKey = readFromDb(_keyName, "");
+        shared_ptr <string> encryptedKey = readFromDb(_keyName);
 
         signatureVector = ecdsaSignHash(encryptedKey->c_str(), hashTmp.c_str(), _base);
         if (signatureVector.size() != 3) {
@@ -795,17 +795,9 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
     LevelDB::getLevelDb()->writeString(_keyShareName, _value);
 }
 
-void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
-    Json::Value val;
-    Json::FastWriter writer;
-
-    val["value"] = value;
-    writer.write(val);
-
-    auto key = Name;
-
-    if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
-        spdlog::info("name {}", Name, " already exists");
+void SGXWalletServer::writeDataToDB(const string &key, const string &value) {
+    if (LevelDB::getLevelDb()->readString(key) != nullptr) {
+        spdlog::info("name {}", key, " already exists");
         throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Key share already exists");
     }
 

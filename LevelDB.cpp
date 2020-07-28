@@ -21,12 +21,10 @@
     @date 2019
 */
 
-
 #include <stdexcept>
 #include <memory>
 #include <string>
 #include <iostream>
-
 
 #include "leveldb/db.h"
 
@@ -53,9 +51,10 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
         throw SGXException(NULL_DATABASE, "Null db");
     }
 
-    spdlog::debug("key to read from db: {}",_key );
+    spdlog::debug("key to read from db: {}", _key);
 
-    auto status = db->Get(readOptions, _key, &*result);
+    auto status = db->Get(readOptions, _key, result.get());
+    spdlog::debug("SUCCESS READING");
 
     throwExceptionOnError(status);
 
@@ -73,11 +72,11 @@ void LevelDB::writeString(const string &_key, const string &_value) {
 
     throwExceptionOnError(status);
 
-    spdlog::debug("written key: {}",_key );
+    spdlog::debug("written key: {}", _key);
 }
 
 
-void LevelDB::deleteDHDKGKey (const string &_key) {
+void LevelDB::deleteDHDKGKey(const string &_key) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
     string full_key = "DKG_DH_KEY_" + _key;
@@ -86,7 +85,7 @@ void LevelDB::deleteDHDKGKey (const string &_key) {
 
     throwExceptionOnError(status);
 
-    spdlog::debug("key deleted: {}",full_key );
+    spdlog::debug("key deleted: {}", full_key);
 }
 
 void LevelDB::deleteTempNEK(const string &_key) {
@@ -101,7 +100,7 @@ void LevelDB::deleteTempNEK(const string &_key) {
 
     throwExceptionOnError(status);
 
-    std::cerr << "key deleted " << _key << std::endl;
+    spdlog::debug("key deleted: {}", _key);
 }
 
 void LevelDB::deleteKey(const string &_key) {
@@ -111,7 +110,7 @@ void LevelDB::deleteKey(const string &_key) {
 
     throwExceptionOnError(status);
 
-    spdlog::debug("key deleted: {}",_key );
+    spdlog::debug("key deleted: {}", _key);
 }
 
 

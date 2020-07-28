@@ -66,10 +66,11 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp ECDSACrypto.cpp \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
+             ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
-             TestUtils.cpp sgxwallet.c
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
