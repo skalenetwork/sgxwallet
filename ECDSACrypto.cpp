@@ -122,44 +122,41 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS, int base) {
-    bool result = false;
-
-    signature sig = signature_init();
-
     auto x = pubKeyStr.substr(0, 64);
     auto y = pubKeyStr.substr(64, 128);
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
-    point publicKey = point_init();
 
     mpz_t msgMpz;
     mpz_init(msgMpz);
     if (mpz_set_str(msgMpz, hashHex, 16) == -1) {
         spdlog::error("invalid message hash {}", hashHex);
-        goto clean;
+        mpz_clear(msgMpz);
+        return false;
     }
 
+    signature sig = signature_init();
     if (signature_set_str(sig, signatureR, signatureS, base) != 0) {
         spdlog::error("Failed to set str signature");
-        goto clean;
+        mpz_clear(msgMpz);
+        signature_free(sig);
+        return false;
     }
+
+    domain_parameters curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
+
+    point publicKey = point_init();
 
     point_set_hex(publicKey, x.c_str(), y.c_str());
     if (!signature_verify(msgMpz, sig, publicKey, curve)) {
         spdlog::error("ECDSA sig not verified");
-        goto clean;
+        mpz_clear(msgMpz);
+        signature_free(sig);
+        domain_parameters_clear(curve);
+        point_clear(publicKey);
+        return false;
     }
 
-    result = true;
-
-    clean:
-
-    mpz_clear(msgMpz);
-    domain_parameters_clear(curve);
-    point_clear(publicKey);
-    signature_free(sig);
-
-    return result;
+    return true;
 }
 
 vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, int base) {
@@ -178,8 +175,7 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
     shared_ptr<SGXException> exception = NULL;
 
     if (!hex2carray(encryptedKeyHex, &decLen, encryptedKey.data())) {
-        exception = make_shared<SGXException>(INVALID_HEX, "Invalid encryptedKeyHex");
-        goto clean;
+        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
     status = trustedEcdsaSignAES(eid, &errStatus,
@@ -188,14 +184,12 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
                                  signatureS.data(), &signatureV, base);
 
     if (errStatus != 0) {
-        exception = make_shared<SGXException>(666, errMsg.data());
-        goto clean;
+        throw SGXException(666, errMsg.data());
     }
 
     if (status != SGX_SUCCESS) {
         spdlog::error("failed to sign {}", status);
-        exception = make_shared<SGXException>(666, "failed to sign");
-        goto clean;
+        throw SGXException(666, "failed to sign");
     }
     signatureVector.at(0) = to_string(signatureV);
     if (base == 16) {
@@ -211,14 +205,8 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
     pubKeyStr = getECDSAPubKey(encryptedKeyHex);
 
     if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
-        exception = make_shared<SGXException>(667, "ECDSA did not verify");
-        goto clean;
+        throw SGXException(667, "ECDSA did not verify");
     }
-
-    clean:
-
-    if (exception)
-        throw *exception;
 
     return signatureVector;
 }

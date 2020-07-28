@@ -117,6 +117,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (yStr == nullptr) {
     std::cerr << "Null yStr" << std::endl;
+    delete xStr;
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 
@@ -141,6 +142,8 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (!result) {
     cerr << "Invalid hex encrypted key" << endl;
+    delete xStr;
+    delete yStr;
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
@@ -154,17 +157,22 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (status != SGX_SUCCESS) {
     gmp_printf("SGX enclave call to trustedBlsSignMessage failed: 0x%04x\n", status);
+    delete xStr;
+    delete yStr;
     BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
   }
 
   if (errStatus != 0) {
+    delete xStr;
+    delete yStr;
     BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
-    return nullptr;
   }
 
   int sigLen;
 
   if ((sigLen = strnlen(signature, 10)) < 10) {
+     delete xStr;
+     delete yStr;
      BOOST_THROW_EXCEPTION(runtime_error("Signature is too short:" + to_string(sigLen)));
   }
 

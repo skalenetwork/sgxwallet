@@ -67,7 +67,7 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp RPCException.cpp  BLSCrypto.cpp \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
              ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
@@ -113,7 +113,7 @@ nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp RPCException.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
+cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
 cert_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
                    -l:libbls.a -l:libleveldb.a \

@@ -181,6 +181,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (yStr == nullptr) {
         std::cerr << "Null yStr" << std::endl;
+        delete xStr;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
@@ -205,6 +206,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (!result) {
         cerr << "Invalid hex encrypted key" << endl;
+        delete xStr;
+        delete yStr;
         BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
     }
 
@@ -216,11 +219,15 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (status != SGX_SUCCESS) {
         cerr << "SGX enclave call to trustedBlsSignMessage failed with status:" << status << std::endl;
+        delete xStr;
+        delete yStr;
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
     }
 
     if (errStatus != 0) {
         cerr << "SGX enclave call to trustedBlsSignMessage failed with errStatus:" << errStatus << std::endl;
+        delete xStr;
+        delete yStr;
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
     }
 
