@@ -80,7 +80,7 @@ void LevelDB::deleteDHDKGKey(const string &_key) {
 
     string full_key = "DKG_DH_KEY_" + _key;
 
-    auto status = db->Delete(writeOptions, Slice(_key));
+    auto status = db->Delete(writeOptions, Slice(full_key));
 
     throwExceptionOnError(status);
 
