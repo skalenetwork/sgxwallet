@@ -332,7 +332,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
     result["signature_r"] = "";
     result["signature_s"] = "";
 
-    vector <string> signatureVector(3);
+    vector<string> signatureVector(3);
 
     try {
         string hashTmp = _messageHash;
@@ -353,9 +353,9 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(-22, "Invalid base");
         }
 
-        shared_ptr <string> encryptedKey = readFromDb(_keyName);
+        shared_ptr<string> encryptedKey = readFromDb(_keyName);
 
-        signatureVector = ecdsaSignHash(encryptedKey->c_str(), hashTmp.c_str(), _base);
+        signatureVector = ecdsaSignHash(*encryptedKey, hashTmp.c_str(), _base);
         if (signatureVector.size() != 3) {
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }

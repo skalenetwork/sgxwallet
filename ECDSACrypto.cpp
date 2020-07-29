@@ -85,7 +85,7 @@ vector <string> genECDSAKey() {
     return keys;
 }
 
-string getECDSAPubKey(const char *_encryptedKeyHex) {
+string getECDSAPubKey(const std::string& _encryptedKeyHex) {
     vector<char> errMsg(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
@@ -94,7 +94,7 @@ string getECDSAPubKey(const char *_encryptedKeyHex) {
     int errStatus = 0;
     uint64_t enc_len = 0;
 
-    if (!hex2carray(_encryptedKeyHex, &enc_len, encrPrKey.data())) {
+    if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data())) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
@@ -159,7 +159,7 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
     return true;
 }
 
-vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, int base) {
+vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *hashHex, int base) {
     vector <string> signatureVector(3);
 
     vector<char> errMsg(1024, 0);
@@ -174,9 +174,11 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
 
     shared_ptr<SGXException> exception = NULL;
 
-    if (!hex2carray(encryptedKeyHex, &decLen, encryptedKey.data())) {
+    spdlog::debug("BEFORE HEX2CARRAY");
+    if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data())) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
+    spdlog::debug("AFTER HEX2CARRAY");
 
     status = trustedEcdsaSignAES(eid, &errStatus,
             errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,

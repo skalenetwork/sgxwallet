@@ -54,7 +54,6 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
     spdlog::debug("key to read from db: {}", _key);
 
     auto status = db->Get(readOptions, _key, result.get());
-    spdlog::debug("SUCCESS READING");
 
     throwExceptionOnError(status);
 
