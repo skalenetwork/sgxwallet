@@ -77,16 +77,16 @@ void LevelDB::writeString(const string &_key, const string &_value) {
 }
 
 
-void LevelDB::deleteDHDKGKey (const string &_key) {
+void LevelDB::deleteDHDKGKey(const string &_key) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
     string full_key = "DKG_DH_KEY_" + _key;
 
-    auto status = db->Delete(writeOptions, Slice(_key));
+    auto status = db->Delete(writeOptions, Slice(full_key));
 
     throwExceptionOnError(status);
 
-    spdlog::debug("key deleted: {}",full_key );
+    spdlog::debug("key deleted: {}", full_key);
 }
 
 void LevelDB::deleteTempNEK(const string &_key) {

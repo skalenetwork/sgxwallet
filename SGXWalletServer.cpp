@@ -564,8 +564,8 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteDHDKGKey(name);
             string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
-            LevelDB::getLevelDb()->deleteKey(_polyName);
         }
+        LevelDB::getLevelDb()->deleteKey(_polyName);
 
     } HANDLE_SGX_EXCEPTION(result)
 

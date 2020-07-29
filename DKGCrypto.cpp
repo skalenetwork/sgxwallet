@@ -202,10 +202,10 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
         spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
+        spdlog::debug("name to write to db is {}", dhKeyName);
         SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
 
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-        spdlog::debug("name to write to db is {}", dhKeyName);
         spdlog::debug("name to write to db is {}", shareG2_name);
         spdlog::debug("s_shareG2: {}", sShareG2.data());
 
