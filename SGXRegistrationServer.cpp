@@ -153,13 +153,11 @@ Json::Value getCertificateImpl(const string &hash) {
 
 Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info(__FUNCTION__);
-    LOCK(m)
     return signCertificateImpl(csr, autoSign);
 }
 
 Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     spdlog::info(__FUNCTION__);
-    LOCK(m)
     return getCertificateImpl(hash);
 }
 
