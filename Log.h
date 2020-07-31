@@ -41,7 +41,6 @@
 
 #include "common.h"
 
-#include <mutex>  // For std::unique_lock
 #include <shared_mutex>
 
 using namespace std;
@@ -77,10 +76,6 @@ public:
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; __RESULT__["status"] = 0; __RESULT__["errorMessage"] = "";
 #define HANDLE_SGX_EXCEPTION(_RESULT_) catch (SGXException &__e) { Log::handleSGXException(_RESULT_, __e);} \
         catch (exception  &__e) {spdlog::error(__e.what()); _RESULT_["status"] = 1; _RESULT_["errorMessage"] = __e.what();}
-
-#define READ_LOCK(__M__)   ReadLock __rlock(__M__);
-#define WRITE_LOCK(__M__)  WriteLock __wlock(__M__);
-#define LOCK(__M__)  lock_guard<recursive_mutex> lock(__M__);
 
 #endif
 

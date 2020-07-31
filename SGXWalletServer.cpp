@@ -674,17 +674,14 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
 }
 
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
-    WRITE_LOCK(m)
     return generateDKGPolyImpl(_polyName, _t);
 }
 
 Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName, int _t, int _n) {
-    WRITE_LOCK(m)
     return getVerificationVectorImpl(_polynomeName, _t, _n);
 }
 
 Json::Value SGXWalletServer::getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n) {
-    WRITE_LOCK(m)
     return getSecretShareImpl(_polyName, _publicKeys, t, n);
 }
 
@@ -692,39 +689,32 @@ Json::Value
 SGXWalletServer::dkgVerification(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
                                  int t,
                                  int n, int index) {
-    WRITE_LOCK(m)
     return dkgVerificationImpl(_publicShares, ethKeyName, SecretShare, t, n, index);
 }
 
 Json::Value
 SGXWalletServer::createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName, const string &polyName,
                                      const string &SecretShare, int t, int n) {
-    WRITE_LOCK(m)
     return createBLSPrivateKeyImpl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
 Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
-    READ_LOCK(m)
     return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
 Json::Value SGXWalletServer::generateECDSAKey() {
-    WRITE_LOCK(m)
     return generateECDSAKeyImpl();
 }
 
 Json::Value SGXWalletServer::renameECDSAKey(const string &_keyName, const string &_tmpKeyName) {
-    WRITE_LOCK(m)
     return renameECDSAKeyImpl(_keyName, _tmpKeyName);
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
-    READ_LOCK(m)
     return getPublicECDSAKeyImpl(_keyName);
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash) {
-    READ_LOCK(m)
     spdlog::debug("MessageHash first {}", _messageHash);
     return ecdsaSignMessageHashImpl(_base, _keyShareName, _messageHash);
 }
@@ -732,48 +722,39 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyS
 Json::Value
 SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n,
                                    int index) {
-    WRITE_LOCK(m)
     return importBLSKeyShareImpl(_keyShare, _keyShareName, _t, _n, index);
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
                                                 int _signerIndex) {
-    READ_LOCK(m)
     return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n, _signerIndex);
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const string &_key, const string &_keyName) {
-    WRITE_LOCK(m)
     return importECDSAKeyImpl(_key, _keyName);
 }
 
 Json::Value SGXWalletServer::complaintResponse(const string &polyName, int ind) {
-    WRITE_LOCK(m)
     return complaintResponseImpl(polyName, ind);
 }
 
 Json::Value SGXWalletServer::multG2(const string &x) {
-    WRITE_LOCK(m)
     return multG2Impl(x);
 }
 
 Json::Value SGXWalletServer::isPolyExists(const string &polyName) {
-    WRITE_LOCK(m)
     return isPolyExistsImpl(polyName);
 }
 
 Json::Value SGXWalletServer::getServerStatus() {
-    READ_LOCK(m)
     return getServerStatusImpl();
 }
 
 Json::Value SGXWalletServer::getServerVersion() {
-    READ_LOCK(m)
     return getServerVersionImpl();
 }
 
 Json::Value SGXWalletServer::deleteBlsKey(const std::string& name) {
-    READ_LOCK(m)
     return deleteBlsKeyImpl(name);
 }
 

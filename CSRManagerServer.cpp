@@ -106,12 +106,10 @@ Json::Value signByHashImpl(const string &hash, int status) {
 }
 
 Json::Value CSRManagerServer::getUnsignedCSRs() {
-    LOCK(m)
     return getUnsignedCSRsImpl();
 }
 
 Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
-    LOCK(m)
     return signByHashImpl(hash, status);
 }
 
