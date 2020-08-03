@@ -241,6 +241,8 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     }
 
     try {
+        static std::mutex g_mtx;
+        std::lock_guard<std::mutex> lock(g_mtx);
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, &signature.front())) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
@@ -252,10 +254,10 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         return result;
     }
 
-    auto it = std::find(signature.begin(), signature.end(), '\0');
+    auto it = signature.find('\0');
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signatureShare"] = std::string(signature.begin(), it);
+    result["signatureShare"] = std::string(signature.begin(), signature.begin() + it);
     return result;
 }
 
