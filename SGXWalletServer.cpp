@@ -236,13 +236,11 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         result["status"] = -1;
-        result["errorMessage"] = "Read key share has thrown exception:";
+        result["errorMessage"] = "Read key share has thrown exception";
         return result;
     }
 
     try {
-        static std::mutex g_mtx;
-        std::lock_guard<std::mutex> lock(g_mtx);
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, &signature.front())) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";

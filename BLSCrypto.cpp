@@ -198,6 +198,9 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
 
+    delete xStr;
+    delete yStr;
+
     size_t sz = 0;
 
     uint8_t encryptedKey[BUF_LEN];
@@ -206,8 +209,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (!result) {
         cerr << "Invalid hex encrypted key" << endl;
-        delete xStr;
-        delete yStr;
         BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
     }
 
@@ -219,15 +220,11 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (status != SGX_SUCCESS) {
         cerr << "SGX enclave call to trustedBlsSignMessage failed with status:" << status << std::endl;
-        delete xStr;
-        delete yStr;
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
     }
 
     if (errStatus != 0) {
         cerr << "SGX enclave call to trustedBlsSignMessage failed with errStatus:" << errStatus << std::endl;
-        delete xStr;
-        delete yStr;
         BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
     }
 
@@ -239,9 +236,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     sig.append(hint);
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
-
-    delete xStr;
-    delete yStr;
 
     return true;
 }

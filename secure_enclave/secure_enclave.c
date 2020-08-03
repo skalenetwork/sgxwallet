@@ -1262,7 +1262,7 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
     }
 
     *errStatus = 0;
-    memcpy(errString, AES_key, 1024);
+    memcpy(errString, AES_key, BUF_LEN);
 }
 
 void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
