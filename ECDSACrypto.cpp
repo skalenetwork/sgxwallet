@@ -174,11 +174,9 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     shared_ptr<SGXException> exception = NULL;
 
-    spdlog::debug("BEFORE HEX2CARRAY");
     if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data())) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
-    spdlog::debug("AFTER HEX2CARRAY");
 
     status = trustedEcdsaSignAES(eid, &errStatus,
             errMsg.data(), encryptedKey.data(), decLen, (unsigned char *) hashHex,
