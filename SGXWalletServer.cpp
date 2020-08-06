@@ -339,9 +339,9 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
             hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-        while (hashTmp[0] == '0') {
-            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
-        }
+//        while (hashTmp[0] == '0') {
+//            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
+//        }
 
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
@@ -546,11 +546,11 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
         if (!check_n_t(_t, _n)) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
-        vector< string > sshares_vect;
+        vector<string> sshares_vect;
 
         spdlog::debug("secret shares from json are - {}", _secretShare);
 
-        shared_ptr< string > encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
         bool res = CreateBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
         if (res) {
@@ -579,11 +579,11 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         if (!checkName(_blsKeyName, "BLS_KEY")) {
             throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name");
         }
-        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
+        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
         spdlog::debug("encr_bls_key_share is {}", *encryptedKeyHex_ptr);
         spdlog::debug("length is {}", encryptedKeyHex_ptr->length());
 
-        vector <string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+        vector<string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
         for (uint8_t i = 0; i < 4; i++) {
             result["blsPublicKeyShare"][i] = public_key_vect.at(i);
         }

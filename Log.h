@@ -78,9 +78,9 @@ public:
 #define HANDLE_SGX_EXCEPTION(_RESULT_) catch (SGXException &__e) { Log::handleSGXException(_RESULT_, __e);} \
         catch (exception  &__e) {spdlog::error(__e.what()); _RESULT_["status"] = 1; _RESULT_["errorMessage"] = __e.what();}
 
-#define READ_LOCK(__M__)   ReadLock __rlock(__M__);
-#define WRITE_LOCK(__M__)  WriteLock __wlock(__M__);
-#define LOCK(__M__)  lock_guard<recursive_mutex> lock(__M__);
+#define READ_LOCK(__M__) ReadLock __rlock(__M__);
+#define WRITE_LOCK(__M__) WriteLock __wlock(__M__);
+#define LOCK(__M__) lock_guard<recursive_mutex> lock(__M__);
 
 #endif
 

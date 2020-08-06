@@ -1097,17 +1097,12 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     point_clear(Pkey_test);
 }
 
-static uint64_t sigCounter = 0;
-static domain_parameters ecdsaCurve = NULL;
-
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
-                         unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
+                         const char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
     LOG_DEBUG(__FUNCTION__);
 
-    if (!ecdsaCurve) {
-        ecdsaCurve = domain_parameters_init();
-        domain_parameters_load_curve(ecdsaCurve, secp256k1);
-    }
+    domain_parameters ecdsaCurve = domain_parameters_init();
+    domain_parameters_load_curve(ecdsaCurve, secp256k1);
 
     char skey[ECDSA_SKEY_LEN];
 
@@ -1116,6 +1111,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (status != 0) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
+        domain_parameters_clear(ecdsaCurve);
         return;
     }
 
@@ -1129,6 +1125,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         snprintf(errString, BUF_LEN, "invalid secret key");
         LOG_ERROR(skey);
         mpz_clear(privateKeyMpz);
+        domain_parameters_clear(ecdsaCurve);
         return;
     }
 
@@ -1140,6 +1137,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
         mpz_clear(privateKeyMpz);
         mpz_clear(msgMpz);
+        domain_parameters_clear(ecdsaCurve);
 
         return;
     }
@@ -1147,30 +1145,6 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     signature sign = signature_init();
 
     signature_sign(sign, msgMpz, privateKeyMpz, ecdsaCurve);
-
-    sigCounter++;
-
-    if (sigCounter % 1000 == 0) {
-
-        point Pkey = point_init();
-
-        signature_extract_public_key(Pkey, privateKeyMpz, ecdsaCurve);
-
-        if (!signature_verify(msgMpz, sign, Pkey, ecdsaCurve)) {
-            *errStatus = -2;
-            snprintf(errString, BUF_LEN, "signature is not verified! ");
-
-            mpz_clear(privateKeyMpz);
-            mpz_clear(msgMpz);
-            domain_parameters_clear(ecdsaCurve);
-            signature_free(sign);
-            point_clear(Pkey);
-
-            return;
-        }
-
-        point_clear(Pkey);
-    }
 
     char arrM[mpz_sizeinbase(msgMpz, 16) + 2];
     mpz_get_str(arrM, 16, msgMpz);
@@ -1189,6 +1163,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     signature_free(sign);
+    domain_parameters_clear(ecdsaCurve);
 }
 
 void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
