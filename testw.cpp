@@ -84,7 +84,7 @@ public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
         setOptions(L_INFO, true, true);
-        initAll(0, false, true);
+        initAll(L_INFO, false, true);
     }
 
     ~TestFixtureHTTPS() {
@@ -143,7 +143,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
 
     for (int i=0; i < 50; i++) {
         status = trustedEcdsaSignAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
-                                     (unsigned char *) hex.data(),
+                                     hex.data(),
                                      signatureR.data(),
                                      signatureS.data(), &signatureV, 16);
     }
@@ -878,7 +878,7 @@ TEST_CASE_METHOD(TestFixture, "AES == NOT AES", "[aes-not-aes]") {
     uint8_t signatureVAES = 0;
 
     status = trustedEcdsaSignAES(eid, &errStatusAES, errMsgAES.data(), encrPrivKeyAES.data(), enc_lenAES,
-                                 (unsigned char *) hex.data(),
+                                 hex.data(),
                                  signatureRAES.data(),
                                  signatureSAES.data(), &signatureVAES, 16);
     REQUIRE(status == SGX_SUCCESS);
