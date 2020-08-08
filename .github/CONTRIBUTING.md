@@ -176,7 +176,7 @@ upstream, enabling you to sync with upstream.
 
 You can reset this, if something has happened to it, using:
 
-```bash
+```shell
 git remote add upstream \
     https://github.com/skalenetwork/sgxwallet.git
 ```

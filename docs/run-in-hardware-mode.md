@@ -11,7 +11,7 @@
 
 Install docker-compose:
 
-```bash
+```shell
 sudo apt-get install docker.io docker-compose
 ```
 
@@ -58,7 +58,7 @@ Note: sgxwallet places all its data into the `sgx_data` directory, which is crea
 
 ## Run sgxwallet in secure mode
 
-```bash
+```shell
 cd run_sgx; sudo docker-compose up -d
 ```
 
@@ -70,20 +70,20 @@ If not, confirm that the SGX device drivers are correctly configured to the mach
 
 To run the server as a daemon, do
 
-```bash
+```shell
 sudo docker-compose up -d
 ```
 
 To stop/start the server do 
 
-```bash
+```shell
 sudo docker-compose stop
 sudo docker-compose start
 ```
 
 To view server logs do 
 
-```bash
+```shell
 sudo docker-compose logs
 ```
 
@@ -91,7 +91,7 @@ To upgrade sgxwallet to a different version:
 
 1.  First stop the container:
 
-```bash
+```shell
 sudo docker-compose stop
 ```
 
@@ -103,7 +103,7 @@ image: skalenetwork/sgxwallet:<TAG>
 
 3.  Pull and start the container:
 
-```bash
+```shell
 sudo docker-compose pull
 sudo docker-compose up
 ```

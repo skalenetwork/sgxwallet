@@ -31,7 +31,7 @@ The sgxwallet server is still in active development and therefore should be rega
 
 As you probably suspect, the first thing to do is to clone this repository and all it is sub-repositories. 
 
-```bash
+```shell
 git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
 ```
 
@@ -41,13 +41,13 @@ The easiest way to try the sgxwallet server is to run a docker container in inse
 
 First install docker-compose if you dont have it
 
-```bash
+```shell
 sudo apt-get install docker.io docker-compose
 ```
 
 Then run sgxwallet using docker-compose
 
-```bash
+```shell
 cd run_sgx_sim; sudo docker-compose up
 ```
 

@@ -22,14 +22,14 @@ Software-controlled means that SGX needs to be enabled by running a utility.
 
 This repo includes the **_sgx_enable_** utility. To enable SGX run:
 
-```bash
+```shell
 sudo ./sgx_enable
 ```
 
 Note: if you are not using Ubuntu 18.04 (Not recommended!), you may need
 to rebuild the sgx-software-enable utility before use by typing:
 
-```bash
+```shell
 cd sgx-software-enable;
 make
 ```
@@ -38,13 +38,13 @@ make
 
 Install make and gcc if you do not have it:
 
-```bash
+```shell
 apt-get install  build-essential
 ```
 
 Run the following command:
 
-```bash
+```shell
 cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
 ```
 
@@ -57,7 +57,7 @@ If you do not see the `isgx` device, you need to troubleshoot your driver instal
 If driver installation fails, you can also try installing driver from the 
 Intel github repository. Do 
 
-```bash
+```shell
 git clone https://github.com/intel/linux-sgx-driver
 ```
 

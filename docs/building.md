@@ -8,7 +8,7 @@
 
 ## Install required debian packages
 
-```bash
+```shell
 cd scripts; sudo ./install_packages.sh; cd ..
 ```
 
@@ -16,13 +16,13 @@ cd scripts; sudo ./install_packages.sh; cd ..
 
 Dependencies only need to be built once.
 
-```bash
+```shell
 cd scripts; ./build_deps.py; cd ..
 ```
 
 ## Set SGX environment variables
 
-```bash
+```shell
 source sgx-sdk-build/sgxsdk/environment
 ```
 
@@ -30,7 +30,7 @@ source sgx-sdk-build/sgxsdk/environment
 
 Go to the project's top directory, then run
 
-```bash
+```shell
 ./autoconf.bash
 ./configure
 make
@@ -39,7 +39,7 @@ make
 
 Note: to run in simulation mode, add --enable-sgx-simulation flag when you run configure.
 
-```bash
+```shell
 ./configure --enable-sgx-simulation
 make
 ```
@@ -48,21 +48,21 @@ make
 
 The base container includes software common to hardware mode and simulation mode.
 
-```bash
+```shell
 sudo docker build -t sgxwallet_base .
 
 ```
 
 ## Build Docker container in simulation mode
 
-```bash
+```shell
 sudo docker build -t sgxwalletsim -f ./DockerfileSimulation .
 
 ```
 
 ## Build Docker container in hardware mode
 
-```bash
+```shell
 sudo docker build -t sgxwallet -f ./Dockerfile .
 ```
 

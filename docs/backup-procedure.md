@@ -6,17 +6,17 @@ When SGXWallet is initialized, the server will print the backup key.
 **This key must be securely recorded and stored.**
 Be sure to store this key in a safe place, then go into a docker container and securely remove it with the following command:
 
-```bash
+```shell
 docker exec -it <SGX_CONTAINER_NAME> bash && apt-get install secure-delete && srm -vz backup_key.txt
 ```
 
-Master-Slave replication is recommended to support the SGXWallet backup strategy. Below are general instructions for a basic backup and recovery process.
+Master-Slave replication is recommended to support the SGXWallet backup strategy, as data in the `sgx_data` directory will frequently change. Below are general instructions for a basic backup and recovery process.
 
 ## Backup SGXWallet (manual copy)
 
 1.  Stop the container:
 
-```bash
+```shell
 docker-compose down
 ```
 
@@ -43,7 +43,7 @@ services:
 3.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
 4.  Execute:
 
-```bash
+```shell
 docker-compose up -d
 ```
 
