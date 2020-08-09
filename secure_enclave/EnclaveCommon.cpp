@@ -36,6 +36,14 @@
 
 using namespace std;
 
+thread_local  uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
+
+uint8_t* getThreadLocalDecryptedDkgPoly() {
+
+    return decryptedDkgPoly;
+}
+
+
 string *stringFromKey(libff::alt_bn128_Fr *_key) {
     mpz_t t;
     mpz_init(t);

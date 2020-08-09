@@ -47,6 +47,8 @@ EXTERNC void enclave_init();
 
 void get_global_random(unsigned char* _randBuff, uint64_t size);
 
+EXTERNC uint8_t* getThreadLocalDecryptedDkgPoly();
+
 EXTERNC void LOG_INFO(const char* msg);
 EXTERNC void LOG_WARN(const char* _msg);
 EXTERNC void LOG_ERROR(const char* _msg);
