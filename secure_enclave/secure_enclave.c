@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
 
-uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
+
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
 
@@ -135,6 +135,7 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
         LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
         snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        *errStatus = -1;                          \
         return;}
 
 #define CHECK_STATE_CLEAN(_EXPRESSION_) \
@@ -142,11 +143,14 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
         LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
         snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        *errStatus = -1;                          \
         goto clean;}
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
     char errString[BUF_LEN];
+    int *errStatus;
+
     CHECK_STATE(_size <= 32)
     CHECK_STATE(_randBuff);
 
@@ -486,6 +490,7 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                        uint32_t enc_len, char *key) {
     LOG_DEBUG(__FUNCTION__);
+    CHECK_STATE(key);
 
     uint32_t decLen;
 
@@ -523,6 +528,11 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
                            char *_hashY, char *signature) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(_hashX);
+    CHECK_STATE(_hashY);
+    CHECK_STATE(signature);
+
     char key[BUF_LEN];
     char *sig = (char *) calloc(BUF_LEN, 1);
 
@@ -550,6 +560,8 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
 void trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_dkg_secret);
+
     char dkg_secret[DKG_BUFER_LENGTH];
 
     if (gen_dkg_poly(dkg_secret, _t) != 0) {
@@ -576,6 +588,8 @@ trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_
                         uint32_t *dec_len) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_dkg_secret);
+
     uint32_t decr_len;
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encrypted_dkg_secret, NULL, 0, decrypted_dkg_secret, &decr_len);
@@ -592,6 +606,11 @@ trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_
 void trustedGetSecretShares(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *dec_len,
                             char *secret_shares,
                             unsigned _t, unsigned _n) {
+
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(secret_shares);
+    CHECK_STATE(_t <= _n);
+
     LOG_DEBUG(__FUNCTION__);
 
     char decrypted_dkg_secret[DKG_BUFER_LENGTH];
@@ -613,6 +632,11 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
                             char *public_shares,
                             unsigned _t, unsigned _n) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(public_shares);
+    CHECK_STATE(_t <= _n);
+    CHECK_STATE(_n > 0);
 
     char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
     uint32_t decr_len;
@@ -636,10 +660,13 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
 void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encrypted_poly) {
     LOG_DEBUG(__FUNCTION__);
 
-    memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
+    CHECK_STATE(encrypted_poly);
+
+    memset(getThreadLocalDecryptedDkgPoly(), 0, DKG_BUFER_LENGTH);
     uint32_t decr_len;
     sgx_status_t status = sgx_unseal_data(
-            (const sgx_sealed_data_t *) encrypted_poly, NULL, 0, decryptedDkgPoly, &decr_len);
+            (const sgx_sealed_data_t *) encrypted_poly, NULL, 0,
+            getThreadLocalDecryptedDkgPoly(), &decr_len);
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
@@ -651,7 +678,16 @@ void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encryp
 void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *encrypted_skey, uint32_t *dec_len,
                                     char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
                                     uint8_t ind) {
+
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encrypted_skey)
+    CHECK_STATE(result_str);
+    CHECK_STATE(s_shareG2);
+    CHECK_STATE(pub_keyB);
+    CHECK_STATE(_t <= _n);
+    CHECK_STATE(_n > 0);
+
 
     char skey[ECDSA_SKEY_LEN];
     char pub_key_x[BUF_LEN];
@@ -681,7 +717,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     gen_session_key(skey, pub_keyB, common_key);
     char *s_share[ECDSA_SKEY_LEN];;
 
-    if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
+    if (calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "\nt does not match poly degree\n");
         return;
@@ -710,6 +746,10 @@ void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encrypte
                               uint32_t *dec_len, char *s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(s_shareG2);
+    CHECK_STATE(_t <= _n);
+    CHECK_STATE(_n > 0);
 
     char decrypted_dkg_secret[DKG_BUFER_LENGTH];
     trustedDecryptDkgSecret(errStatus, errString, encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret, dec_len);
@@ -724,6 +764,11 @@ void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encrypte
 void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares, const char *s_share,
                       uint8_t *encryptedPrivateKey, uint64_t key_len, unsigned _t, int _ind, int *result) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(public_shares);
+    CHECK_STATE(s_share);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(_t);
 
     char skey[ECDSA_SKEY_LEN];
     sgx_status_t status = sgx_unseal_data(
@@ -774,6 +819,15 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
                          uint8_t *encryptedPrivateKey, uint64_t key_len, uint8_t *encr_bls_key,
                          uint32_t *enc_bls_key_len) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(s_shares);
+    CHECK_STATE(encr_bls_key);
+
+    CHECK_STATE(s_shares);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(encr_bls_key);
+
 
     char skey[ECDSA_SKEY_LEN];
     sgx_status_t status = sgx_unseal_data(
@@ -867,6 +921,13 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
                          char *bls_pub_key) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(bls_pub_key);
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(bls_pub_key);
+
+
     char skey_hex[ECDSA_SKEY_LEN];
 
     uint32_t len = key_len;
@@ -889,6 +950,12 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
 void trustedGenerateSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_SEK, uint32_t *enc_len, char *SEK_hex) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encrypted_SEK);
+    CHECK_STATE(SEK_hex);
+
+    CHECK_STATE(encrypted_SEK);
+    CHECK_STATE(SEK_hex);
 
     uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
     sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
@@ -916,6 +983,9 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint64_t encr_len) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_SEK);
+
+
     uint8_t aes_key_hex[SGX_AESGCM_KEY_SIZE * 2];
     memset(aes_key_hex, 0, SGX_AESGCM_KEY_SIZE * 2);
 
@@ -934,6 +1004,9 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
 void trustedSetSEK_backup(int *errStatus, char *errString,
                           uint8_t *encrypted_SEK, uint32_t *enc_len, const char *SEK_hex) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encrypted_SEK);
+    CHECK_STATE(SEK_hex);
 
     uint64_t len;
     hex2carray(SEK_hex, &len, (uint8_t *) AES_key);
@@ -954,6 +1027,8 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
                                 uint8_t *encryptedPrivateKey, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_DEBUG(__FUNCTION__);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
@@ -1043,6 +1118,9 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
                                  uint8_t *encryptedPrivateKey, uint32_t enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
+
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
 
@@ -1127,6 +1205,11 @@ static domain_parameters ecdsaCurve = NULL;
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
                          unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(hash);
+    CHECK_STATE(sigR);
+    CHECK_STATE(sigS);
 
     if (!ecdsaCurve) {
         ecdsaCurve = domain_parameters_init();
@@ -1220,6 +1303,9 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
                           uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(key);
+    CHECK_STATE(encryptedPrivateKey);
+
     *errStatus = UNKNOWN_ERROR;
 
     memset(errString, 0, BUF_LEN);
@@ -1267,6 +1353,10 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
                           uint32_t enc_len, char *key) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(key);
+
+
     *errStatus = -9;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
@@ -1295,6 +1385,11 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
                               char *_hashY, char *signature) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(_hashX);
+    CHECK_STATE(_hashY);
+    CHECK_STATE(signature);
+
     char key[BUF_LEN];
     memset(key, 0, BUF_LEN);
     char sig[BUF_LEN];
@@ -1321,6 +1416,9 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
 void
 trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(encrypted_dkg_secret);
+
 
     char dkg_secret[DKG_BUFER_LENGTH];
     memset(dkg_secret, 0, DKG_BUFER_LENGTH);
@@ -1364,6 +1462,9 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
                            uint32_t *dec_len) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(decrypted_dkg_secret);
+
     int status = AES_decrypt(encrypted_dkg_secret, *dec_len, (char *) decrypted_dkg_secret,
                              3072);
 
@@ -1374,11 +1475,14 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
     }
 }
 
+
 void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *encrypted_poly, uint64_t *enc_len) {
     LOG_DEBUG(__FUNCTION__);
 
-    memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
-    int status = AES_decrypt(encrypted_poly, *enc_len, (char *) decryptedDkgPoly,
+    CHECK_STATE(encrypted_poly);
+
+    memset(getThreadLocalDecryptedDkgPoly(), 0, DKG_BUFER_LENGTH);
+    int status = AES_decrypt(encrypted_poly, *enc_len, (char *) getThreadLocalDecryptedDkgPoly(),
                              DKG_BUFER_LENGTH);
 
     if (status != SGX_SUCCESS) {
@@ -1391,6 +1495,12 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
 void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t *encrypted_skey, uint32_t *dec_len,
                                        char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
                                        uint8_t ind) {
+
+    CHECK_STATE(encrypted_skey);
+    CHECK_STATE(result_str);
+    CHECK_STATE(s_shareG2);
+    CHECK_STATE(pub_keyB);
+
     LOG_DEBUG(__FUNCTION__);
 
     char skey[ECDSA_SKEY_LEN];
@@ -1424,7 +1534,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     char *s_share[ECDSA_SKEY_LEN];
 
-    if (calc_secret_share(decryptedDkgPoly, s_share, _t, _n, ind) != 0) {
+    if (calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
 
         snprintf(errString, BUF_LEN, "calc secret share failed");
@@ -1455,6 +1565,10 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
                                unsigned _t, unsigned _n) {
     LOG_DEBUG(__FUNCTION__);
 
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(public_shares);
+    CHECK_STATE(_t <= _n && _n > 0)
+
     char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
     memset(decrypted_dkg_secret, 0, DKG_MAX_SEALED_LEN);
 
@@ -1481,6 +1595,10 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
 void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_shares, const char *s_share,
                          uint8_t *encryptedPrivateKey, uint64_t enc_len, unsigned _t, int _ind, int *result) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(public_shares);
+    CHECK_STATE(s_share);
+    CHECK_STATE(encryptedPrivateKey);
 
     char skey[ECDSA_SKEY_LEN];
     memset(skey, 0, ECDSA_SKEY_LEN);
@@ -1536,6 +1654,11 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
                             uint8_t *encryptedPrivateKey, uint64_t key_len, uint8_t *encr_bls_key,
                             uint32_t *enc_bls_key_len) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(s_shares);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(encr_bls_key);
+
 
     char skey[ECDSA_SKEY_LEN];
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey, ECDSA_SKEY_LEN);
@@ -1648,6 +1771,9 @@ void
 trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint64_t key_len,
                        char *bls_pub_key) {
     LOG_DEBUG(__FUNCTION__);
+
+    CHECK_STATE(bls_pub_key);
+    CHECK_STATE(encryptedPrivateKey);
 
     char skey_hex[ECDSA_SKEY_LEN];
 
