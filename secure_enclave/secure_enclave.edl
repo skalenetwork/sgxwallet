@@ -229,7 +229,7 @@ enclave {
                                 [user_check] uint64_t* enc_len);
 
         public void trustedGetEncryptedSecretShareAES(
-                                [user_check]int *errStatus,
+                                [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
                                 [user_check] uint32_t* dec_len,
