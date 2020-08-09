@@ -129,8 +129,27 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
+
+#define CHECK_STATE(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
+        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
+        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        return;}
+
+#define CHECK_STATE_CLEAN(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
+        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
+        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        goto clean;}
+
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
-    assert(_size <= 32);
+
+    char errString[BUF_LEN];
+    CHECK_STATE(_size <= 32)
+    CHECK_STATE(_randBuff);
+
     sgx_sha_state_handle_t shaStateHandle;
     assert(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     assert(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
@@ -141,17 +160,16 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 }
 
 
-void trustedEMpzAdd(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
-
-void trustedEMpzMul(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
-
-void trustedEMpzDiv(mpz_t *c_un, mpz_t *a_un, mpz_t *b_un) {}
-
-void trustedEMpfDiv(mpf_t *c_un, mpf_t *a_un, mpf_t *b_un) {}
 
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                              uint8_t *encryptedPrivateKey, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_DEBUG(__FUNCTION__);
+
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
+
+
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
@@ -221,6 +239,10 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
                               uint8_t *encryptedPrivateKey, uint32_t dec_len, char *pub_key_x, char *pub_key_y) {
     LOG_DEBUG(__FUNCTION__);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(errString);
+    CHECK_STATE(pub_key_x);
+    CHECK_STATE(pub_key_y);
 
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
@@ -299,6 +321,13 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
                       unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
     LOG_DEBUG(__FUNCTION__);
 
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(hash);
+    CHECK_STATE(sigR);
+    CHECK_STATE(sigS);
+    CHECK_STATE(base > 0);
+
     char *arrR = NULL;
     char *arrS = NULL;
 
@@ -309,14 +338,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
     point publicKey = point_init();
-
-    if (!hash) {
-        *errStatus = 1;
-        char *msg = "NULL message hash";
-        LOG_ERROR(msg);
-        snprintf(errString, BUF_LEN, msg);
-        goto clean;
-    }
 
     if (strnlen(hash, 64) > 64) {
         *errStatus = 2;
@@ -408,6 +429,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 void trustedEncryptKey(int *errStatus, char *errString, const char *key,
                        uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
     LOG_DEBUG(__FUNCTION__);
+    CHECK_STATE(key);
+    CHECK_STATE(encryptedPrivateKey);
 
     *errStatus = UNKNOWN_ERROR;
 
