@@ -90,7 +90,7 @@ enclave {
                                 [in, string] unsigned char* hash,
                                 [out, count = SMALL_BUF_SIZE] char* sig_r,
                                 [out, count = SMALL_BUF_SIZE] char* sig_s,
-                                [user_check] uint8_t* sig_v,
+                                [out] uint8_t* sig_v,
                                 int base);
 
         public void trustedSetEncryptedDkgPoly( [out] int *errStatus,
@@ -118,7 +118,7 @@ enclave {
                                 uint64_t key_len,
                                 unsigned _t,
                                 int _ind,
-                                [user_check] int* result);
+                                [out] int* result);
 
         public void trustedCreateBlsKey(
                                 [out]int *errStatus,
@@ -192,7 +192,7 @@ enclave {
                                 [in, count = SMALL_BUF_SIZE] unsigned char* hash,
                                 [out, count = SMALL_BUF_SIZE] char* sig_r,
                                 [out, count = SMALL_BUF_SIZE] char* sig_s,
-                                [user_check] uint8_t* sig_v,
+                                [out] uint8_t* sig_v,
                                 int base);
 
         public void trustedEncryptKeyAES (
@@ -258,7 +258,7 @@ enclave {
                                 uint64_t key_len,
                                 unsigned _t,
                                 int _ind,
-                                [user_check] int* result);
+                                [out] int* result);
 
         public void trustedCreateBlsKeyAES(
                                 [out]int *errStatus,
