@@ -15,7 +15,7 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
-                                [user_check] uint32_t *enc_len,
+                                [out] uint32_t *enc_len,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_x,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
@@ -32,7 +32,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] const char* key,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
-                                [user_check] uint32_t *enc_len);
+                                [out] uint32_t *enc_len);
 
 		public void trustedDecryptKey (
                                 [out] int *errStatus,
@@ -54,7 +54,7 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = 3050] uint8_t* encrypted_dkg_secret,
-                                [user_check] uint32_t * enc_len,
+                                [out] uint32_t * enc_len,
                                 size_t _t);
 
         public void trustedDecryptDkgSecret (
@@ -152,7 +152,7 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
-                                [user_check] uint32_t *enc_len,
+                                [out] uint32_t *enc_len,
                                 [out, count = 65] char* hex_SEK);
 
         public void trustedSetSEK(
@@ -165,14 +165,14 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
-                                [user_check] uint32_t *enc_len,
+                                [out] uint32_t *enc_len,
                                 [in, string] const char* SEK_hex);
 
         public void trustedGenerateEcdsaKeyAES (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [out, count = ECDSA_ENCR_LEN] uint8_t* encrypted_key,
-                                [user_check] uint32_t *enc_len,
+                                [out] uint32_t *enc_len,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_x,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
 
