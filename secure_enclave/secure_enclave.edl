@@ -267,7 +267,7 @@ enclave {
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
-                                [user_check] uint32_t *enc_bls_key_len);
+                                [out] uint32_t *enc_bls_key_len);
 
         public void trustedBlsSignMessageAES (
                                 [out] int *errStatus,
