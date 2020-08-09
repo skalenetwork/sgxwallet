@@ -112,7 +112,7 @@ enclave {
         public void trustedDkgVerify(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 8193] const char* public_shares,
+                                [in, string] const char* public_shares,
                                 [in, count = 193] const char* s_share,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
@@ -252,7 +252,7 @@ enclave {
         public void trustedDkgVerifyAES(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 8193] const char* public_shares,
+                                [in, string] const char* public_shares,
                                 [in, count = 193] const char* s_share,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
