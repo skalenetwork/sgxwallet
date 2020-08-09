@@ -62,13 +62,13 @@ enclave {
                             	[out, count = SMALL_BUF_SIZE] char* err_string,
                             	[in, count = 3050] uint8_t* encrypted_dkg_secret,
                             	[out, count = 2490] uint8_t* decrypted_dkg_secret,
-                            	[user_check] uint32_t* dec_len);
+                            	[out] uint32_t* dec_len);
 
         public void trustedGetSecretShares (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
-                                [user_check] uint32_t* dec_len,
+                                [out] uint32_t* dec_len,
                                 [out, count = 2490] char* secret_shares,
                                 unsigned _t,
                                 unsigned _n);
