@@ -36,13 +36,11 @@
 
 using namespace std;
 
-thread_local  uint8_t* decryptedDkgPoly1 = nullptr;
+thread_local  uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
 
 uint8_t* getThreadLocalDecryptedDkgPoly() {
-    if (decryptedDkgPoly1 == nullptr) {
-        decryptedDkgPoly1 = (uint8_t*) calloc(DKG_BUFER_LENGTH, 1);
-    }
-    return decryptedDkgPoly1;
+
+    return decryptedDkgPoly;
 }
 
 
