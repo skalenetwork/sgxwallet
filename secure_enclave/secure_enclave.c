@@ -983,7 +983,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     skey_str[ECDSA_SKEY_LEN - 1] = 0;
     snprintf(errString, BUF_LEN, "skey len is %d\n", strlen(skey_str));
 
-    int stat = AES_encrypt(skey_str, encryptedPrivateKey);
+    int stat = AES_encrypt(skey_str, encryptedPrivateKey, BUF_LEN);
 
     if (stat != 0) {
         snprintf(errString, BUF_LEN, "ecdsa private key encryption failed");
@@ -1203,7 +1203,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
 
     memset(encryptedPrivateKey, 0, BUF_LEN);
 
-    int stat = AES_encrypt(key, encryptedPrivateKey);
+    int stat = AES_encrypt(key, encryptedPrivateKey, BUF_LEN);
     if (stat != 0) {
         *errStatus = stat;
         snprintf(errString, BUF_LEN, "AES encrypt failed with status %d", stat);
@@ -1307,7 +1307,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
         return;
     }
 
-    int status = AES_encrypt(dkg_secret, encrypted_dkg_secret);
+    int status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * BUF_LEN);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "SGX AES encrypt DKG poly failed");
@@ -1602,7 +1602,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
     key_share[BLS_KEY_LENGTH - 1] = 0;
 
-    status = AES_encrypt(key_share, encr_bls_key);
+    status = AES_encrypt(key_share, encr_bls_key, BUF_LEN);
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;

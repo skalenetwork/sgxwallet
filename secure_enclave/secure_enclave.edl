@@ -169,7 +169,7 @@ enclave {
         public void trustedGenerateEcdsaKeyAES (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [out, count = ECDSA_ENCR_LEN] uint8_t* encrypted_key,
+                                [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [out] uint32_t *enc_len,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_x,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_y);
@@ -210,7 +210,7 @@ enclave {
         public void trustedGenDkgSecretAES (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [out, count = 3050] uint8_t* encrypted_dkg_secret,
+                                [out, count = 3072] uint8_t* encrypted_dkg_secret,
                                 [out] uint32_t * enc_len, size_t _t);
 
         public void trustedDecryptDkgSecretAES (
