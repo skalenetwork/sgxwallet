@@ -1340,7 +1340,8 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
 
 void
 trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
-                           uint8_t *decrypted_dkg_secret, uint32_t *dec_len) {
+                           uint8_t *decrypted_dkg_secret,
+                           uint32_t *dec_len) {
     LOG_DEBUG(__FUNCTION__);
 
     int status = AES_decrypt(encrypted_dkg_secret, *dec_len, (char *) decrypted_dkg_secret);
