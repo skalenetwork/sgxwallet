@@ -261,7 +261,7 @@ enclave {
                                 [user_check] int* result);
 
         public void trustedCreateBlsKeyAES(
-                                [user_check]int *errStatus,
+                                [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 6145] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
