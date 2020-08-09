@@ -127,7 +127,7 @@ enclave {
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
-                                [user_check] uint32_t *enc_bls_key_len);
+                                [out] uint32_t *enc_bls_key_len);
 
         public void trustedGetBlsPubKey(
                                 [out]int *errStatus,
@@ -139,10 +139,8 @@ enclave {
         public void trustedComplaintResponse(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE]  char* err_string,
-                                [in, count = SMALL_BUF_SIZE] uint8_t *encryptedDHKey,
                                 [in, count = 3050] uint8_t *encrypted_dkg_secret,
                                 [out] uint32_t* dec_len,
-                                [out, count = 65] char* DH_key,
                                 [out, count = 320] char* s_shareG2,
                                 uint8_t _t,
                                 uint8_t _n,

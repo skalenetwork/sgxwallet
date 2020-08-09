@@ -683,14 +683,13 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     strncpy(result_str + strlen(pub_key_x) + strlen(pub_key_y), pub_key_y, strlen(pub_key_y));
 }
 
-void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encryptedDHKey, uint8_t *encrypted_dkg_secret,
-                              uint32_t *dec_len,
-                              char *DH_key, char *s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1) {
+void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
+                              uint32_t *dec_len, char *s_shareG2, uint8_t _t, uint8_t _n, uint8_t ind1) {
     LOG_DEBUG(__FUNCTION__);
 
+
     char decrypted_dkg_secret[DKG_BUFER_LENGTH];
-    uint32_t decr_len;
-    trustedDecryptDkgSecret(errStatus, errString, encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret, &decr_len);
+    trustedDecryptDkgSecret(errStatus, errString, encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret, dec_len);
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_dkg_secret failed with status %d", *errStatus);
         return;
