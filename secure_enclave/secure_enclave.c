@@ -1332,7 +1332,10 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
         snprintf(errString + strlen(dkg_secret) + 8, BUF_LEN - strlen(dkg_secret) - 8,
                  "encrypted poly is not equal to decrypted poly");
         *errStatus = -333;
+        return;
     }
+
+    *errStatus = 0;
 }
 
 void
