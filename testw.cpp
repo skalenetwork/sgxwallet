@@ -342,11 +342,12 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     vector<char> secret(2490, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
-    status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
+    /*status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
                                         (uint8_t *) secret.data(), &encLen);
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
+     */
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG public shares test", "[dkg-pub-shares]") {
