@@ -113,7 +113,7 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, string] const char* public_shares,
-                                [in, count = 193] const char* s_share,
+                                [in, string] const char* s_share,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 unsigned _t,
@@ -123,7 +123,7 @@ enclave {
         public void trustedCreateBlsKey(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 6145] const char* s_shares,
+                                [in, string] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
@@ -166,7 +166,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
                                 [user_check] uint32_t *enc_len,
-                                [in, count = 65] const char* SEK_hex);
+                                [in, string] const char* SEK_hex);
 
         public void trustedGenerateEcdsaKeyAES (
                                 [out] int *errStatus,
@@ -189,7 +189,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
-                                [in, count = SMALL_BUF_SIZE] unsigned char* hash,
+                                [in, string] unsigned char* hash,
                                 [out, count = SMALL_BUF_SIZE] char* sig_r,
                                 [out, count = SMALL_BUF_SIZE] char* sig_s,
                                 [out] uint8_t* sig_v,
