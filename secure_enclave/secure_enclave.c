@@ -971,6 +971,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
         pub_key_y[i] = '0';
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+
     char skey_str[ECDSA_SKEY_LEN];
     char arr_skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
@@ -997,9 +998,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     *enc_len = strlen(skey_str) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-
-    stat = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str);
-
+    stat = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, ECDSA_SKEY_LEN);
 
     if (stat != 0) {
         snprintf(errString + 19 + strlen(skey_str), BUF_LEN, "ecdsa private key decr failed with status %d", stat);
@@ -1026,7 +1025,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     char skey[ECDSA_SKEY_LEN];
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
 
     if (status != 0) {
@@ -1114,7 +1113,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
     char skey[ECDSA_SKEY_LEN];
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
 
     if (status != 0) {
         *errStatus = status;
@@ -1216,7 +1215,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     char decryptedKey[BUF_LEN];
     memset(decryptedKey, 0, BUF_LEN);
 
-    stat = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey);
+    stat = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN);
 
     if (stat != 0) {
         *errStatus = stat;
@@ -1247,7 +1246,7 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
 
     *errStatus = -9;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
 
     if (status != 0) {
         *errStatus = status;
@@ -1278,7 +1277,7 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
     char sig[BUF_LEN];
     memset(sig, 0, BUF_LEN);
 
-    int stat = AES_decrypt(encryptedPrivateKey, enc_len, key);
+    int stat = AES_decrypt(encryptedPrivateKey, enc_len, key, BUF_LEN);
 
     if (stat != 0) {
         *errStatus = stat;
@@ -1321,7 +1320,8 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     char decr_dkg_secret[DKG_BUFER_LENGTH];
     memset(decr_dkg_secret, 0, DKG_BUFER_LENGTH);
 
-    status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret);
+    status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret,
+                         DKG_BUFER_LENGTH);
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt dkg poly failed");
         *errStatus = status;
@@ -1341,7 +1341,8 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
                            uint32_t *dec_len) {
     LOG_DEBUG(__FUNCTION__);
 
-    int status = AES_decrypt(encrypted_dkg_secret, *dec_len, (char *) decrypted_dkg_secret);
+    int status = AES_decrypt(encrypted_dkg_secret, *dec_len, (char *) decrypted_dkg_secret,
+                             3072);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
@@ -1354,7 +1355,8 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     LOG_DEBUG(__FUNCTION__);
 
     memset(decryptedDkgPoly, 0, DKG_BUFER_LENGTH);
-    int status = AES_decrypt(encrypted_poly, *enc_len, (char *) decryptedDkgPoly);
+    int status = AES_decrypt(encrypted_poly, *enc_len, (char *) decryptedDkgPoly,
+                             DKG_BUFER_LENGTH);
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
@@ -1382,7 +1384,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
         return;
     }
 
-    int status = AES_decrypt(encrypted_skey, enc_len, skey);
+    int status = AES_decrypt(encrypted_skey, enc_len, skey, ECDSA_SKEY_LEN);
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
     if (status != SGX_SUCCESS) {
@@ -1433,7 +1435,8 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
     char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
     memset(decrypted_dkg_secret, 0, DKG_MAX_SEALED_LEN);
 
-    int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret);
+    int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret,
+                             DKG_MAX_SEALED_LEN);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
@@ -1458,7 +1461,8 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
 
     char skey[ECDSA_SKEY_LEN];
     memset(skey, 0, ECDSA_SKEY_LEN);
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey);
+
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed (in trustedDkgVerifyAES) with status %d", status);
@@ -1511,7 +1515,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     LOG_DEBUG(__FUNCTION__);
 
     char skey[ECDSA_SKEY_LEN];
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey);
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey, ECDSA_SKEY_LEN);
     if (status != SGX_SUCCESS) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
@@ -1624,7 +1628,7 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     char skey_hex[ECDSA_SKEY_LEN];
 
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex);
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ECDSA_SKEY_LEN);
     if (status != SGX_SUCCESS) {
         *errStatus = 1;
         snprintf(errString, BUF_LEN, "aes_decrypt failed with status %d", status);

@@ -217,14 +217,14 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
-                                [out, count = 2490] uint8_t* decrypted_dkg_secret,
+                                [out, count = 3072] uint8_t* decrypted_dkg_secret,
                                 [user_check] uint32_t* dec_len);
 
         public void trustedSetEncryptedDkgPolyAES(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_poly,
-                                [out] uint64_t* enc_len);
+                                [user_check] uint64_t* enc_len);
 
         public void trustedGetEncryptedSecretShareAES(
                                 [out]int *errStatus,
