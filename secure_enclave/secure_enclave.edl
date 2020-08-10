@@ -224,7 +224,7 @@ enclave {
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = 3050] uint8_t* encrypted_poly,
-                                [user_check] uint64_t* enc_len);
+                                uint64_t enc_len);
 
         public void trustedGetEncryptedSecretShareAES(
                                 [out]int *errStatus,
