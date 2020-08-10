@@ -981,7 +981,7 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
     *errStatus = UNKNOWN_ERROR;
 
 
-    char skey_hex[ECDSA_SKEY_LEN];
+    SAFE_CHAR_BUF(skey_hex,ECDSA_SKEY_LEN);
 
     uint32_t len = key_len;
 
@@ -1016,6 +1016,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     *errStatus = UNKNOWN_ERROR;
 
     uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
+
     sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
@@ -1145,8 +1146,8 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    char skey_str[ECDSA_SKEY_LEN];
-    char arr_skey_str[mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2];
+    SAFE_CHAR_BUF(skey_str,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(arr_skey_str,mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
     n_zeroes = 64 - strlen(arr_skey_str);
     for (int i = 0; i < n_zeroes; i++) {
