@@ -1801,40 +1801,22 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     mpz_set_ui(sum, 0);
 
     for (int i = 0; i < num_shares; i++) {
-        char encr_sshare[65];
+        SAFE_CHAR_BUF(encr_sshare,65);
         strncpy(encr_sshare, s_shares + 192 * i, 64);
         encr_sshare[64] = 0;
 
-        char s_share[193];
+        SAFE_CHAR_BUF(s_share,193);
         strncpy(s_share, s_shares + 192 * i, 192);
         s_share[192] = 0;
 
-        char common_key[65];
+        SAFE_CHAR_BUF(common_key,65);
         session_key_recover(skey, s_share, common_key);
         common_key[64] = 0;
 
-        if (common_key == NULL) {
-            *errStatus = 1;
-            snprintf(errString, BUF_LEN, "invalid common_key");
-            LOG_ERROR(errString);
 
-            mpz_clear(sum);
-
-            return;
-        }
-
-        char decr_sshare[65];
+        SAFE_CHAR_BUF(decr_sshare,65);
         xor_decrypt(common_key, encr_sshare, decr_sshare);
-        if (decr_sshare == NULL) {
-            *errStatus = 1;
-            snprintf(errString, BUF_LEN, "invalid common_key");
-            LOG_ERROR(common_key);
-            LOG_ERROR(errString);
 
-            mpz_clear(sum);
-
-            return;
-        }
         decr_sshare[64] = 0;
 
         mpz_t decr_secret_share;
@@ -1863,8 +1845,10 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
 
     mpz_mod(bls_key, sum, q);
 
-    char key_share[BLS_KEY_LENGTH];
-    char arr_skey_str[mpz_sizeinbase(bls_key, 16) + 2];
+    SAFE_CHAR_BUF(key_share,BLS_KEY_LENGTH);
+
+    SAFE_CHAR_BUF(arr_skey_str, mpz_sizeinbase(bls_key, 16) + 2);
+
     mpz_get_str(arr_skey_str, 16, bls_key);
     int n_zeroes = 64 - strlen(arr_skey_str);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1905,7 +1889,7 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     CHECK_STATE(bls_pub_key);
     CHECK_STATE(encryptedPrivateKey);
 
-    char skey_hex[ECDSA_SKEY_LEN];
+    SAFE_CHAR_BUF(skey_hex,ECDSA_SKEY_LEN);
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ECDSA_SKEY_LEN);
     if (status != SGX_SUCCESS) {
