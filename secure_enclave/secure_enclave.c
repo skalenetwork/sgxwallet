@@ -1668,7 +1668,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
         return;
     }
 
-    char *cypher[ECDSA_SKEY_LEN];
+    char cypher[ECDSA_SKEY_LEN];
     xor_encrypt(common_key, s_share, cypher);
     if (cypher == NULL) {
         *errStatus = 1;
