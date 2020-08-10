@@ -156,6 +156,11 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
         return false;
     }
 
+    mpz_clear(msgMpz);
+    signature_free(sig);
+    domain_parameters_clear(curve);
+    point_clear(publicKey);
+
     return true;
 }
 

@@ -79,7 +79,7 @@ bool checkHex(const string& hex, const uint32_t sizeInBytes){
   mpz_t num;
   mpz_init(num);
 
-  if ( mpz_set_str(num, hex.c_str(), 16) == -1){
+  if (mpz_set_str(num, hex.c_str(), 16) == -1) {
     spdlog::error("key is not hex {}", hex);
     mpz_clear(num);
     return false;
