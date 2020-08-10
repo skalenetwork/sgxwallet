@@ -981,7 +981,7 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
     *errStatus = UNKNOWN_ERROR;
 
 
-    char skey_hex[ECDSA_SKEY_LEN];
+    SAFE_CHAR_BUF(skey_hex,ECDSA_SKEY_LEN);
 
     uint32_t len = key_len;
 
@@ -1015,7 +1015,8 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
+    SAFE_CHAR_BUF(SEK_raw,SGX_AESGCM_KEY_SIZE);
+
     sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
@@ -1050,7 +1051,7 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
 
 
 
-    uint8_t aes_key_hex[SGX_AESGCM_KEY_SIZE * 2];
+    SAFE_CHAR_BUF(aes_key_hex,SGX_AESGCM_KEY_SIZE * 2);
     memset(aes_key_hex, 0, SGX_AESGCM_KEY_SIZE * 2);
 
     sgx_status_t status = sgx_unseal_data(
