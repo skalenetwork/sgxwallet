@@ -1587,7 +1587,7 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
 }
 
 
-void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *encrypted_poly, uint64_t enc_len) {
+void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *encrypted_poly, uint64_t *enc_len) {
     LOG_DEBUG(__FUNCTION__);
 
     *errString = 0;
@@ -1596,7 +1596,7 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     CHECK_STATE(encrypted_poly);
 
     memset(getThreadLocalDecryptedDkgPoly(), 0, DKG_BUFER_LENGTH);
-    int status = AES_decrypt(encrypted_poly, enc_len, (char *) getThreadLocalDecryptedDkgPoly(),
+    int status = AES_decrypt(encrypted_poly, *enc_len, (char *) getThreadLocalDecryptedDkgPoly(),
                              DKG_BUFER_LENGTH);
 
     if (status != SGX_SUCCESS) {
