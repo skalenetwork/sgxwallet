@@ -135,11 +135,16 @@ libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
 
 int inited = 0;
 
+domain_parameters curve;
+
 void enclave_init() {
     if (inited == 1)
         return;
     inited = 1;
     libff::init_alt_bn128_params();
+
+    curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,

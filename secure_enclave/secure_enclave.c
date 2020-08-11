@@ -151,7 +151,6 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 }
 
 
-
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
     char errString[BUF_LEN];
@@ -177,9 +176,6 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 }
 
 
-
-
-
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                              uint8_t *encryptedPrivateKey, uint32_t *enc_len, char *pub_key_x, char *pub_key_y) {
 
@@ -189,10 +185,9 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     *errStatus = UNKNOWN_ERROR;
 
     CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
+    CHECK_STATE(pub_key_x);
+    CHECK_STATE(pub_key_y);
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
 
     SAFE_CHAR_BUF(rand_char, 32);
 
@@ -213,7 +208,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
-    SAFE_CHAR_BUF(arr_x,len);
+    SAFE_CHAR_BUF(arr_x, len);
 
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
@@ -223,7 +218,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y,mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(arr_y, mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -254,7 +249,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     mpz_clear(seed);
     mpz_clear(skey);
-    domain_parameters_clear(curve);
+
     point_clear(Pkey);
 }
 
@@ -269,8 +264,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
 
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
@@ -281,7 +274,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
         snprintf(errString, BUF_LEN, "sgx_unseal_data failed with status %d", status);
         *errStatus = status;
 
-        domain_parameters_clear(curve);
 
         return;
     }
@@ -293,7 +285,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
         *errStatus = -10;
 
         mpz_clear(privateKeyMpz);
-        domain_parameters_clear(curve);
+
 
         return;
     }
@@ -311,7 +303,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
         *errStatus = -11;
 
         mpz_clear(privateKeyMpz);
-        domain_parameters_clear(curve);
         point_clear(Pkey);
         point_clear(Pkey_test);
 
@@ -320,7 +311,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
-    SAFE_CHAR_BUF(arr_x,len);
+    SAFE_CHAR_BUF(arr_x, len);
 
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
@@ -342,7 +333,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     *errStatus = 0;
 
     mpz_clear(privateKeyMpz);
-    domain_parameters_clear(curve);
+
     point_clear(Pkey);
     point_clear(Pkey_test);
 }
@@ -365,8 +356,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     signature sign = signature_init();
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
     point publicKey = point_init();
 
     if (strnlen(hash, 64) > 64) {
@@ -385,7 +374,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         LOG_ERROR(errString);
         goto clean;
     }
-
 
 
     sgx_status_t status = sgx_unseal_data(
@@ -435,7 +423,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
-    domain_parameters_clear(curve);
     point_clear(publicKey);
 
     signature_free(sign);
@@ -550,8 +537,7 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
     CHECK_STATE(_hashY);
     CHECK_STATE(signature);
 
-    SAFE_CHAR_BUF(key, BUF_LEN);
-    SAFE_CHAR_BUF(sig, BUF_LEN);
+    SAFE_CHAR_BUF(key, BUF_LEN);SAFE_CHAR_BUF(sig, BUF_LEN);
 
     trustedDecryptKey(errStatus, errString, encryptedPrivateKey, enc_len, key);
 
@@ -672,7 +658,7 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    SAFE_CHAR_BUF(decrypted_dkg_secret,DKG_MAX_SEALED_LEN);
+    SAFE_CHAR_BUF(decrypted_dkg_secret, DKG_MAX_SEALED_LEN);
 
     uint32_t decr_len;
     trustedDecryptDkgSecret(errStatus, errString, (uint8_t *) encrypted_dkg_secret, (uint8_t *) decrypted_dkg_secret,
@@ -731,9 +717,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
-    SAFE_CHAR_BUF(pub_key_x, BUF_LEN);
-    SAFE_CHAR_BUF(pub_key_y,BUF_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);SAFE_CHAR_BUF(pub_key_x, BUF_LEN);SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
     uint32_t enc_len;
 
@@ -753,10 +737,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
         return;
     }
 
-    SAFE_CHAR_BUF(common_key,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
 
-    gen_session_key(skey, pub_keyB, common_key);
-    SAFE_CHAR_BUF(s_share,ECDSA_SKEY_LEN);
+    gen_session_key(skey, pub_keyB, common_key);SAFE_CHAR_BUF(s_share, ECDSA_SKEY_LEN);
 
     if (calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
@@ -770,7 +753,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
         return;
     }
 
-    SAFE_CHAR_BUF(cypher,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(cypher, ECDSA_SKEY_LEN);
 
     xor_encrypt(common_key, s_share, cypher);
 
@@ -905,16 +888,16 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
         strncpy(encr_sshare, s_shares + 192 * i, 64);
         encr_sshare[64] = 0;
 
-        SAFE_CHAR_BUF(s_share,193);
+        SAFE_CHAR_BUF(s_share, 193);
 
         strncpy(s_share, s_shares + 192 * i, 192);
         s_share[192] = 0;
 
-        SAFE_CHAR_BUF(common_key,65);
+        SAFE_CHAR_BUF(common_key, 65);
         session_key_recover(skey, s_share, common_key);
         common_key[64] = 0;
 
-        SAFE_CHAR_BUF(decr_sshare,65);
+        SAFE_CHAR_BUF(decr_sshare, 65);
         xor_decrypt(common_key, encr_sshare, decr_sshare);
 
         mpz_t decr_secret_share;
@@ -978,7 +961,7 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
     *errStatus = UNKNOWN_ERROR;
 
 
-    SAFE_CHAR_BUF(skey_hex,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey_hex, ECDSA_SKEY_LEN);
 
     uint32_t len = key_len;
 
@@ -1045,7 +1028,6 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
     CHECK_STATE(encrypted_SEK);
 
 
-
     SAFE_CHAR_BUF(aes_key_hex, BUF_LEN);
 
 
@@ -1099,10 +1081,9 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     *errStatus = UNKNOWN_ERROR;
 
     CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
+    CHECK_STATE(pub_key_x);
+    CHECK_STATE(pub_key_y);
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
 
     SAFE_CHAR_BUF(rand_char, 32);
     get_global_random(rand_char, 32);
@@ -1121,8 +1102,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1139,8 +1119,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(skey_str,ECDSA_SKEY_LEN);
-    SAFE_CHAR_BUF(arr_skey_str,mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(skey_str, ECDSA_SKEY_LEN);SAFE_CHAR_BUF(arr_skey_str, mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
     n_zeroes = 64 - strlen(arr_skey_str);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1157,7 +1136,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
         *errStatus = stat;
 
         mpz_clear(skey);
-        domain_parameters_clear(curve);
+
         point_clear(Pkey);
 
         return;
@@ -1172,7 +1151,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
         *errStatus = stat;
 
         mpz_clear(skey);
-        domain_parameters_clear(curve);
+
         point_clear(Pkey);
 
         return;
@@ -1181,7 +1160,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     *errStatus = 0;
 
     mpz_clear(skey);
-    domain_parameters_clear(curve);
+
     point_clear(Pkey);
 }
 
@@ -1193,12 +1172,11 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     *errStatus = UNKNOWN_ERROR;
 
     CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(pub_key_x); CHECK_STATE(pub_key_y);
+    CHECK_STATE(pub_key_x);
+    CHECK_STATE(pub_key_y);
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
 
-    SAFE_CHAR_BUF(skey,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
@@ -1207,7 +1185,6 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
         snprintf(errString, BUF_LEN, "AES_decrypt failed with status %d", status);
         *errStatus = status;
 
-        domain_parameters_clear(curve);
 
         return;
     }
@@ -1221,7 +1198,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
         *errStatus = -10;
 
         mpz_clear(privateKeyMpz);
-        domain_parameters_clear(curve);
+
 
         return;
     }
@@ -1239,7 +1216,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
         *errStatus = -11;
 
         mpz_clear(privateKeyMpz);
-        domain_parameters_clear(curve);
+
         point_clear(Pkey);
         point_clear(Pkey_test);
 
@@ -1258,7 +1235,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y,mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(arr_y, mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1269,13 +1246,12 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     *errStatus = 0;
 
     mpz_clear(privateKeyMpz);
-    domain_parameters_clear(curve);
+
     point_clear(Pkey);
     point_clear(Pkey_test);
 }
 
 static uint64_t sigCounter = 0;
-static domain_parameters ecdsaCurve = NULL;
 
 
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
@@ -1290,13 +1266,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     CHECK_STATE(sigR);
     CHECK_STATE(sigS);
 
-    if (!ecdsaCurve) {
-        ecdsaCurve = domain_parameters_init();
-        domain_parameters_load_curve(ecdsaCurve, secp256k1);
-    }
-
-
-    SAFE_CHAR_BUF(skey,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
 
@@ -1333,7 +1303,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
     signature sign = signature_init();
 
-    signature_sign(sign, msgMpz, privateKeyMpz, ecdsaCurve);
+    signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
     sigCounter++;
 
@@ -1341,15 +1311,15 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
         point Pkey = point_init();
 
-        signature_extract_public_key(Pkey, privateKeyMpz, ecdsaCurve);
+        signature_extract_public_key(Pkey, privateKeyMpz, curve);
 
-        if (!signature_verify(msgMpz, sign, Pkey, ecdsaCurve)) {
+        if (!signature_verify(msgMpz, sign, Pkey, curve)) {
             *errStatus = -2;
             snprintf(errString, BUF_LEN, "signature is not verified! ");
 
             mpz_clear(privateKeyMpz);
             mpz_clear(msgMpz);
-            domain_parameters_clear(ecdsaCurve);
+
             signature_free(sign);
             point_clear(Pkey);
 
@@ -1359,11 +1329,11 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         point_clear(Pkey);
     }
 
-    SAFE_CHAR_BUF(arrM,mpz_sizeinbase(msgMpz, 16) + 2);
+    SAFE_CHAR_BUF(arrM, mpz_sizeinbase(msgMpz, 16) + 2);
     mpz_get_str(arrM, 16, msgMpz);
     snprintf(errString, BUF_LEN, "message is %s ", arrM);
 
-    SAFE_CHAR_BUF(arrR,mpz_sizeinbase(sign->r, base) + 2);
+    SAFE_CHAR_BUF(arrR, mpz_sizeinbase(sign->r, base) + 2);
     mpz_get_str(arrR, base, sign->r);
     strncpy(sigR, arrR, 1024);
 
@@ -1405,7 +1375,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
 
     *enc_len = strlen(key) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-    SAFE_CHAR_BUF(decryptedKey,BUF_LEN);
+    SAFE_CHAR_BUF(decryptedKey, BUF_LEN);
 
 
     stat = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN);
@@ -1482,8 +1452,7 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
     CHECK_STATE(_hashY);
     CHECK_STATE(signature);
 
-    SAFE_CHAR_BUF(key,BUF_LEN);
-    SAFE_CHAR_BUF(sig,BUF_LEN);
+    SAFE_CHAR_BUF(key, BUF_LEN);SAFE_CHAR_BUF(sig, BUF_LEN);
 
 
     int stat = AES_decrypt(encryptedPrivateKey, enc_len, key, BUF_LEN);
@@ -1515,7 +1484,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
 
     CHECK_STATE(encrypted_dkg_secret);
 
-    SAFE_CHAR_BUF(dkg_secret,DKG_BUFER_LENGTH);
+    SAFE_CHAR_BUF(dkg_secret, DKG_BUFER_LENGTH);
 
 
     if (gen_dkg_poly(dkg_secret, _t) != 0) {
@@ -1533,7 +1502,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
 
     *enc_len = strlen(dkg_secret) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
-    SAFE_CHAR_BUF(decr_dkg_secret,DKG_BUFER_LENGTH);
+    SAFE_CHAR_BUF(decr_dkg_secret, DKG_BUFER_LENGTH);
 
 
     status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret,
@@ -1617,10 +1586,9 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     LOG_DEBUG(__FUNCTION__);
 
-    SAFE_CHAR_BUF(skey,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
-    SAFE_CHAR_BUF(pub_key_x,BUF_LEN);
-    SAFE_CHAR_BUF(pub_key_y,BUF_LEN);
+    SAFE_CHAR_BUF(pub_key_x, BUF_LEN);SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
 
     uint32_t enc_len;
@@ -1642,10 +1610,10 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     *dec_len = enc_len;
 
-    SAFE_CHAR_BUF(common_key,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
     gen_session_key(skey, pub_keyB, common_key);
 
-    SAFE_CHAR_BUF(s_share,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(s_share, ECDSA_SKEY_LEN);
 
     if (calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
@@ -1660,7 +1628,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
         return;
     }
 
-    SAFE_CHAR_BUF(cypher,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(cypher, ECDSA_SKEY_LEN);
     xor_encrypt(common_key, s_share, cypher);
 
     strncpy(result_str, cypher, strlen(cypher));
@@ -1715,7 +1683,7 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     CHECK_STATE(s_share);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
@@ -1726,17 +1694,16 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
         return;
     }
 
-    SAFE_CHAR_BUF(encr_sshare,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(encr_sshare, ECDSA_SKEY_LEN);
 
     strncpy(encr_sshare, s_share, ECDSA_SKEY_LEN - 1);
 
-    SAFE_CHAR_BUF(common_key,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
 
     session_key_recover(skey, s_share, common_key);
 
 
-
-    SAFE_CHAR_BUF(decr_sshare,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(decr_sshare, ECDSA_SKEY_LEN);
 
     xor_decrypt(common_key, encr_sshare, decr_sshare);
 
@@ -1773,7 +1740,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     CHECK_STATE(encr_bls_key);
 
 
-    SAFE_CHAR_BUF(skey,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey, ECDSA_SKEY_LEN);
     if (status != SGX_SUCCESS) {
@@ -1789,21 +1756,20 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     mpz_init(sum);
     mpz_set_ui(sum, 0);
 
-    for (int i = 0; i < num_shares; i++) {
-        SAFE_CHAR_BUF(encr_sshare,65);
+    for (int i = 0; i < num_shares; i++) { SAFE_CHAR_BUF(encr_sshare, 65);
         strncpy(encr_sshare, s_shares + 192 * i, 64);
         encr_sshare[64] = 0;
 
-        SAFE_CHAR_BUF(s_share,193);
+        SAFE_CHAR_BUF(s_share, 193);
         strncpy(s_share, s_shares + 192 * i, 192);
         s_share[192] = 0;
 
-        SAFE_CHAR_BUF(common_key,65);
+        SAFE_CHAR_BUF(common_key, 65);
         session_key_recover(skey, s_share, common_key);
         common_key[64] = 0;
 
 
-        SAFE_CHAR_BUF(decr_sshare,65);
+        SAFE_CHAR_BUF(decr_sshare, 65);
         xor_decrypt(common_key, encr_sshare, decr_sshare);
 
         decr_sshare[64] = 0;
@@ -1834,7 +1800,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
 
     mpz_mod(bls_key, sum, q);
 
-    SAFE_CHAR_BUF(key_share,BLS_KEY_LENGTH);
+    SAFE_CHAR_BUF(key_share, BLS_KEY_LENGTH);
 
     SAFE_CHAR_BUF(arr_skey_str, mpz_sizeinbase(bls_key, 16) + 2);
 
@@ -1878,7 +1844,7 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     CHECK_STATE(bls_pub_key);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey_hex,ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(skey_hex, ECDSA_SKEY_LEN);
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ECDSA_SKEY_LEN);
     if (status != SGX_SUCCESS) {
