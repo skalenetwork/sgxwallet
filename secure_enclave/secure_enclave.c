@@ -1268,40 +1268,37 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
 
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
+    mpz_t privateKeyMpz;
+    mpz_init(privateKeyMpz);
+    mpz_t msgMpz;
+    mpz_init(msgMpz);
+    signature sign = signature_init();
+
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
 
     if (status != 0) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
-        return;
+        LOG_ERROR(status);
+        goto clean;
     }
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
 
-    snprintf(errString, BUF_LEN, "pr key length is %zu ", strlen(skey));
-    mpz_t privateKeyMpz;
-    mpz_init(privateKeyMpz);
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid secret key");
-        LOG_ERROR(skey);
-        mpz_clear(privateKeyMpz);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
-    mpz_t msgMpz;
-    mpz_init(msgMpz);
+
     if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid message hash");
-
-        mpz_clear(privateKeyMpz);
-        mpz_clear(msgMpz);
-
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
-
-    signature sign = signature_init();
 
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
@@ -1316,34 +1313,30 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         if (!signature_verify(msgMpz, sign, Pkey, curve)) {
             *errStatus = -2;
             snprintf(errString, BUF_LEN, "signature is not verified! ");
-
-            mpz_clear(privateKeyMpz);
-            mpz_clear(msgMpz);
-
-            signature_free(sign);
             point_clear(Pkey);
-
-            return;
+            goto clean;
         }
 
         point_clear(Pkey);
     }
 
-    SAFE_CHAR_BUF(arrM, mpz_sizeinbase(msgMpz, 16) + 2);
+    SAFE_CHAR_BUF(arrM, BUF_LEN);
     mpz_get_str(arrM, 16, msgMpz);
     snprintf(errString, BUF_LEN, "message is %s ", arrM);
 
-    SAFE_CHAR_BUF(arrR, mpz_sizeinbase(sign->r, base) + 2);
+    SAFE_CHAR_BUF(arrR, BUF_LEN);
     mpz_get_str(arrR, base, sign->r);
     strncpy(sigR, arrR, 1024);
 
-    SAFE_CHAR_BUF(arrS, mpz_sizeinbase(sign->s, base) + 2);
+    SAFE_CHAR_BUF(arrS, BUF_LEN);
     mpz_get_str(arrS, base, sign->s);
     strncpy(sigS, arrS, 1024);
 
     *sig_v = sign->v;
 
     *errStatus = 0;
+
+    clean:
 
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
@@ -1361,10 +1354,6 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     CHECK_STATE(encryptedPrivateKey);
 
     *errStatus = UNKNOWN_ERROR;
-
-    memset(errString, 0, BUF_LEN);
-
-    memset(encryptedPrivateKey, 0, BUF_LEN);
 
     int stat = AES_encrypt(key, encryptedPrivateKey, BUF_LEN);
     if (stat != 0) {

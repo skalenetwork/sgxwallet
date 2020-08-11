@@ -111,10 +111,13 @@ TEST_CASE_METHOD(TestFixture, "ECDSA keygen and signature test", "[ecdsa-key-sig
     vector<char> signatureS(BUF_LEN, 0);
     uint8_t signatureV = 0;
 
-    status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
-                              (unsigned char *) hex.data(),
-                              signatureR.data(),
-                              signatureS.data(), &signatureV, 16);
+
+    for (int i = 0; i < 50; i++) {
+        status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
+                                  (unsigned char *) hex.data(),
+                                  signatureR.data(),
+                                  signatureS.data(), &signatureV, 16);
+    }
 
 
     REQUIRE(status == SGX_SUCCESS);
@@ -285,6 +288,13 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
             throw;
         }
     }
+
+    auto keyName = genECDSAKeyAPI(c);
+
+
+Json::Value sig = c.ecdsaSignMessageHash(10, keyName, SAMPLE_HASH);
+
+
 
     for (int i = 0; i <= 20; i++) {
         try {

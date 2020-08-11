@@ -192,6 +192,7 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
         spdlog::error("failed to sign {}", status);
         throw SGXException(666, "failed to sign");
     }
+
     signatureVector.at(0) = to_string(signatureV);
     if (base == 16) {
         signatureVector.at(1) = "0x" + string(signatureR.data());
@@ -205,8 +206,15 @@ vector <string> ecdsaSignHash(const char *encryptedKeyHex, const char *hashHex, 
 
     pubKeyStr = getECDSAPubKey(encryptedKeyHex);
 
-    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
-        throw SGXException(667, "ECDSA did not verify");
+    static uint64_t  i = 0;
+
+    i++;
+
+    if (i % 1000 == 0) {
+
+        if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
+            throw SGXException(667, "ECDSA did not verify");
+        }
     }
 
     return signatureVector;
