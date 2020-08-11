@@ -206,9 +206,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
-
-    SAFE_CHAR_BUF(arr_x, len);
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
 
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
@@ -218,7 +216,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y, mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(arr_y,  BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -226,7 +224,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(skey_str, mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(skey_str, BUF_LEN);
 
     mpz_get_str(skey_str, ECDSA_SKEY_BASE, skey);
     snprintf(errString, BUF_LEN, "skey len is %d\n", strlen(skey_str));
@@ -249,7 +247,6 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
 
     mpz_clear(seed);
     mpz_clear(skey);
-
     point_clear(Pkey);
 }
 
@@ -264,54 +261,45 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
+    mpz_t privateKeyMpz;
+    mpz_init(privateKeyMpz);
+    point Pkey = point_init();
+    point Pkey_test = point_init();
 
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
-
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, (uint8_t *) skey, &dec_len);
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data failed with status %d", status);
         *errStatus = status;
-
-
+        LOG_ERROR(errString);
         return;
     }
 
-    mpz_t privateKeyMpz;
-    mpz_init(privateKeyMpz);
+
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         snprintf(errString, BUF_LEN, "wrong string to init private key");
+        LOG_ERROR(errString);
         *errStatus = -10;
-
-        mpz_clear(privateKeyMpz);
-
-
-        return;
+        goto clean;
     }
 
     //Public key
-    point Pkey = point_init();
 
     signature_extract_public_key(Pkey, privateKeyMpz, curve);
-
-    point Pkey_test = point_init();
     point_multiplication(Pkey_test, privateKeyMpz, curve->G, curve);
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
+        LOG_ERROR(errString);
         *errStatus = -11;
-
-        mpz_clear(privateKeyMpz);
-        point_clear(Pkey);
-        point_clear(Pkey_test);
-
-        return;
+        goto clean;
     }
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
-    SAFE_CHAR_BUF(arr_x, len);
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
 
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
@@ -321,7 +309,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y, mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(arr_y, BUF_LEN);
 
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
@@ -332,8 +320,8 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     *errStatus = 0;
 
+    clean:
     mpz_clear(privateKeyMpz);
-
     point_clear(Pkey);
     point_clear(Pkey_test);
 }
@@ -424,9 +412,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     point_clear(publicKey);
-
     signature_free(sign);
-
 
     return;
 }
@@ -440,14 +426,13 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    memset(errString, 0, BUF_LEN);
-
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, ECDSA_SKEY_LEN);
 
     if (sealedLen > BUF_LEN) {
         *errStatus = ENCRYPTED_KEY_TOO_LONG;
         snprintf(errString, BUF_LEN, "sealedLen > MAX_ENCRYPTED_KEY_LENGTH");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     memset(encryptedPrivateKey, 0, BUF_LEN);
@@ -468,24 +453,30 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
 
     if (*errStatus != 0) {
         snprintf(errString + strlen(errString), BUF_LEN, ":trustedDecryptKey failed");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
 
     if (decryptedKeyLen == MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "Decrypted key is not null terminated");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = -8;
 
     if (strncmp(key, decryptedKey, MAX_KEY_LENGTH) != 0) {
         snprintf(errString, BUF_LEN, "Decrypted key does not match original key");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
@@ -504,12 +495,14 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     if (status != SGX_SUCCESS) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "sgx_unseal_data failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     if (decLen > MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "wrong decLen");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = -10;
@@ -518,10 +511,14 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     if (keyLen == MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "Key is not null terminated");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
@@ -543,7 +540,8 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
 
     if (*errStatus != 0) {
         strncpy(signature, errString, BUF_LEN);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     enclave_sign(key, _hashX, _hashY, sig);
@@ -552,10 +550,14 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
 
     if (strnlen(signature, BUF_LEN) < 10) {
         *errStatus = -1;
-        return;
+        strncpy(errString, "signature too short", BUF_LEN);
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+    clean:
+    ;
 }
 
 void trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *enc_len, size_t _t) {
@@ -570,7 +572,9 @@ void trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg
 
     if (gen_dkg_poly(dkg_secret, _t) != 0) {
         *errStatus = -1;
-        return;
+        strncpy(errString, "Couldnt generate poly", BUF_LEN);
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, DKG_BUFER_LENGTH);
@@ -580,14 +584,17 @@ void trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "SGX seal data failed");
+        LOG_ERROR(errString);
         *errStatus = status;
-        return;
+        goto clean;
     }
 
     *enc_len = sealedLen;
 
     *errStatus = 0;
 
+    clean:
+    ;
 }
 
 void
@@ -606,13 +613,17 @@ trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_dkg_secret failed with status %d", status);
+        LOG_ERROR(errString);
         *errStatus = status;
-        return;
+        goto clean;
     }
 
     *dec_len = decr_len;
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedGetSecretShares(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t *dec_len,
