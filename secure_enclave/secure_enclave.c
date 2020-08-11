@@ -1048,8 +1048,8 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
 
 
 
-    uint8_t aes_key_hex[SGX_AESGCM_KEY_SIZE * 2];
-    memset(aes_key_hex, 0, SGX_AESGCM_KEY_SIZE * 2);
+    SAFE_CHAR_BUF(aes_key_hex, BUF_LEN);
+
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encrypted_SEK, NULL, 0, aes_key_hex, &encr_len);
@@ -1124,7 +1124,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     signature_extract_public_key(Pkey, skey, curve);
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
-    char arr_x[len];
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1133,7 +1133,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    SAFE_CHAR_BUF(arr_y, BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1250,7 +1250,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
-    char arr_x[len];
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
 
     int n_zeroes = 64 - strlen(arr_x);
@@ -1260,7 +1260,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    char arr_y[mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2];
+    SAFE_CHAR_BUF(arr_y,mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -1369,7 +1369,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     mpz_get_str(arrR, base, sign->r);
     strncpy(sigR, arrR, 1024);
 
-    char arrS[mpz_sizeinbase(sign->s, base) + 2];
+    SAFE_CHAR_BUF(arrS, mpz_sizeinbase(sign->s, base) + 2);
     mpz_get_str(arrS, base, sign->s);
     strncpy(sigS, arrS, 1024);
 
