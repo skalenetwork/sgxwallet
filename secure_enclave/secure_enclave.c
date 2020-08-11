@@ -1012,9 +1012,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
-    uint8_t SEK_raw[SGX_AESGCM_KEY_SIZE];
-
-    sgx_read_rand(SEK_raw, SGX_AESGCM_KEY_SIZE);
+    SAFE_CHAR_BUF(SEK_raw, SGX_AESGCM_KEY_SIZE);;
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
     carray2Hex(SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
