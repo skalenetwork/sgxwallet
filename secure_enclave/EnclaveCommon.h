@@ -21,6 +21,11 @@
     @date 2019
 */
 
+#include "DomainParameters.h"
+
+#include "Signature.h"
+#include "Curves.h"
+
 #ifndef SGXWALLET_ENCLAVECOMMON_H
 #define SGXWALLET_ENCLAVECOMMON_H
 
@@ -58,6 +63,8 @@ EXTERNC void LOG_TRACE(const char* _msg);
 extern uint32_t globalLogLevel_;
 
 extern unsigned char* globalRandom;
+
+extern domain_parameters curve;
 
 
 #endif //SGXWALLET_ENCLAVECOMMON_H
