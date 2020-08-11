@@ -902,19 +902,31 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
 
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
+    mpz_t sum;
+    mpz_init(sum);
+    mpz_set_ui(sum, 0);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    mpz_t bls_key;
+    mpz_init(bls_key);
+
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, (uint8_t *) skey, &key_len);
     if (status != SGX_SUCCESS) {
         *errStatus = 1;
         snprintf(errString, BUF_LEN, "sgx_unseal_key failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     int num_shares = strlen(s_shares) / 192;
 
-    mpz_t sum;
-    mpz_init(sum);
-    mpz_set_ui(sum, 0);
+
 
     for (int i = 0; i < num_shares; i++) {
 
@@ -940,21 +952,14 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
         if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
             *errStatus = 1;
             snprintf(errString, BUF_LEN, "invalid decrypted secret share");
+            LOG_ERROR(errString);
             mpz_clear(decr_secret_share);
-            mpz_clear(sum);
-            return;
+            goto clean;
         }
 
         mpz_addmul_ui(sum, decr_secret_share, 1);
         mpz_clear(decr_secret_share);
     }
-
-    mpz_t q;
-    mpz_init(q);
-    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
-
-    mpz_t bls_key;
-    mpz_init(bls_key);
 
     mpz_mod(bls_key, sum, q);
 
@@ -968,14 +973,14 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "seal bls private key failed with status %d ", status);
-        mpz_clear(bls_key);
-        mpz_clear(sum);
-        mpz_clear(q);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
     *enc_bls_key_len = sealedLen;
 
     *errStatus = 0;
+
+    clean:
 
     mpz_clear(bls_key);
     mpz_clear(sum);
@@ -1005,16 +1010,21 @@ void trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPriv
     if (status != SGX_SUCCESS) {
         *errStatus = 1;
         snprintf(errString, BUF_LEN, "sgx_unseal_data failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     if (calc_bls_public_key(skey_hex, bls_pub_key) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "could not calculate bls public key");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedGenerateSEK(int *errStatus, char *errString,
@@ -1046,12 +1056,15 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "seal SEK failed");
         *errStatus = status;
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *enc_len = sealedLen;
 
     *errStatus = 0;
+    clean:
+    ;
 }
 
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint64_t encr_len) {
@@ -1062,22 +1075,24 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint
 
     CHECK_STATE(encrypted_SEK);
 
-
     SAFE_CHAR_BUF(aes_key_hex, BUF_LEN);
-
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encrypted_SEK, NULL, 0, aes_key_hex, &encr_len);
     if (status != SGX_SUCCESS) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "sgx unseal SEK failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     uint64_t len;
     hex2carray(aes_key_hex, &len, (uint8_t *) AES_key);
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedSetSEK_backup(int *errStatus, char *errString,
@@ -1100,12 +1115,16 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "seal SEK failed with status %d", status);
         *errStatus = status;
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *enc_len = sealedLen;
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
@@ -1118,7 +1137,6 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(pub_key_x);
     CHECK_STATE(pub_key_y);
-
 
     SAFE_CHAR_BUF(rand_char, 32);
     get_global_random(rand_char, 32);
@@ -1169,12 +1187,8 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     if (stat != 0) {
         snprintf(errString, BUF_LEN, "ecdsa private key encryption failed");
         *errStatus = stat;
-
-        mpz_clear(skey);
-
-        point_clear(Pkey);
-
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *enc_len = strlen(skey_str) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
@@ -1182,20 +1196,16 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     stat = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, ECDSA_SKEY_LEN);
 
     if (stat != 0) {
-        snprintf(errString + 19 + strlen(skey_str), BUF_LEN, "ecdsa private key decr failed with status %d", stat);
+        snprintf(errString, BUF_LEN, "ecdsa private key decr failed with status %d", stat);
         *errStatus = stat;
-
-        mpz_clear(skey);
-
-        point_clear(Pkey);
-
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
 
+    clean:
     mpz_clear(skey);
-
     point_clear(Pkey);
 }
 
@@ -1213,33 +1223,32 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
+
+    mpz_t privateKeyMpz;
+    mpz_init(privateKeyMpz);
+    //Public key
+    point Pkey = point_init();
+
+
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
 
     if (status != 0) {
         snprintf(errString, BUF_LEN, "AES_decrypt failed with status %d", status);
         *errStatus = status;
-
-
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     strncpy(errString, skey, 1024);
 
-    mpz_t privateKeyMpz;
-    mpz_init(privateKeyMpz);
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         snprintf(errString, BUF_LEN, "wrong string to init private key");
+        LOG_ERROR(errString);
         *errStatus = -10;
-
-        mpz_clear(privateKeyMpz);
-
-
-        return;
+        goto clean;
     }
 
-    //Public key
-    point Pkey = point_init();
 
     signature_extract_public_key(Pkey, privateKeyMpz, curve);
 
@@ -1248,17 +1257,10 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     if (!point_cmp(Pkey, Pkey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
+        LOG_ERROR(errString);
         *errStatus = -11;
-
-        mpz_clear(privateKeyMpz);
-
-        point_clear(Pkey);
-        point_clear(Pkey_test);
-
-        return;
+        goto clean;
     }
-
-    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;
 
     SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
@@ -1270,8 +1272,9 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y, mpz_sizeinbase(Pkey->y, ECDSA_SKEY_BASE) + 2);
+    SAFE_CHAR_BUF(arr_y, BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
+
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
         pub_key_y[i] = '0';
@@ -1280,8 +1283,8 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     *errStatus = 0;
 
+    clean:
     mpz_clear(privateKeyMpz);
-
     point_clear(Pkey);
     point_clear(Pkey_test);
 }
