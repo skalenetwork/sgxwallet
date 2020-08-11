@@ -56,6 +56,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
 
+#define SAFE_FREE(__X__) if (!__X__) {free(__X__); __X__ = NULL;}
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+#define CHECK_STATE(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
+        LOG_ERROR((const char*) __FILE__); \
+        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        *errStatus = -1;                          \
+        return;}
+
+#define CHECK_STATE_CLEAN(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
+        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
+        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        *errStatus = -1;                          \
+        goto clean;}
 
 
 void *(*gmp_realloc_func)(void *, size_t, size_t);
@@ -129,24 +150,7 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
 
-#define CHECK_STATE(_EXPRESSION_) \
-    if (!(_EXPRESSION_)) {        \
-        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
-        LOG_ERROR((const char*) __FILE__); \
-        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
-        *errStatus = -1;                          \
-        return;}
-
-#define CHECK_STATE_CLEAN(_EXPRESSION_) \
-    if (!(_EXPRESSION_)) {        \
-        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
-        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
-        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
-        *errStatus = -1;                          \
-        goto clean;}
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
@@ -174,8 +178,6 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
 
 
-#define SAFE_FREE(__X__) if (!__X__) {free(__X__); __X__ = NULL;}
-#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
 
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
@@ -384,12 +386,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         goto clean;
     }
 
-    if (!encryptedPrivateKey) {
-        *errStatus = 3;
-        snprintf(errString, BUF_LEN, "NULL encrypted ECDSA private key");
-        LOG_ERROR(errString);
-        goto clean;
-    }
+
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encryptedPrivateKey, NULL, 0, (uint8_t *) privateKey, &dec_len);
@@ -1109,14 +1106,12 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     domain_parameters curve = domain_parameters_init();
     domain_parameters_load_curve(curve, secp256k1);
 
-    unsigned char *rand_char = (unsigned char *) calloc(32, 1);
+    SAFE_CHAR_BUF(rand_char, 32);
     get_global_random(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
-
-    free(rand_char);
 
     mpz_t skey;
     mpz_init(skey);
@@ -1689,8 +1684,7 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
     CHECK_STATE(public_shares);
     CHECK_STATE(_t <= _n && _n > 0)
 
-    char *decrypted_dkg_secret = (char *) calloc(DKG_MAX_SEALED_LEN, 1);
-    memset(decrypted_dkg_secret, 0, DKG_MAX_SEALED_LEN);
+    SAFE_CHAR_BUF(decrypted_dkg_secret, DKG_MAX_SEALED_LEN);
 
     int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret,
                              DKG_MAX_SEALED_LEN);
@@ -1698,20 +1692,17 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "aes decrypt data - encrypted_dkg_secret failed with status %d", status);
         *errStatus = status;
-        free(decrypted_dkg_secret);
         return;
     }
 
     if (calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "t does not match polynomial in db");
-        free(decrypted_dkg_secret);
         return;
     }
 
     *errStatus = 0;
 
-    free(decrypted_dkg_secret);
 }
 
 void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_shares, const char *s_share,
