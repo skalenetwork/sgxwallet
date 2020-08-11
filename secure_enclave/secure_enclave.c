@@ -1397,37 +1397,43 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     if (stat != 0) {
         *errStatus = stat;
         snprintf(errString, BUF_LEN, "AES encrypt failed with status %d", stat);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *enc_len = strlen(key) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN);
 
-
     stat = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN);
 
     if (stat != 0) {
         *errStatus = stat;
-        snprintf(errString, BUF_LEN, ":trustedDecryptKey failed with status %d", stat);
-        return;
+        snprintf(errString, BUF_LEN, "trustedDecryptKey failed with status %d", stat);
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
 
     if (decryptedKeyLen == MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "Decrypted key is not null terminated");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = -8;
 
     if (strncmp(key, decryptedKey, MAX_KEY_LENGTH) != 0) {
         snprintf(errString, BUF_LEN, "Decrypted key does not match original key");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
@@ -1441,7 +1447,6 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(key);
 
-
     *errStatus = -9;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
@@ -1449,7 +1454,8 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
     if (status != 0) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = -10;
@@ -1458,12 +1464,15 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
 
     if (keyLen == MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "Key is not null terminated");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
-
-    memcpy(errString, AES_key, 1024);
     *errStatus = 0;
+
+    clean:
+    ;
+
 }
 
 void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
