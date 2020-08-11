@@ -646,7 +646,8 @@ void trustedGetSecretShares(int *errStatus, char *errString, uint8_t *encrypted_
 
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_dkg_secret failed with status %d", *errStatus);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *dec_len = decr_len;
@@ -654,6 +655,9 @@ void trustedGetSecretShares(int *errStatus, char *errString, uint8_t *encrypted_
     calc_secret_shares(decrypted_dkg_secret, secret_shares, _t, _n);
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t enc_len,
@@ -676,17 +680,21 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
                             &decr_len);
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "trustedDecryptDkgSecret failed with status %d", *errStatus);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     if (calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "t does not match polynomial in db");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
 
+    clean:
+    ;
 }
 
 void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encrypted_poly) {
@@ -706,10 +714,14 @@ void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encryp
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_poly failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *encrypted_skey, uint32_t *dec_len,
@@ -733,8 +745,11 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     uint32_t enc_len;
 
     trustedGenerateEcdsaKey(errStatus, errString, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+
     if (*errStatus != 0) {
-        return;
+        snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_poly failed with status %d", errStatus);
+        LOG_ERROR(errString);
+        goto  clean;
     }
 
     *dec_len = enc_len;
@@ -744,8 +759,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
 
     if (status != SGX_SUCCESS) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data failed - encrypted_skey with status %d", status);
+        LOG_ERROR(errString);
         *errStatus = status;
-        return;
+        goto clean;
     }
 
     SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
@@ -755,30 +771,29 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     if (calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "\nt does not match poly degree\n");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     if (calc_secret_shareG2(s_share, s_shareG2) != 0) {
         *errStatus = -1;
         snprintf(errString, BUF_LEN, "invalid decr secret share\n");
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     SAFE_CHAR_BUF(cypher, ECDSA_SKEY_LEN);
 
     xor_encrypt(common_key, s_share, cypher);
 
-    if (cypher == NULL) {
-        *errStatus = 1;
-        snprintf(errString, BUF_LEN, "invalid common_key");
-        return;
-    }
-
     strncpy(result_str, cypher, strlen(cypher));
     strncpy(result_str + strlen(cypher), pub_key_x, strlen(pub_key_x));
     strncpy(result_str + strlen(pub_key_x) + strlen(pub_key_y), pub_key_y, strlen(pub_key_y));
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
@@ -799,12 +814,16 @@ void trustedComplaintResponse(int *errStatus, char *errString, uint8_t *encrypte
 
     if (*errStatus != 0) {
         snprintf(errString, BUF_LEN, "sgx_unseal_data - encrypted_dkg_secret failed with status %d", *errStatus);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     calc_secret_shareG2_old(decrypted_dkg_secret, s_shareG2, _t, ind1);
 
     *errStatus = 0;
+
+    clean:
+    ;
 }
 
 void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares, const char *s_share,
@@ -819,6 +838,9 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
 
+    mpz_t s;
+    mpz_init(s);
+
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
     sgx_status_t status = sgx_unseal_data(
@@ -826,7 +848,8 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     if (status != SGX_SUCCESS) {
         *errStatus = status;
         snprintf(errString, BUF_LEN, "sgx_unseal_key failed with status %d", status);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     SAFE_CHAR_BUF(encr_sshare, ECDSA_SKEY_LEN);
@@ -845,18 +868,19 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
 
     xor_decrypt(common_key, encr_sshare, decr_sshare);
 
-    mpz_t s;
-    mpz_init(s);
     if (mpz_set_str(s, decr_sshare, 16) == -1) {
         *errStatus = 1;
         snprintf(errString, BUF_LEN, "invalid decr secret share");
-        mpz_clear(s);
-        return;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     *result = Verification(public_shares, s, _t, _ind);
 
     *errStatus = 0;
+
+    clean:
+
     mpz_clear(s);
 }
 
