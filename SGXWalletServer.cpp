@@ -135,7 +135,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
         if (system(genCert.c_str()) == 0) {
             spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
-            spdlog::info("SERVER CERTIFICATE GENERATION FAILED");
+            spdlog::error("SERVER CERTIFICATE GENERATION FAILED");
             exit(-1);
         }
     }
@@ -167,16 +167,12 @@ int SGXWalletServer::initHttpServer() { //without ssl
 Json::Value
 SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index) {
     INIT_RESULT(result);
-
-
-    result["status"] = 0;
-    result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
     string encryptedKeyShareHex;
 
     try {
-        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, &errMsg.front(), _keyShare.c_str());
+        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char*) errMsg.data(), _keyShare.c_str());
 
         if (errStatus != 0) {
             throw SGXException(errStatus, errMsg.data());
@@ -186,18 +182,15 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
             throw SGXException(UNKNOWN_ERROR, "");
         }
 
+        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
+
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
 
-
-    result["status"] = errStatus;
-    result["errorMessage"] = errMsg;
+    result["status"] = 0;
+    result["errorMessage"] = "";
 
     return result;
 }
@@ -210,7 +203,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
     result["signatureShare"] = "";
 
-    string signature(BUF_LEN, '\0');
+    vector<char> signature(BUF_LEN, 0);
 
     shared_ptr <string> value = nullptr;
 
@@ -235,30 +228,29 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         result["status"] = _e.status;
         result["errorMessage"] = _e.errString;
         return result;
-    } catch (...) {
+    } catch (exception& _e) {
+        result["errorMessage"] = _e.what();
+        return result;
+    }
+    catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
-        result["status"] = -1;
-        result["errorMessage"] = "Read key share has thrown exception";
+        result["errorMessage"] = "Exception in dbRead";
         return result;
     }
 
     try {
-        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, &signature.front())) {
+        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, signature.data())) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
         }
-    } catch (...) {
-        result["status"] = -1;
-        result["errorMessage"] = "Sign has thrown exception";
-        return result;
-    }
+    } HANDLE_SGX_EXCEPTION(result);
 
-    auto it = signature.find('\0');
+
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signatureShare"] = std::string(signature.begin(), signature.begin() + it);
+    result["signatureShare"] = string(signature.data());
     return result;
 }
 
@@ -276,8 +268,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
 
     INIT_RESULT(result);
 
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
     result["encryptedKey"] = "";
 
     vector <string> keys;
@@ -301,6 +292,9 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         result["PublicKey"] = keys.at(1);
         result["keyName"] = keyName;
     } HANDLE_SGX_EXCEPTION(result)
+
+    result["status"] = 0;
+    result["errorMessage"] = "";
 
     return result;
 }
@@ -347,9 +341,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
             hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-//        while (hashTmp[0] == '0') {
-//            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
-//        }
 
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
@@ -488,12 +479,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
         string s = trustedGetSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
         result["secretShare"] = s;
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["secretShare"] = "";
-        result["SecretShare"] = "";
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
@@ -501,10 +487,10 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName,
                                                  const string &_secretShare, int _t, int _n, int _index) {
     INIT_RESULT(result)
+    result["result"] = false;
 
-    result["status"] = 0;
-    result["errorMessage"] = "";
-    result["result"] = true;
+
+
 
     try {
         if (!checkECDSAKeyName(_ethKeyName)) {
@@ -523,13 +509,13 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
         if (!verifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
-            result["result"] = false;
+            throw SGXException(INVALID_DKG_PARAMS, "DKG shares did not verify");
         }
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["result"] = false;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    result["status"] = 0;
+    result["errorMessage"] = "";
+    result["result"] = true;
 
     return result;
 }

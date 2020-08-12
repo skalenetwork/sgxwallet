@@ -77,8 +77,20 @@ public:
               int errStatus = UNKNOWN_ERROR; string errMsg(BUF_LEN, '\0');__RESULT__["status"] = 0; __RESULT__["errorMessage"] = \
 "Server error. Please see server log.";
 #define RESULT_SUCCESS(__RESULT__)    ; __RESULT__["status"] = 0; __RESULT__["errorMessage"] = "";
-#define HANDLE_SGX_EXCEPTION(_RESULT_) catch (SGXException &__e) { Log::handleSGXException(_RESULT_, __e);} \
-        catch (exception  &__e) {spdlog::error(__e.what()); _RESULT_["status"] = 1; _RESULT_["errorMessage"] = __e.what();}
-
+#define HANDLE_SGX_EXCEPTION(__RESULT__) \
+    catch (SGXException& _e) { \
+      __RESULT__["status"] = _e.status; \
+      __RESULT__["errorMessage"] = _e.errString; \
+      return __RESULT__; \
+      } catch (exception& _e) { \
+      __RESULT__["errorMessage"] = _e.what(); \
+      return __RESULT__; \
+      }\
+      catch (...) { \
+      exception_ptr p = current_exception(); \
+      printf("Exception %s \n", p.__cxa_exception_type()->name()); \
+      __RESULT__["errorMessage"] = "Unknown exception"; \
+      return __RESULT__; \
+      }
 #endif
 
