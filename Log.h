@@ -76,7 +76,7 @@ public:
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; \
               int errStatus = UNKNOWN_ERROR; string errMsg(BUF_LEN, '\0');__RESULT__["status"] = 0; __RESULT__["errorMessage"] = \
 "Server error. Please see server log.";
-#define RESULT_SUCCESS(__RESULT__)    ; __RESULT__["status"] = 0; __RESULT__["errorMessage"] = "";
+
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
     catch (SGXException& _e) { \
       __RESULT__["status"] = _e.status; \
@@ -92,5 +92,11 @@ public:
       __RESULT__["errorMessage"] = "Unknown exception"; \
       return __RESULT__; \
       }
+
+#define RETURN_SUCCESS(__RESULT__) \
+    __RESULT__["status"] = 0; \
+    __RESULT__["errorMessage"] = ""; \
+    return __RESULT__;
+
 #endif
 
