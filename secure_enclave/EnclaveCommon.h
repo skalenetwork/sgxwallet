@@ -48,8 +48,6 @@ EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
                          uint8_t* _bin, const int _max_length );
 EXTERNC void enclave_init();
 
-
-
 void get_global_random(unsigned char* _randBuff, uint64_t size);
 
 EXTERNC uint8_t* getThreadLocalDecryptedDkgPoly();

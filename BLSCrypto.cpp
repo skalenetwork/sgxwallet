@@ -181,6 +181,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (yStr == nullptr) {
         std::cerr << "Null yStr" << std::endl;
+        delete xStr;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
@@ -196,6 +197,9 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+
+    delete xStr;
+    delete yStr;
 
     size_t sz = 0;
 
@@ -232,9 +236,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     sig.append(hint);
 
     strncpy(_sig, sig.c_str(), BUF_LEN);
-
-    delete xStr;
-    delete yStr;
 
     return true;
 }

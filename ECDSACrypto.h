@@ -31,9 +31,9 @@ using namespace std;
 
 vector<string> genECDSAKey();
 
-string getECDSAPubKey(const char* _encryptedKeyHex);
+string getECDSAPubKey(const std::string& _encryptedKeyHex);
 
-vector<string> ecdsaSignHash(const char* encryptedKeyHex, const char* hashHex, int base);
+vector<string> ecdsaSignHash(const std::string& encryptedKeyHex, const char* hashHex, int base);
 
 
 #endif //SGXD_ECDSACRYPTO_H

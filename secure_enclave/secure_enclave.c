@@ -459,7 +459,7 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
 
     uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
 
-    if (decryptedKeyLen == MAX_KEY_LENGTH) {
+    if (decryptedKeyLen ==  MAX_KEY_LENGTH) {
         snprintf(errString, BUF_LEN, "Decrypted key is not null terminated");
         LOG_ERROR(errString);
         goto clean;
@@ -1116,15 +1116,11 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
         snprintf(errString, BUF_LEN, "seal SEK failed with status %d", status);
         *errStatus = status;
         LOG_ERROR(errString);
-        goto clean;
     }
 
     *enc_len = sealedLen;
 
     *errStatus = 0;
-
-    clean:
-    ;
 }
 
 void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
@@ -1291,9 +1287,8 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
 static uint64_t sigCounter = 0;
 
-
 void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint32_t enc_len,
-                         unsigned char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
+                         const char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
     LOG_DEBUG(__FUNCTION__);
 
     *errString = 0;

@@ -32,12 +32,9 @@ using namespace std;
 #include <map>
 #include <memory>
 
-
-
 #include <gmp.h>
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
-
 
 #define SAFE_FREE(__POINTER__) {if (__POINTER__) {free(__POINTER__); __POINTER__ = NULL;}}
 
@@ -51,12 +48,11 @@ inline std::string className(const std::string &prettyFunction) {
     return prettyFunction.substr(begin, end);
 }
 
-
 #define __CLASS_NAME__ className( __PRETTY_FUNCTION__ )
 
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
-        auto __msg__ = string("State check failed::") + #_EXPRESSION_ +  " " + string(__FILE__) + ":" + to_string(__LINE__); \
+        auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
         throw InvalidStateException(__msg__, __CLASS_NAME__);}
 
 
