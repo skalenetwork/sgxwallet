@@ -42,6 +42,7 @@ CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
 Json::Value getUnsignedCSRsImpl() {
     spdlog::info(__FUNCTION__);
     INIT_RESULT(result)
+
     try {
         vector<string> hashes_vect = LevelDB::getCsrDb()->writeKeysToVector1(MAX_CSR_NUM);
         for (int i = 0; i < (int) hashes_vect.size(); i++) {
@@ -49,12 +50,11 @@ Json::Value getUnsignedCSRsImpl() {
         }
     } HANDLE_SGX_EXCEPTION(result);
 
-    RETURN_SUCCESS(result)
+    return result;
 }
 
 Json::Value signByHashImpl(const string &hash, int status) {
-
-    INIT_RESULT(result)
+    Json::Value result;
     result["errorMessage"] = "";
 
     try {
@@ -102,7 +102,7 @@ Json::Value signByHashImpl(const string &hash, int status) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return  result;
+    return result;
 }
 
 Json::Value CSRManagerServer::getUnsignedCSRs() {

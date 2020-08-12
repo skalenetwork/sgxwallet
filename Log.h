@@ -74,7 +74,7 @@ public:
 };
 
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; \
-              int errStatus = UNKNOWN_ERROR; string errMsg(BUF_LEN, '\0');__RESULT__["status"] = UNKNOWN_ERROR; __RESULT__["errorMessage"] = \
+              int errStatus = UNKNOWN_ERROR; string errMsg(BUF_LEN, '\0');__RESULT__["status"] = 0; __RESULT__["errorMessage"] = \
 "Server error. Please see server log.";
 
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \

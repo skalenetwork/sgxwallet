@@ -152,9 +152,9 @@ vector<vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n
     return pubSharesVect;
 }
 
-string getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys,
-                       int _t,
-                       int _n) {
+string trustedGetSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector<string> &_publicKeys,
+                              int _t,
+                              int _n) {
     vector<char> hexEncrKey(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
     int errStatus = 0;
