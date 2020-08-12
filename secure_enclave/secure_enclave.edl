@@ -188,7 +188,6 @@ enclave {
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
                                 [in, string] const char* hash,
-                                [in, string] unsigned char* hash,
                                 [out, count = SMALL_BUF_SIZE] char* sig_r,
                                 [out, count = SMALL_BUF_SIZE] char* sig_s,
                                 [out] uint8_t* sig_v,
