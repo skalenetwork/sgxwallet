@@ -24,12 +24,7 @@
 #ifndef SGXWALLET_SGXWALLETSERVER_HPP
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
-#include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
-
-typedef boost::shared_mutex Lock;
-typedef boost::unique_lock< Lock > WriteLock;
-typedef boost::shared_lock< Lock > ReadLock;
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <mutex>
@@ -42,8 +37,6 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
-    Lock m;
-
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
 public:

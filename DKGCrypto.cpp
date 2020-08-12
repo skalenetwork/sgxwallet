@@ -35,6 +35,8 @@
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
+
+
 vector<string> splitString(const char *coeffs, const char symbol) {
     string str(coeffs);
     string delim;
@@ -164,7 +166,7 @@ string trustedGetSecretShares(const string &_polyName, const char *_encryptedPol
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
-    status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), &encLen);
+    status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
 
     if (status != SGX_SUCCESS || errStatus != 0) {
         throw SGXException(-666, errMsg1.data());

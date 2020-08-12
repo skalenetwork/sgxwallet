@@ -21,6 +21,11 @@
     @date 2019
 */
 
+#include "DomainParameters.h"
+
+#include "Signature.h"
+#include "Curves.h"
+
 #ifndef SGXWALLET_ENCLAVECOMMON_H
 #define SGXWALLET_ENCLAVECOMMON_H
 
@@ -45,6 +50,8 @@ EXTERNC void enclave_init();
 
 void get_global_random(unsigned char* _randBuff, uint64_t size);
 
+EXTERNC uint8_t* getThreadLocalDecryptedDkgPoly();
+
 EXTERNC void LOG_INFO(const char* msg);
 EXTERNC void LOG_WARN(const char* _msg);
 EXTERNC void LOG_ERROR(const char* _msg);
@@ -54,6 +61,8 @@ EXTERNC void LOG_TRACE(const char* _msg);
 extern uint32_t globalLogLevel_;
 
 extern unsigned char* globalRandom;
+
+extern domain_parameters curve;
 
 
 #endif //SGXWALLET_ENCLAVECOMMON_H

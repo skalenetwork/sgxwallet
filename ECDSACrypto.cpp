@@ -177,8 +177,6 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     string pubKeyStr = "";
 
-    shared_ptr<SGXException> exception = NULL;
-
     if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data())) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
@@ -197,6 +195,7 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
         spdlog::error("failed to sign in enclave {}", status);
         throw SGXException(666, "failed to sign");
     }
+
     signatureVector.at(0) = to_string(signatureV);
     if (base == 16) {
         signatureVector.at(1) = "0x" + string(signatureR.data());
@@ -210,9 +209,16 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     pubKeyStr = getECDSAPubKey(encryptedKeyHex);
 
-    if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
-        spdlog::error("failed to verify ecdsa signature");
-        throw SGXException(667, "ECDSA did not verify");
+    static uint64_t  i = 0;
+
+    i++;
+
+    if (i % 1000 == 0) {
+
+        if (!verifyECDSASig(pubKeyStr, hashHex, signatureR.data(), signatureS.data(), base)) {
+            spdlog::error("failed to verify ecdsa signature");
+            throw SGXException(667, "ECDSA did not verify");
+        }
     }
 
     return signatureVector;

@@ -36,98 +36,156 @@
 
 using namespace std;
 
+thread_local uint8_t decryptedDkgPoly[DKG_BUFER_LENGTH];
+
+uint8_t *getThreadLocalDecryptedDkgPoly() {
+    return decryptedDkgPoly;
+}
+
+
 string *stringFromKey(libff::alt_bn128_Fr *_key) {
-    mpz_t t;
-    mpz_init(t);
+    try {
+        mpz_t t;
+        mpz_init(t);
 
-    _key->as_bigint().to_mpz(t);
+        _key->as_bigint().to_mpz(t);
 
-    char arr[mpz_sizeinbase(t, 10) + 2];
+        char arr[mpz_sizeinbase(t, 10) + 2];
 
-    char *tmp = mpz_get_str(arr, 10, t);
-    mpz_clear(t);
+        char *tmp = mpz_get_str(arr, 10, t);
+        mpz_clear(t);
 
-    return new string(tmp);
+        return new string(tmp);
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return nullptr;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return nullptr;
+    }
 }
 
 string *stringFromFq(libff::alt_bn128_Fq *_fq) {
-    mpz_t t;
-    mpz_init(t);
+    try {
+        mpz_t t;
+        mpz_init(t);
 
-    _fq->as_bigint().to_mpz(t);
+        _fq->as_bigint().to_mpz(t);
 
-    char arr[mpz_sizeinbase(t, 10) + 2];
+        char arr[mpz_sizeinbase(t, 10) + 2];
 
-    char *tmp = mpz_get_str(arr, 10, t);
-    mpz_clear(t);
+        char *tmp = mpz_get_str(arr, 10, t);
+        mpz_clear(t);
 
-    return new string(tmp);
+        return new string(tmp);
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return nullptr;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return nullptr;
+    }
 }
 
 string *stringFromG1(libff::alt_bn128_G1 *_g1) {
-    _g1->to_affine_coordinates();
 
-    auto sX = stringFromFq(&_g1->X);
-    auto sY = stringFromFq(&_g1->Y);
+    try {
+        _g1->to_affine_coordinates();
 
-    auto sG1 = new string(*sX + ":" + *sY);
+        auto sX = stringFromFq(&_g1->X);
+        auto sY = stringFromFq(&_g1->Y);
 
-    delete (sX);
-    delete (sY);
+        auto sG1 = new string(*sX + ":" + *sY);
 
-    return sG1;
+        delete (sX);
+        delete (sY);
+
+        return sG1;
+
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return nullptr;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return nullptr;
+    }
+
 }
 
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
-    mpz_t skey;
-    mpz_init(skey);
-    mpz_set_str(skey, _keyStringHex, 16);
+    try {
+        mpz_t skey;
+        mpz_init(skey);
+        mpz_set_str(skey, _keyStringHex, 16);
 
-    char skey_dec[mpz_sizeinbase (skey, 10) + 2];
-    mpz_get_str(skey_dec, 10, skey);
-    mpz_clear(skey);
+        char skey_dec[mpz_sizeinbase(skey, 10) + 2];
+        mpz_get_str(skey_dec, 10, skey);
+        mpz_clear(skey);
 
-    return new libff::alt_bn128_Fr(skey_dec);
+        return new libff::alt_bn128_Fr(skey_dec);
+
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return nullptr;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return nullptr;
+    }
 }
 
 int inited = 0;
+
+domain_parameters curve;
 
 void enclave_init() {
     if (inited == 1)
         return;
     inited = 1;
     libff::init_alt_bn128_params();
+
+    curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
-          char* sig) {
-    auto key = keyFromString(_keyString);
+                  char *sig) {
+    try {
+        auto key = keyFromString(_keyString);
 
-    if (key == nullptr) {
-        throw exception();
+        if (key == nullptr) {
+            throw invalid_argument("Null key");
+        }
+
+        libff::alt_bn128_Fq hashX(_hashXString);
+        libff::alt_bn128_Fq hashY(_hashYString);
+        libff::alt_bn128_Fq hashZ = 1;
+
+        libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
+
+        libff::alt_bn128_G1 sign = key->as_bigint() * hash;
+
+        delete key;
+
+        sign.to_affine_coordinates();
+
+        auto r = stringFromG1(&sign);
+
+        memset(sig, 0, BUF_LEN);
+
+        strncpy(sig, r->c_str(), BUF_LEN);
+
+        delete r;
+
+        return true;
+
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return false;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return false;
     }
 
-    libff::alt_bn128_Fq hashX(_hashXString);
-    libff::alt_bn128_Fq hashY(_hashYString);
-    libff::alt_bn128_Fq hashZ = 1;
-
-    libff::alt_bn128_G1 hash(hashX, hashY, hashZ);
-
-    libff::alt_bn128_G1 sign = key->as_bigint() * hash;
-
-    delete key;
-
-    sign.to_affine_coordinates();
-
-    auto r = stringFromG1(&sign);
-
-    memset(sig, 0, BUF_LEN);
-
-    strncpy(sig, r->c_str(), BUF_LEN);
-
-    delete r;
-
-    return true;
 }
 
 void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
@@ -143,17 +201,17 @@ void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
 }
 
 int char2int(char _input) {
-  if (_input >= '0' && _input <= '9')
-    return _input - '0';
-  if (_input >= 'A' && _input <= 'F')
-    return _input - 'A' + 10;
-  if (_input >= 'a' && _input <= 'f')
-    return _input - 'a' + 10;
-  return -1;
+    if (_input >= '0' && _input <= '9')
+        return _input - '0';
+    if (_input >= 'A' && _input <= 'F')
+        return _input - 'A' + 10;
+    if (_input >= 'a' && _input <= 'f')
+        return _input - 'a' + 10;
+    return -1;
 }
 
-bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
-                 uint8_t* _bin, const int _max_length ) {
+bool hex2carray2(const char *_hex, uint64_t *_bin_len,
+                 uint8_t *_bin, const int _max_length) {
     int len = strnlen(_hex, _max_length);
 
     if (len == 0 && len % 2 == 1)
@@ -162,8 +220,8 @@ bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
     *_bin_len = len / 2;
 
     for (int i = 0; i < len / 2; i++) {
-        int high = char2int((char)_hex[i * 2]);
-        int low = char2int((char)_hex[i * 2 + 1]);
+        int high = char2int((char) _hex[i * 2]);
+        int low = char2int((char) _hex[i * 2 + 1]);
 
         if (high < 0 || low < 0) {
             return false;
@@ -175,34 +233,36 @@ bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
     return true;
 }
 
-bool hex2carray(const char * _hex, uint64_t  *_bin_len,
-                uint8_t* _bin ) {
-  int len = strnlen(_hex, 2 * BUF_LEN);
+bool hex2carray(const char *_hex, uint64_t *_bin_len,
+                uint8_t *_bin) {
+    int len = strnlen(_hex, 2 * BUF_LEN);
 
-  if (len == 0 && len % 2 == 1)
-    return false;
+    if (len == 0 && len % 2 == 1)
+        return false;
 
-  *_bin_len = len / 2;
+    *_bin_len = len / 2;
 
-  for (int i = 0; i < len / 2; i++) {
-    int high = char2int((char)_hex[i * 2]);
-    int low = char2int((char)_hex[i * 2 + 1]);
+    for (int i = 0; i < len / 2; i++) {
+        int high = char2int((char) _hex[i * 2]);
+        int low = char2int((char) _hex[i * 2 + 1]);
 
-    if (high < 0 || low < 0) {
-      return false;
+        if (high < 0 || low < 0) {
+            return false;
+        }
+
+        _bin[i] = (unsigned char) (high * 16 + low);
     }
 
-    _bin[i] = (unsigned char) (high * 16 + low);
-  }
-
-  return true;
+    return true;
 }
 
-enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2, L_WARNING = 3,  L_ERROR = 4 };
+enum log_level {
+    L_TRACE = 0, L_DEBUG = 1, L_INFO = 2, L_WARNING = 3, L_ERROR = 4
+};
 
 uint32_t globalLogLevel_ = 2;
 
-void logMsg(log_level _level, const char* _msg) {
+void logMsg(log_level _level, const char *_msg) {
     if (_level < globalLogLevel_)
         return;
 
@@ -217,19 +277,19 @@ void logMsg(log_level _level, const char* _msg) {
 }
 
 
-EXTERNC void LOG_INFO(const char* _msg) {
+EXTERNC void LOG_INFO(const char *_msg) {
     logMsg(L_INFO, _msg);
 };
-EXTERNC void LOG_WARN(const char* _msg) {
+EXTERNC void LOG_WARN(const char *_msg) {
     logMsg(L_WARNING, _msg);
 };
 
-EXTERNC void LOG_ERROR(const char* _msg) {
+EXTERNC void LOG_ERROR(const char *_msg) {
     logMsg(L_ERROR, _msg);
 };
-EXTERNC void LOG_DEBUG(const char* _msg) {
+EXTERNC void LOG_DEBUG(const char *_msg) {
     logMsg(L_DEBUG, _msg);
 };
-EXTERNC void LOG_TRACE(const char* _msg) {
+EXTERNC void LOG_TRACE(const char *_msg) {
     logMsg(L_TRACE, _msg);
 };
