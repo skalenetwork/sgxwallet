@@ -248,9 +248,11 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     } HANDLE_SGX_EXCEPTION(result);
 
 
+    result["signatureShare"] = string(signature.data());
+
     result["status"] = 0;
     result["errorMessage"] = "";
-    result["signatureShare"] = string(signature.data());
+
     return result;
 }
 
@@ -324,6 +326,8 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
         LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
@@ -366,6 +370,9 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         result["signature_s"] = signatureVector.at(2);
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
     return result;
 }
 
@@ -390,6 +397,9 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
         result["publicKey"] = publicKey;
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
     return result;
 }
 
@@ -409,6 +419,9 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
         encrPolyHex = gen_dkg_poly(_t);
         writeDataToDB(_polyName, encrPolyHex);
     } HANDLE_SGX_EXCEPTION(result)
+
+    result["status"] = 0;
+    result["errorMessage"] = "";
 
     return result;
 }
@@ -446,6 +459,9 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
         result["verificationVector"] = "";
     }
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
     return result;
 }
 
@@ -481,6 +497,9 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
         result["secretShare"] = s;
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
     return result;
 }
 
@@ -488,9 +507,6 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
                                                  const string &_secretShare, int _t, int _n, int _index) {
     INIT_RESULT(result)
     result["result"] = false;
-
-
-
 
     try {
         if (!checkECDSAKeyName(_ethKeyName)) {
@@ -513,10 +529,13 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         }
     } HANDLE_SGX_EXCEPTION(result)
 
-    result["status"] = 0;
-    result["errorMessage"] = "";
+
+
     result["result"] = true;
 
+
+    result["errorMessage"] = "";
+    result["status"] = 0;
     return result;
 }
 
@@ -570,6 +589,8 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
@@ -590,7 +611,10 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         }
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["errorMessage"] = "";
+    result["status"] = 0;
     return result;
+
 }
 
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
@@ -609,6 +633,9 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         result["dhKey"] = DHKey;
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["errorMessage"] = "";
+    result["status"] = 0;
+
     return result;
 }
 
@@ -622,6 +649,9 @@ Json::Value SGXWalletServer::multG2Impl(const string &_x) {
         }
     } HANDLE_SGX_EXCEPTION(result)
 
+
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
@@ -638,17 +668,25 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
         }
     } HANDLE_SGX_EXCEPTION(result)
 
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
 Json::Value SGXWalletServer::getServerStatusImpl() {
     INIT_RESULT(result)
+    result["status"] = 0;
+    result["errorMessage"] = "";
+
     return result;
 }
 
 Json::Value SGXWalletServer::getServerVersionImpl() {
     INIT_RESULT(result)
     result["version"] = TOSTRING(SGXWALLET_VERSION);
+
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
@@ -671,6 +709,8 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const std::string& name) {
             throw SGXException(INVALID_BLS_NAME, error_msg.c_str());
           }
     } HANDLE_SGX_EXCEPTION(result)
+    result["status"] = 0;
+    result["errorMessage"] = "";
     return result;
 }
 
