@@ -338,14 +338,13 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
 
-        spdlog::debug("got signature_s {}", signatureVector.at(2));
 
         result["signature_v"] = signatureVector.at(0);
         result["signature_r"] = signatureVector.at(1);
         result["signature_s"] = signatureVector.at(2);
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
@@ -362,14 +361,11 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
         }
         shared_ptr <string> keyStr = readFromDb(_keyName);
         publicKey = getECDSAPubKey(keyStr->c_str());
-        spdlog::debug("PublicKey {}", publicKey);
-        spdlog::debug("PublicKey length {}", publicKey.length());
-
         result["PublicKey"] = publicKey;
         result["publicKey"] = publicKey;
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t) {
@@ -389,7 +385,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
         writeDataToDB(_polyName, encrPolyHex);
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
