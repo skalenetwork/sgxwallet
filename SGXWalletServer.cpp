@@ -166,19 +166,15 @@ int SGXWalletServer::initHttpServer() { //without ssl
 
 Json::Value
 SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index) {
-    Json::Value result;
 
-    int errStatus = UNKNOWN_ERROR;
-    string errMsg(BUF_LEN, '\0');
+    INIT_RESULT(result);
 
-    result["status"] = 0;
-    result["errorMessage"] = "";
     result["encryptedKeyShare"] = "";
 
     string encryptedKeyShareHex;
 
     try {
-        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, &errMsg.front(), _keyShare.c_str());
+        encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char*)errMsg.data(), _keyShare.c_str());
 
         if (errStatus != 0) {
             throw SGXException(errStatus, errMsg.data());
@@ -196,18 +192,20 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         result["errorMessage"] = _e.errString;
     }
 
-    return result;
+    RETURN_SUCCESS(result);
 }
 
 Json::Value
 SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n,
                                         int _signerIndex) {
-    Json::Value result;
+
+    INIT_RESULT(result)
+
     result["status"] = -1;
-    result["errorMessage"] = "Unknown server error";
+
     result["signatureShare"] = "";
 
-    string signature(BUF_LEN, '\0');
+    vector<char> signature(BUF_LEN, 0);
 
     shared_ptr <string> value = nullptr;
 
@@ -228,49 +226,29 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         value = readFromDb(_keyShareName);
-    } catch (SGXException& _e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        return result;
-    } catch (...) {
-        exception_ptr p = current_exception();
-        printf("Exception %s \n", p.__cxa_exception_type()->name());
-        result["status"] = -1;
-        result["errorMessage"] = "Read key share has thrown exception:";
-        return result;
-    }
-
-    try {
-        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, &signature.front())) {
+        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, signature.data())) {
             result["status"] = -1;
             result["errorMessage"] = "Could not sign";
             return result;
         }
-    } catch (...) {
-        result["status"] = -1;
-        result["errorMessage"] = "Sign has thrown exception";
-        return result;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
-    auto it = std::find(signature.begin(), signature.end(), '\0');
-    result["status"] = 0;
-    result["errorMessage"] = "";
-    result["signatureShare"] = std::string(signature.begin(), it);
-    return result;
+
+    result["signatureShare"] = string(signature.data());
+
+    RETURN_SUCCESS(result);
+
 }
 
 Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_key, const string &_keyName) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
     result["encryptedKey"] = "";
+    RETURN_SUCCESS(result)
     return result;
 }
 
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
     result["encryptedKey"] = "";
 
     vector <string> keys;
@@ -295,7 +273,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         result["keyName"] = keyName;
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result);
 }
 
 Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName) {
@@ -322,7 +300,7 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
         LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result);
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName, const string &_messageHash) {
