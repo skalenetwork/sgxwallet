@@ -79,7 +79,7 @@ public:
 
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
     catch (SGXException& _e) { \
-      __RESULT__["status"] = _e.status; \
+      if (_e.status != 0) {__RESULT__["status"] = _e.status;} else { __RESULT__["status"]  = UNKNOWN_ERROR;}; \
       __RESULT__["errorMessage"] = _e.errString; \
       return __RESULT__; \
       } catch (exception& _e) { \
