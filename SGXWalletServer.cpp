@@ -224,9 +224,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
         value = readFromDb(_keyShareName);
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, signature.data())) {
-            result["status"] = -1;
-            result["errorMessage"] = "Could not sign";
-            return result;
+            throw SGXException(-1, "Could not sign data ");
         }
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -534,7 +532,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         }
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result);
 }
 
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
