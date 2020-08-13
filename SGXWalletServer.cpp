@@ -187,10 +187,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
         writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
 }
@@ -394,6 +391,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
 
 Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
     INIT_RESULT(result)
+    result["verificationVector"] = "";
 
     vector <vector<string>> verifVector;
     try {
@@ -414,18 +412,16 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
                 result["verificationVector"][i][j] = currentCoef.at(j);
             }
         }
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["verificationVector"] = "";
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
     return result;
 }
 
 Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
     INIT_RESULT(result);
+
+    result["secretShare"] = "";
+    result["SecretShare"] = "";
 
     try {
         if (_pubKeys.size() != (uint64_t) _n) {
@@ -450,12 +446,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
         string s = trustedGetSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
         result["secretShare"] = s;
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["secretShare"] = "";
-        result["SecretShare"] = "";
-    }
+    } HANDLE_SGX_EXCEPTION(result);
 
     return result;
 }
@@ -463,7 +454,9 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName,
                                                  const string &_secretShare, int _t, int _n, int _index) {
     INIT_RESULT(result)
-    result["result"] = true;
+
+    result["result"] = false;
+
 
     try {
         if (!checkECDSAKeyName(_ethKeyName)) {
@@ -484,12 +477,9 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         if (!verifyShares(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
             result["result"] = false;
         }
-    } catch (SGXException &_e) {
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-        result["result"] = false;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
+    result["result"] = true;
     return result;
 }
 
