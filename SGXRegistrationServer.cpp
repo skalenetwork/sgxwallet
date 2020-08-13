@@ -112,7 +112,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value getCertificateImpl(const string &hash) {
@@ -147,7 +147,7 @@ Json::Value getCertificateImpl(const string &hash) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 
