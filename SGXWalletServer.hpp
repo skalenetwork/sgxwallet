@@ -24,10 +24,9 @@
 #ifndef SGXWALLET_SGXWALLETSERVER_HPP
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
-#include <boost/thread/shared_mutex.hpp>
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <mutex>
+
 #include "abstractstubserver.h"
 
 using namespace jsonrpc;

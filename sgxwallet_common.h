@@ -89,6 +89,8 @@ extern int autoconfirm;
 #define INVALID_ECDSA_KEY_NAME -20
 #define INVALID_HEX -21
 #define INVALID_ECSDA_SIGNATURE -22
+#define KEY_NAME_ALREADY_EXISTS -23 \
+
 
 #define ERROR_IN_ENCLAVE -33
 

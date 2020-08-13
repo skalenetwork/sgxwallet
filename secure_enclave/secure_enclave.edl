@@ -3,6 +3,8 @@
 #define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
 #define SMALL_BUF_SIZE 1024
+#define TINY_BUF_SIZE 256
+
 enclave {
 
 	trusted {
