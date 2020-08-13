@@ -415,9 +415,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
 }
 
 Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     vector <vector<string>> verifVector;
     try {
@@ -449,9 +447,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
 }
 
 Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result);
 
     try {
         if (_pubKeys.size() != (uint64_t) _n) {
@@ -488,9 +484,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
 Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName,
                                                  const string &_secretShare, int _t, int _n, int _index) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
     result["result"] = true;
 
     try {
@@ -524,9 +518,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
 Json::Value
 SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
                                          const string &_secretShare, int _t, int _n) {
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         if (_secretShare.length() != (uint64_t) _n * 192) {

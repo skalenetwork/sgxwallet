@@ -174,14 +174,17 @@ void TestUtils::sendRPCRequest() {
     vector <string> pubShares(n);
     vector <string> polyNames(n);
 
-    int schainID = randGen();
-    int dkgID = randGen();
+    static atomic<int> counter(1);
+
+    int schainID = counter.fetch_add(1);
+    int dkgID = counter.fetch_add(1);
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
         CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         auto response = c.generateDKGPoly(polyName, t);
+        cerr << response << endl;
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
