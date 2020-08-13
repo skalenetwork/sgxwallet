@@ -184,7 +184,6 @@ void TestUtils::sendRPCRequest() {
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
         auto response = c.generateDKGPoly(polyName, t);
-        cerr << response << endl;
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
         verifVects[i] = c.getVerificationVector(polyName, t, n);
