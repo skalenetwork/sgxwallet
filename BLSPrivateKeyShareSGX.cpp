@@ -151,7 +151,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   cerr << "Key is " + *encryptedKeyHex << endl;
 
   sgx_status_t status =
-      trustedBlsSignMessage(eid, &errStatus, errMsg, encryptedKey,
+      trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
   printf("sig is: %s\n", signature);
