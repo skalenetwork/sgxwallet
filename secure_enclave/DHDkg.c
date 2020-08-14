@@ -42,7 +42,6 @@
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
 
 
-
     LOG_INFO(__FUNCTION__ );
 
     SAFE_CHAR_BUF(pb_keyB_x, 65);
@@ -53,6 +52,24 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
     mpz_init(skey);
     point pub_keyB = point_init();
     point session_key = point_init();
+
+
+    if (!common_key) {
+        LOG_ERROR("gen_session_key: Null common_key");
+        goto clean;
+    }
+
+    common_key[0] = 0;
+
+    if (!skey_str) {
+        LOG_ERROR("gen_session_key: Null skey_str");
+        goto clean;
+    }
+
+    if (!pb_keyB) {
+        LOG_ERROR("gen_session_key: Null skey_str");
+        goto clean;
+    }
 
     strncpy(pb_keyB_x, pb_keyB, 64);
     pb_keyB_x[64] = 0;
@@ -82,35 +99,29 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
 }
 
 void session_key_recover(const char *skey_str, const char* sshare, char* common_key) {
-    char* pb_keyB_x = (char*)calloc(65, 1);
+    SAFE_CHAR_BUF(pb_keyB_x,65);
     strncpy(pb_keyB_x, sshare + 64, 64);
     pb_keyB_x[64] = 0;
 
-    char* pb_keyB_y = (char*)calloc(65, 1);
+    SAFE_CHAR_BUF(pb_keyB_y,65);
     strncpy(pb_keyB_y, sshare + 128, 64);
     pb_keyB_y[64] = 0;
 
-
-
     mpz_t skey;
     mpz_init(skey);
+    point pub_keyB = point_init();
+    point session_key = point_init();
+
     if (mpz_set_str(skey, skey_str, 16) == -1) {
-        common_key = NULL;
-
-        mpz_clear(skey);
-        free(pb_keyB_x);
-        free(pb_keyB_y);
-
-        return;
+        common_key[0] = "";
+        goto clean;
     }
 
-    point pub_keyB = point_init();
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
-
-    point session_key = point_init();
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
+    SAFE_CHAR_BUF(arr_x,BUF_LEN);
+
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for ( int i = 0; i < n_zeroes; i++){
@@ -118,11 +129,10 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
 
+    clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
-    free(pb_keyB_x);
-    free(pb_keyB_y);
 }
 
 void xor_encrypt(char* key, char* message, char* cypher) {
