@@ -56,8 +56,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
 
-#define SAFE_FREE(__X__) if (!__X__) {free(__X__); __X__ = NULL;}
-#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 

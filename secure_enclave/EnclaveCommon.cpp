@@ -44,47 +44,56 @@ uint8_t *getThreadLocalDecryptedDkgPoly() {
 
 
 string *stringFromKey(libff::alt_bn128_Fr *_key) {
-    try {
-        mpz_t t;
-        mpz_init(t);
+    string* ret = nullptr;
+    mpz_t t;
+    mpz_init(t);
 
+    SAFE_CHAR_BUF(arr, BUF_LEN);
+
+    try {
         _key->as_bigint().to_mpz(t);
 
-        char arr[mpz_sizeinbase(t, 10) + 2];
-
         char *tmp = mpz_get_str(arr, 10, t);
-        mpz_clear(t);
 
-        return new string(tmp);
+        ret = new string(tmp);
+        goto clean;
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return nullptr;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return nullptr;
+        goto clean;
     }
+
+    clean:
+    mpz_clear(t);
+    return ret;
 }
 
 string *stringFromFq(libff::alt_bn128_Fq *_fq) {
+
+    string* ret = nullptr;
+    mpz_t t;
+    mpz_init(t);
+    SAFE_CHAR_BUF(arr, BUF_LEN);
+
     try {
-        mpz_t t;
-        mpz_init(t);
 
         _fq->as_bigint().to_mpz(t);
 
-        char arr[mpz_sizeinbase(t, 10) + 2];
-
         char *tmp = mpz_get_str(arr, 10, t);
-        mpz_clear(t);
-
-        return new string(tmp);
+        ret =  new string(tmp);
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return nullptr;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return nullptr;
+        goto clean;
     }
+
+    clean:
+    mpz_clear(t);
+    return ret;
 }
 
 string *stringFromG1(libff::alt_bn128_G1 *_g1) {
