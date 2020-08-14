@@ -29,6 +29,7 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
+#include "EnclaveConstants.h"
 #include "DomainParameters.h"
 #include "Curves.h"
 #include "Point.h"
@@ -39,28 +40,33 @@
 #include <string.h>
 
 void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
-    char* pb_keyB_x = (char*)calloc(65, 1);
-    strncpy(pb_keyB_x, pb_keyB, 64);
-    pb_keyB_x[64] = 0;
 
-    char* pb_keyB_y = (char*)calloc(65,1);
-    strncpy(pb_keyB_y, pb_keyB + 64, 64);
-    pb_keyB_y[64] = 0;
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+
+    LOG_INFO(__FUNCTION__ );
+
+    SAFE_CHAR_BUF(pb_keyB_x, 65);
+    SAFE_CHAR_BUF(pb_keyB_y,65);
+
 
     mpz_t skey;
     mpz_init(skey);
+    point pub_keyB = point_init();
+    point session_key = point_init();
+
+    strncpy(pb_keyB_x, pb_keyB, 64);
+    pb_keyB_x[64] = 0;
+
+    strncpy(pb_keyB_y, pb_keyB + 64, 64);
+    pb_keyB_y[64] = 0;
+
     mpz_set_str(skey, skey_str, 16);
 
-    point pub_keyB = point_init();
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
 
-    point session_key = point_init();
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for ( int i = 0; i < n_zeroes; i++){
@@ -69,12 +75,10 @@ void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
     common_key[64] = 0;
 
+    clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
-    domain_parameters_clear(curve);
-    free(pb_keyB_x);
-    free(pb_keyB_y);
 }
 
 void session_key_recover(const char *skey_str, const char* sshare, char* common_key) {
@@ -86,8 +90,7 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     strncpy(pb_keyB_y, sshare + 128, 64);
     pb_keyB_y[64] = 0;
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+
 
     mpz_t skey;
     mpz_init(skey);
@@ -95,7 +98,6 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
         common_key = NULL;
 
         mpz_clear(skey);
-        domain_parameters_clear(curve);
         free(pb_keyB_x);
         free(pb_keyB_y);
 
@@ -119,7 +121,6 @@ void session_key_recover(const char *skey_str, const char* sshare, char* common_
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
-    domain_parameters_clear(curve);
     free(pb_keyB_x);
     free(pb_keyB_y);
 }
