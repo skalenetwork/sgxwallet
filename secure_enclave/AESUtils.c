@@ -63,6 +63,16 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
 
 int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) {
 
+    if (!message) {
+        LOG_ERROR("Null message in AES_encrypt");
+        return -1;
+    }
+
+    if (!encr_message) {
+        LOG_ERROR("Null encr message in AES_encrypt");
+        return -2;
+    }
+
 
   if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
       LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
