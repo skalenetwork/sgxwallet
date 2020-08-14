@@ -47,58 +47,79 @@ using namespace std;
 
 string stringFromFr(const libff::alt_bn128_Fr &_el) {
 
+    string ret = "";
+    mpz_t t;
+    mpz_init(t);
+
+
     try {
 
-        mpz_t t;
-        mpz_init(t);
 
         _el.as_bigint().to_mpz(t);
 
-        char arr[mpz_sizeinbase(t, 10) + 2];
+        SAFE_CHAR_BUF(arr, BUF_LEN);
 
         char *tmp = mpz_get_str(arr, 10, t);
-        mpz_clear(t);
 
-        return string(tmp);
+
+        ret = string(tmp);
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return "";
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return "";
+        goto clean;
     }
+
+    clean:
+
+    mpz_clear(t);
+
+    return ret;
 }
 
 template<class T>
 string ConvertToString(const T &field_elem, int base = 10) {
+
+    string ret;
+
+    mpz_t t;
+    mpz_init(t);
+
     try {
-        mpz_t t;
-        mpz_init(t);
 
         field_elem.as_bigint().to_mpz(t);
 
-        char arr[mpz_sizeinbase(t, base) + 2];
+        SAFE_CHAR_BUF(arr, BUF_LEN);
 
         char *tmp = mpz_get_str(arr, base, t);
-        mpz_clear(t);
 
-        string output = tmp;
 
-        return output;
+        ret = string(tmp);
+
+        goto clean;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return "";
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return "";
+        goto clean;
     }
+
+    clean:
+    mpz_clear(t);
+    return ret;
+
 }
 
 string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const string &delim = ":") {
+
+    string result = "";
+
     try {
-        string result;
+
         result += ConvertToString(elem.X.c0);
         result += delim;
         result += ConvertToString(elem.X.c1);
@@ -107,23 +128,28 @@ string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const s
         result += delim;
         result += ConvertToString(elem.Y.c1);
 
-        return result;
+        goto clean;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return nullptr;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return nullptr;
+        goto clean;
     }
+
+    clean:
+    return result;
 }
 
 vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
 
-    vector <libff::alt_bn128_Fr> tokens;
+    vector <libff::alt_bn128_Fr> result;
+    string str(coeffs);
+    string delim;
+
     try {
-        string str(coeffs);
-        string delim;
+
         delim.push_back(symbol);
 
         size_t prev = 0, pos = 0;
@@ -133,25 +159,31 @@ vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symb
             string token = str.substr(prev, pos - prev);
             if (!token.empty()) {
                 libff::alt_bn128_Fr coeff(token.c_str());
-                tokens.push_back(coeff);
+                result.push_back(coeff);
             }
             prev = pos + delim.length();
         } while (pos < str.length() && prev < str.length());
 
-        return tokens;
+        goto clean;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return tokens;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return tokens;
+        goto clean;
     }
+
+    clean:
+    return result;
 }
 
 int gen_dkg_poly(char *secret, unsigned _t) {
+
+    int status = 1;
+    string result;
+
     try {
-        string result;
         for (size_t i = 0; i < _t; ++i) {
             libff::alt_bn128_Fr cur_coef = libff::alt_bn128_Fr::random_element();
 
@@ -164,42 +196,47 @@ int gen_dkg_poly(char *secret, unsigned _t) {
         strncpy(secret, result.c_str(), result.length() + 1);
 
         if (strlen(secret) == 0) {
-            return 1;
+            goto clean;
         }
 
-        return 0;
+        status = 0;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return 1;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return 1;
+        goto clean;
     }
+
+    clean:
+    return status;
 
 }
 
 libff::alt_bn128_Fr PolynomialValue(const vector <libff::alt_bn128_Fr> &pol, libff::alt_bn128_Fr point, unsigned _t) {
 
-
-    libff::alt_bn128_Fr value = libff::alt_bn128_Fr::zero();
+    libff::alt_bn128_Fr result = libff::alt_bn128_Fr::zero();
 
     try {
 
         libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
         for (unsigned i = 0; i < pol.size(); ++i) {
-            value += pol[i] * pow;
+            result += pol[i] * pow;
             pow *= point;
         }
 
-        return value;
+        goto clean;
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return value;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return value;
+        goto clean;
     }
+
+    clean:
+    return result;
 }
 
 void calc_secret_shares(const char *decrypted_coeffs,
@@ -233,11 +270,13 @@ void calc_secret_shares(const char *decrypted_coeffs,
 int calc_secret_share(const char *decrypted_coeffs, char *s_share,
                       unsigned _t, unsigned _n, unsigned ind) {
 
+    int result = 1;
+
     try {
         char symbol = ':';
         vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
         if (poly.size() != _t) {
-            return 1;
+            goto clean;
         }
 
         libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
@@ -246,15 +285,19 @@ int calc_secret_share(const char *decrypted_coeffs, char *s_share,
         cur_share.insert(0, n_zeroes, '0');
 
         strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
-        return 0;
+        result = 0;
+        goto clean;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return 1;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return 1;
+        goto clean;
     }
+
+    clean:
+    return result;
 }
 
 void calc_secret_shareG2_old(const char *decrypted_coeffs, char *s_shareG2,
@@ -281,17 +324,20 @@ void calc_secret_shareG2_old(const char *decrypted_coeffs, char *s_shareG2,
 
 int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
 
+    int result = 1;
+
+    mpz_t share;
+    mpz_init(share);
 
     try {
 
-        mpz_t share;
-        mpz_init(share);
+
         if (mpz_set_str(share, s_share, 16) == -1) {
-            mpz_clear(share);
-            return 1;
+            goto clean;
         }
 
-        char arr[mpz_sizeinbase(share, 10) + 2];
+        SAFE_CHAR_BUF(arr, BUF_LEN);
+
         char *share_str = mpz_get_str(arr, 10, share);
 
         libff::alt_bn128_Fr secret_share(share_str);
@@ -303,18 +349,22 @@ int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
         string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
 
         strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);
-
-        mpz_clear(share);
-
-        return 0;
+        result = 0;
+        goto clean;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return 1;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return 1;
+        goto clean;
     }
+
+    clean:
+
+    mpz_clear(share);
+    return result;
+
 }
 
 int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
