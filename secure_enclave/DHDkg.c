@@ -199,22 +199,37 @@ void xor_encrypt(char *key, char *message, char *cypher) {
 }
 
 void xor_decrypt(char *key, char *cypher, char *message) {
-    uint8_t msg_bin[33];
 
-    uint8_t *key_bin = (uint8_t *) calloc(33, 1);
+    if (!cypher) {
+        LOG_ERROR("xor_encrypt: null cypher");
+        goto clean;
+    }
+
+    if (!key) {
+        LOG_ERROR("xor_encrypt: null key");
+        goto clean;
+    }
+
+    if (!message) {
+        LOG_ERROR("xor_encrypt: null message");
+        goto clean;
+    }
+
+
+    SAFE_CHAR_BUF(msg_bin,33);
+
+    SAFE_CHAR_BUF(key_bin,33)
+
     uint64_t key_length;
     if (!hex2carray(key, &key_length, key_bin)) {
-        message = NULL;
-        free(key_bin);
-        return;
+        goto clean;
     }
 
     uint64_t cypher_length;
-    uint8_t cypher_bin[33];
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
     if (!hex2carray(cypher, &cypher_length, cypher_bin)) {
-        message = NULL;
-        free(key_bin);
-        return;
+        goto clean;
     }
 
     for (int i = 0; i < 32; i++) {
@@ -223,5 +238,7 @@ void xor_decrypt(char *key, char *cypher, char *message) {
 
     carray2Hex(msg_bin, 32, message);
 
-    free(key_bin);
+    clean:
+    ;
+
 }
