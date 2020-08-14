@@ -706,7 +706,10 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     *dec_len = enc_len;
 
     SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
-    gen_session_key(skey, pub_keyB, common_key);
+
+    status = gen_session_key(skey, pub_keyB, common_key);
+
+    CHECK_STATUS("gen_session_key failed")
 
     SAFE_CHAR_BUF(s_share, ECDSA_SKEY_LEN);
 
@@ -718,7 +721,9 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     CHECK_STATUS("invalid decr secret share");
 
     SAFE_CHAR_BUF(cypher, ECDSA_SKEY_LEN);
-    xor_encrypt(common_key, s_share, cypher);
+    status=xor_encrypt(common_key, s_share, cypher);
+
+    CHECK_STATUS("xor_encrypt failed")
 
     strncpy(result_str, cypher, strlen(cypher));
     strncpy(result_str + strlen(cypher), pub_key_x, strlen(pub_key_x));
@@ -782,11 +787,16 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
 
     SAFE_CHAR_BUF(common_key, ECDSA_SKEY_LEN);
 
-    session_key_recover(skey, s_share, common_key);
+    status = session_key_recover(skey, s_share, common_key);
+
+    CHECK_STATUS("session_key_recover failed");
 
     SAFE_CHAR_BUF(decr_sshare, ECDSA_SKEY_LEN);
 
-    xor_decrypt(common_key, encr_sshare, decr_sshare);
+    status=xor_decrypt(common_key, encr_sshare, decr_sshare);
+
+    CHECK_STATUS("xor_decrypt failed")
+
 
     status  = mpz_set_str(s, decr_sshare, 16);
     CHECK_STATUS("invalid decr secret share");
@@ -841,11 +851,20 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         s_share[192] = 0;
 
         SAFE_CHAR_BUF(common_key, 65);
-        session_key_recover(skey, s_share, common_key);
+
+        status = session_key_recover(skey, s_share, common_key);
+
+        CHECK_STATUS("session_key_recover failed");
+
+
+
+
         common_key[64] = 0;
 
         SAFE_CHAR_BUF(decr_sshare, 65);
-        xor_decrypt(common_key, encr_sshare, decr_sshare);
+
+        status = xor_decrypt(common_key, encr_sshare, decr_sshare);
+        CHECK_STATUS("xor_decrypt failed");
 
         decr_sshare[64] = 0;
 

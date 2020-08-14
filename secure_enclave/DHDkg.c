@@ -42,8 +42,9 @@
 #include "EnclaveCommon.h"
 #include <string.h>
 
-void gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
+int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
 
+    int ret = -1;
 
     LOG_INFO(__FUNCTION__);
 
@@ -94,13 +95,20 @@ void gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
     common_key[64] = 0;
 
+    ret = 0;
+
     clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
+
+    return ret;
+
 }
 
-void session_key_recover(const char *skey_str, const char *sshare, char *common_key) {
+int session_key_recover(const char *skey_str, const char *sshare, char *common_key) {
+
+    int ret = -1;
 
     if (!common_key) {
         LOG_ERROR("session_key_recover: Null common_key");
@@ -149,13 +157,19 @@ void session_key_recover(const char *skey_str, const char *sshare, char *common_
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
 
+    ret = 0;
+
     clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
+
+    return  ret;
 }
 
-void xor_encrypt(char *key, char *message, char *cypher) {
+int xor_encrypt(char *key, char *message, char *cypher) {
+
+    int ret = -1;
 
     if (!cypher) {
         LOG_ERROR("xor_encrypt: null cypher");
@@ -193,12 +207,18 @@ void xor_encrypt(char *key, char *message, char *cypher) {
 
     carray2Hex(cypher_bin, 32, cypher);
 
+    ret = 0;
+
     clean:
     ;
 
+    return ret;
+
 }
 
-void xor_decrypt(char *key, char *cypher, char *message) {
+int xor_decrypt(char *key, char *cypher, char *message) {
+
+    int ret = -1;
 
     if (!cypher) {
         LOG_ERROR("xor_encrypt: null cypher");
@@ -238,7 +258,11 @@ void xor_decrypt(char *key, char *cypher, char *message) {
 
     carray2Hex(msg_bin, 32, message);
 
+    ret = 0;
+
     clean:
     ;
+
+    return ret;
 
 }
