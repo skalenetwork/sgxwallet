@@ -43,8 +43,8 @@ uint8_t *getThreadLocalDecryptedDkgPoly() {
 }
 
 
-string* stringFromKey(libff::alt_bn128_Fr *_key) {
-    string* ret = nullptr;
+string *stringFromKey(libff::alt_bn128_Fr *_key) {
+    string *ret = nullptr;
     mpz_t t;
     mpz_init(t);
 
@@ -75,15 +75,14 @@ string* stringFromKey(libff::alt_bn128_Fr *_key) {
 
 string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
-    string* ret = nullptr;
+    string *ret = nullptr;
     mpz_t t;
-    mpz_init(t);
-    SAFE_CHAR_BUF(arr, BUF_LEN);
+    mpz_init(t);SAFE_CHAR_BUF(arr, BUF_LEN);
 
     try {
         _fq->as_bigint().to_mpz(t);
         char *tmp = mpz_get_str(arr, 10, t);
-        ret =  new string(tmp);
+        ret = new string(tmp);
     } catch (exception &e) {
         LOG_ERROR(e.what());
         goto clean;
@@ -99,9 +98,9 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
 string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
-    string* sX = nullptr;
-    string* sY = nullptr;
-    string* ret = nullptr;
+    string *sX = nullptr;
+    string *sY = nullptr;
+    string *ret = nullptr;
 
 
     try {
@@ -139,24 +138,23 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 }
 
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
-    try {
-        mpz_t skey;
-        mpz_init(skey);
-        mpz_set_str(skey, _keyStringHex, 16);
 
-        char skey_dec[mpz_sizeinbase(skey, 10) + 2];
-        mpz_get_str(skey_dec, 10, skey);
-        mpz_clear(skey);
+    mpz_t skey;
+    mpz_init(skey);SAFE_CHAR_BUF(skey_dec, BUF_LEN);
+    libff::alt_bn128_Fr *ret = nullptr;
 
-        return new libff::alt_bn128_Fr(skey_dec);
 
-    } catch (exception &e) {
-        LOG_ERROR(e.what());
-        return nullptr;
-    } catch (...) {
-        LOG_ERROR("Unknown throwable");
-        return nullptr;
-    }
+    mpz_set_str(skey, _keyStringHex, 16);
+    mpz_get_str(skey_dec, 10, skey);
+
+    ret = new libff::alt_bn128_Fr(skey_dec);
+
+    goto clean;
+
+    clean:
+
+    mpz_clear(skey);
+    return ret;
 }
 
 int inited = 0;
@@ -175,11 +173,39 @@ void enclave_init() {
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
                   char *sig) {
+
+    bool ret = false;
+
+    libff::alt_bn128_Fr* key = nullptr;
+    string * r = nullptr;
+
+
+    if (!_keyString) {
+        LOG_ERROR("Null key string");
+        goto clean;
+    }
+
+    if (!_hashXString) {
+        LOG_ERROR("Null hashX");
+        goto clean;
+    }
+
+    if (!_hashYString) {
+        LOG_ERROR("Null hashY");
+        goto clean;
+    }
+
+    if (!sig) {
+        LOG_ERROR("Null sig");
+        goto clean;
+    }
+
     try {
         auto key = keyFromString(_keyString);
 
-        if (key == nullptr) {
-            throw invalid_argument("Null key");
+        if (!key) {
+            LOG_ERROR("Null key");
+            goto clean;
         }
 
         libff::alt_bn128_Fq hashX(_hashXString);
@@ -190,8 +216,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
         libff::alt_bn128_G1 sign = key->as_bigint() * hash;
 
-        delete key;
-
         sign.to_affine_coordinates();
 
         auto r = stringFromG1(&sign);
@@ -200,21 +224,25 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
         strncpy(sig, r->c_str(), BUF_LEN);
 
-        delete r;
-
-        return true;
+        ret =  true;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return false;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return false;
+        goto clean;
     }
+
+    clean:
+
+    SAFE_DELETE(key);
+    SAFE_DELETE(r);
+    return ret;
 
 }
 
-void carray2Hex(const unsigned char *d, int _len, char* _hexArray) {
+void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
