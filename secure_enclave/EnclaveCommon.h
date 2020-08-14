@@ -64,5 +64,9 @@ extern unsigned char* globalRandom;
 
 extern domain_parameters curve;
 
+#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
+#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
 
 #endif //SGXWALLET_ENCLAVECOMMON_H
