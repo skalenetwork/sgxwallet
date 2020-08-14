@@ -43,7 +43,7 @@ uint8_t *getThreadLocalDecryptedDkgPoly() {
 }
 
 
-string *stringFromKey(libff::alt_bn128_Fr *_key) {
+string* stringFromKey(libff::alt_bn128_Fr *_key) {
     string* ret = nullptr;
     mpz_t t;
     mpz_init(t);
@@ -55,8 +55,11 @@ string *stringFromKey(libff::alt_bn128_Fr *_key) {
 
         char *tmp = mpz_get_str(arr, 10, t);
 
+        if (!tmp) {
+            LOG_ERROR("stringFromKey: mpz_get_str failed");
+            goto clean;
+        }
         ret = new string(tmp);
-        goto clean;
     } catch (exception &e) {
         LOG_ERROR(e.what());
         goto clean;
@@ -78,9 +81,7 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
     SAFE_CHAR_BUF(arr, BUF_LEN);
 
     try {
-
         _fq->as_bigint().to_mpz(t);
-
         char *tmp = mpz_get_str(arr, 10, t);
         ret =  new string(tmp);
     } catch (exception &e) {
@@ -98,26 +99,42 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
 string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
+    string* sX = nullptr;
+    string* sY = nullptr;
+    string* ret = nullptr;
+
+
     try {
         _g1->to_affine_coordinates();
 
         auto sX = stringFromFq(&_g1->X);
+
+        if (!sX) {
+            goto clean;
+        }
+
         auto sY = stringFromFq(&_g1->Y);
 
-        auto sG1 = new string(*sX + ":" + *sY);
+        if (!sY) {
+            goto clean;
+        }
 
-        delete (sX);
-        delete (sY);
-
-        return sG1;
+        ret = new string(*sX + ":" + *sY);
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return nullptr;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return nullptr;
+        goto clean;
     }
+
+    clean:
+
+    SAFE_FREE(sX);
+    SAFE_FREE(sY);
+
+    return ret;
 
 }
 
