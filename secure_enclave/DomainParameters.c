@@ -70,8 +70,7 @@ void domain_parameters_set_name(domain_parameters curve, char* name)
 	curve->name[len] = '\0';
 	strncpy(curve->name, name, len+1);
 
-    clean:
-    ;
+
 }
 
 /*Set domain parameters from decimal unsigned long ints*/
@@ -86,7 +85,7 @@ void domain_parameters_set_ui(domain_parameters curve,
 								unsigned long int h)
 {
 
-
+    CHECK_ARG_ABORT(name);
 
 	domain_parameters_set_name(curve, name);
 	mpz_set_ui(curve->p, p);
@@ -96,13 +95,25 @@ void domain_parameters_set_ui(domain_parameters curve,
 	mpz_set_ui(curve->n, n);
 	mpz_set_ui(curve->h, h);
 
-    clean:
-    ;
+
 }
 
 /*Set domain parameters from hexadecimal string*/
 void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, char* a, char* b, char* Gx, char* Gy, char* n, char* h)
 {
+
+    CHECK_ARG_ABORT(name);
+    CHECK_ARG_ABORT(p);
+    CHECK_ARG_ABORT(a);
+    CHECK_ARG_ABORT(b);
+    CHECK_ARG_ABORT(Gx);
+    CHECK_ARG_ABORT(Gy);
+    CHECK_ARG_ABORT(n);
+    CHECK_ARG_ABORT(h);
+
+
+
+
 
 	domain_parameters_set_name(curve, name);
 	mpz_set_str(curve->p, p, 16);
@@ -112,8 +123,7 @@ void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, cha
 	mpz_set_str(curve->n, n, 16);
 	mpz_set_str(curve->h, h, 16);
 
-    clean:
-    ;
+
 }
 
 /*Release memory*/
