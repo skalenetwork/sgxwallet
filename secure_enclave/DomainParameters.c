@@ -37,6 +37,12 @@
 #include "Point.h"
 #include "DomainParameters.h"
 
+#define CHECK_ARG_ABORT(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        abort();                              \
+        }
+
+
 /*Initialize a curve*/
 domain_parameters domain_parameters_init()
 {
@@ -57,10 +63,15 @@ domain_parameters domain_parameters_init()
 /*Sets the name of a curve*/
 void domain_parameters_set_name(domain_parameters curve, char* name)
 {
+
+    CHECK_ARG_ABORT(name);
 	int len = strlen(name);
 	curve->name = (char*)calloc( sizeof(char) * (len+1), 1 );
 	curve->name[len] = '\0';
 	strncpy(curve->name, name, len+1);
+
+    clean:
+    ;
 }
 
 /*Set domain parameters from decimal unsigned long ints*/
@@ -74,6 +85,9 @@ void domain_parameters_set_ui(domain_parameters curve,
 								unsigned long int n,
 								unsigned long int h)
 {
+
+
+
 	domain_parameters_set_name(curve, name);
 	mpz_set_ui(curve->p, p);
 	mpz_set_ui(curve->a, a);
@@ -81,11 +95,15 @@ void domain_parameters_set_ui(domain_parameters curve,
 	point_set_ui(curve->G, Gx, Gy);
 	mpz_set_ui(curve->n, n);
 	mpz_set_ui(curve->h, h);
+
+    clean:
+    ;
 }
 
 /*Set domain parameters from hexadecimal string*/
 void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, char* a, char* b, char* Gx, char* Gy, char* n, char* h)
 {
+
 	domain_parameters_set_name(curve, name);
 	mpz_set_str(curve->p, p, 16);
 	mpz_set_str(curve->a, a, 16);
@@ -93,6 +111,9 @@ void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, cha
 	point_set_hex(curve->G, Gx, Gy);
 	mpz_set_str(curve->n, n, 16);
 	mpz_set_str(curve->h, h, 16);
+
+    clean:
+    ;
 }
 
 /*Release memory*/

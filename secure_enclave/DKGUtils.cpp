@@ -228,7 +228,7 @@ libff::alt_bn128_Fr PolynomialValue(const vector <libff::alt_bn128_Fr> &pol, lib
 
         libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
         for (unsigned i = 0; i < pol.size(); ++i) {
-            result += pol[i] * pow;
+            result += pol.at(i) * pow;
             pow *= point;
         }
 
@@ -474,10 +474,10 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
 
         libff::alt_bn128_G2 val = libff::alt_bn128_G2::zero();
         for (int i = 0; i < _t; ++i) {
-            val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares[i];
+            val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares.at(i);
         }
 
-        char arr[mpz_sizeinbase(decr_secret_share, 10) + 2];
+        SAFE_CHAR_BUF(arr, BUF_LEN);
         char *tmp = mpz_get_str(arr, 10, decr_secret_share);
 
         libff::alt_bn128_Fr sshare(tmp);
