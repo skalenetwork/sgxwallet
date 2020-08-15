@@ -285,7 +285,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     point Pkey = point_init();
 
-    get_global_random(rand_char, 32);
+    get_global_random((unsigned char *)rand_char, 32);
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
@@ -293,7 +293,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    int len = mpz_sizeinbase(Pkey->x, ECDSA_SKEY_BASE) + 2;SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -318,9 +318,9 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     }
     strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
     skey_str[ECDSA_SKEY_LEN - 1] = 0;
-    snprintf(errString, BUF_LEN, "skey len is %d\n", strlen(skey_str));
+    snprintf(errString, BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
-    int status = AES_encrypt(skey_str, encryptedPrivateKey, BUF_LEN);
+    int status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN);
     CHECK_STATUS("ecdsa private key encryption failed");
 
     *enc_len = strlen(skey_str) + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
@@ -341,15 +341,17 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 
-    CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(pub_key_x);
-    CHECK_STATE(pub_key_y);
-
     SAFE_CHAR_BUF(skey, ECDSA_SKEY_LEN);
 
     mpz_t privateKeyMpz;
     mpz_init(privateKeyMpz);
-    point Pkey = point_init();
+    point pKey = point_init();
+
+    point pKey_test = point_init();
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(pub_key_x);
+    CHECK_STATE(pub_key_y);
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ECDSA_SKEY_LEN);
     CHECK_STATUS2("AES_decrypt failed with status %d");
@@ -361,12 +363,12 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
 
     CHECK_STATUS("mpz_set_str failed for private key");
 
-    signature_extract_public_key(Pkey, privateKeyMpz, curve);
+    signature_extract_public_key(pKey, privateKeyMpz, curve);
 
-    point Pkey_test = point_init();
-    point_multiplication(Pkey_test, privateKeyMpz, curve->G, curve);
 
-    if (!point_cmp(Pkey, Pkey_test)) {
+    point_multiplication(pKey_test, privateKeyMpz, curve->G, curve);
+
+    if (!point_cmp(pKey, pKey_test)) {
         snprintf(errString, BUF_LEN, "Points are not equal");
         LOG_ERROR(errString);
         *errStatus = -11;
@@ -374,7 +376,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     }
 
     SAFE_CHAR_BUF(arr_x, BUF_LEN);
-    mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
+    mpz_get_str(arr_x, ECDSA_SKEY_BASE, pKey->x);
 
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -384,7 +386,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
     SAFE_CHAR_BUF(arr_y, BUF_LEN);
-    mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
+    mpz_get_str(arr_y, ECDSA_SKEY_BASE, pKey->y);
 
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -395,8 +397,8 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     SET_SUCCESS
     clean:
     mpz_clear(privateKeyMpz);
-    point_clear(Pkey);
-    point_clear(Pkey_test);
+    point_clear(pKey);
+    point_clear(pKey_test);
 }
 
 static uint64_t sigCounter = 0;
@@ -494,7 +496,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
 
     *errStatus = UNKNOWN_ERROR;
 
-    int status = AES_encrypt(key, encryptedPrivateKey, BUF_LEN);
+    int status = AES_encrypt((char *)key, encryptedPrivateKey, BUF_LEN);
 
     CHECK_STATUS2("AES encrypt failed with status %d");
 

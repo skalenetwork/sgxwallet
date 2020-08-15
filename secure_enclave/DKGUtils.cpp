@@ -451,7 +451,7 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
 
     try {
 
-        for (size_t i = 0; i < _t; ++i) {
+        for (int i = 0; i < _t; i++) {
             libff::alt_bn128_G2 pub_share;
 
             uint64_t pos0 = share_length * i;
