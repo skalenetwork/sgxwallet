@@ -148,7 +148,7 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE]  char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
-                                [ohut, count = 320] char* bls_pub_key);
+                                [out, count = 320] char* bls_pub_key);
 	};
 
 	untrusted {
