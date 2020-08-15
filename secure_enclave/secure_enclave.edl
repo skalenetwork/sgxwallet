@@ -137,7 +137,7 @@ enclave {
         public void trustedBlsSignMessageAES (
                                 [out] int *errStatus,
                                 [out, count = TINY_BUF_SIZE] char* err_string,
-                                [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
+                                [in, count = TINY_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
                                 [in, string] char* hashX ,
                                 [in, string] char* hashY ,

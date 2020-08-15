@@ -593,6 +593,7 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
     }
 
     SET_SUCCESS
+
     clean:
     ;
 }
