@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
 
 #define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
 #define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
@@ -178,8 +179,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     //Set signature
     mpz_set(sig->r, r);
     mpz_set(sig->s, s);
-
-    clean:
 
 
     point_clear(Q);

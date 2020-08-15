@@ -181,8 +181,7 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
     CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, globalRandom) == SGX_SUCCESS);
+    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)globalRandom) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
 
     memcpy(_randBuff, globalRandom, _size);
@@ -201,7 +200,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     SAFE_CHAR_BUF(SEK_raw, SGX_AESGCM_KEY_SIZE);;
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
-    carray2Hex(SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
+    carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, hex_aes_key_length + 1);
 
@@ -220,14 +219,17 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     ;
 }
 
-void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK, uint64_t encr_len) {
+void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
     CHECK_STATE(encrypted_SEK);
     SAFE_CHAR_BUF(aes_key_hex, BUF_LEN);
 
+    uint32_t dec_len;
+
     sgx_status_t status = sgx_unseal_data(
-            (const sgx_sealed_data_t *) encrypted_SEK, NULL, 0, aes_key_hex, &encr_len);
+            (const sgx_sealed_data_t *) encrypted_SEK, NULL, 0,
+            (uint8_t *)aes_key_hex, &dec_len);
 
     CHECK_STATUS2("sgx unseal SEK failed with status %d");
 

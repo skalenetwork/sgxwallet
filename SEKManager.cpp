@@ -180,7 +180,7 @@ void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK) {
     throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
   }
 
-  status = trustedSetSEK(eid, &err_status, errMsg.data(), encr_SEK, len );
+  status = trustedSetSEK(eid, &err_status, errMsg.data(), encr_SEK );
   if ( status != SGX_SUCCESS ) {
     cerr << "RPCException thrown" << endl;
     throw SGXException(status, errMsg.data()) ;
