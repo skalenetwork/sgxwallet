@@ -3,6 +3,7 @@
 #define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
 #define SMALL_BUF_SIZE 1024
+#define VERY_SMALL_BUF_SIZE 512
 #define TINY_BUF_SIZE 256
 
 enclave {
@@ -23,8 +24,7 @@ enclave {
         public void trustedSetSEK(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
-                                [in, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
-                                uint64_t encr_len);
+                                [in, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK);
 
         public void trustedSetSEK_backup(
                                 [out] int *errStatus,
@@ -137,11 +137,11 @@ enclave {
 
         public void trustedBlsSignMessageAES (
                                 [out] int *errStatus,
-                                [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
+                                [out, count = TINY_BUF_SIZE] char* err_string,
+                                [in, count = TINY_BUF_SIZE] uint8_t* encrypted_key,
                                 uint32_t enc_len,
                                 [in, string] char* hashX ,
-                                [in, string] char* hashY ,
+                                [in, string] char* hashY,
                                 [out, count = SMALL_BUF_SIZE] char* signature);
 
         public void trustedGetBlsPubKeyAES(

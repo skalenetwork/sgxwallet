@@ -42,14 +42,18 @@
 #include "EnclaveCommon.h"
 #include <string.h>
 
+
+
 int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
+
+
+
 
     int ret = -1;
 
     LOG_INFO(__FUNCTION__);
 
     SAFE_CHAR_BUF(pb_keyB_x, 65);SAFE_CHAR_BUF(pb_keyB_y, 65);
-
 
     mpz_t skey;
     mpz_init(skey);
@@ -110,6 +114,22 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
 
     int ret = -1;
 
+
+    SAFE_CHAR_BUF(pb_keyB_x, 65);
+    SAFE_CHAR_BUF(pb_keyB_y, 65);
+
+
+    mpz_t skey;
+    mpz_init(skey);
+    point pub_keyB = point_init();
+    point session_key = point_init();
+
+    pb_keyB_x[64] = 0;
+    strncpy(pb_keyB_x, sshare + 64, 64);
+    strncpy(pb_keyB_y, sshare + 128, 64);
+    pb_keyB_y[64] = 0;
+
+
     if (!common_key) {
         LOG_ERROR("session_key_recover: Null common_key");
         goto clean;
@@ -128,18 +148,12 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
     }
 
 
-    SAFE_CHAR_BUF(pb_keyB_x, 65);
-    strncpy(pb_keyB_x, sshare + 64, 64);
-    pb_keyB_x[64] = 0;
 
-    SAFE_CHAR_BUF(pb_keyB_y, 65);
-    strncpy(pb_keyB_y, sshare + 128, 64);
-    pb_keyB_y[64] = 0;
 
-    mpz_t skey;
-    mpz_init(skey);
-    point pub_keyB = point_init();
-    point session_key = point_init();
+
+
+
+
 
     if (mpz_set_str(skey, skey_str, 16) == -1) {
         goto clean;
@@ -191,7 +205,7 @@ int xor_encrypt(char *key, char *message, char *cypher) {
 
     uint64_t key_length;
 
-    if (!hex2carray(key, &key_length, key_bin)) {
+    if (!hex2carray(key, &key_length, (uint8_t *) key_bin)) {
         goto clean;
     }
 
@@ -205,7 +219,7 @@ int xor_encrypt(char *key, char *message, char *cypher) {
         cypher_bin[i] = msg_bin[i] ^ key_bin[i];
     }
 
-    carray2Hex(cypher_bin, 32, cypher);
+    carray2Hex((unsigned char*) cypher_bin, 32, cypher);
 
     ret = 0;
 
@@ -241,14 +255,14 @@ int xor_decrypt(char *key, char *cypher, char *message) {
     SAFE_CHAR_BUF(key_bin,33)
 
     uint64_t key_length;
-    if (!hex2carray(key, &key_length, key_bin)) {
+    if (!hex2carray(key, &key_length, (uint8_t*) key_bin)) {
         goto clean;
     }
 
     uint64_t cypher_length;
 
     SAFE_CHAR_BUF(cypher_bin, 33);
-    if (!hex2carray(cypher, &cypher_length, cypher_bin)) {
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin)) {
         goto clean;
     }
 
@@ -256,7 +270,7 @@ int xor_decrypt(char *key, char *cypher, char *message) {
         msg_bin[i] = cypher_bin[i] ^ key_bin[i];
     }
 
-    carray2Hex(msg_bin, 32, message);
+    carray2Hex((unsigned char*) msg_bin, 32, message);
 
     ret = 0;
 

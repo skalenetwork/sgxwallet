@@ -21,7 +21,7 @@
     @date 2019
 */
 
-#define GMP_WITH_SGX
+#define GMP_WITH_SGX 1
 
 #include <string.h>
 #include <cstdint>

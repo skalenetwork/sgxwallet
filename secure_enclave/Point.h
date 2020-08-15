@@ -66,9 +66,6 @@ EXTERNC int point_set_str(point p, const char *x, const char *y, int base);
 /*Compare two points return 1 if not the same, returns 0 if they are the same*/
 EXTERNC bool point_cmp(point P, point Q);
 
-/*Decompress a point from hexadecimal representation
- *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.4.*/
-EXTERNC void point_decompress(point P, char* zPoint, domain_parameters curve);
 
 /*Compress a point to hexadecimal string
  *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.3.*/

@@ -144,9 +144,13 @@ string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const s
 
 vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
 
+
+
     vector <libff::alt_bn128_Fr> result;
     string str(coeffs);
     string delim;
+
+    CHECK_ARG_CLEAN(coeffs);
 
     try {
 
@@ -182,6 +186,8 @@ int gen_dkg_poly(char *secret, unsigned _t) {
 
     int status = 1;
     string result;
+
+    CHECK_ARG_CLEAN(secret);
 
     try {
         for (size_t i = 0; i < _t; ++i) {
@@ -222,7 +228,7 @@ libff::alt_bn128_Fr PolynomialValue(const vector <libff::alt_bn128_Fr> &pol, lib
 
         libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
         for (unsigned i = 0; i < pol.size(); ++i) {
-            result += pol[i] * pow;
+            result += pol.at(i) * pow;
             pow *= point;
         }
 
@@ -247,6 +253,11 @@ void calc_secret_shares(const char *decrypted_coeffs,
     string result;
     char symbol = ':';
 
+    CHECK_ARG_CLEAN(decrypted_coeffs);
+    CHECK_ARG_CLEAN(secret_shares);
+    CHECK_ARG_CLEAN(_n > 0);
+    CHECK_ARG_CLEAN(_t <= _n);
+
     try {
 
         vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
@@ -260,17 +271,26 @@ void calc_secret_shares(const char *decrypted_coeffs,
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return;
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return;
+        goto clean;
     }
+
+    clean:
+    ;
 }
 
 int calc_secret_share(const char *decrypted_coeffs, char *s_share,
                       unsigned _t, unsigned _n, unsigned ind) {
 
+
     int result = 1;
+
+    CHECK_ARG_CLEAN(decrypted_coeffs);
+    CHECK_ARG_CLEAN(s_share);
+    CHECK_ARG_CLEAN(_n > 0);
+    CHECK_ARG_CLEAN(_t <= _n);
 
     try {
         char symbol = ':';
@@ -300,27 +320,6 @@ int calc_secret_share(const char *decrypted_coeffs, char *s_share,
     return result;
 }
 
-void calc_secret_shareG2_old(const char *decrypted_coeffs, char *s_shareG2,
-                             unsigned _t, unsigned ind) {
-
-    try {
-        char symbol = ':';
-        vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
-
-        libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
-
-        libff::alt_bn128_G2 secret_shareG2 = secret_share * libff::alt_bn128_G2::one();
-
-        string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
-
-        strncpy(s_shareG2, secret_shareG2_str.c_str(), secret_shareG2_str.length() + 1);
-
-    } catch (exception &e) {
-        LOG_ERROR(e.what());
-    } catch (...) {
-        LOG_ERROR("Unknown throwable");
-    }
-}
 
 int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
 
@@ -328,6 +327,9 @@ int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
 
     mpz_t share;
     mpz_init(share);
+
+    CHECK_ARG_CLEAN(s_share);
+    CHECK_ARG_CLEAN(s_shareG2);
 
     try {
 
@@ -370,13 +372,21 @@ int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
 int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
                        unsigned _t) {
 
+    // calculate for each node a list of public shares
+    int ret = 1;
+    string result;
+    char symbol = ':';
+
+    CHECK_ARG_CLEAN(decrypted_coeffs);
+    CHECK_ARG_CLEAN(public_shares);
+    CHECK_ARG_CLEAN(_t > 0);
+
+
     try {
-        // calculate for each node a list of public shares
-        string result;
-        char symbol = ':';
+
         vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
         if (poly.size() != _t) {
-            return 1;
+            goto clean;
         }
         for (size_t i = 0; i < _t; ++i) {
             libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one();
@@ -385,58 +395,63 @@ int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
             result += pub_share_str + ",";
         }
         strncpy(public_shares, result.c_str(), result.length());
-        return 0;
+        ret = 0;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return 1;
+        ret = 1;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return 1;
+        ret = 1;
     }
+
+    clean:
+    return  ret;
 }
 
 string ConvertHexToDec(string hex_str) {
 
+    mpz_t dec;
+    mpz_init(dec);
+
+    string ret = "";
+
     try {
 
-        mpz_t dec;
-        mpz_init(dec);
-
         if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-            mpz_clear(dec);
-            return "";
+            goto clean;
         }
 
         char arr[mpz_sizeinbase(dec, 10) + 2];
         char *result = mpz_get_str(arr, 10, dec);
-
-        mpz_clear(dec);
-
-        return result;
-
-
+        CHECK_ARG_CLEAN(result);
+        ret = result;
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return "";
+        goto clean;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return "";
+        goto clean;
     }
 
+    clean:
+       mpz_clear(dec);
+       return ret;
 }
 
 int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) {
 
+    string pub_shares_str = public_shares;
+    vector <libff::alt_bn128_G2> pub_shares;
+    uint64_t share_length = 256;
+    uint8_t coord_length = 64;
+    int ret = 0;
+
+    CHECK_ARG_CLEAN(public_shares);
+
     try {
 
-
-        string pub_shares_str = public_shares;
-        vector <libff::alt_bn128_G2> pub_shares;
-        uint64_t share_length = 256;
-        uint8_t coord_length = 64;
-
-        for (size_t i = 0; i < _t; ++i) {
+        for (int i = 0; i < _t; i++) {
             libff::alt_bn128_G2 pub_share;
 
             uint64_t pos0 = share_length * i;
@@ -445,7 +460,8 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
             string y_c0_str = ConvertHexToDec(pub_shares_str.substr(pos0 + 2 * coord_length, coord_length));
             string y_c1_str = ConvertHexToDec(pub_shares_str.substr(pos0 + 3 * coord_length, coord_length));
             if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" || y_c1_str == "") {
-                return 2;
+                ret = 2;
+                goto clean;
             }
             pub_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
             pub_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
@@ -458,10 +474,10 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
 
         libff::alt_bn128_G2 val = libff::alt_bn128_G2::zero();
         for (int i = 0; i < _t; ++i) {
-            val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares[i];
+            val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares.at(i);
         }
 
-        char arr[mpz_sizeinbase(decr_secret_share, 10) + 2];
+        SAFE_CHAR_BUF(arr, BUF_LEN);
         char *tmp = mpz_get_str(arr, 10, decr_secret_share);
 
         libff::alt_bn128_Fr sshare(tmp);
@@ -478,22 +494,32 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
         strncpy(public_shares + ConvertToString(val.X.c0).length() + 1, ConvertToString(val2.X.c0).c_str(),
                 ConvertToString(val2.X.c0).length());
 
-        return (val == sshare * libff::alt_bn128_G2::one());
+        ret = (val == sshare * libff::alt_bn128_G2::one());
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        return 0;
+        goto clean;
+
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        return 0;
+        goto clean;
     }
+
+    clean:
+    return ret;
 }
 
 int calc_bls_public_key(char *skey_hex, char *pub_key) {
+    mpz_t skey;
+    mpz_init(skey);
+
+    int ret = 1;
+
+    CHECK_ARG_CLEAN(skey_hex);
+    CHECK_ARG_CLEAN(pub_key);
 
     try {
-        mpz_t skey;
-        mpz_init(skey);
+
         if (mpz_set_str(skey, skey_hex, 16) == -1) {
             mpz_clear(skey);
             return 1;
@@ -522,4 +548,8 @@ int calc_bls_public_key(char *skey_hex, char *pub_key) {
         LOG_ERROR("Unknown throwable");
         return 1;
     }
+
+    clean:
+       mpz_clear(skey);
+       return ret;
 }
