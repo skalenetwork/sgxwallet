@@ -516,6 +516,7 @@ int calc_bls_public_key(char *skey_hex, char *pub_key) {
     int ret = 1;
 
     CHECK_ARG_CLEAN(skey_hex);
+    CHECK_ARG_CLEAN(pub_key);
 
     try {
 
