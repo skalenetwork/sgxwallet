@@ -42,14 +42,18 @@
 #include "EnclaveCommon.h"
 #include <string.h>
 
+
+
 int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
+
+
+
 
     int ret = -1;
 
     LOG_INFO(__FUNCTION__);
 
     SAFE_CHAR_BUF(pb_keyB_x, 65);SAFE_CHAR_BUF(pb_keyB_y, 65);
-
 
     mpz_t skey;
     mpz_init(skey);
