@@ -31,7 +31,9 @@
 
 
 #else
+
 #include <../tgmp-build/include/sgx_tgmp.h>
+
 #endif
 
 #include "DomainParameters.h"
@@ -50,10 +52,9 @@ signature signature_init() {
 }
 
 
-
 /*Set signature from strings of a base from 2-62*/
 int signature_set_str(signature sig, const char *r, const char *s, int base) {
-    if ( mpz_set_str(sig->r, r, base) !=0 || mpz_set_str(sig->s, s, base) != 0) {
+    if (mpz_set_str(sig->r, r, base) != 0 || mpz_set_str(sig->s, s, base) != 0) {
         return 1;
     }
     return 0;
@@ -88,107 +89,108 @@ void signature_extract_public_key(point public_key, mpz_t private_key, domain_pa
 }
 
 #ifndef USER_SPACE
+
 /*Generate signature for a message*/
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve) {
     //message must not have a bit length longer than that of n
-    //see: Guide to Elliptic Curve Cryptography, section 4.4.1.
-
-    {
-        assert(mpz_sizeinbase(message, 2) <= mpz_sizeinbase(curve->n, 2));
-
-        point Q = point_init();
-
-        //Initializing variables
-        mpz_t k, x, r, t1, t2, t3, t4, t5, s, n_div_2, rem, neg, seed;
-        mpz_init(k);
-        mpz_init(x);
-        mpz_init(r);
-        mpz_init(t1);
-        mpz_init(t2);
-        mpz_init(t3);
-        mpz_init(s);
-        mpz_init(t4);
-        mpz_init(t5);
-        mpz_init(n_div_2);
-        mpz_init(rem);
-        mpz_init(neg);
-        mpz_init(seed);
-
-        unsigned char *rand_char = (unsigned char *) calloc(32, 1);
-
-        get_global_random(rand_char, 32);
-
-        signature_sign_start:
-
-
-        get_global_random(rand_char, 32);
-
-        mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
-
-        mpz_mod(k, seed, curve->p);
-
-        //Calculate x
-        point_multiplication(Q, k, curve->G, curve);
-        mpz_set(x, Q->x);
-
-        //Calculate r
-        mpz_mod(r, x, curve->n);
-        if (!mpz_sgn(r))    //Start over if r=0, note haven't been tested memory might die :)
-            goto signature_sign_start;
-
-
-        //Calculate s
-        //s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
-        //number_theory_inverse(t1, k, curve->n);//t1 = k¯¹ mod n
-        mpz_invert(t1, k, curve->n);
-        mpz_mul(t2, private_key, r);    //t2 = d*r
-        mpz_add(t3, message, t2);    //t3 = e+t2
-        mpz_mod(t4, t3, curve->n);    //t2 = t3 mod n
-        mpz_mul(t5, t4, t1);        //t3 = t2 * t1
-        mpz_mod(s, t5, curve->n);    //s = t3 mod n
-
-        //Calculate v
-
-        mpz_mod_ui(rem, Q->y, 2);
-        mpz_t s_mul_2;
-        mpz_init(s_mul_2);
-        mpz_mul_ui(s_mul_2, s, 2);
-
-        unsigned b = 0;
-        if (mpz_cmp(s_mul_2, curve->n) > 0) {
-            b = 1;
-        }
-        sig->v = mpz_get_ui(rem) ^ b;
-
-        mpz_cdiv_q_ui(n_div_2, curve->n, 2);
-
-        if (mpz_cmp(s, n_div_2) > 0) {
-            mpz_sub(neg, curve->n, s);
-            mpz_set(s, neg);
-        }
-
-        //Set signature
-        mpz_set(sig->r, r);
-        mpz_set(sig->s, s);
-
-        clean:
-
-        free(rand_char);
-        point_clear(Q);
-
-        mpz_clear(k);
-        mpz_clear(r);
-        mpz_clear(s);
-        mpz_clear(x);
-        mpz_clear(rem);
-        mpz_clear(neg);
-        mpz_clear(t1);
-        mpz_clear(t2);
-        mpz_clear(t3);
-        mpz_clear(seed);
-        mpz_clear(n_div_2);
-        mpz_clear(s_mul_2);
+    if (mpz_sizeinbase(message, 2) > mpz_sizeinbase(curve->n, 2)) {
+        LOG_ERROR("mpz_sizeinbase(message, 2) > mpz_sizeinbase(curve->n, 2))");
+        return;
     }
+
+    point Q = point_init();
+
+    //Initializing variables
+    mpz_t k, x, r, t1, t2, t3, t4, t5, s, n_div_2, rem, neg, seed;
+    mpz_init(k);
+    mpz_init(x);
+    mpz_init(r);
+    mpz_init(t1);
+    mpz_init(t2);
+    mpz_init(t3);
+    mpz_init(s);
+    mpz_init(t4);
+    mpz_init(t5);
+    mpz_init(n_div_2);
+    mpz_init(rem);
+    mpz_init(neg);
+    mpz_init(seed);
+    mpz_t s_mul_2;
+    mpz_init(s_mul_2);
+
+    SAFE_CHAR_BUF(rand_char, 32);
+
+    get_global_random(rand_char, 32);
+
+    signature_sign_start:
+
+
+    get_global_random(rand_char, 32);
+
+    mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
+
+    mpz_mod(k, seed, curve->p);
+
+    //Calculate x
+    point_multiplication(Q, k, curve->G, curve);
+    mpz_set(x, Q->x);
+
+    //Calculate r
+    mpz_mod(r, x, curve->n);
+    if (!mpz_sgn(r))    //Start over if r=0, note haven't been tested memory might die :)
+        goto signature_sign_start;
+
+
+    //Calculate s
+    //s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
+    //number_theory_inverse(t1, k, curve->n);//t1 = k¯¹ mod n
+    mpz_invert(t1, k, curve->n);
+    mpz_mul(t2, private_key, r);    //t2 = d*r
+    mpz_add(t3, message, t2);    //t3 = e+t2
+    mpz_mod(t4, t3, curve->n);    //t2 = t3 mod n
+    mpz_mul(t5, t4, t1);        //t3 = t2 * t1
+    mpz_mod(s, t5, curve->n);    //s = t3 mod n
+
+    //Calculate v
+
+    mpz_mod_ui(rem, Q->y, 2);
+
+    mpz_mul_ui(s_mul_2, s, 2);
+
+    unsigned b = 0;
+    if (mpz_cmp(s_mul_2, curve->n) > 0) {
+        b = 1;
+    }
+    sig->v = mpz_get_ui(rem) ^ b;
+
+    mpz_cdiv_q_ui(n_div_2, curve->n, 2);
+
+    if (mpz_cmp(s, n_div_2) > 0) {
+        mpz_sub(neg, curve->n, s);
+        mpz_set(s, neg);
+    }
+
+    //Set signature
+    mpz_set(sig->r, r);
+    mpz_set(sig->s, s);
+
+    clean:
+
+
+    point_clear(Q);
+
+    mpz_clear(k);
+    mpz_clear(r);
+    mpz_clear(s);
+    mpz_clear(x);
+    mpz_clear(rem);
+    mpz_clear(neg);
+    mpz_clear(t1);
+    mpz_clear(t2);
+    mpz_clear(t3);
+    mpz_clear(seed);
+    mpz_clear(n_div_2);
+    mpz_clear(s_mul_2);
 
 }
 

@@ -301,55 +301,6 @@ This is not the most effecient method of point multiplication, but it's faster t
 	}
 }
 
-/*Decompress a point from hexadecimal representation
- *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.4.*/
-void point_decompress(point P, char* zPoint, domain_parameters curve)
-{
-	//Initialiser variabler
-	mpz_t x;mpz_init(x);
-	mpz_t a;mpz_init(a);
-	mpz_t b;mpz_init(b);
-	mpz_t t1;mpz_init(t1);
-	mpz_t t2;mpz_init(t2);
-	mpz_t t3;mpz_init(t3);
-	mpz_t t4;mpz_init(t4);
-
-	//Get x coordinate
-	mpz_set_str(x, zPoint + 2, 16);
-
-	//alpha = x^3+a*x+b mod p
-	number_theory_exp_modp_ui(t1, x, 3, curve->p);//t1 = x^3 mod p
-	mpz_mul(t3, x, curve->a);		//t3 = a*x
-	mpz_mod(t2, t3, curve->p);		//t2 = t3 mod p
-	mpz_add(t3, t1, t2);			//t3 = t1 + t2
-	mpz_add(t4, t3, curve->b);		//t4 = t3 + b
-	mpz_mod(a, t4, curve->p);		//a = t4 mod p
-
-	//beta = sqrt(alpha) mod p
-	number_theory_squareroot_modp(b, a, curve->p);
-
-	//Get y mod 2 from input
-	mpz_set_ui(t2, zPoint[1] == '2' ? 0 : 1);
-
-	//Set x
-	mpz_set(P->x, x);
-
-	//t2 = beta mod p
-	mpz_mod_ui(t1, b, 2);
-	if(mpz_cmp(t1, t2))
-		mpz_set(P->y, b);	//y = beta
-	else
-		mpz_sub(P->y, curve->p, b);//y = p -beta
-
-	//Release variables
-	mpz_clear(x);
-	mpz_clear(a);
-	mpz_clear(b);
-	mpz_clear(t1);
-	mpz_clear(t2);
-	mpz_clear(t3);
-	mpz_clear(t4);
-}
 
 /*Compress a point to hexadecimal string
  *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.3.*/
