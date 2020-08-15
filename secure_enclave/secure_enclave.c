@@ -171,8 +171,7 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     int status;
     int *errStatus = &status;
 
-    *errString = 0;
-    *errStatus = UNKNOWN_ERROR;
+    INIT_ERROR_STATE
 
     CHECK_STATE(_size <= 32)
     CHECK_STATE(_randBuff);
@@ -214,7 +213,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     *enc_len = sealedLen;
 
-    *errStatus = 0;
+    SET_SUCCESS
     clean:
     ;
     LOG_INFO("SGX call completed");
@@ -489,6 +488,43 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     signature_free(sign);
     LOG_DEBUG("SGX call completed");
 }
+
+
+void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
+                          uint32_t enc_len, char *key) {
+
+    LOG_DEBUG(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(key);
+
+    *errStatus = -9;
+
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
+
+    if (status != 0) {
+        *errStatus = status;
+        snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    *errStatus = -10;
+
+    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+    if (keyLen == MAX_KEY_LENGTH) {
+        snprintf(errString, BUF_LEN, "Key is not null terminated");
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    SET_SUCCESS
+    clean:
+    ;
+}
+
 
 void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
                           uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
