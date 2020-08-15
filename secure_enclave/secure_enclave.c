@@ -217,6 +217,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     *errStatus = 0;
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK) {
@@ -240,6 +241,7 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_SEK) {
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedSetSEK_backup(int *errStatus, char *errString,
@@ -265,6 +267,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
@@ -334,6 +337,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     mpz_clear(seed);
     mpz_clear(skey);
     point_clear(Pkey);
+    LOG_INFO("SGX call completed");
 }
 
 void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
@@ -399,6 +403,7 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     mpz_clear(privateKeyMpz);
     point_clear(pKey);
     point_clear(pKey_test);
+    LOG_DEBUG("SGX call completed");
 }
 
 static uint64_t sigCounter = 0;
@@ -482,11 +487,12 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     signature_free(sign);
+    LOG_DEBUG("SGX call completed");
 }
 
 void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
                           uint8_t *encryptedPrivateKey, uint32_t *enc_len) {
-    LOG_DEBUG(__FUNCTION__);
+    LOG_INFO(__FUNCTION__);
 
     *errString = 0;
     *errStatus = UNKNOWN_ERROR;
@@ -527,42 +533,9 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
-void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
-                          uint32_t enc_len, char *key) {
-
-    LOG_DEBUG(__FUNCTION__);
-    INIT_ERROR_STATE
-
-    CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(key);
-
-    *errStatus = -9;
-
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
-
-    if (status != 0) {
-        *errStatus = status;
-        snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
-    *errStatus = -10;
-
-    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
-
-    if (keyLen == MAX_KEY_LENGTH) {
-        snprintf(errString, BUF_LEN, "Key is not null terminated");
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
-    SET_SUCCESS
-    clean:
-    ;
-}
 
 void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                               uint32_t enc_len, char *_hashX,
@@ -594,8 +567,11 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
 
     SET_SUCCESS
 
+    LOG_DEBUG("SGX call completed");
+
     clean:
     ;
+    LOG_DEBUG("SGX call completed");
 }
 
 void
@@ -635,6 +611,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void
@@ -656,6 +633,7 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
 
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 
@@ -675,13 +653,14 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t *encrypted_skey, uint32_t *dec_len,
                                        char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
                                        uint8_t ind) {
 
-    LOG_DEBUG(__FUNCTION__);
+    LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
     uint32_t enc_len;
@@ -738,6 +717,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint32_t enc_len,
@@ -765,6 +745,7 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
 
     clean:
     ;
+    LOG_INFO("SGX call completed");
 }
 
 void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_shares, const char *s_share,
@@ -812,6 +793,7 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     clean:
 
     mpz_clear(s);
+    LOG_INFO("SGX call completed");
 }
 
 void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_shares,
@@ -915,6 +897,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     mpz_clear(bls_key);
     mpz_clear(sum);
     mpz_clear(q);
+    LOG_INFO("SGX call completed");
 }
 
 void
@@ -942,4 +925,5 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     SET_SUCCESS
     clean:
     ;
+    LOG_DEBUG("SGX call completed");
 }
