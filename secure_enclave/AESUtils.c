@@ -41,7 +41,7 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
         return -2;
     }
 
-    auto len = strlen(message);
+    uint64_t len = strlen(message);
 
     if (len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE > encrLen ) {
         LOG_ERROR("Output buffer too small");
@@ -49,8 +49,6 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
     }
 
     sgx_read_rand(encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE);
-
-    auto msgLen = strlen(message);
 
     sgx_status_t status = sgx_rijndael128GCM_encrypt(&AES_key, (uint8_t*)message, strlen(message),
                                                      encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE,
@@ -90,7 +88,7 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
 
   sgx_status_t status = sgx_rijndael128GCM_decrypt(&AES_key,
                                                    encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
-                                                   message,
+                                                   (unsigned char*) message,
                                                    encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                    NULL, 0,
                                                    (sgx_aes_gcm_128bit_tag_t *)encr_message);
