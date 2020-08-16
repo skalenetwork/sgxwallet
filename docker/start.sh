@@ -15,6 +15,8 @@ echo "the command line includes -v /dev/urandom:/dev/random";
 exit 1;
 fi
 
+echo "Connection SUCCESS."
+
 ls /dev/random;
 rm -f /root/.rnd;
 dd if=/dev/random of=/root/.rnd bs=256 count=1;
@@ -22,6 +24,10 @@ ls /root/.rnd;
 
 cd /usr/src/sdk;
 
+echo "Checking that sgxwallet can connect to SGX whitelist update server whitelist.trustedservices.intel.com "
+echo "If this test fails, you need to update your network config or firewall to allow this connection"
+
+curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
 
 if [[ -f "/var/hwmode" ]]
 then
