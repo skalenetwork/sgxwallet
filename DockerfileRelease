@@ -12,6 +12,6 @@ RUN ./configure --with-sgx-build=release
 RUN bash -c "make -j$(nproc)"
 RUN cd scripts && ./sign_enclave.bash
 RUN ccache -sz
-RUN mkdir /usr/src/sdk/sgx_data
+RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

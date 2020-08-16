@@ -11,7 +11,7 @@ RUN ./autoconf.bash && \
     ./configure --enable-sgx-simulation && \
     bash -c "make" && \
     ccache -sz && \
-    mkdir /usr/src/sdk/sgx_data
+    mkdir -p /usr/src/sdk/sgx_data
 
 COPY docker/start.sh ./
 
