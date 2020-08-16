@@ -1,6 +1,7 @@
 FROM skalenetwork/sgxwallet_base:latest
 
 COPY . /usr/src/sdk
+RUN apt-install curl
 WORKDIR /usr/src/sdk
 
 RUN touch /var/hwmode

@@ -1,6 +1,7 @@
 FROM skalenetwork/sgxwallet_base:latest
 
 
+RUN apt-install curl
 
 RUN ccache -sz
 
