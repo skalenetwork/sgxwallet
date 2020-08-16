@@ -463,13 +463,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         goto clean;
     }
 
-
-    LOG_ERROR("signing");
-    for (int i = 0; i < 10000; i++) {
-        signature_sign(sign, msgMpz, privateKeyMpz, curve);
-    }
-
-    LOG_ERROR("signed");
+    signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
     sigCounter++;
 
