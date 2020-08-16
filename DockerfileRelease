@@ -5,7 +5,7 @@ RUN cp -f secure_enclave/secure_enclave.config.xml.release secure_enclave/secure
 RUN apt update && apt install -y curl
 WORKDIR /usr/src/sdk
 #Test signing key generation
-RUN cd scripts && generate_signing_key.bash
+RUN cd scripts && ./generate_signing_key.bash
 RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure --with-sgx-build=release
