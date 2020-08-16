@@ -45,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sgx_tgmp.h>
 #include <sgx_trts.h>
 
+#include <sgx_key.h>
+
 #include "Point.h"
 #include "DomainParameters.h"
 
@@ -207,7 +209,14 @@ void trustedGenerateSEK(int *errStatus, char *errString,
         AES_key[i] = SEK_raw[i];
     }
 
-    sgx_status_t status = sgx_seal_data(0, NULL, hex_aes_key_length + 1, (uint8_t *) SEK_hex, sealedLen,
+
+    sgx_attributes_t attribute_mask;
+    attribute_mask.flags = 0xfffffffffffffff3;
+    attribute_mask.xfrm = 0x0;
+
+    sgx_misc_select_t misc = 0xF0000000;
+
+    sgx_status_t status = sgx_seal_data_ex(SGX_KEYPOLICY_MRENCLAVE, attribute_mask, misc, 0, NULL, hex_aes_key_length + 1, (uint8_t *) SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
     CHECK_STATUS("seal SEK failed");
 
@@ -256,7 +265,15 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, strlen(SEK_hex) + 1);
 
-    sgx_status_t status = sgx_seal_data(0, NULL, strlen(SEK_hex) + 1, (uint8_t *) SEK_hex, sealedLen,
+
+    sgx_attributes_t attribute_mask;
+    attribute_mask.flags = 0xfffffffffffffff3;
+    attribute_mask.xfrm = 0x0;
+
+    sgx_misc_select_t misc = 0xF0000000;
+
+    sgx_status_t status = sgx_seal_data_ex(SGX_KEYPOLICY_MRENCLAVE,
+                                           attribute_mask, misc, 0, NULL, strlen(SEK_hex) + 1, (uint8_t *) SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
 
     CHECK_STATUS2("seal SEK failed with status %d")
@@ -446,7 +463,13 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
         goto clean;
     }
 
-    signature_sign(sign, msgMpz, privateKeyMpz, curve);
+
+    LOG_ERROR("signing");
+    for (int i = 0; i < 10000; i++) {
+        signature_sign(sign, msgMpz, privateKeyMpz, curve);
+    }
+
+    LOG_ERROR("signed");
 
     sigCounter++;
 
