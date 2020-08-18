@@ -254,7 +254,7 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
 
     string str_key = BLSutils::ConvertToString(key);
 
-    strncpy(keyArray->data(), str_key, BUF_LEN);
+    strncpy(keyArray->data(), str_key.data(), BUF_LEN);
     *errStatus = -1;
 
     unsigned int encryptedLen = 0;
