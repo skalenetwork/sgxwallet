@@ -690,5 +690,3 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
         thread.join();
     }
 }
-
-
