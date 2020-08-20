@@ -1,21 +1,46 @@
 FROM ubuntu:bionic
 
-
 COPY . /usr/src/sdk
 RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
 
 COPY docker/install-psw.patch ./
 
-RUN    apt update && \
-       apt install -yq apt-utils && \
-       apt install -yq --no-install-recommends python-yaml vim \
-           telnet git ca-certificates build-essential ocaml ocamlbuild \
-           automake autoconf libtool wget python libssl-dev libssl-dev \
-           libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev  libboost-all-dev \
-           alien cmake debhelper uuid-dev libxml2-dev ccache vim libprotobuf10 \
-           yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev \
-           libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools && \
+# Reduce space, install requirements, and build SGXWallet
+RUN apt-get update && \
+    apt-get install -yq apt-utils && \
+    apt-get install -yq --no-install-recommends \
+        alien \
+        autoconf \
+        automake \
+        build-essential \
+        ca-certificates \
+        ccache \
+        cmake \
+        debhelper \
+        flex \
+        git \
+        libboost-all-dev \
+        libcurl4-openssl-dev \
+        libjsonrpccpp-dev \
+        libjsonrpccpp-tools \
+        libprocps-dev \
+        libprotobuf10 \
+        libprotobuf-dev \
+        libssl-dev \
+        libtool \
+        libxml2-dev \
+        ocaml \
+        ocamlbuild \
+        protobuf-compiler \
+        python \
+        python-yaml \
+        telnet  \
+        texinfo \
+        uuid-dev \
+        vim \
+        wget \
+        yasm && \
        ln -s /usr/bin/ccache /usr/local/bin/clang && \
        ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \

@@ -18,7 +18,7 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest
+      run: docker build . --file base.Dockerfile --tag skalenetwork/sgxwallet_base:latest
     - name: deploy docker image
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       run : |
@@ -31,5 +31,5 @@ jobs:
         echo "Version $VERSION"
         export RELEASE=true
         echo "::set-env name=RELEASE::$RELEASE"
-        bash ./scripts/build_image.sh DockerfileBase sgxwallet_base
+        bash ./scripts/build_image.sh base.Dockerfile sgxwallet_base
         bash ./scripts/publish_image.sh sgxwallet_base
