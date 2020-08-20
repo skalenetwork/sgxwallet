@@ -213,10 +213,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     sgx_attributes_t attribute_mask;
     attribute_mask.flags = 0xfffffffffffffff3;
     attribute_mask.xfrm = 0x0;
-
     sgx_misc_select_t misc = 0xF0000000;
-
-
 
     sgx_status_t status = sgx_seal_data_ex(SGX_KEYPOLICY_MRENCLAVE, attribute_mask, misc, 0, NULL, hex_aes_key_length + 1, (uint8_t *) SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
@@ -233,7 +230,6 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     uint32_t add_text_length = sgx_get_add_mac_txt_len(encrypted_SEK);
     CHECK_STATE(add_text_length == 0);
-
     CHECK_STATE(sgx_is_within_enclave(encrypted_SEK,sizeof(sgx_sealed_data_t)));
     status = sgx_unseal_data(encrypted_SEK, NULL, NULL, unsealedKey, &decLen );
     CHECK_STATUS("seal/unseal SEK failed after SEK generation in unseal");
