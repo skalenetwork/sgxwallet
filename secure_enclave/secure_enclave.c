@@ -218,7 +218,25 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     sgx_status_t status = sgx_seal_data_ex(SGX_KEYPOLICY_MRENCLAVE, attribute_mask, misc, 0, NULL, hex_aes_key_length + 1, (uint8_t *) SEK_hex, sealedLen,
                                         (sgx_sealed_data_t *) encrypted_SEK);
-    CHECK_STATUS("seal SEK failed");
+    CHECK_STATUS("seal SEK failed after SEK generation");
+
+    int len = 0;
+
+    SAFE_CHAR_BUF(unsealedKey, BUF_LEN);
+    int decLen;
+
+    status = sgx_unseal_data(encrypted_SEK, NULL, NULL, unsealedKey, &decLen );
+
+    SAFE_CHAR_BUF(errS, BUF_LEN);
+
+    sprintf(errS, "status $d", status);
+
+    LOG_ERROR(errS);
+
+    CHECK_STATUS("seal/unseal SEK failed after SEK generation in unseal");
+
+
+
 
     *enc_len = sealedLen;
 
