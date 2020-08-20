@@ -1,20 +1,42 @@
 version: '3'
 services:
   sgxwallet:
+
+    # Image to pull.
+    # IMPORTANT: Ensure image and tag are appropriate for the application.
+    # Use sgxwallet for testnets with SGX machines.
     image: skalenetwork/sgxwallet_sim:latest
+
+    # Expose ports.
+    # 1026: https
+    # 1027: Sign SSL certificates
+    # 1028: Localhost admin
+    # 1029: http
     ports:
       - "1026:1026"
       - "1027:1027"
       - "1028:1028"
       - "1029:1029"
+
+    # Map paths to the container.
+    # sgx_data directory and map /dev/urandom to inside the container.  
     volumes:
       - ./sgx_data:/usr/src/sdk/sgx_data
       -  /dev/urandom:/dev/random
+    
+    # Logging configuration.
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "4"
+    
+    # Restart policy.
     restart: unless-stopped
+
+    # Default command with flags.
+    # See docs/run-in-hardware-mode.md for more information.
+    # -s Sign client certificate without user confirmation
+    # -y Do not ask user to acknowledge receipt of backup key.
     command: -s -y 
 
