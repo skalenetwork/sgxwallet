@@ -1,6 +1,6 @@
-# sgxwallet: SKALE SGX-based hardware crypto wallet
-
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
+# sgxwallet: SKALE SGX-based hardware crypto wallet
 
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
@@ -8,10 +8,10 @@
 
 **sgxwallet** is a next generation hardware secure crypto wallet that is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
 
-**sgxwallet** runs as a network server.  Clients connect to the server, authenticate to it using 
+**sgxwallet** runs as a network server. Clients connect to the server, authenticate to it using 
 TLS 1.0 protocol with client certificates, and then issue requests to the server to generate crypto 
 keys and perform cryptographic operations. The keys are generated inside the secure SGX enclave and never
-leave the enclave unencrypted.  
+leave the enclave un-encrypted.  
 
 The server provides an initial registration service to issue client certificates to the clients.
 The administrator manually approves each registration.
@@ -20,10 +20,10 @@ The administrator manually approves each registration.
 
 ## An important note about production readiness
 
-The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security.**  Please see [SECURITY.md](SECURITY.md) for reporting policies.
+The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security. **  Please see [SECURITY.md](SECURITY.md) for reporting policies.
 
-![Build, test and push sgxwallet container](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sgxwallet%20container/badge.svg)
-![Build, test and push sim mode container](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sim%20mode%20container/badge.svg)
+![Build sgxwallet](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sgxwallet%20container/badge.svg)
+![Build sgxwallet sim mode](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sim%20mode%20container/badge.svg)
 
 ## Running sgxwallet
 
@@ -37,9 +37,9 @@ git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
 
 ### Try in simulation mode
 
-The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
+The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once familiar with the server, enable sgx on the machine and run it in secure production mode.
 
-First install docker-compose if you dont have it
+First install docker-compose:
 
 ```shell
 sudo apt-get install docker.io docker-compose
@@ -51,12 +51,9 @@ Then run sgxwallet using docker-compose
 cd run_sgx_sim; sudo docker-compose up
 ```
 
-Note: sgxwallet requires docker-compose for correct operation. You must always use 
-docker-compose and avoid using raw docker tools.
+Note: sgxwallet requires docker-compose for correct operation. Always use docker-compose and avoid using raw docker tools.
 
-Note: simulation mode is only try try sgxwallet. 
-In production, you need to run sgxwallet on a server that supports SGX.
-Never run a production sgxserver in simulation mode.  
+> :warning: ** simulation mode is only for trying sgxwallet.** In production, sgxwallet must be on a server that supports SGX. Never run a production sgxserver in simulation mode.  
 
 ## Admin guide
 
@@ -72,7 +69,7 @@ guide [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Contributing
 
-See [contributing](CONTRIBUTING.md) for information on how to contribute.
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for information on how to contribute.
 
 ## Libraries used by this project
 
