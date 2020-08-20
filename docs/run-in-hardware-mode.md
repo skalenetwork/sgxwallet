@@ -38,7 +38,7 @@ If operating with a firewall, please make sure these ports are open so clients a
 
 -   \-h     Display available flags
 -   \-c     Do not verify client certificate
--   \-s     Sign client certificate without human confirmation
+-   \-s     Sign client certificate without user confirmation
 -   \-d     Turn on debug output
 -   \-v     Verbose mode: turn on debug output
 -   \-vv    Detailed verbose mode: turn on debug and trace outputs
