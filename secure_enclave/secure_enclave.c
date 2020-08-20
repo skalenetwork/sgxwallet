@@ -229,14 +229,9 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(errS, BUF_LEN);
 
-    sprintf(errS, "status $d", status);
+    return;
 
-    LOG_ERROR(errS);
-
-    CHECK_STATUS("seal/unseal SEK failed after SEK generation in unseal");
-
-
-
+//    CHECK_STATUS("seal/unseal SEK failed after SEK generation in unseal");
 
     *enc_len = sealedLen;
 

@@ -54,6 +54,7 @@
 #include "CSRManagerServer.h"
 #include "BLSCrypto.h"
 #include "ServerInit.h"
+#include "SGXException.h"
 #include "SGXWalletServer.hpp"
 
 void initUserSpace() {
@@ -104,23 +105,43 @@ void initEnclave(uint32_t _logLevel) {
     spdlog::info("Enclave libtgmp library and logging initialized successfully");
 }
 
-void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
-    static atomic<int> sgxServerInited(0);
+void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
-    cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
+    static atomic<bool> sgxServerInited(false);
+    static mutex initMutex;
 
-    CHECK_STATE(sgxServerInited != 1)
-    sgxServerInited = 1;
-    initEnclave(_logLevel);
-    initUserSpace();
-    initSEK();
+    lock_guard <mutex> lock(initMutex);
 
-    if (useHTTPS) {
-        SGXWalletServer::initHttpsServer(_checkCert);
-        SGXRegistrationServer::initRegistrationServer(_autoSign);
-        CSRManagerServer::initCSRManagerServer();
-    } else {
-        SGXWalletServer::initHttpServer();
+    if (sgxServerInited)
+        return;
+
+    try {
+
+        cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
+
+        CHECK_STATE(sgxServerInited != 1)
+        sgxServerInited = 1;
+        initEnclave(_logLevel);
+        initUserSpace();
+        initSEK();
+
+        if (useHTTPS) {
+            SGXWalletServer::initHttpsServer(_checkCert);
+            SGXRegistrationServer::initRegistrationServer(_autoSign);
+            CSRManagerServer::initCSRManagerServer();
+        } else {
+            SGXWalletServer::initHttpServer();
+        }
+        sgxServerInited = true;
+    } catch (SGXException &_e) {
+        spdlog::error(_e.getMessage());
+    } catch (exception &_e) {
+        spdlog::error(_e.what());
     }
-}
+    catch (...) {
+        exception_ptr p = current_exception();
+        printf("Exception %s \n", p.__cxa_exception_type()->name());
+        spdlog::error("Unknown exception");
+    }
+};
