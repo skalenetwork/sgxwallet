@@ -197,8 +197,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     CHECK_STATE(encrypted_SEK);
     CHECK_STATE(SEK_hex);
 
-
-    SAFE_CHAR_BUF(SEK_raw, SGX_AESGCM_KEY_SIZE);;
+    RANDOM_CHAR_BUF(SEK_raw, SGX_AESGCM_KEY_SIZE);
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
     carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
