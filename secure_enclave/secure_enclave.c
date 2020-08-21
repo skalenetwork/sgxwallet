@@ -201,13 +201,9 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     uint32_t hex_aes_key_length = SGX_AESGCM_KEY_SIZE * 2;
     carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, SEK_hex);
+    memcpy(AES_key, SEK_raw, SGX_AESGCM_KEY_SIZE);
 
     uint32_t sealedLen = sgx_calc_sealed_data_size(0, hex_aes_key_length + 1);
-
-    for (uint8_t i = 0; i < 16; i++) {
-        AES_key[i] = SEK_raw[i];
-    }
-
 
     sgx_attributes_t attribute_mask;
     attribute_mask.flags = 0xfffffffffffffff3;
@@ -218,19 +214,20 @@ void trustedGenerateSEK(int *errStatus, char *errString,
                                         (sgx_sealed_data_t *) encrypted_SEK);
     CHECK_STATUS("seal SEK failed after SEK generation");
 
-    uint32_t encrypt_text_length = sgx_get_encrypt_txt_len(encrypted_SEK);
+    uint32_t encrypt_text_length = sgx_get_encrypt_txt_len((const sgx_sealed_data_t *)encrypted_SEK);
 
     CHECK_STATE(encrypt_text_length = hex_aes_key_length + 1);
 
-    int len = 0;
 
     SAFE_CHAR_BUF(unsealedKey, BUF_LEN);
-    int decLen = BUF_LEN;
+    uint32_t decLen = BUF_LEN;
 
-    uint32_t add_text_length = sgx_get_add_mac_txt_len(encrypted_SEK);
+    uint32_t add_text_length = sgx_get_add_mac_txt_len((const sgx_sealed_data_t *)encrypted_SEK);
     CHECK_STATE(add_text_length == 0);
     CHECK_STATE(sgx_is_within_enclave(encrypted_SEK,sizeof(sgx_sealed_data_t)));
-    status = sgx_unseal_data(encrypted_SEK, NULL, NULL, unsealedKey, &decLen );
+    status = sgx_unseal_data((const sgx_sealed_data_t *)encrypted_SEK, NULL, NULL,
+                             (uint8_t *) unsealedKey, &decLen );
+    
     CHECK_STATUS("seal/unseal SEK failed after SEK generation in unseal");
     *enc_len = sealedLen;
 
