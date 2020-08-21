@@ -23,12 +23,16 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+
 #ifdef USER_SPACE
 #include <gmp.h>
 #else
+
 #include <../tgmp-build/include/sgx_tgmp.h>
+
 #endif
 
+#include "EnclaveConstants.h"
 #include "DomainParameters.h"
 #include "Curves.h"
 #include "Point.h"
@@ -38,144 +42,241 @@
 #include "EnclaveCommon.h"
 #include <string.h>
 
-void gen_session_key(char *skey_str, char* pb_keyB, char* common_key) {
-    char* pb_keyB_x = (char*)calloc(65, 1);
-    strncpy(pb_keyB_x, pb_keyB, 64);
-    pb_keyB_x[64] = 0;
 
-    char* pb_keyB_y = (char*)calloc(65,1);
-    strncpy(pb_keyB_y, pb_keyB + 64, 64);
-    pb_keyB_y[64] = 0;
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
+
+
+
+
+    int ret = -1;
+
+    LOG_INFO(__FUNCTION__);
+
+    SAFE_CHAR_BUF(pb_keyB_x, 65);SAFE_CHAR_BUF(pb_keyB_y, 65);
 
     mpz_t skey;
     mpz_init(skey);
+    point pub_keyB = point_init();
+    point session_key = point_init();
+
+
+    if (!common_key) {
+        LOG_ERROR("gen_session_key: Null common_key");
+        goto clean;
+    }
+
+    common_key[0] = 0;
+
+    if (!skey_str) {
+        LOG_ERROR("gen_session_key: Null skey_str");
+        goto clean;
+    }
+
+    if (!pb_keyB) {
+        LOG_ERROR("gen_session_key: Null skey_str");
+        goto clean;
+    }
+
+    strncpy(pb_keyB_x, pb_keyB, 64);
+    pb_keyB_x[64] = 0;
+
+    strncpy(pb_keyB_y, pb_keyB + 64, 64);
+    pb_keyB_y[64] = 0;
+
     mpz_set_str(skey, skey_str, 16);
 
-    point pub_keyB = point_init();
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
 
-    point session_key = point_init();
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
-    for ( int i = 0; i < n_zeroes; i++){
-      common_key[i] = '0';
+    for (int i = 0; i < n_zeroes; i++) {
+        common_key[i] = '0';
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
     common_key[64] = 0;
 
+    ret = 0;
+
+    clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
-    domain_parameters_clear(curve);
-    free(pb_keyB_x);
-    free(pb_keyB_y);
+
+    return ret;
+
 }
 
-void session_key_recover(const char *skey_str, const char* sshare, char* common_key) {
-    char* pb_keyB_x = (char*)calloc(65, 1);
-    strncpy(pb_keyB_x, sshare + 64, 64);
-    pb_keyB_x[64] = 0;
+int session_key_recover(const char *skey_str, const char *sshare, char *common_key) {
 
-    char* pb_keyB_y = (char*)calloc(65, 1);
-    strncpy(pb_keyB_y, sshare + 128, 64);
-    pb_keyB_y[64] = 0;
+    int ret = -1;
 
-    domain_parameters curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+
+    SAFE_CHAR_BUF(pb_keyB_x, 65);
+    SAFE_CHAR_BUF(pb_keyB_y, 65);
+
 
     mpz_t skey;
     mpz_init(skey);
-    if (mpz_set_str(skey, skey_str, 16) == -1) {
-        common_key = NULL;
+    point pub_keyB = point_init();
+    point session_key = point_init();
 
-        mpz_clear(skey);
-        domain_parameters_clear(curve);
-        free(pb_keyB_x);
-        free(pb_keyB_y);
+    pb_keyB_x[64] = 0;
+    strncpy(pb_keyB_x, sshare + 64, 64);
+    strncpy(pb_keyB_y, sshare + 128, 64);
+    pb_keyB_y[64] = 0;
 
-        return;
+
+    if (!common_key) {
+        LOG_ERROR("session_key_recover: Null common_key");
+        goto clean;
     }
 
-    point pub_keyB = point_init();
-    point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
+    common_key[0] = 0;
 
-    point session_key = point_init();
+    if (!skey_str) {
+        LOG_ERROR("session_key_recover: Null skey_str");
+        goto clean;
+    }
+
+    if (!sshare) {
+        LOG_ERROR("session_key_recover: Null sshare");
+        goto clean;
+    }
+
+
+
+
+
+
+
+
+
+    if (mpz_set_str(skey, skey_str, 16) == -1) {
+        goto clean;
+    }
+
+    point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    char arr_x[mpz_sizeinbase (session_key->x, 16) + 2];
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
-    for ( int i = 0; i < n_zeroes; i++){
+    for (int i = 0; i < n_zeroes; i++) {
         common_key[i] = '0';
     }
     strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
 
+    ret = 0;
+
+    clean:
     mpz_clear(skey);
     point_clear(pub_keyB);
     point_clear(session_key);
-    domain_parameters_clear(curve);
-    free(pb_keyB_x);
-    free(pb_keyB_y);
+
+    return  ret;
 }
 
-void xor_encrypt(char* key, char* message, char* cypher) {
-   uint8_t cypher_bin[33];
+int xor_encrypt(char *key, char *message, char *cypher) {
 
-   uint8_t* key_bin = (uint8_t*)calloc(33,1);
-   uint64_t key_length;
-   if (!hex2carray(key, &key_length, key_bin)){
-     cypher = NULL;
-     free(key_bin);
-     return;
-   }
+    int ret = -1;
 
-   uint64_t msg_length;
-   uint8_t msg_bin[33];
-   if (!hex2carray(message, &msg_length, msg_bin)){
-     cypher = NULL;
-     free(key_bin);
-     return;
-   }
+    if (!cypher) {
+        LOG_ERROR("xor_encrypt: null cypher");
+        goto clean;
+    }
 
-   for (int i = 0; i < 32; i++){
-     cypher_bin[i] = msg_bin[i] ^ key_bin[i];
-   }
+    if (!key) {
+        LOG_ERROR("xor_encrypt: null key");
+        goto clean;
+    }
 
-   carray2Hex(cypher_bin, 32, cypher);
+    if (!message) {
+        LOG_ERROR("xor_encrypt: null message");
+        goto clean;
+    }
 
-   free(key_bin);
-}
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    SAFE_CHAR_BUF(key_bin, 33);
 
-void xor_decrypt(char* key, char* cypher, char* message) {
-    uint8_t msg_bin[33];
-
-    uint8_t* key_bin = (uint8_t*)calloc(33,1);
     uint64_t key_length;
-    if (!hex2carray(key, &key_length, key_bin)){
-      message = NULL;
-      free(key_bin);
-      return;
+
+    if (!hex2carray(key, &key_length, (uint8_t *) key_bin)) {
+        goto clean;
+    }
+
+    uint64_t msg_length;
+    uint8_t msg_bin[33];
+    if (!hex2carray(message, &msg_length, msg_bin)) {
+        goto clean;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        cypher_bin[i] = msg_bin[i] ^ key_bin[i];
+    }
+
+    carray2Hex((unsigned char*) cypher_bin, 32, cypher);
+
+    ret = 0;
+
+    clean:
+    ;
+
+    return ret;
+
+}
+
+int xor_decrypt(char *key, char *cypher, char *message) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        LOG_ERROR("xor_encrypt: null cypher");
+        goto clean;
+    }
+
+    if (!key) {
+        LOG_ERROR("xor_encrypt: null key");
+        goto clean;
+    }
+
+    if (!message) {
+        LOG_ERROR("xor_encrypt: null message");
+        goto clean;
+    }
+
+
+    SAFE_CHAR_BUF(msg_bin,33);
+
+    SAFE_CHAR_BUF(key_bin,33)
+
+    uint64_t key_length;
+    if (!hex2carray(key, &key_length, (uint8_t*) key_bin)) {
+        goto clean;
     }
 
     uint64_t cypher_length;
-    uint8_t cypher_bin[33];
-    if (!hex2carray(cypher, &cypher_length, cypher_bin)){
-      message = NULL;
-      free(key_bin);
-      return;
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin)) {
+        goto clean;
     }
 
-    for (int i = 0; i < 32; i++){
+    for (int i = 0; i < 32; i++) {
         msg_bin[i] = cypher_bin[i] ^ key_bin[i];
     }
 
-    carray2Hex(msg_bin, 32, message);
+    carray2Hex((unsigned char*) msg_bin, 32, message);
 
-    free(key_bin);
+    ret = 0;
+
+    clean:
+    ;
+
+    return ret;
+
 }

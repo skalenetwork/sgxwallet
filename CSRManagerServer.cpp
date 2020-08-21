@@ -40,7 +40,6 @@ CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
                                    serverVersion_t type) : abstractCSRManagerServer(connector, type) {}
 
 Json::Value getUnsignedCSRsImpl() {
-    spdlog::info(__FUNCTION__);
     INIT_RESULT(result)
 
     try {
@@ -50,12 +49,11 @@ Json::Value getUnsignedCSRsImpl() {
         }
     } HANDLE_SGX_EXCEPTION(result);
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value signByHashImpl(const string &hash, int status) {
-    Json::Value result;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         if (!(status == 0 || status == 2)) {
@@ -89,7 +87,6 @@ Json::Value signByHashImpl(const string &hash, int status) {
                 LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
                 LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, "-1");
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-                //exit(-1);
             }
         }
 
@@ -102,7 +99,7 @@ Json::Value signByHashImpl(const string &hash, int status) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value CSRManagerServer::getUnsignedCSRs() {

@@ -13,10 +13,12 @@ RUN apt-get update && \
         alien \
         autoconf \
         automake \
+        bison \
         build-essential \
         ca-certificates \
         ccache \
         cmake \
+        curl \
         debhelper \
         flex \
         git \

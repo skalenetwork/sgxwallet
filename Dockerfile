@@ -3,6 +3,7 @@ FROM skalenetwork/sgxwallet_base:latest
 
 # /usr/src/sdk is made available to use as a location for the SGX SDK.
 COPY . /usr/src/sdk
+RUN apt update && apt install -y curl
 WORKDIR /usr/src/sdk
 
 # Setup hardware mode flag for entry point script.
@@ -13,7 +14,7 @@ RUN ./autoconf.bash && \
     ./configure && \
     bash -c "make -j$(nproc)" && \
     ccache -sz && \
-    mkdir /usr/src/sdk/sgx_data
+    mkdir -p /usr/src/sdk/sgx_data
 
 # The entry point script.
 COPY docker/start.sh ./

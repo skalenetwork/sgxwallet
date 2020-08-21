@@ -117,6 +117,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (yStr == nullptr) {
     std::cerr << "Null yStr" << std::endl;
+    delete xStr;
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 
@@ -133,6 +134,9 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   strncpy(xStrArg, xStr->c_str(), BUF_LEN);
   strncpy(yStrArg, yStr->c_str(), BUF_LEN);
 
+  delete xStr;
+  delete yStr;
+
   size_t sz = 0;
 
   uint8_t encryptedKey[BUF_LEN];
@@ -147,7 +151,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   cerr << "Key is " + *encryptedKeyHex << endl;
 
   sgx_status_t status =
-      trustedBlsSignMessage(eid, &errStatus, errMsg, encryptedKey,
+      trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
   printf("sig is: %s\n", signature);
@@ -159,7 +163,6 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (errStatus != 0) {
     BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
-    return nullptr;
   }
 
   int sigLen;
@@ -175,9 +178,6 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   sig.append(":");
   sig.append(hint);
-
-  delete xStr;
-  delete yStr;
 
   return sig;
 }
