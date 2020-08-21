@@ -307,7 +307,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     CHECK_STATE(pub_key_x);
     CHECK_STATE(pub_key_y);
 
-    SAFE_CHAR_BUF(rand_char, 32);
+    RANDOM_CHAR_BUF(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
@@ -315,8 +315,6 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     mpz_init(skey);
 
     point Pkey = point_init();
-
-    get_global_random((unsigned char *)rand_char, 32);
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
