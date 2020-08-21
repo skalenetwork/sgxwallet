@@ -5,7 +5,7 @@ services:
     # Image to pull.
     # IMPORTANT: Ensure image and tag are appropriate for the application.
     # Use sgxwallet for testnets with SGX machines.
-    image: skalenetwork/sgxwallet_sim:latest
+    image: skalenetwork/sgxwallet_sim:develop-latest
 
     # Expose ports.
     # 1026: default https SGX endpoint operation
@@ -38,5 +38,6 @@ services:
     # See docs/run-in-hardware-mode.md for more information.
     # -s Sign client certificate without user confirmation
     # -y Do not ask user to acknowledge receipt of backup key.
-    command: -s -y 
+    command: -s  
+
 
