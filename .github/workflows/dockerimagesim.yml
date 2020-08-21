@@ -26,11 +26,11 @@ jobs:
         export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
         echo "::set-env name=VERSION::$VERSION"
         echo "Version $VERSION"
-        bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
+        bash ./scripts/build_image.sh simulation.Dockerfile sgxwallet_sim
     - name: build container for testing
-      run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
+      run: python3 scripts/docker_build.py simulation.Dockerfile sgxwalletsim ${GITHUB_SHA}
     - name: test
-      run: python3 scripts/docker_test.py DockerfileSimulation sgxwalletsim
+      run: python3 scripts/docker_test.py simulation.Dockerfile sgxwalletsim
     - name: deploy docker image
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       run : |

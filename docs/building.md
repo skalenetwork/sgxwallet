@@ -56,7 +56,7 @@ sudo docker build -t sgxwallet_base .
 ## Build Docker container in simulation mode
 
 ```shell
-sudo docker build -t sgxwalletsim -f ./DockerfileSimulation .
+sudo docker build -t sgxwalletsim -f ./simulation.Dockerfile .
 
 ```
 
