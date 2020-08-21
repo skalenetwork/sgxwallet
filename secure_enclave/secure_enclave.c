@@ -57,6 +57,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
+#include "SIGNED_ENCLAVE_VERSION"
+
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -128,7 +130,24 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     enclave_init();
 
-    LOG_INFO("Successfully inited enclave");
+    LOG_INFO("Successfully inited enclave. Signed enclave version:" SIGNED_ENCLAVE_VERSION );
+#ifndef SGX_DEBUG
+    LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
+#endif
+
+#if SGX_DEBUG != 0
+    LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
+#endif
+
+#if SGX_MODE == SIM
+    LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
+#endif
+
+
+
+
+
+
 }
 
 void free_function(void *ptr, size_t sz) {
