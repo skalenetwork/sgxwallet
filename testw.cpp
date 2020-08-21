@@ -82,6 +82,18 @@ public:
     }
 };
 
+class TestFixtureNoReset {
+public:
+    TestFixtureNoReset() {
+        setOptions(L_INFO, false, true);
+        initAll(L_INFO, false, true);
+    }
+
+    ~TestFixtureNoReset() {
+        TestUtils::destroyEnclave();
+    }
+};
+
 class TestFixtureHTTPS {
 public:
     TestFixtureHTTPS() {
@@ -689,6 +701,12 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
     for (auto &thread : threads) {
         thread.join();
     }
+}
+
+TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
+}
+
+TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
 
 
