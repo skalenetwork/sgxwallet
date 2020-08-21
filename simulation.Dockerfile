@@ -1,7 +1,10 @@
 # This is the base container of SGXWallet to pull in.
 FROM skalenetwork/sgxwallet_base:latest
 
-RUN apt update && apt install -y curl
+# Setup base tools.
+RUN apt-get update && apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN ccache -sz
 

@@ -1,9 +1,13 @@
 # This is the base container of SGXWallet to pull in.
 FROM skalenetwork/sgxwallet_base:latest
 
+# Setup base tools.
+RUN apt-get update && apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # /usr/src/sdk is made available to use as a location for the SGX SDK.
 COPY . /usr/src/sdk
-RUN apt update && apt install -y curl
 WORKDIR /usr/src/sdk
 
 # Setup hardware mode flag for entry point script.
