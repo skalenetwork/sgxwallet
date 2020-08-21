@@ -26,7 +26,7 @@ cd scripts; ./build_deps.py; cd ..
 source sgx-sdk-build/sgxsdk/environment
 ```
 
-## Configure and build sgxwallet
+## Configure and build SGXWallet
 
 Go to the project's top directory, then run
 

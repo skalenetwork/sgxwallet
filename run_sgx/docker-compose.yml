@@ -8,10 +8,10 @@ services:
     image: skalenetwork/sgxwallet:latest
 
     # Expose ports.
-    # 1026: https
-    # 1027: Sign SSL certificates
-    # 1028: Localhost admin
-    # 1029: http
+    # 1026: default https SGX endpoint operation
+    # 1027: sign SSL certificates
+    # 1028: localhost admin
+    # 1029: optional http-only SGX endpoint operation
     ports:
       - "1026:1026"
       - "1027:1027"

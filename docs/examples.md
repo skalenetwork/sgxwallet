@@ -2,7 +2,7 @@
 
 # Example usage
 
-## Run sgxwallet from build
+## Run SGXWallet from build
 
 Type:
 
@@ -22,7 +22,7 @@ sudo docker run -di --network host -v /dev/random:/dev/urandom --device /dev/isg
 
 This will run the server in a Docker container named sgxwallet
 
-You can start and stop running sgxwallet container by doing
+You can start and stop running SGXWallet container by doing
 
 ```shell
 docker stop sgxwallet

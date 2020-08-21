@@ -3,8 +3,8 @@
 # Run in hardware secure mode
 
 -   [Docker Compose configuration](#docker-compose-configuration)
--   [Run sgxwallet in secure mode](#run-sgxwallet-in-secure-mode)
--   [Start, stop and upgrade sgxwallet containers](#start-stop-and-upgrade-sgxwallet-containers)
+-   [Run SGXWallet in secure mode](#run-sgxwallet-in-secure-mode)
+-   [Start, stop and upgrade SGXWallet containers](#start-stop-and-upgrade-sgxwallet-containers)
 -   [Logging](#logging)
 
 ## Docker Compose configuration
@@ -25,12 +25,12 @@ device to use.
 
 ### Ports
 
-sgxwallet operates on the following network ports:
+SGXWallet operates on the following network ports:
 
--   1026 (https)
+-   1026 (default https operation)
 -   1027 (http for initial SSL certification signing)
--   1028 (localhost for admin )
--   1029 (http only operation)
+-   1028 (localhost for admin)
+-   1029 (optional http-only operation)
 
 If operating with a firewall, please make sure these ports are open so clients are able to connect to the server. 
 
@@ -53,10 +53,10 @@ Healthcheck devices should match the same devices specified under `devices`.
 
 Note: All docker-compose commands herein need to be issued from `run_sgx` directory. If running in simulation mode, use `run_sgx_sim`.
 
-Note: sgxwallet places all its data into the `sgx_data` directory, which is created when sgxwallet is initialized.
+Note: SGXWallet places all its data into the `sgx_data` directory, which is created when SGXWallet is initialized.
 **This directory must be backed up. Do not remove this directory!**
 
-## Run sgxwallet in secure mode
+## Run SGXWallet in secure mode
 
 ```shell
 cd run_sgx; sudo docker-compose up -d
@@ -66,7 +66,7 @@ The server should display: "SGX Server started".
 
 If not, confirm that the SGX device drivers are correctly configured to the machine.
 
-## Start, stop and upgrade sgxwallet containers
+## Start, stop and upgrade SGXWallet containers
 
 To run the server as a daemon, do
 
@@ -87,7 +87,7 @@ To view server logs do
 sudo docker-compose logs
 ```
 
-To upgrade sgxwallet to a different version:
+To upgrade SGXWallet to a different version:
 
 1.  First stop the container:
 
@@ -110,7 +110,7 @@ sudo docker-compose up
 
 ## Logging
 
-By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
+By default, SGXWallet will log into default Docker logs, which are rotated into four files 10M each.
 To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as 
 
 ```yaml

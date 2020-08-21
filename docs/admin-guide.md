@@ -4,12 +4,12 @@
 
 -   [Verify that your hardware and software can run SGX](prerequisites.md)
 -   [Enable SGX](enabling-sgx.md)
--   [Start, stop and upgrade sgxwallet](run-in-hardware-mode.md)
+-   [Start, stop and upgrade SGXWallet](run-in-hardware-mode.md)
     -   [Docker Compose configuration](run-in-hardware-mode.md#docker-compose-configuration)
-    -   [Run sgxwallet in secure mode](run-in-hardware-mode.md#run-sgxwallet-in-secure-mode)
-    -   [Start, stop and upgrade sgxwallet containers](run-in-hardware-mode.md#start-stop-and-upgrade-sgxwallet-containers)
+    -   [Run SGXWallet in secure mode](run-in-hardware-mode.md#run-sgxwallet-in-secure-mode)
+    -   [Start, stop and upgrade SGXWallet containers](run-in-hardware-mode.md#start-stop-and-upgrade-sgxwallet-containers)
     -   [Logging](run-in-hardware-mode.md#logging)
--   [Backup and recover sgxwallet](backup-procedure.md)
+-   [Backup and recover SGXWallet](backup-procedure.md)
 
 ## Community
 

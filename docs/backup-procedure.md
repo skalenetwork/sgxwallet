@@ -10,7 +10,7 @@ Be sure to store this key in a safe place, then go into a docker container and s
 docker exec -it <SGX_CONTAINER_NAME> bash && apt-get install secure-delete && srm -vz backup_key.txt
 ```
 
-Master-Slave replication is recommended to support the SGXWallet backup strategy, as data in the `sgx_data` directory will frequently change. Below are general instructions for a basic backup and recovery process.
+Replication backup is recommended to support the SGXWallet backup strategy, as data in the `sgx_data` directory will frequently change. Below are general instructions for a testing backup and recovery process.
 
 ## Backup SGXWallet (manual copy)
 
@@ -36,7 +36,7 @@ command: -s -y -d -b
 version: "3"
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet:latest
+    image: skalenetwork/<sgxwallet_image>:<tag>
     stdin_open: true
 ```
 
