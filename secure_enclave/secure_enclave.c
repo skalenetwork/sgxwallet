@@ -272,9 +272,16 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
             (const sgx_sealed_data_t *) encrypted_sek, NULL, 0,
             (uint8_t *)aes_key_hex, &dec_len);
 
+    if (status == 0x3001) {
+        LOG_ERROR("Could not decrypt LevelDB storage! \n"
+                  "If you upgraded sgxwallet software or if you are restoring from backup, please run sgxwallet with -b flag  and "
+                  "pass your backup key.");
+    }
+
     CHECK_STATUS2("sgx unseal SEK failed with status %d");
 
     uint64_t len;
+
 
     hex2carray(aes_key_hex, &len, (uint8_t *) AES_key);
 
