@@ -165,7 +165,7 @@ int SGXWalletServer::initHttpServer() { //without ssl
 }
 
 Json::Value
-SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n) {
+SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName) {
     INIT_RESULT(result);
 
     result["encryptedKeyShare"] = "";
@@ -175,10 +175,6 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
             throw SGXException(INVALID_BLS_NAME, "Invalid BLS key name");
-        }
-
-        if (!check_n_t(t, n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid t/n parameters");
         }
 
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), _keyShare.c_str());
@@ -670,8 +666,8 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyS
 }
 
 Json::Value
-SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n) {
-    return importBLSKeyShareImpl(_keyShare, _keyShareName, _t, _n);
+SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName) {
+    return importBLSKeyShareImpl(_keyShare, _keyShareName);
 }
 
 Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n) {

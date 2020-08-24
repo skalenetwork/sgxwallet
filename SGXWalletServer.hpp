@@ -46,7 +46,7 @@ public:
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);
 
     virtual Json::Value
-    importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n);
+    importBLSKeyShare(const string &_keyShare, const string &_keyShareName);
 
     virtual Json::Value
     blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
@@ -97,7 +97,7 @@ public:
     static void writeKeyShare(const string &_keyShareName, const string &_value);
 
     static Json::Value
-    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n);
+    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName);
 
     static Json::Value
     blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);

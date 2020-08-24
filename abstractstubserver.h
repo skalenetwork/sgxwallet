@@ -36,7 +36,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
     public:
         AbstractStubServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractStubServer>(conn, type)
         {
-          this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::importBLSKeyShareI);
+          this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importBLSKeyShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::blsSignMessageHashI);
 
           this->bindAndAddMethod(jsonrpc::Procedure("importECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "key",jsonrpc::JSON_STRING,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importECDSAKeyI);
@@ -62,7 +62,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
         {
-            response = this->importBLSKeyShare( request["keyShare"].asString(), request["keyShareName"].asString(), request["t"].asInt(), request["n"].asInt());
+            response = this->importBLSKeyShare( request["keyShare"].asString(), request["keyShareName"].asString());
         }
         inline virtual void blsSignMessageHashI(const Json::Value &request, Json::Value &response)
         {
@@ -145,7 +145,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->deleteBlsKey(request["blsKeyName"].asString());
         }
 
-        virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n) = 0;
+        virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n ) = 0;
         virtual Json::Value importECDSAKey(const std::string& key, const std::string& keyName) = 0;
         virtual Json::Value generateECDSAKey() = 0;

@@ -420,7 +420,7 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     libff::alt_bn128_Fr key = libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035438182864059942098934847");
     std::string key_str = TestUtils::stringFromFr(key);
     PRINT_SRC_LINE
-    c.importBLSKeyShare(key_str, name, 1, 2);
+    c.importBLSKeyShare(key_str, name);
     PRINT_SRC_LINE
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }

@@ -12,13 +12,11 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName)
         {
             Json::Value p;
             p["keyShare"] = keyShare;
             p["keyShareName"] = keyShareName;
-            p["n"] = n;
-            p["t"] = t;
             Json::Value result = this->CallMethod("importBLSKeyShare",p);
             if (result.isObject())
                 return result;
