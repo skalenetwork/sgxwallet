@@ -38,6 +38,6 @@ services:
     # See docs/run-in-hardware-mode.md for more information.
     # -s Sign client certificate without user confirmation
     # -y Do not ask user to acknowledge receipt of backup key.
-    command: -s  
+    command: -s -y
 
 
