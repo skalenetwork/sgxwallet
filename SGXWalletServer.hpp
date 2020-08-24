@@ -94,7 +94,7 @@ public:
 
     static void writeDataToDB(const string &Name, const string &value);
 
-    static void writeKeyShare(const string &_keyShareName, const string &_value, int _n, int _t);
+    static void writeKeyShare(const string &_keyShareName, const string &_value);
 
     static Json::Value
     importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n);

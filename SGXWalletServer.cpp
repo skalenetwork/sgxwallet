@@ -193,7 +193,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex, n, t);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
@@ -459,7 +459,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         if (!checkECDSAKeyName(_ethKeyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
-        if (!check_n_t(_t, _n) || _index > _n || _index < 0) {
+        if (!check_n_t(_t, _n) || _index >= _n || _index < 0) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
         if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
@@ -549,6 +549,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         if (!checkName(_polyName, "POLY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
+
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(_ind) + ":";
         shared_ptr <string> shareG2_ptr = readFromDb(shareG2_name);
 
@@ -715,7 +716,7 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     return dataStr;
 }
 
-void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value, int _n, int _t) {
+void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value) {
     if (LevelDB::getLevelDb()->readString(_keyShareName) != nullptr) {
         throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
