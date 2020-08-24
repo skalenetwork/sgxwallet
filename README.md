@@ -20,7 +20,7 @@ The administrator manually approves each registration.
 
 ## An important note about production readiness
 
-The SGXWallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security. **  Please see [SECURITY.md](SECURITY.md) for reporting policies.
+The SGXWallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security.**  Please see [SECURITY.md](SECURITY.md) for reporting policies.
 
 ![Build SGXWallet](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sgxwallet%20container/badge.svg)
 ![Build SGXWallet sim mode](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sim%20mode%20container/badge.svg)
@@ -53,7 +53,7 @@ cd run_sgx_sim; sudo docker-compose up
 
 Note: SGXWallet requires docker-compose for correct operation. Always use docker-compose and avoid using raw docker tools.
 
-> :warning: ** simulation mode is only for trying SGXWallet.** In production, SGXWallet must be on a server that supports SGX. Never run a production SGXWallet in simulation mode.  
+> :warning: **simulation mode is only for trying SGXWallet.** In production, SGXWallet must be on a server that supports SGX. Never run a production SGXWallet in simulation mode.  
 
 ## Admin guide
 
