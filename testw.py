@@ -28,8 +28,9 @@ username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Top directory is:" + topDir)
-
-testList = [ "[cert-sign]",
+testList = ["[first-run]",
+            "[second-run]", 
+            "[cert-sign]",
             "[get-server-status]",
             "[get-server-version]",
             "[backup-key]",
