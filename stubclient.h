@@ -12,10 +12,9 @@ class StubClient : public jsonrpc::Client
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n)
         {
             Json::Value p;
-            p["index"] = index;
             p["keyShare"] = keyShare;
             p["keyShareName"] = keyShareName;
             p["n"] = n;
@@ -27,13 +26,12 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) 
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n)
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
             p["messageHash"] = messageHash;
             p["n"] = n;
-            p["signerIndex"] = signerIndex;
             p["t"] = t;
             Json::Value result = this->CallMethod("blsSignMessageHash",p);
             if (result.isObject())

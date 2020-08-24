@@ -46,11 +46,10 @@ public:
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);
 
     virtual Json::Value
-    importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n, int index);
+    importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n);
 
     virtual Json::Value
-    blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
-                       int _signerIndex);
+    blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
 
     virtual Json::Value importECDSAKey(const string &_key, const string &_keyName);
 
@@ -95,14 +94,13 @@ public:
 
     static void writeDataToDB(const string &Name, const string &value);
 
-    static void writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t);
+    static void writeKeyShare(const string &_keyShareName, const string &_value, int _n, int _t);
 
     static Json::Value
-    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index);
+    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n);
 
     static Json::Value
-    blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n,
-                           int _signerIndex);
+    blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);
 
     static Json::Value importECDSAKeyImpl(const string &_key, const string &_keyName);
 

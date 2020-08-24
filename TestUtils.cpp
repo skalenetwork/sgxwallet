@@ -239,7 +239,7 @@ void TestUtils::sendRPCRequest() {
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
         string hash = SAMPLE_HASH;
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
         CHECK_STATE(blsSigShares[i]["status"] == 0);
 
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
@@ -376,7 +376,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     for (int i = 0; i < t; i++) {
 
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
         CHECK_STATE(blsSigShares[i]["status"] == 0);
         shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
