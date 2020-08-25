@@ -128,7 +128,7 @@ void trustedEnclaveInit(uint32_t _logLevel) {
     LOG_INFO("Reading random");
 
 
-    SAFE_CHAR_BUF(globalRandom, 32);
+    globalRandom = calloc(32,1);
 
     auto ret = sgx_read_rand(globalRandom, 32);
 
