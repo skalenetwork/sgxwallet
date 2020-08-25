@@ -78,6 +78,9 @@ void create_test_key() {
   LevelDB::getLevelDb() -> writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
 
+
+#include <experimental/filesystem>
+
 bool check_SEK(const std::string& SEK) {
   std::shared_ptr <std::string> test_key_ptr = LevelDB::getLevelDb() -> readString("TEST_KEY");
   vector<uint8_t> encr_test_key(BUF_LEN, 0);
@@ -131,7 +134,10 @@ void gen_SEK() {
   char SEK[65];
   memset(SEK, 0, 65);
 
+  spdlog::error("Generating backup key. Will be stored in backup_key.txt ... " );
+
   status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
+
   if ( status != SGX_SUCCESS ) {
     throw SGXException(status, errMsg.data()) ;
   }
@@ -140,19 +146,28 @@ void gen_SEK() {
     throw SGXException(err_status, errMsg.data()) ;
   }
 
+    if ( strnlen(SEK,33) != 32) {
+        throw SGXException(-1, "strnlen(SEK,33) != 32" ) ;
+    }
+
   vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
   carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
   std::ofstream sek_file("backup_key.txt");
   sek_file.clear();
-
-  cout << "ATTENTION! YOUR BACKUP KEY WILL BE WRITTEN INTO backup_key.txt.\n" <<
-          "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY BY RUNNING THE FOLLOWING COMMAND:\n" <<
-          "`docker exec -it <SGX_CONTAINER_NAME> bash && apt-get install secure-delete && srm -vz backup_key.txt`" << endl;
+  
   sek_file << SEK;
 
-  if (!autoconfirm) {
+
+    cout << "ATTENTION! YOUR BACKUP KEY HAS BEEN WRITTEN INTO sgx_data/backup_key.txt \n" <<
+         "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY BY RUNNING THE FOLLOWING COMMAND:\n" <<
+         "apt-get install secure-delete && srm -vz sgx_data/backup_key.txt" << endl;
+
+
+
+
+    if (!autoconfirm) {
     std::string confirm_str = "I confirm";
     std::string buffer;
     do {
@@ -161,6 +176,9 @@ void gen_SEK() {
       std::getline(std::cin, buffer);
     } while (case_insensitive_match(confirm_str, buffer));
   }
+
+
+
 
   LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 

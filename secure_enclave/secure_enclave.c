@@ -228,6 +228,7 @@ void sealHexSEK(int *errStatus, char *errString,
 
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
+    CHECK_STATE(strnlen(sek_hex, 33) == 32)
     
 
     uint64_t plaintextLen = strlen(sek_hex + 1);
