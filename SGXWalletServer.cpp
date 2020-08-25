@@ -720,10 +720,10 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
     LevelDB::getLevelDb()->writeString(_keyShareName, _value);
 }
 
-void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
-    if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
+void SGXWalletServer::writeDataToDB(const string &name, const string &value) {
+    if (LevelDB::getLevelDb()->readString(name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, "Name already exists");
     }
 
-    LevelDB::getLevelDb()->writeString(Name, value);
+    LevelDB::getLevelDb()->writeString(name, value);
 }

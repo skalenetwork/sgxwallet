@@ -95,6 +95,18 @@ public:
     }
 };
 
+class TestFixtureNoReset {
+public:
+    TestFixtureNoReset() {
+        setOptions(L_INFO, false, true);
+        initAll(L_INFO, false, true);
+    }
+
+    ~TestFixtureNoReset() {
+        TestUtils::destroyEnclave();
+    }
+};
+
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes-key-sig-gen]") {
     vector<char> errMsg(BUF_LEN, 0);
@@ -689,4 +701,10 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypt
     for (auto &thread : threads) {
         thread.join();
     }
+}
+
+TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
+}
+
+TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
