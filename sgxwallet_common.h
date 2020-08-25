@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 
 extern int useHTTPS;
-extern int encryptKeys;
+extern int enterBackupKey;
 extern int autoconfirm;
 
 #define BUF_LEN 4096

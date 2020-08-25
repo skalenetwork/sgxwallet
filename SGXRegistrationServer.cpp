@@ -48,7 +48,7 @@
 
 int printDebugInfo = -1;
 int useHTTPS = -1;
-int encryptKeys = -1;
+int enterBackupKey = -1;
 int autoconfirm = -1;
 
 shared_ptr <SGXRegistrationServer> SGXRegistrationServer::server = nullptr;

@@ -54,7 +54,7 @@
 
 using namespace std;
 
-void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
+void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
 
     CHECK_STATE(_logLevel <= 2)
 
@@ -70,8 +70,8 @@ void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _en
     spdlog::info("useHTTPS set to " + to_string(_useHTTPS));
     autoconfirm = _autoconfirm;
     spdlog::info("autoconfirm set to " + to_string(autoconfirm));
-    encryptKeys = _encryptKeys;
-    spdlog::info("encryptKeys set to " + to_string(encryptKeys));
+    enterBackupKey = _enterBackupKey;
+    spdlog::info("enterBackupKey set to " + to_string(enterBackupKey));
 }
 
 void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm) {
