@@ -161,9 +161,6 @@ int inited = 0;
 
 domain_parameters curve;
 
-#include "mutex"
-mutex m;
-
 void enclave_init() {
 
     LOG_INFO(__FUNCTION__ );
