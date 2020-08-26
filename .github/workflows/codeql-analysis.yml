@@ -35,7 +35,6 @@ jobs:
       #   languages: go, javascript, csharp, python, cpp, java
 
     - run: |
-       cp docker/install-psw.patch ./ && \
        sudo apt-get update && \
         sudo apt-get install -yq apt-utils && \
         sudo apt-get install -yq --no-install-recommends \
@@ -72,30 +71,12 @@ jobs:
         vim \
         wget \
         yasm && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/clang && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/gcc && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/g++ && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/cc && \
-       sudo ln -s /usr/bin/ccache /usr/local/bin/c++ && \
-       git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
-       cd linux-sgx && \
-       patch -p1 -i ../install-psw.patch && \
-       ./download_prebuilt.sh 2> /dev/null && \
-       su root && \
-       make -s -j$(nproc) sdk_install_pkg psw_install_pkg && \
-       ./linux/installer/bin/sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=/opt/intel && \
-       ./linux/installer/bin/sgx_linux_x64_psw_2.5.100.49891.bin && \
-       cd .. && rm -rf linux-sgx/ && cd scripts && ./build_deps.py && \
-       wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
-       cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-       cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && \
-       make install && \
-       cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-       cd /usr/src/sdk && \
-       ./autoconf.bash && \
-       ./configure --enable-sgx-simulation && \
-       make -j$(nproc)
+        cd scripts; sudo ./install_packages.sh; cd .. && \
+        cd scripts; ./build_deps.py; cd .. && \
+        source sgx-sdk-build/sgxsdk/environment && \
+        ./autoconf.bash && \
+        ./configure --enable-sgx-simulation && \
+        make -j$(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
