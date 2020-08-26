@@ -461,8 +461,18 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
 }
 
+
+
+
+
+
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
-    REQUIRE(SGXRegistrationServer::getServer() != nullptr);
+
+    PRINT_SRC_LINE
+
+    REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+    PRINT_SRC_LINE
 
     string csrFile = "insecure-samples/yourdomain.csr";
 
@@ -472,9 +482,13 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
     ss << infile.rdbuf();
     infile.close();
 
+    PRINT_SRC_LINE
+
     auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
 
     REQUIRE(result["status"] == 0);
+
+
     PRINT_SRC_LINE
     result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
 
