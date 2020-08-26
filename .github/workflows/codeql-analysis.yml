@@ -22,6 +22,9 @@ jobs:
         # a pull request then we can checkout the head.
         fetch-depth: 2
 
+    - name: Submodule update
+      run: git submodule update --init --recursive
+
     # If this run was triggered by a pull request event, then checkout
     # the head of the pull request instead of the merge commit.
     - run: git checkout HEAD^2
