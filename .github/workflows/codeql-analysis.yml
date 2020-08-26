@@ -71,12 +71,12 @@ jobs:
         vim \
         wget \
         yasm && \
-       ln -s /usr/bin/ccache /usr/local/bin/clang && \
-       ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
-       ln -s /usr/bin/ccache /usr/local/bin/gcc && \
-       ln -s /usr/bin/ccache /usr/local/bin/g++ && \
-       ln -s /usr/bin/ccache /usr/local/bin/cc && \
-       ln -s /usr/bin/ccache /usr/local/bin/c++ && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/clang && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/gcc && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/g++ && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/cc && \
+       sudo ln -s /usr/bin/ccache /usr/local/bin/c++ && \
        git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
        cd linux-sgx && \
        patch -p1 -i ../install-psw.patch && \
