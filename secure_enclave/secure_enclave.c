@@ -113,21 +113,16 @@ void free_function(void *, size_t);
 unsigned char *globalRandom;
 
 
-#define CALL_ONCE 
-
-
-void trustedEnclaveInit(uint32_t _logLevel) {
-
-    bool called = false;
-
-    if (called)  {
-        LOG_ERROR(__FUNCTION__);
-        LOG_ERROR("called twice. Aborting!");
-        abort();
+#define CALL_ONCE \
+    static bool called = false;\
+    if (called)  { \
+        LOG_ERROR(__FUNCTION__); \
+        LOG_ERROR("called twice. Aborting!"); \
+        abort(); \
     }
 
-    called = true;
-
+void trustedEnclaveInit(uint32_t _logLevel) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
@@ -145,7 +140,7 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     globalRandom = calloc(32,1);
 
-    auto ret = sgx_read_rand(globalRandom, 32);
+    int ret = sgx_read_rand(globalRandom, 32);
 
     if(ret != SGX_SUCCESS)
     {
@@ -215,7 +210,6 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 }
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
-
     char errString[BUF_LEN];
     int status;
     int *errStatus = &status;
@@ -238,6 +232,7 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
 void sealHexSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint32_t *enc_len, char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
@@ -284,8 +279,10 @@ void sealHexSEK(int *errStatus, char *errString,
 
 void trustedGenerateSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint32_t *enc_len, char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
+
 
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
@@ -309,6 +306,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 }
 
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
     CHECK_STATE(encrypted_sek);
@@ -341,6 +339,7 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
 
 void trustedSetSEK_backup(int *errStatus, char *errString,
                           uint8_t *encrypted_sek, uint32_t *enc_len, const char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
