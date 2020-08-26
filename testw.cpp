@@ -722,5 +722,3 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 
 TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
-
-

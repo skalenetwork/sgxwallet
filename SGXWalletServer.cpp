@@ -336,7 +336,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
 
-
         result["signature_v"] = signatureVector.at(0);
         result["signature_r"] = signatureVector.at(1);
         result["signature_s"] = signatureVector.at(2);
@@ -505,8 +504,6 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
         vector <string> sshares_vect;
-
-
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
@@ -736,17 +733,9 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
 }
 
 void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
-    Json::Value val;
-    Json::FastWriter writer;
-
-    val["value"] = value;
-    writer.write(val);
-
-    auto key = Name;
-
     if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, "Name already exists");
     }
 
-    LevelDB::getLevelDb()->writeString(key, value);
+    LevelDB::getLevelDb()->writeString(Name, value);
 }
