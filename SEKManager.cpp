@@ -233,34 +233,32 @@ void enter_SEK() {
 
     ifstream sek_file(BACKUP_PATH);
 
-    string SEK;
-    sek_file >> SEK;
     spdlog::info("Reading backup key from file ...");
-    cin >> SEK;
-    while (!checkHex(SEK, 16) || !check_SEK(SEK)) {
+
+    string sek((istreambuf_iterator<char>(sek_file)),
+                    istreambuf_iterator<char>());
+
+    while (!checkHex(sek, 16) || !check_SEK(sek)) {
         spdlog::error("Invalid key");
-        throw SGXException(-1, "Invalid key");
+        exit(-1);
     }
 
     spdlog::info("Setting backup key ...");
 
-    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK.c_str());
+    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, sek.c_str());
     if (status != SGX_SUCCESS) {
         spdlog::error("RPCException thrown with status {}", status);
         throw SGXException(status, errMsg.data());
     }
 
     if (err_status != 0) {
-        cerr << "RPCException thrown" << endl;
-        throw SGXException(err_status, errMsg.data());
+        spdlog::error("trustedSetSEK_backup returned err_status {}", err_status);
+        exit(-1);
     }
-
-
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
     carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
-
 
     spdlog::info("Got sealed storage encryption key.");
 
