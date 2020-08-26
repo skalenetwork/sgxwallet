@@ -6,6 +6,7 @@ RUN apt update &&  apt install -y curl
 RUN ccache -sz
 
 COPY . /usr/src/sdk
+RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 WORKDIR /usr/src/sdk
 RUN ./autoconf.bash && \
     ./configure --enable-sgx-simulation && \

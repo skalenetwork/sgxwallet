@@ -234,7 +234,7 @@ void enter_SEK() {
 
 void initSEK() {
   std::shared_ptr<std::string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
-  if (encryptKeys) {
+  if (enterBackupKey) {
     enter_SEK();
   } else {
       if (encr_SEK_ptr == nullptr) {

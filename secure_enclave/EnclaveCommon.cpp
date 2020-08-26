@@ -162,13 +162,23 @@ int inited = 0;
 domain_parameters curve;
 
 void enclave_init() {
+
+    LOG_INFO(__FUNCTION__ );
+
     if (inited == 1)
         return;
     inited = 1;
-    libff::init_alt_bn128_params();
 
-    curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+    LOG_INFO("Initing libff");
+    try {
+        libff::init_alt_bn128_params();
+        curve = domain_parameters_init();
+        domain_parameters_load_curve(curve, secp256k1);
+    } catch (exception& e) {
+        LOG_ERROR("Exception in libff init");
+        LOG_ERROR(e.what());
+    }
+    LOG_INFO("Inited libff");
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
