@@ -39,6 +39,9 @@
 
 using namespace std;
 
+#define BACKUP_PATH "./sgx_data/backup_key.txt"
+
+
 bool case_insensitive_match(string s1, string s2) {
     //convert s1 and s2 into lower case strings
     transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
@@ -81,7 +84,7 @@ void create_test_key() {
 }
 
 
-#include <experimental/filesystem>
+
 
 bool check_SEK(const string &SEK) {
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
@@ -156,7 +159,7 @@ void gen_SEK() {
 
     carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
 
-    ofstream sek_file("backup_key.txt");
+    ofstream sek_file(BACKUP_PATH);
     sek_file.clear();
 
     sek_file << SEK;
@@ -208,6 +211,8 @@ void trustedSetSEK(shared_ptr <string> hex_encr_SEK) {
     }
 }
 
+#include "experimental/filesystem"
+
 void enter_SEK() {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
@@ -220,7 +225,13 @@ void enter_SEK() {
         exit(-1);
     }
 
-    ifstream sek_file("sgx_data/backup_key.txt");
+
+    if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
+        spdlog::error("File does not exist: "  BACKUP_PATH);
+        exit(-1);
+    }
+
+    ifstream sek_file(BACKUP_PATH);
 
     string SEK;
     sek_file >> SEK;
