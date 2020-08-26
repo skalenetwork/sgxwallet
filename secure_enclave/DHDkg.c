@@ -43,12 +43,7 @@
 #include <string.h>
 
 
-
 int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
-
-
-
-
     int ret = -1;
 
     LOG_INFO(__FUNCTION__);
@@ -59,7 +54,6 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
     mpz_init(skey);
     point pub_keyB = point_init();
     point session_key = point_init();
-
 
     if (!common_key) {
         LOG_ERROR("gen_session_key: Null common_key");
@@ -107,17 +101,14 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
     point_clear(session_key);
 
     return ret;
-
 }
 
 int session_key_recover(const char *skey_str, const char *sshare, char *common_key) {
 
     int ret = -1;
 
-
     SAFE_CHAR_BUF(pb_keyB_x, 65);
     SAFE_CHAR_BUF(pb_keyB_y, 65);
-
 
     mpz_t skey;
     mpz_init(skey);
@@ -146,14 +137,6 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
         LOG_ERROR("session_key_recover: Null sshare");
         goto clean;
     }
-
-
-
-
-
-
-
-
 
     if (mpz_set_str(skey, skey_str, 16) == -1) {
         goto clean;
@@ -187,17 +170,17 @@ int xor_encrypt(char *key, char *message, char *cypher) {
 
     if (!cypher) {
         LOG_ERROR("xor_encrypt: null cypher");
-        goto clean;
+        return ret;
     }
 
     if (!key) {
         LOG_ERROR("xor_encrypt: null key");
-        goto clean;
+        return ret;
     }
 
     if (!message) {
         LOG_ERROR("xor_encrypt: null message");
-        goto clean;
+        return ret;
     }
 
     SAFE_CHAR_BUF(cypher_bin, 33);
@@ -206,13 +189,13 @@ int xor_encrypt(char *key, char *message, char *cypher) {
     uint64_t key_length;
 
     if (!hex2carray(key, &key_length, (uint8_t *) key_bin)) {
-        goto clean;
+        return ret;
     }
 
     uint64_t msg_length;
     uint8_t msg_bin[33];
     if (!hex2carray(message, &msg_length, msg_bin)) {
-        goto clean;
+        return ret;
     }
 
     for (int i = 0; i < 32; i++) {
@@ -223,11 +206,7 @@ int xor_encrypt(char *key, char *message, char *cypher) {
 
     ret = 0;
 
-    clean:
-    ;
-
     return ret;
-
 }
 
 int xor_decrypt(char *key, char *cypher, char *message) {
@@ -236,19 +215,18 @@ int xor_decrypt(char *key, char *cypher, char *message) {
 
     if (!cypher) {
         LOG_ERROR("xor_encrypt: null cypher");
-        goto clean;
+        return ret;
     }
 
     if (!key) {
         LOG_ERROR("xor_encrypt: null key");
-        goto clean;
+        return ret;
     }
 
     if (!message) {
         LOG_ERROR("xor_encrypt: null message");
-        goto clean;
+        return ret;
     }
-
 
     SAFE_CHAR_BUF(msg_bin,33);
 
@@ -256,14 +234,14 @@ int xor_decrypt(char *key, char *cypher, char *message) {
 
     uint64_t key_length;
     if (!hex2carray(key, &key_length, (uint8_t*) key_bin)) {
-        goto clean;
+        return ret;
     }
 
     uint64_t cypher_length;
 
     SAFE_CHAR_BUF(cypher_bin, 33);
     if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin)) {
-        goto clean;
+        return ret;
     }
 
     for (int i = 0; i < 32; i++) {
@@ -274,9 +252,5 @@ int xor_decrypt(char *key, char *cypher, char *message) {
 
     ret = 0;
 
-    clean:
-    ;
-
     return ret;
-
 }
