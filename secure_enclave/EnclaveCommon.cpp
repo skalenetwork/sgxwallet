@@ -145,8 +145,10 @@ libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
     SAFE_CHAR_BUF(skey_dec, BUF_LEN);
     libff::alt_bn128_Fr *ret = nullptr;
 
+    if (mpz_set_str(skey, _keyStringHex, 16) == -1) {
+        goto clean;
+    }
 
-    mpz_set_str(skey, _keyStringHex, 16);
     mpz_get_str(skey_dec, 10, skey);
 
     ret = new libff::alt_bn128_Fr(skey_dec);

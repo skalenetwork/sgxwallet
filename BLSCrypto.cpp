@@ -248,11 +248,7 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
     auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
 
-    libff::alt_bn128_Fr key(_key);
-
-    string str_key = BLSutils::ConvertToString(key);
-
-    strncpy(keyArray->data(), str_key.data(), BUF_LEN);
+    strncpy(keyArray->data(), _key, BUF_LEN);
     *errStatus = -1;
 
     unsigned int encryptedLen = 0;
@@ -268,7 +264,7 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
-        return nullptr;
+        return "";
     }
 
     std::string result(2 * BUF_LEN, '\0');
