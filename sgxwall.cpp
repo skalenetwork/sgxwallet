@@ -44,16 +44,17 @@ void SGXWallet::usage() {
 }
 
 void SGXWallet::printUsage() {
-    cerr << "Available flags:\n";
-    cerr << "-c  Do not verify client certificate\n";
-    cerr << "-s  Sign client certificate without human confirmation \n";
-    cerr << "-d  Turn on debug output\n";
-    cerr << "-v  Verbose mode: turn on debug output\n";
-    cerr << "-vv Detailed verbose mode: turn on debug and trace outputs\n";
-    cerr << "-n  Launch SGXWalletServer using http (not https)\n";
-    cerr << "-b  Restore from back up (you will need to enter backup key) \n";
-    cerr << "-y  Do not ask user to acknowledge receipt of backup key \n";
-    cerr << "-T  Generate test keys \n";
+    cerr << "\nAvailable flags:\n";
+    cerr << "\nDebug flags:\n\n";
+    cerr << "   -v  Verbose mode: turn on debug output\n";
+    cerr << "   -vv Detailed verbose mode: turn on debug and trace outputs\n";
+    cerr << "\nBackup, restore, update flags:\n\n";
+    cerr << "   -b  Restore from back up or software update. You will need to type in the backup key. \n";
+    cerr << "   -y  Do not ask user to acknowledge receipt of the backup key \n";
+    cerr << "\nHTTPS flags:\n\n";
+    cerr << "   -n  Launch sgxwallet using http. Default is to use https with a selg-signed server cert.  \n";
+    cerr << "   -c  Do not verify SSL client certs\n";
+    cerr << "   -s  Sign SSL client certs without human confirmation \n";
 }
 
 
@@ -86,7 +87,7 @@ void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector
 
 
 int main(int argc, char *argv[]) {
-    bool encryptKeysOption  = false;
+    bool enterBackupKeyOption  = false;
     bool useHTTPSOption = true;
     bool printDebugInfoOption = false;
     bool printTraceInfoOption = false;
@@ -130,10 +131,10 @@ int main(int argc, char *argv[]) {
                 useHTTPSOption = false;
                 break;                
             case 'a':
-                encryptKeysOption = false;
+                enterBackupKeyOption = false;
                 break;
             case 'b':
-                encryptKeysOption = true;
+                enterBackupKeyOption = true;
                 break;
             case 'y':
                 autoconfirmOption = true;
@@ -158,7 +159,7 @@ int main(int argc, char *argv[]) {
         logLevel = L_TRACE;
     }
 
-    setFullOptions(logLevel, useHTTPSOption, autoconfirmOption, encryptKeysOption);
+    setFullOptions(logLevel, useHTTPSOption, autoconfirmOption, enterBackupKeyOption);
 
     uint32_t enclaveLogLevel = L_INFO;
 
