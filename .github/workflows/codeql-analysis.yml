@@ -35,6 +35,7 @@ jobs:
       #   languages: go, javascript, csharp, python, cpp, java
 
     - run: |
+       cp docker/install-psw.patch ./ && \
        sudo apt-get update && \
         sudo apt-get install -yq apt-utils && \
         sudo apt-get install -yq --no-install-recommends \
@@ -92,7 +93,7 @@ jobs:
        cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
        cd /usr/src/sdk && \
        ./autoconf.bash && \
-       ./configure  && \
+       ./configure --enable-sgx-simulation && \
        make -j$(nproc)
 
     - name: Perform CodeQL Analysis
