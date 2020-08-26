@@ -112,7 +112,22 @@ void free_function(void *, size_t);
 
 unsigned char *globalRandom;
 
+
+#define CALL_ONCE 
+
+
 void trustedEnclaveInit(uint32_t _logLevel) {
+
+    bool called = false;
+
+    if (called)  {
+        LOG_ERROR(__FUNCTION__);
+        LOG_ERROR("called twice. Aborting!");
+        abort();
+    }
+
+    called = true;
+
     LOG_INFO(__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
