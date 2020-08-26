@@ -35,9 +35,9 @@ jobs:
       #   languages: go, javascript, csharp, python, cpp, java
 
     - run: |
-       apt-get update && \
-        apt-get install -yq apt-utils && \
-        apt-get install -yq --no-install-recommends \
+       sudo apt-get update && \
+        sudo apt-get install -yq apt-utils && \
+        sudo apt-get install -yq --no-install-recommends \
         alien \
         autoconf \
         automake \
