@@ -155,8 +155,7 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     return true;
 }
 
-bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
-              char *_sig) {
+bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
     auto hash = make_shared<array<uint8_t, 32>>();
 
     uint64_t binLen;
@@ -240,9 +239,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     return true;
 }
 
-bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
-              char *_sig) {
-    return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
+bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
+    return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
 std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
