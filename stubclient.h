@@ -38,35 +38,11 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value importECDSAKey(const std::string& key, const std::string& keyName) 
-        {
-            Json::Value p;
-            p["key"] = key;
-            p["keyName"] = keyName;
-            Json::Value result = this->CallMethod("importECDSAKey",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
         Json::Value generateECDSAKey() 
         {
           Json::Value p;
           p = Json::nullValue;
           Json::Value result = this->CallMethod("generateECDSAKey",p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) 
-        {
-          Json::Value p;
-          p["keyName"] = KeyName;
-          p["tempKeyName"] = tempKeyName;
-          Json::Value result = this->CallMethod("renameECDSAKey",p);
           if (result.isObject())
             return result;
           else

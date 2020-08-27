@@ -247,12 +247,6 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 }
 
-Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_key, const string &_keyName) {
-    INIT_RESULT(result)
-    result["encryptedKey"] = "";
-    RETURN_SUCCESS(result)
-}
-
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -275,34 +269,6 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         result["publicKey"] = keys.at(1);
         result["PublicKey"] = keys.at(1);
         result["keyName"] = keyName;
-    } HANDLE_SGX_EXCEPTION(result)
-
-    RETURN_SUCCESS(result);
-}
-
-Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName) {
-    spdlog::info("Entering {}", __FUNCTION__);
-    INIT_RESULT(result)
-    result["encryptedKey"] = "";
-
-    try {
-        string prefix = _tempKeyName.substr(0, 8);
-        if (prefix != "tmp_NEK:") {
-            throw SGXException(UNKNOWN_ERROR, "invalid temp key name");
-        }
-        prefix = _keyName.substr(0, 12);
-        if (prefix != "NEK_NODE_ID:") {
-            throw SGXException(UNKNOWN_ERROR, "invalid key name");
-        }
-        string postfix = _keyName.substr(12, _keyName.length());
-        if (!isStringDec(postfix)) {
-            throw SGXException(UNKNOWN_ERROR, "invalid key name");
-        }
-
-        shared_ptr <string> encryptedKey = readFromDb(_tempKeyName);
-
-        writeDataToDB(_keyName, *encryptedKey);
-        LevelDB::getLevelDb()->deleteTempNEK(_tempKeyName);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
@@ -672,10 +638,6 @@ Json::Value SGXWalletServer::generateECDSAKey() {
     return generateECDSAKeyImpl();
 }
 
-Json::Value SGXWalletServer::renameECDSAKey(const string &_keyName, const string &_tmpKeyName) {
-    return renameECDSAKeyImpl(_keyName, _tmpKeyName);
-}
-
 Json::Value SGXWalletServer::getPublicECDSAKey(const string &_keyName) {
     return getPublicECDSAKeyImpl(_keyName);
 }
@@ -691,10 +653,6 @@ SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keySh
 
 Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n) {
     return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n);
-}
-
-Json::Value SGXWalletServer::importECDSAKey(const string &_key, const string &_keyName) {
-    return importECDSAKeyImpl(_key, _keyName);
 }
 
 Json::Value SGXWalletServer::complaintResponse(const string &polyName, int ind) {
