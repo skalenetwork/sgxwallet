@@ -334,13 +334,11 @@ string convertHexToDec(const string& hex_str) {
         char *result = mpz_get_str(arr, 10, dec);
         ret = result;
     } catch (exception &e) {
+        mpz_clear(dec);
         throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
-        mpz_clear(dec);
-        return ret;
     } catch (...) {
-        throw SGXException(UNKNOWN_ERROR, "");
         mpz_clear(dec);
-        return ret;
+        throw SGXException(UNKNOWN_ERROR, "");
     }
 
     return ret;
