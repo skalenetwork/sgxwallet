@@ -32,6 +32,7 @@ print("Starting build")
 print("Top directory is:" + topDir)
 makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
+THIRD_PARTY_DIR_INTEL = topDir + "/third_party/intel"
 GMP_DIR = topDir + "/sgx-gmp"
 SSL_DIR = topDir + "/intel-sgx-ssl"
 SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
@@ -105,6 +106,7 @@ assert subprocess.call(["make", "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)
+assert subprocess.call(["cp", THIRD_PARTY_DIR_INTEL + "sgx_tgmp.h", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) == 0
 
 os.chdir(SSL_DIR)
 print("===>>> Downloading vanilla openssl source package")
