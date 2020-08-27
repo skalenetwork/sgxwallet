@@ -228,6 +228,14 @@ void TestUtils::sendRPCRequest() {
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
+    Json::Value publicShares;
+    for (int i = 0; i < n; ++i) {
+        publicShares["publicShares"][i] = pubShares[i];
+    }
+
+    Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
+    CHECK_STATE(blsPublicKeys["status"] == 0);
+
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
@@ -237,6 +245,10 @@ void TestUtils::sendRPCRequest() {
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
+
+        std::cout << "HERE" << std::endl;
+
+        CHECK_STATE(pubBLSKeys[i]["result"]["blsPublicKeyShare"].asString() == blsPublicKeys["result"]["publicKeys"][i].asString());
 
         string hash = SAMPLE_HASH;
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
