@@ -74,6 +74,8 @@ public:
 
     virtual Json::Value getBLSPublicKeyShare(const string &blsKeyName);
 
+    virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
+
     virtual Json::Value complaintResponse(const string &polyName, int ind);
 
     virtual Json::Value multG2(const string &x);
@@ -119,6 +121,8 @@ public:
                             const string &_secretShare, int _t, int _n);
 
     static Json::Value getBLSPublicKeyShareImpl(const string &_blsKeyName);
+
+    static Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n);
 
     static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
 

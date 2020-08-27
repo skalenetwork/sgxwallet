@@ -520,6 +520,45 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
     RETURN_SUCCESS(result);
 }
 
+Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!check_n_t(t, n)) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+        }
+
+        if (!publicShares.isArray()) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid public shares format");
+        }
+
+        if (publicShares.size() != (uint64_t) n) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+        }
+
+        for (int i = 0; i < n; ++i) {
+            if (!publicShares[i].isString()) {
+                throw SGXException(INVALID_DKG_PARAMS, "Invalid public shares parts format");
+            }
+
+            if (publicShares[i].asString().length() != (uint64_t) 256 * t) {
+                throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares parts");
+            }
+        }
+        vector<string> public_shares(n);
+        for (int i = 0; i < n; ++i) {
+            public_shares[i] = publicShares[i].asString();
+        }
+        vector<string> public_keys = calculateAllBlsPublicKeys(public_shares);
+        for (int i = 0; i < n; ++i) {
+            result["publicKeys"][i] = public_keys[i];
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result);
+}
+
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -632,6 +671,10 @@ SGXWalletServer::createBLSPrivateKey(const string &blsKeyName, const string &eth
 
 Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
     return getBLSPublicKeyShareImpl(blsKeyName);
+}
+
+Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) {
+    return calculateAllBLSPublicKeysImpl(publicShares, t, n);
 }
 
 Json::Value SGXWalletServer::generateECDSAKey() {

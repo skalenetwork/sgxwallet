@@ -318,6 +318,73 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
     return pubKeyVect;
 }
 
+string convertHexToDec(const string& hex_str) {
+    mpz_t dec;
+    mpz_init(dec);
+
+    string ret = "";
+
+    try {
+        if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
+            mpz_clear(dec);
+            return ret;
+        }
+
+        char arr[mpz_sizeinbase(dec, 10) + 2];
+        char *result = mpz_get_str(arr, 10, dec);
+        ret = result;
+    } catch (exception &e) {
+        throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
+        mpz_clear(dec);
+        return ret;
+    } catch (...) {
+        throw SGXException(UNKNOWN_ERROR, "");
+        mpz_clear(dec);
+        return ret;
+    }
+
+    return ret;
+}
+
+vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares) {
+    size_t n = public_shares.size();
+    size_t t = public_shares[0].length() / 256;
+    uint64_t share_length = 256;
+    uint8_t coord_length = 64;
+    vector<string> result(n);
+
+    vector<libff::alt_bn128_G2> public_keys(n, libff::alt_bn128_G2::zero());
+
+    vector<libff::alt_bn128_G2> public_values(n, libff::alt_bn128_G2::zero());
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < t; ++j) {
+            libff::alt_bn128_G2 public_share;
+
+            uint64_t pos0 = share_length * i;
+            string x_c0_str = convertHexToDec(public_shares[i].substr(pos0, coord_length));
+            string x_c1_str = convertHexToDec(public_shares[i].substr(pos0 + coord_length, coord_length));
+            string y_c0_str = convertHexToDec(public_shares[i].substr(pos0 + 2 * coord_length, coord_length));
+            string y_c1_str = convertHexToDec(public_shares[i].substr(pos0 + 3 * coord_length, coord_length));
+
+            public_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
+            public_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
+            public_share.Y.c0 = libff::alt_bn128_Fq(y_c0_str.c_str());
+            public_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
+            public_share.Z = libff::alt_bn128_Fq2::one();
+
+            public_values[i] = public_values[i] + public_share;
+        }
+    }
+
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            public_keys[i] = public_keys[i] + libff::power(libff::alt_bn128_Fr(j + 1), i) * public_values[j];
+        }
+    }
+
+    return result;
+}
+
 string decryptDHKey(const string &polyName, int ind) {
     vector<char> errMsg1(1024, 0);
     int errStatus = 0;
