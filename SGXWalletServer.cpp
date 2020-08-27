@@ -520,7 +520,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
     RETURN_SUCCESS(result);
 }
 
-Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n) {
+Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -673,7 +673,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
     return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
-Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) {
+Json::Value SGXWalletServer::calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) {
     return calculateAllBLSPublicKeysImpl(publicShares, t, n);
 }
 
