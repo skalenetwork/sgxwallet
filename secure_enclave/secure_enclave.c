@@ -113,20 +113,33 @@ void free_function(void *, size_t);
 unsigned char *globalRandom;
 
 void trustedEnclaveInit(uint32_t _logLevel) {
-    LOG_DEBUG(__FUNCTION__);
+    LOG_INFO(__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
 
     oc_realloc_func = &reallocate_function;
     oc_free_func = &free_function;
 
+    LOG_INFO("Setting memory functions");
+
     mp_get_memory_functions(NULL, &gmp_realloc_func, &gmp_free_func);
     mp_set_memory_functions(NULL, oc_realloc_func, oc_free_func);
 
+    LOG_INFO("Reading random");
 
-    globalRandom = (unsigned char *) calloc(32, 1);
 
-    sgx_read_rand(globalRandom, 32);
+    globalRandom = calloc(32,1);
+
+    auto ret = sgx_read_rand(globalRandom, 32);
+
+    if(ret != SGX_SUCCESS)
+    {
+        LOG_ERROR("sgx_read_rand failed. Aboring enclave.");
+        abort();
+    }
+
+
+    LOG_INFO("Calling enclave init");
 
     enclave_init();
 
@@ -655,7 +668,12 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
 
     CHECK_STATUS("AES decrypt failed")
 
-    enclave_sign(key, _hashX, _hashY, sig);
+    if (!enclave_sign(key, _hashX, _hashY, sig)) {
+        strncpy(errString, "Enclave failed to create bls signature", BUF_LEN);
+        LOG_ERROR(errString);
+        *errStatus = -1;
+        goto clean;
+    }
 
     strncpy(signature, sig, BUF_LEN);
 

@@ -54,7 +54,8 @@
 
 using namespace std;
 
-void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _encryptKeys) {
+void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
+    spdlog::info("Entering {}", __FUNCTION__);
 
     CHECK_STATE(_logLevel <= 2)
 
@@ -70,11 +71,12 @@ void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _en
     spdlog::info("useHTTPS set to " + to_string(_useHTTPS));
     autoconfirm = _autoconfirm;
     spdlog::info("autoconfirm set to " + to_string(autoconfirm));
-    encryptKeys = _encryptKeys;
-    spdlog::info("encryptKeys set to " + to_string(encryptKeys));
+    enterBackupKey = _enterBackupKey;
+    spdlog::info("enterBackupKey set to " + to_string(enterBackupKey));
 }
 
 void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm) {
+    spdlog::info("Entering {}", __FUNCTION__);
     setFullOptions(_logLevel, _useHTTPS, _autoconfirm, false);
 }
 
@@ -107,6 +109,7 @@ void SGXWalletServer::printDB() {
 }
 
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
+    spdlog::info("Entering {}", __FUNCTION__);
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
     string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
@@ -154,6 +157,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 }
 
 int SGXWalletServer::initHttpServer() { //without ssl
+    spdlog::info("Entering {}", __FUNCTION__);
     httpServer = make_shared<HttpServer>(BASE_PORT + 3);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
@@ -165,8 +169,8 @@ int SGXWalletServer::initHttpServer() { //without ssl
 }
 
 Json::Value
-SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index) {
-
+SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
 
     result["encryptedKeyShare"] = "";
@@ -174,6 +178,10 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     string encryptedKeyShareHex;
 
     try {
+        if (!checkName(_keyShareName, "BLS_KEY")) {
+            throw SGXException(INVALID_BLS_NAME, "Invalid BLS key name");
+        }
+
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), _keyShare.c_str());
 
         if (errStatus != 0) {
@@ -186,16 +194,15 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
 
-        writeKeyShare(_keyShareName, encryptedKeyShareHex, _index, n, t);
+        writeKeyShare(_keyShareName, encryptedKeyShareHex);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
 }
 
 Json::Value
-SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n,
-                                        int _signerIndex) {
-
+SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n) {
+    spdlog::trace("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     result["status"] = -1;
@@ -210,6 +217,11 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         if (!checkName(_keyShareName, "BLS_KEY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid BLSKey name");
         }
+
+        if (!check_n_t(t, n)) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid t/n parameters");
+        }
+
         string hashTmp = _messageHash;
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
             hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
@@ -223,7 +235,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         value = readFromDb(_keyShareName);
-        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, _signerIndex, signature.data())) {
+        if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, signature.data())) {
             throw SGXException(-1, "Could not sign data ");
         }
     } HANDLE_SGX_EXCEPTION(result)
@@ -242,6 +254,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_key, const string
 }
 
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["encryptedKey"] = "";
 
@@ -268,6 +281,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
 }
 
 Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["encryptedKey"] = "";
 
@@ -295,6 +309,7 @@ Json::Value SGXWalletServer::renameECDSAKeyImpl(const string &_keyName, const st
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName, const string &_messageHash) {
+    spdlog::trace("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     result["signature_v"] = "";
@@ -329,7 +344,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
             throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
         }
 
-
         result["signature_v"] = signatureVector.at(0);
         result["signature_r"] = signatureVector.at(1);
         result["signature_s"] = signatureVector.at(2);
@@ -339,6 +353,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
+    spdlog::debug("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     result["publicKey"] = "";
@@ -360,6 +375,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
 }
 
 Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     string encrPolyHex;
@@ -380,6 +396,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
 }
 
 Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     vector <vector<string>> verifVector;
@@ -408,6 +425,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
 }
 
 Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
     result["secretShare"] = "";
     result["SecretShare"] = "";
@@ -443,6 +461,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
 Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName,
                                                  const string &_secretShare, int _t, int _n, int _index) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["result"] = false;
 
@@ -450,7 +469,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
         if (!checkECDSAKeyName(_ethKeyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
-        if (!check_n_t(_t, _n) || _index > _n || _index < 0) {
+        if (!check_n_t(_t, _n) || _index >= _n || _index < 0) {
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
         if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
@@ -473,6 +492,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
 Json::Value
 SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
                                          const string &_secretShare, int _t, int _n) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     try {
@@ -492,8 +512,6 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
         vector <string> sshares_vect;
-
-
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
@@ -518,6 +536,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 }
 
 Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     try {
@@ -536,12 +555,14 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
 }
 
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     try {
         if (!checkName(_polyName, "POLY")) {
             throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
         }
+
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(_ind) + ":";
         shared_ptr <string> shareG2_ptr = readFromDb(shareG2_name);
 
@@ -568,6 +589,7 @@ Json::Value SGXWalletServer::multG2Impl(const string &_x) {
 }
 
 Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     result["IsExist"] = false;
@@ -595,6 +617,7 @@ Json::Value SGXWalletServer::getServerVersionImpl() {
 }
 
 Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
     result["deleted"] = false;
@@ -662,14 +685,12 @@ Json::Value SGXWalletServer::ecdsaSignMessageHash(int _base, const string &_keyS
 }
 
 Json::Value
-SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n,
-                                   int index) {
-    return importBLSKeyShareImpl(_keyShare, _keyShareName, _t, _n, index);
+SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keyShareName) {
+    return importBLSKeyShareImpl(_keyShare, _keyShareName);
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
-                                                int _signerIndex) {
-    return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n, _signerIndex);
+Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n) {
+    return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n);
 }
 
 Json::Value SGXWalletServer::importECDSAKey(const string &_key, const string &_keyName) {
@@ -710,7 +731,7 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     return dataStr;
 }
 
-void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t) {
+void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_value) {
     if (LevelDB::getLevelDb()->readString(_keyShareName) != nullptr) {
         throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Key share with this name already exists");
     }
@@ -718,18 +739,10 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
     LevelDB::getLevelDb()->writeString(_keyShareName, _value);
 }
 
-void SGXWalletServer::writeDataToDB(const string &Name, const string &value) {
-    Json::Value val;
-    Json::FastWriter writer;
-
-    val["value"] = value;
-    writer.write(val);
-
-    auto key = Name;
-
-    if (LevelDB::getLevelDb()->readString(Name) != nullptr) {
+void SGXWalletServer::writeDataToDB(const string &name, const string &value) {
+    if (LevelDB::getLevelDb()->readString(name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, "Name already exists");
     }
 
-    LevelDB::getLevelDb()->writeString(key, value);
+    LevelDB::getLevelDb()->writeString(name, value);
 }

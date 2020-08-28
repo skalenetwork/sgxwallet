@@ -51,10 +51,7 @@ string stringFromFr(const libff::alt_bn128_Fr &_el) {
     mpz_t t;
     mpz_init(t);
 
-
     try {
-
-
         _el.as_bigint().to_mpz(t);
 
         SAFE_CHAR_BUF(arr, BUF_LEN);
@@ -95,7 +92,6 @@ string ConvertToString(const T &field_elem, int base = 10) {
 
         char *tmp = mpz_get_str(arr, base, t);
 
-
         ret = string(tmp);
 
         goto clean;
@@ -128,24 +124,20 @@ string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const s
         result += delim;
         result += ConvertToString(elem.Y.c1);
 
-        goto clean;
+        return result;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return result;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return result;
     }
 
-    clean:
     return result;
 }
 
 vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
-
-
-
     vector <libff::alt_bn128_Fr> result;
     string str(coeffs);
     string delim;
@@ -168,14 +160,14 @@ vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symb
             prev = pos + delim.length();
         } while (pos < str.length() && prev < str.length());
 
-        goto clean;
+        return result;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return result;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return result;
     }
 
     clean:
@@ -202,22 +194,21 @@ int gen_dkg_poly(char *secret, unsigned _t) {
         strncpy(secret, result.c_str(), result.length() + 1);
 
         if (strlen(secret) == 0) {
-            goto clean;
+            return status;
         }
 
         status = 0;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return status;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return status;
     }
 
     clean:
     return status;
-
 }
 
 libff::alt_bn128_Fr PolynomialValue(const vector <libff::alt_bn128_Fr> &pol, libff::alt_bn128_Fr point, unsigned _t) {
@@ -232,16 +223,15 @@ libff::alt_bn128_Fr PolynomialValue(const vector <libff::alt_bn128_Fr> &pol, lib
             pow *= point;
         }
 
-        goto clean;
+        return result;
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return result;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return result;
     }
 
-    clean:
     return result;
 }
 
@@ -271,10 +261,10 @@ void calc_secret_shares(const char *decrypted_coeffs,
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return;
     }
 
     clean:
@@ -283,8 +273,6 @@ void calc_secret_shares(const char *decrypted_coeffs,
 
 int calc_secret_share(const char *decrypted_coeffs, char *s_share,
                       unsigned _t, unsigned _n, unsigned ind) {
-
-
     int result = 1;
 
     CHECK_ARG_CLEAN(decrypted_coeffs);
@@ -296,7 +284,7 @@ int calc_secret_share(const char *decrypted_coeffs, char *s_share,
         char symbol = ':';
         vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
         if (poly.size() != _t) {
-            goto clean;
+            return result;
         }
 
         libff::alt_bn128_Fr secret_share = PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
@@ -306,14 +294,14 @@ int calc_secret_share(const char *decrypted_coeffs, char *s_share,
 
         strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
         result = 0;
-        goto clean;
+        return result;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return result;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return result;
     }
 
     clean:
@@ -381,12 +369,11 @@ int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
     CHECK_ARG_CLEAN(public_shares);
     CHECK_ARG_CLEAN(_t > 0);
 
-
     try {
 
         vector <libff::alt_bn128_Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
         if (poly.size() != _t) {
-            goto clean;
+            return ret;
         }
         for (size_t i = 0; i < _t; ++i) {
             libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one();
@@ -406,7 +393,7 @@ int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
     }
 
     clean:
-    return  ret;
+    return ret;
 }
 
 string ConvertHexToDec(string hex_str) {
@@ -435,8 +422,8 @@ string ConvertHexToDec(string hex_str) {
     }
 
     clean:
-       mpz_clear(dec);
-       return ret;
+    mpz_clear(dec);
+    return ret;
 }
 
 int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) {
@@ -461,7 +448,7 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
             string y_c1_str = ConvertHexToDec(pub_shares_str.substr(pos0 + 3 * coord_length, coord_length));
             if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" || y_c1_str == "") {
                 ret = 2;
-                goto clean;
+                return ret;
             }
             pub_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
             pub_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
@@ -498,11 +485,11 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
-        goto clean;
+        return ret;
 
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        goto clean;
+        return ret;
     }
 
     clean:
@@ -550,6 +537,6 @@ int calc_bls_public_key(char *skey_hex, char *pub_key) {
     }
 
     clean:
-       mpz_clear(skey);
-       return ret;
+    mpz_clear(skey);
+    return ret;
 }

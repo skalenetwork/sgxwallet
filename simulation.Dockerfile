@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y curl && \
 
 RUN ccache -sz
 
+RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
+
 # /usr/src/sdk is made available to use as a location for the SGX SDK.
 COPY . /usr/src/sdk
 WORKDIR /usr/src/sdk

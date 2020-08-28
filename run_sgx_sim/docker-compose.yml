@@ -32,12 +32,10 @@ services:
         max-file: "4"
     
     # Restart policy.
-    restart: unless-stopped
-
+    restart: unless-
+      
     # Default command with flags.
     # See docs/run-in-hardware-mode.md for more information.
     # -s Sign client certificate without user confirmation
     # -y Do not ask user to acknowledge receipt of backup key.
     command: -s -y
-
-
