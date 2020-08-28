@@ -1,15 +1,16 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-# SKALE sgxwallet Prerequisites
+# SKALE SGXWallet Prerequisites
 
-sgxwallet depends on several freely available
-software components. These must be installed and configured before
-running sgxwallet.
+SGXWallet depends on several freely available software components. These must be installed and configured before
+running SGXWallet.
 This document describes how to install and configure these required components.
 
 ## Recommended host system
 
-sgxwallet has been tested and should be run on Ubuntu 18.04.
+-   Ubuntu 18.04
+-   At least 8GB RAM
+-   Swap size equals to half of RAM size
 
 Sgxwallet may run on other Linux distributions, 
 but the installation process is likely to be more complicated, 
