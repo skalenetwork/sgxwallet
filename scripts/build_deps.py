@@ -33,9 +33,6 @@ print("Top directory is:" + topDir)
 makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
 GMP_DIR = topDir + "/sgx-gmp"
-SSL_DIR = topDir + "/intel-sgx-ssl"
-SSL_SOURCE_DIR = SSL_DIR + "/openssl_source"
-SSL_MAKE_DIR = SSL_DIR + "/Linux"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
 LEVELDB_DIR = topDir + "/leveldb"
 LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
@@ -106,15 +103,6 @@ assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)
 assert subprocess.call(["cp", "sgx_tgmp.h.fixed", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) == 0
-
-os.chdir(SSL_DIR)
-print("===>>> Downloading vanilla openssl source package")
-os.chdir(SSL_SOURCE_DIR)
-assert subprocess.call(["wget", "https://www.openssl.org/source/openssl-1.1.1b.tar.gz"]) == 0
-print("===>>> Making SSL  project")
-os.chdir(SSL_MAKE_DIR)
-#assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all", "test"]) == 0
-assert subprocess.call(["make",   "SGX_SDK=" + SGX_SDK_DIR_SSL, "all" ]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
