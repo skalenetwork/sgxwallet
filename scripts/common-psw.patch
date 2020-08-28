@@ -18,3 +18,4 @@ index e46cf53..f1cd80f 100644
 +       cp libsgx_enclave_common.so libsgx_enclave_common.so.$(ECL_VER) && \
         ln -fs libsgx_enclave_common.so.$(ECL_VER) libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') && \
         ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
+        
