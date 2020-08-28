@@ -44,9 +44,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdbool.h>
 
-extern int useHTTPS;
-extern int encryptKeys;
-extern int autoconfirm;
+extern bool useHTTPS;
+extern bool enterBackupKey;
+extern bool autoconfirm;
 
 #define BUF_LEN 4096
 
@@ -90,7 +90,6 @@ extern int autoconfirm;
 #define INVALID_HEX -21
 #define INVALID_ECSDA_SIGNATURE -22
 #define KEY_NAME_ALREADY_EXISTS -23 \
-
 
 #define ERROR_IN_ENCLAVE -33
 

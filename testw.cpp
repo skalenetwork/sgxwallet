@@ -82,18 +82,6 @@ public:
     }
 };
 
-class TestFixtureNoReset {
-public:
-    TestFixtureNoReset() {
-        setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true);
-    }
-
-    ~TestFixtureNoReset() {
-        TestUtils::destroyEnclave();
-    }
-};
-
 class TestFixtureHTTPS {
 public:
     TestFixtureHTTPS() {
@@ -103,6 +91,18 @@ public:
     }
 
     ~TestFixtureHTTPS() {
+        TestUtils::destroyEnclave();
+    }
+};
+
+class TestFixtureNoReset {
+public:
+    TestFixtureNoReset() {
+        setOptions(L_INFO, false, true);
+        initAll(L_INFO, false, true);
+    }
+
+    ~TestFixtureNoReset() {
         TestUtils::destroyEnclave();
     }
 };
@@ -286,15 +286,14 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
-    vector<char> secret(2490, 0);
+    vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
-    /*status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
-                                        (uint8_t *) secret.data(), &encLen);
+    status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
+                                        encLen, (uint8_t *) secret.data());
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
-     */
 }
 
 
@@ -432,7 +431,7 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     libff::alt_bn128_Fr key = libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035438182864059942098934847");
     std::string key_str = TestUtils::stringFromFr(key);
     PRINT_SRC_LINE
-    c.importBLSKeyShare(key_str, name, 1, 2, 1);
+    c.importBLSKeyShare(key_str, name);
     PRINT_SRC_LINE
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
@@ -461,8 +460,18 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
 }
 
+
+
+
+
+
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
-    REQUIRE(SGXRegistrationServer::getServer() != nullptr);
+
+    PRINT_SRC_LINE
+
+    REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+    PRINT_SRC_LINE
 
     string csrFile = "insecure-samples/yourdomain.csr";
 
@@ -472,9 +481,13 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
     ss << infile.rdbuf();
     infile.close();
 
+    PRINT_SRC_LINE
+
     auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
 
     REQUIRE(result["status"] == 0);
+
+
     PRINT_SRC_LINE
     result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
 
@@ -644,7 +657,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
         REQUIRE(pubBLSKeys[i]["status"] == 0);
 
         string hash = SAMPLE_HASH;
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
         REQUIRE(blsSigShares[i]["status"] == 0);
 
         shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
@@ -708,5 +721,3 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 
 TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
-
-

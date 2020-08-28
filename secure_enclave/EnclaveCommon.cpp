@@ -77,7 +77,8 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
     string *ret = nullptr;
     mpz_t t;
-    mpz_init(t);SAFE_CHAR_BUF(arr, BUF_LEN);
+    mpz_init(t);
+    SAFE_CHAR_BUF(arr, BUF_LEN);
 
     try {
         _fq->as_bigint().to_mpz(t);
@@ -140,11 +141,14 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
 
     mpz_t skey;
-    mpz_init(skey);SAFE_CHAR_BUF(skey_dec, BUF_LEN);
+    mpz_init(skey);
+    SAFE_CHAR_BUF(skey_dec, BUF_LEN);
     libff::alt_bn128_Fr *ret = nullptr;
 
+    if (mpz_set_str(skey, _keyStringHex, 16) == -1) {
+        goto clean;
+    }
 
-    mpz_set_str(skey, _keyStringHex, 16);
     mpz_get_str(skey_dec, 10, skey);
 
     ret = new libff::alt_bn128_Fr(skey_dec);
@@ -162,13 +166,23 @@ int inited = 0;
 domain_parameters curve;
 
 void enclave_init() {
+
+    LOG_INFO(__FUNCTION__ );
+
     if (inited == 1)
         return;
     inited = 1;
-    libff::init_alt_bn128_params();
 
-    curve = domain_parameters_init();
-    domain_parameters_load_curve(curve, secp256k1);
+    LOG_INFO("Initing libff");
+    try {
+        libff::init_alt_bn128_params();
+        curve = domain_parameters_init();
+        domain_parameters_load_curve(curve, secp256k1);
+    } catch (exception& e) {
+        LOG_ERROR("Exception in libff init");
+        LOG_ERROR(e.what());
+    }
+    LOG_INFO("Inited libff");
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,

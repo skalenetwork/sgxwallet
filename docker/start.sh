@@ -24,10 +24,6 @@ ls /root/.rnd;
 
 cd /usr/src/sdk;
 
-echo "Checking that sgxwallet can connect to SGX whitelist update server whitelist.trustedservices.intel.com "
-echo "If this test fails, you need to update your network config or firewall to allow this connection"
-
-curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
 
 if [[ -f "/var/hwmode" ]]
 then
@@ -37,6 +33,9 @@ jhid -d
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!
 sleep 2
+echo "Checking that sgxwallet can connect to SGX whitelist update server whitelist.trustedservices.intel.com "
+echo "If this test fails, you need to update your network config or firewall to allow this connection"
+curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
 else
 echo "Running in SGX simulation mode"
 fi

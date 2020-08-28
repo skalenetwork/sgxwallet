@@ -39,6 +39,7 @@
 #include "InvalidArgumentException.h"
 #include "InvalidStateException.h"
 
+#include <boost/core/ignore_unused.hpp>
 #include "common.h"
 
 #include <shared_mutex>
@@ -74,22 +75,25 @@ public:
 };
 
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; \
-              int errStatus = UNKNOWN_ERROR; string errMsg(BUF_LEN, '\0');__RESULT__["status"] = UNKNOWN_ERROR; __RESULT__["errorMessage"] = \
+              int errStatus = UNKNOWN_ERROR; boost::ignore_unused(errStatus); string errMsg(BUF_LEN, '\0');__RESULT__["status"] = UNKNOWN_ERROR; __RESULT__["errorMessage"] = \
 "Server error. Please see server log.";
 
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
     catch (SGXException& _e) { \
       if (_e.status != 0) {__RESULT__["status"] = _e.status;} else { __RESULT__["status"]  = UNKNOWN_ERROR;}; \
-      __RESULT__["errorMessage"] = _e.errString; \
+      __RESULT__["errorMessage"] = _e.errString;                                                              \
+      spdlog::error("JSON call failed {}", __FUNCTION__);                             \
       return __RESULT__; \
       } catch (exception& _e) { \
       __RESULT__["errorMessage"] = _e.what(); \
+      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
       return __RESULT__; \
       }\
       catch (...) { \
       exception_ptr p = current_exception(); \
       printf("Exception %s \n", p.__cxa_exception_type()->name()); \
-      __RESULT__["errorMessage"] = "Unknown exception"; \
+      __RESULT__["errorMessage"] = "Unknown exception";                                                       \
+      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
       return __RESULT__; \
       }
 
