@@ -196,13 +196,11 @@ void TestUtils::sendRPCRequest() {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
-                string pubShare = verifVects[i]["Verification Vector"][k][j].asString();
+                string pubShare = verifVects[i]["verificationVector"][k][j].asString();
                 pubShares[i] += convertDecToHex(pubShare);
             }
         }
     }
-
-    int k = 0;
 
     vector <string> secShares(n);
 
@@ -212,8 +210,6 @@ void TestUtils::sendRPCRequest() {
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
             CHECK_STATE(verif["status"] == 0);
-
-            k++;
         }
 
     BLSSigShareSet sigShareSet(t, n);
@@ -246,9 +242,15 @@ void TestUtils::sendRPCRequest() {
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
-        std::cout << "HERE" << std::endl;
+        libff::alt_bn128_G2 publicKey(libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][1].asCString())),
+                                      libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][2].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][3].asCString())),
+                                      libff::alt_bn128_Fq2::one());
 
-        CHECK_STATE(pubBLSKeys[i]["result"]["blsPublicKeyShare"].asString() == blsPublicKeys["result"]["publicKeys"][i].asString());
+        string public_key_str = convertG2ToString(publicKey);
+
+        CHECK_STATE(public_key_str == blsPublicKeys["publicKeys"][i].asString());
 
         string hash = SAMPLE_HASH;
         blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);

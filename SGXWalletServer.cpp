@@ -546,11 +546,18 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& pu
                 throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares parts");
             }
         }
+
         vector<string> public_shares(n);
         for (int i = 0; i < n; ++i) {
             public_shares[i] = publicShares[i].asString();
         }
+
         vector<string> public_keys = calculateAllBlsPublicKeys(public_shares);
+
+        if (public_keys.size() != n) {
+            throw SGXException(UNKNOWN_ERROR, "");
+        }
+
         for (int i = 0; i < n; ++i) {
             result["publicKeys"][i] = public_keys[i];
         }
