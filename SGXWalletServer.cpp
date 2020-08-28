@@ -143,7 +143,15 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
         }
     }
 
-    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, 64);
+
+    int numThreads = 64;
+
+#if SGX_MODE == SIM
+   numThreads = 16; 
+#endif
+
+
+    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, numThreads);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
