@@ -70,10 +70,10 @@ string TestUtils::stringFromFr(libff::alt_bn128_Fr &el) {
     mpz_init(t);
     el.as_bigint().to_mpz(t);
     char arr[mpz_sizeinbase(t, 10) + 2];
-    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return string(tmp);
+    return string(arr);
 }
 
 

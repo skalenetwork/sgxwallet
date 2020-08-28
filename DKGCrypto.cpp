@@ -63,10 +63,10 @@ template<class T> string ConvertToString(T field_elem, int base = 10) {
 
     char arr[mpz_sizeinbase(t, base) + 2];
 
-    char *tmp = mpz_get_str(arr, base, t);
+    mpz_get_str(arr, base, t);
     mpz_clear(t);
 
-    string output = tmp;
+    string output = arr;
 
     return output;
 }
@@ -84,8 +84,8 @@ string convertHexToDec(const string& hex_str) {
         }
 
         char arr[mpz_sizeinbase(dec, 10) + 2];
-        char *result = mpz_get_str(arr, 10, dec);
-        ret = result;
+        mpz_get_str(arr, 10, dec);
+        ret = arr;
     } catch (exception &e) {
         mpz_clear(dec);
         throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
