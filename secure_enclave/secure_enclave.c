@@ -962,9 +962,6 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
 
         CHECK_STATUS("session_key_recover failed");
 
-
-
-
         common_key[64] = 0;
 
         SAFE_CHAR_BUF(decr_sshare, 65);

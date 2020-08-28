@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+
 using namespace std;
 
 string gen_dkg_poly( int _t);
@@ -46,6 +48,12 @@ bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char
 vector<string> GetBLSPubKey(const char * encryptedKeyHex);
 
 vector<string> mult_G2(const string& x);
+
+string convertHexToDec(const string& hex_str);
+
+string convertG2ToString(const libff::alt_bn128_G2& elem, int base = 10, const string& delim = ":");
+
+vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares);
 
 bool TestCreateBLSShare( const char * s_shares);
 
