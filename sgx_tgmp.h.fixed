@@ -1,20 +1,29 @@
 /* Definitions for GNU multiple precision functions.   -*- mode: c -*-
+
 Copyright 1991, 1993-1997, 1999-2016 Free Software Foundation, Inc.
+
 This file is part of the GNU MP Library.
+
 The GNU MP Library is free software; you can redistribute it and/or modify
 it under the terms of either:
+
   * the GNU Lesser General Public License as published by the Free
     Software Foundation; either version 3 of the License, or (at your
     option) any later version.
+
 or
+
   * the GNU General Public License as published by the Free Software
     Foundation; either version 2 of the License, or (at your option) any
     later version.
+
 or both in parallel, as here.
+
 The GNU MP Library is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
+
 You should have received copies of the GNU General Public License and the
 GNU Lesser General Public License along with the GNU MP Library.  If not,
 see https://www.gnu.org/licenses/.  */
@@ -57,29 +66,37 @@ see https://www.gnu.org/licenses/.  */
 
 /* __GMP_DECLSPEC supports Windows DLL versions of libgmp, and is empty in
    all other circumstances.
+
    When compiling objects for libgmp, __GMP_DECLSPEC is an export directive,
    or when compiling for an application it's an import directive.  The two
    cases are differentiated by __GMP_WITHIN_GMP defined by the GMP Makefiles
    (and not defined from an application).
+
    __GMP_DECLSPEC_XX is similarly used for libgmpxx.  __GMP_WITHIN_GMPXX
    indicates when building libgmpxx, and in that case libgmpxx functions are
    exports, but libgmp functions which might get called are imports.
+
    Libtool DLL_EXPORT define is not used.
+
    There's no attempt to support GMP built both static and DLL.  Doing so
    would mean applications would have to tell us which of the two is going
    to be used when linking, and that seems very tedious and error prone if
    using GMP by hand, and equally tedious from a package since autoconf and
    automake don't give much help.
+
    __GMP_DECLSPEC is required on all documented global functions and
    variables, the various internals in gmp-impl.h etc can be left unadorned.
    But internals used by the test programs or speed measuring programs
    should have __GMP_DECLSPEC, and certainly constants or variables must
    have it or the wrong address will be resolved.
+
    In gcc __declspec can go at either the start or end of a prototype.
+
    In Microsoft C __declspec must go at the start, or after the type like
    void __declspec(...) *foo()".  There's no __dllexport or anything to
    guard against someone foolish #defining dllexport.  _export used to be
    available, but no longer.
+
    In Borland C _export still exists, but needs to go after the type, like
    "void _export foo();".  Would have to change the __GMP_DECLSPEC syntax to
    make use of that.  Probably more trouble than it's worth.  */
@@ -266,6 +283,7 @@ typedef __mpq_struct *mpq_ptr;
 /* The prototypes for gmp_vprintf etc are provided only if va_list is defined,
    via an application having included <stdarg.h>.  Usually va_list is a typedef
    so can't be tested directly, but C99 specifies that va_start is a macro.
+
    <stdio.h> will define some sort of va_list for vprintf and vfprintf, but
    let's not bother trying to use that since it's not standard and since
    application uses for gmp_vprintf etc will almost certainly require the
@@ -297,6 +315,7 @@ typedef __mpq_struct *mpq_ptr;
 
 /* __GMP_CAST allows us to use static_cast in C++, so our macros are clean
    to "g++ -Wold-style-cast".
+
    Casts in "extern inline" code within an extern "C" block don't induce
    these warnings, so __GMP_CAST only needs to be used on documented
    macros.  */
@@ -310,13 +329,16 @@ typedef __mpq_struct *mpq_ptr;
 
 /* An empty "throw ()" means the function doesn't throw any C++ exceptions,
    this can save some stack frame info in applications.
+
    Currently it's given only on functions which never divide-by-zero etc,
    don't allocate memory, and are expected to never need to allocate memory.
    This leaves open the possibility of a C++ throw from a future GMP
    exceptions scheme.
+
    mpz_set_ui etc are omitted to leave open the lazy allocation scheme
    described in doc/tasks.html.  mpz_get_d etc are omitted to leave open
    exceptions for float overflows.
+
    Note that __GMP_NOTHROW must be given on any inlines the same as on their
    prototypes (for g++ at least, where they're used together).  Note also
    that g++ 3.0 demands that __GMP_NOTHROW is before other attributes like
@@ -1746,9 +1768,11 @@ __GMP_DECLSPEC mp_size_t mpn_sec_invert_itch (mp_size_t) __GMP_ATTRIBUTE_PURE;
 
 /* The following are provided as inlines where possible, but always exist as
    library functions too, for binary compatibility.
+
    Within gmp itself this inlining generally isn't relied on, since it
    doesn't get done for all compilers, whereas if something is worth
    inlining then it's worth arranging always.
+
    There are two styles of inlining here.  When the same bit of code is
    wanted for the inline as for the library version, then __GMP_FORCE_foo
    arranges for that code to be emitted and the __GMP_EXTERN_INLINE
@@ -1949,12 +1973,15 @@ mpq_neg (mpq_ptr __gmp_w, mpq_srcptr __gmp_u)
 /**************** mpn inlines ****************/
 
 /* The comments with __GMPN_ADD_1 below apply here too.
+
    The test for FUNCTION returning 0 should predict well.  If it's assumed
    {yp,ysize} will usually have a random number of bits then the high limb
    won't be full and a carry out will occur a good deal less than 50% of the
    time.
+
    ysize==0 isn't a documented feature, but is used internally in a few
    places.
+
    Producing cout last stops it using up a register during the main part of
    the calculation, though gcc (as of 3.0) on an "if (mpn_add (...))"
    doesn't seem able to move the true and false legs of the conditional up
@@ -2006,16 +2033,20 @@ mpq_neg (mpq_ptr __gmp_w, mpq_srcptr __gmp_u)
    remains nice and clear to the compiler, so that __GMPN_COPY_REST can
    disappear, and the load/add/store gets a chance to become a
    read-modify-write on CISC CPUs.
+
    Alternatives:
+
    Using a pair of pointers instead of indexing would be possible, but gcc
    isn't able to recognise compile-time src==dst in that case, even when the
    pointers are incremented more or less together.  Other compilers would
    very likely have similar difficulty.
+
    gcc could use "if (__builtin_constant_p(src==dst) && src==dst)" or
    similar to detect a compile-time src==dst.  This works nicely on gcc
    2.95.x, it's not good on gcc 3.0 where __builtin_constant_p(p==p) seems
    to be always false, for a pointer p.  But the current code form seems
    good enough for src==dst anyway.
+
    gcc on x86 as usual doesn't give particularly good flags handling for the
    carry/borrow detection.  It's tempting to want some multi instruction asm
    blocks to help it, and this was tried, but in truth there's only a few

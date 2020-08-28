@@ -103,7 +103,7 @@ assert subprocess.call(["make", "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)
-assert subprocess.call(["cp", THIRD_PARTY_DIR_INTEL + "/sgx_tgmp.h", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) == 0
+assert subprocess.call(["cp", "sgx_tgmp.h.fixed", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
