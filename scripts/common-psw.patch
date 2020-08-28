@@ -3,19 +3,19 @@ index e46cf53..f1cd80f 100644
 --- a/linux/installer/common/psw/Makefile
 +++ b/linux/installer/common/psw/Makefile
 @@ -50,11 +50,11 @@ install:
-        install -d $(USR_LIB_PATH)
-        cp -r $(SOURCE_FOLDER)/* $(SOURCE_INSTALL_PATH)
-        install $(SCRIPTS_FOLDER)/* $(SCRIPTS_INSTALL_PATH)
--       mv $(PSW_LIB_PATH)/libsgx_uae_service.so $(USR_LIB_PATH)
--       mv $(PSW_LIB_PATH)/libsgx_urts.so $(USR_LIB_PATH)
--       mv $(PSW_LIB_PATH)/libsgx_enclave_common.so $(USR_LIB_PATH)
-+       cp $(PSW_LIB_PATH)/libsgx_uae_service.so $(USR_LIB_PATH)
-+       cp $(PSW_LIB_PATH)/libsgx_urts.so $(USR_LIB_PATH)
-+       cp $(PSW_LIB_PATH)/libsgx_enclave_common.so $(USR_LIB_PATH)
-        rmdir $(PSW_LIB_PATH)
-        cd $(USR_LIB_PATH) && \
--       mv libsgx_enclave_common.so libsgx_enclave_common.so.$(ECL_VER) && \
-+       cp libsgx_enclave_common.so libsgx_enclave_common.so.$(ECL_VER) && \
-        ln -fs libsgx_enclave_common.so.$(ECL_VER) libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') && \
-        ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
-        
+ 	install -d $(USR_LIB_PATH)
+ 	cp -r $(SOURCE_FOLDER)/* $(SOURCE_INSTALL_PATH)
+ 	install $(SCRIPTS_FOLDER)/* $(SCRIPTS_INSTALL_PATH)
+-	mv $(PSW_LIB_PATH)/libsgx_uae_service.so $(USR_LIB_PATH)
+-	mv $(PSW_LIB_PATH)/libsgx_urts.so $(USR_LIB_PATH)
+-	mv $(PSW_LIB_PATH)/libsgx_enclave_common.so $(USR_LIB_PATH)
++	cp $(PSW_LIB_PATH)/libsgx_uae_service.so $(USR_LIB_PATH)
++	cp $(PSW_LIB_PATH)/libsgx_urts.so $(USR_LIB_PATH)
++	cp $(PSW_LIB_PATH)/libsgx_enclave_common.so $(USR_LIB_PATH)
+ 	rmdir $(PSW_LIB_PATH)
+ 	cd $(USR_LIB_PATH) && \
+-	mv libsgx_enclave_common.so libsgx_enclave_common.so.$(ECL_VER) && \
++	cp libsgx_enclave_common.so libsgx_enclave_common.so.$(ECL_VER) && \
+ 	ln -fs libsgx_enclave_common.so.$(ECL_VER) libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') && \
+ 	ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
+\ No newline at end of file
