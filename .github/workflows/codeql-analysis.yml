@@ -38,13 +38,18 @@ jobs:
       #   languages: go, javascript, csharp, python, cpp, java
 
     - name: Copy path
-      run : cp docker/install-psw.patch ./
+      run: cp docker/install-psw.patch ./
+
+    - name: apt-get update
+      run: sudo apt-get update
+
+    - name: apt-utils
+      run: sudo apt-get install -yq apt-utils
 
     - name: Install prereqs
-      run: sudo apt-get update && \
-            sudo apt-get install -yq apt-utils && \
-            sudo apt-get install -yq --no-install-recommends \
-            alien \
+      run: |
+        sudo apt-get install -yq --no-install-recommends \
+          alien \
             autoconf \
             automake \
             bison \
@@ -80,7 +85,8 @@ jobs:
             yasm
 
     - name: Install linux-sgx
-      run: git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
+      run: | 
+          git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
             cd linux-sgx && \
             patch -p1 -i ../install-psw.patch && \
             ./download_prebuilt.sh 2> /dev/null && \
