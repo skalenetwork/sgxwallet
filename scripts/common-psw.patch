@@ -23,10 +23,10 @@ index e46cf53..5b74add 100644
 +	sudo ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
 \ No newline at end of file
 diff --git a/linux/installer/common/psw/install.sh b/linux/installer/common/psw/install.sh
-index 59f3ed6..8df19e2 100755
+index 59f3ed6..cda2169 100755
 --- a/linux/installer/common/psw/install.sh
 +++ b/linux/installer/common/psw/install.sh
-@@ -42,7 +42,7 @@ AESM_PATH=$PSW_DST_PATH/aesm
+@@ -42,26 +42,26 @@ AESM_PATH=$PSW_DST_PATH/aesm
  # Install the AESM service
  
  id -u aesmd &> /dev/null || \
@@ -34,4 +34,34 @@ index 59f3ed6..8df19e2 100755
 +    sudo /usr/sbin/useradd -r -U -c "User for aesmd" \
      -d /var/opt/aesmd -s /sbin/nologin aesmd
  
- mkdir -p /var/opt/aesmd
+-mkdir -p /var/opt/aesmd
+-cp -rf $AESM_PATH/data /var/opt/aesmd/
+-rm -rf $AESM_PATH/data
+-cp -rf $AESM_PATH/conf/aesmd.conf /etc/aesmd.conf
+-rm -rf $AESM_PATH/conf
+-chmod  0644 /etc/aesmd.conf
+-chown -R aesmd:aesmd /var/opt/aesmd
+-chmod 0750 /var/opt/aesmd
++sudo mkdir -p /var/opt/aesmd
++sudo cp -rf $AESM_PATH/data /var/opt/aesmd/
++sudo rm -rf $AESM_PATH/data
++sudo cp -rf $AESM_PATH/conf/aesmd.conf /etc/aesmd.conf
++sudo rm -rf $AESM_PATH/conf
++sudo chmod  0644 /etc/aesmd.conf
++sudo chown -R aesmd:aesmd /var/opt/aesmd
++sudo chmod 0750 /var/opt/aesmd
+ 
+ # By default the AESM's communication socket will be created in
+ # /var/run/aesmd.  Putting the socket in the aesmd sub-directory
+ # as opposed to directly in /var/run allows the user to create a
+ # mount a volume at /var/run/aesmd and thus expose the socket to
+ # a different filesystem or namespace, e.g. a Docker container.
+-mkdir -p /var/run/aesmd
+-chown -R aesmd:aesmd /var/run/aesmd
+-chmod 0755 /var/run/aesmd
++sudo mkdir -p /var/run/aesmd
++sudo chown -R aesmd:aesmd /var/run/aesmd
++sudo chmod 0755 /var/run/aesmd
+ 
+ if [ -d /run/systemd/system ]; then
+     systemctl stop aesmd &> /dev/null || echo
