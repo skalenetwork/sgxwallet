@@ -23,7 +23,7 @@ index e46cf53..5b74add 100644
 +	sudo ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
 \ No newline at end of file
 diff --git a/linux/installer/common/psw/install.sh b/linux/installer/common/psw/install.sh
-index 59f3ed6..cda2169 100755
+index 59f3ed6..a3fc980 100755
 --- a/linux/installer/common/psw/install.sh
 +++ b/linux/installer/common/psw/install.sh
 @@ -42,26 +42,26 @@ AESM_PATH=$PSW_DST_PATH/aesm
@@ -65,3 +65,21 @@ index 59f3ed6..cda2169 100755
  
  if [ -d /run/systemd/system ]; then
      systemctl stop aesmd &> /dev/null || echo
+@@ -73,12 +73,12 @@ if [ -d /run/systemd/system ]; then
+         AESMD_DEST=/usr/lib/systemd/system/$AESMD_NAME
+     fi
+     echo -n "Installing $AESMD_NAME service ..."
+-    sed -e "s:@aesm_folder@:$AESM_PATH:" \
++    sudo sed -e "s:@aesm_folder@:$AESM_PATH:" \
+         $AESMD_TEMP > $AESMD_DEST
+-    chmod 0644 $AESMD_DEST
+-    rm -f $AESMD_TEMP
+-    rm -f $AESM_PATH/aesmd.conf
+-    systemctl enable aesmd
++    sudo chmod 0644 $AESMD_DEST
++    sudo rm -f $AESMD_TEMP
++    sudo rm -f $AESM_PATH/aesmd.conf
++    sudo systemctl enable aesmd
+     retval=$?
+ elif [ -d /etc/init/ ]; then
+     /sbin/initctl stop aesmd &> /dev/null || echo
