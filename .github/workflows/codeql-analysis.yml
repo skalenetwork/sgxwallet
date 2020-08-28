@@ -71,6 +71,7 @@ jobs:
             protobuf-compiler \
             python \
             python-yaml \
+            sudo \
             telnet  \
             texinfo \
             uuid-dev \
