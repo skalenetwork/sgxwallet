@@ -33,12 +33,12 @@ print("Top directory is:" + topDir)
 makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
 GMP_DIR = topDir + "/sgx-gmp"
-SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
+SGX_SDK_DIR_SSL = "/opt/intel/sgxsdk"
 LEVELDB_DIR = topDir + "/leveldb"
 LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
-SDK_DIR = topDir + "/sgx-sdk-build"
+SDK_DIR = "/opt/intel"
 BLS_DIR = topDir +  "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
@@ -51,11 +51,11 @@ subprocess.call(["rm", "-f",  "missing"])
 subprocess.call(["rm", "-f",  "depcomp"])
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
-subprocess.call(["rm", "-rf", SDK_DIR])
+# subprocess.call(["rm", "-rf", SDK_DIR])
 
 subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
-subprocess.call(["rm", "-rf", SDK_DIR])
+# subprocess.call(["rm", "-rf", SDK_DIR])
 
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
@@ -83,10 +83,10 @@ print("Build JSON");
 os.chdir(JSON_LIBS_DIR)
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 
-print("Install Linux SDK");
+# print("Install Linux SDK");
 
-os.chdir(SCRIPTS_DIR)
-assert subprocess.call(["bash", "-c", "./sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0
+# os.chdir(SCRIPTS_DIR)
+# assert subprocess.call(["bash", "-c", "./sgx_linux_x64_sdk_2.6.100.51363.bin --prefix=" + topDir + "/sgx-sdk-build"]) == 0
 
 print("Make GMP");
 
