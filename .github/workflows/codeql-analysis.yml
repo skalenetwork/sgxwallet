@@ -103,7 +103,7 @@ jobs:
     
     - run: |
         ./autoconf.bash && \
-        ./configure --enable-sgx-simulation && \
+        ./configure && \
         bash -c "make -j$(nproc)"
 
     - name: Perform CodeQL Analysis
