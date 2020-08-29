@@ -23,10 +23,10 @@ index e46cf53..5b74add 100644
 +	sudo ln -fs libsgx_enclave_common.so.$(shell echo $(ECL_VER) |awk -F. '{print $$1}') libsgx_enclave_common.so
 \ No newline at end of file
 diff --git a/linux/installer/common/psw/install.sh b/linux/installer/common/psw/install.sh
-index 59f3ed6..d823f73 100755
+index 59f3ed6..67f7106 100755
 --- a/linux/installer/common/psw/install.sh
 +++ b/linux/installer/common/psw/install.sh
-@@ -42,26 +42,26 @@ AESM_PATH=$PSW_DST_PATH/aesm
+@@ -42,29 +42,30 @@ AESM_PATH=$PSW_DST_PATH/aesm
  # Install the AESM service
  
  id -u aesmd &> /dev/null || \
@@ -50,6 +50,7 @@ index 59f3ed6..d823f73 100755
 +sudo chmod  0644 /etc/aesmd.conf
 +sudo chown -R aesmd:aesmd /var/opt/aesmd
 +sudo chmod 0750 /var/opt/aesmd
++whoami
  
  # By default the AESM's communication socket will be created in
  # /var/run/aesmd.  Putting the socket in the aesmd sub-directory
@@ -64,8 +65,12 @@ index 59f3ed6..d823f73 100755
 +sudo chmod 0755 /var/run/aesmd
  
  if [ -d /run/systemd/system ]; then
-     systemctl stop aesmd &> /dev/null || echo
-@@ -73,12 +73,12 @@ if [ -d /run/systemd/system ]; then
+-    systemctl stop aesmd &> /dev/null || echo
++    sudo systemctl stop aesmd &> /dev/null || echo
+     AESMD_NAME=aesmd.service
+     AESMD_TEMP=$AESM_PATH/$AESMD_NAME
+     if [ -d /lib/systemd/system ]; then
+@@ -73,25 +74,25 @@ if [ -d /run/systemd/system ]; then
          AESMD_DEST=/usr/lib/systemd/system/$AESMD_NAME
      fi
      echo -n "Installing $AESMD_NAME service ..."
@@ -82,8 +87,9 @@ index 59f3ed6..d823f73 100755
 +    sudo systemctl enable aesmd
      retval=$?
  elif [ -d /etc/init/ ]; then
-     /sbin/initctl stop aesmd &> /dev/null || echo
-@@ -86,11 +86,11 @@ elif [ -d /etc/init/ ]; then
+-    /sbin/initctl stop aesmd &> /dev/null || echo
++    sudo /sbin/initctl stop aesmd &> /dev/null || echo
+     AESMD_NAME=aesmd.conf
      AESMD_TEMP=$AESM_PATH/$AESMD_NAME
      AESMD_DEST=/etc/init/$AESMD_NAME
      echo -n "Installing $AESMD_NAME service ..."
@@ -93,9 +99,49 @@ index 59f3ed6..d823f73 100755
 -    chmod 0644 $AESMD_DEST
 -    rm -f $AESMD_TEMP
 -    rm -f $AESM_PATH/aesmd.service
+-    /sbin/initctl reload-configuration
 +    sudo chmod 0644 $AESMD_DEST
 +    sudo rm -f $AESMD_TEMP
 +    sudo rm -f $AESM_PATH/aesmd.service
-     /sbin/initctl reload-configuration
++    sudo /sbin/initctl reload-configuration
      retval=$?
  else
+     echo " failed."
+@@ -182,10 +183,10 @@ rm -fr $PSW_DST_PATH
+ echo "Intel(R) SGX PSW uninstalled."
+ EOF
+ 
+-chmod +x $PSW_DST_PATH/uninstall.sh
++sudo chmod +x $PSW_DST_PATH/uninstall.sh
+ 
+ $AESM_PATH/cse_provision_tool || true
+-rm $AESM_PATH/cse_provision_tool
++sudo rm $AESM_PATH/cse_provision_tool
+ 
+ cat > $AESM_PATH/linksgx.sh <<EOF
+ #!/usr/bin/env bash
+@@ -235,20 +236,20 @@ fi
+ echo ""
+ EOF
+ 
+-chmod +x $AESM_PATH/linksgx.sh
++sudo chmod +x $AESM_PATH/linksgx.sh
+ 
+ # Start the aesmd service
+ if [ -d /run/systemd/system ]; then
+-    systemctl start aesmd
++    sudo systemctl start aesmd
+ elif [ -d /etc/init/ ]; then
+-    /sbin/initctl start aesmd
++    sudo /sbin/initctl start aesmd
+ fi
+ 
+ echo -e "\nuninstall.sh script generated in $PSW_DST_PATH\n"
+ 
+ echo -e "Installation is successful!"
+ 
+-rm -fr $PSW_DST_PATH/scripts
++sudo rm -fr $PSW_DST_PATH/scripts
+ 
+ exit 0
+ 
