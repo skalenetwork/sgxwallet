@@ -38,7 +38,7 @@ jobs:
       #   languages: go, javascript, csharp, python, cpp, java
 
     - name: Copy project
-      run: cp . /usr/src/sdk && cd /usr/src/sdk
+      run: cp -r . /usr/src/sdk && cd /usr/src/sdk
 
     - name: Copy patches
       run: |
