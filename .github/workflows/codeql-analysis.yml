@@ -102,7 +102,7 @@ jobs:
       run: cd scripts && ./build_deps.py && cd ..
     
     - run: |
-        source /home/runner/work/sgxwallet/sgxwallet/sgxsdk/environment && \
+        source /home/runner/work/sgxwallet/sgxwallet/sgx-sdk-build/sgxsdk/environment && \
         ./autoconf.bash && \
         ./configure --enable-sgx-simulation && \
         bash -c "make -j$(nproc)"
