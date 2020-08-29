@@ -37,6 +37,9 @@ jobs:
       # with:
       #   languages: go, javascript, csharp, python, cpp, java
 
+    - name: Copy project
+      run: cp . /usr/src/sdk && cd /usr/src/sdk
+
     - name: Copy patches
       run: |
         cp docker/install-psw.patch ./ && \
@@ -94,7 +97,7 @@ jobs:
             patch -p1 -i ../common-psw.patch && \
             ./download_prebuilt.sh 2> /dev/null && \
             make -s -j$(nproc) sdk_install_pkg psw_install_pkg && \
-            ./linux/installer/bin/sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=/home/runner/work/sgxwallet/sgxwallet && \
+            ./linux/installer/bin/sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=/opt/intel && \
             ./linux/installer/bin/sgx_linux_x64_psw_2.5.100.49891.bin && \
             cd .. && rm -rf linux-sgx/
     
@@ -102,7 +105,6 @@ jobs:
       run: cd scripts && ./build_deps.py && cd ..
     
     - run: |
-        source /home/runner/work/sgxwallet/sgxwallet/sgx-sdk-build/sgxsdk/environment && \
         ./autoconf.bash && \
         ./configure --enable-sgx-simulation && \
         bash -c "make -j$(nproc)"
