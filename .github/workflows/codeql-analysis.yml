@@ -37,9 +37,6 @@ jobs:
       # with:
       #   languages: go, javascript, csharp, python, cpp, java
 
-    - name: Copy project
-      run: cp -r . /usr/src/sdk && cd /usr/src/sdk
-
     - name: Copy patches
       run: |
         cp docker/install-psw.patch ./ && \
@@ -91,14 +88,14 @@ jobs:
 
     - name: Install linux-sgx
       run: | 
-          git clone -b sgx_2.5 --depth 1 https://github.com/intel/linux-sgx && \
+          git clone -b sgx_2.6 --depth 1 https://github.com/intel/linux-sgx && \
             cd linux-sgx && \
             patch -p1 -i ../install-psw.patch && \
             patch -p1 -i ../common-psw.patch && \
             ./download_prebuilt.sh 2> /dev/null && \
             make -s -j$(nproc) sdk_install_pkg psw_install_pkg && \
-            ./linux/installer/bin/sgx_linux_x64_sdk_2.5.100.49891.bin --prefix=/opt/intel && \
-            ./linux/installer/bin/sgx_linux_x64_psw_2.5.100.49891.bin && \
+            ./linux/installer/bin/sgx_linux_x64_sdk_2.6.100.51363.bin --prefix=/opt/intel && \
+            ./linux/installer/bin/sgx_linux_x64_psw_2.6.100.51363.bin && \
             cd .. && rm -rf linux-sgx/
     
     - name: Build dependencies
