@@ -32,7 +32,6 @@ print("Starting build")
 print("Top directory is:" + topDir)
 makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
-THIRD_PARTY_DIR_INTEL = topDir + "/third_party/intel"
 GMP_DIR = topDir + "/sgx-gmp"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
 LEVELDB_DIR = topDir + "/leveldb"
