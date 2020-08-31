@@ -91,7 +91,6 @@ extern bool autoconfirm;
 #define INVALID_ECSDA_SIGNATURE -22
 #define KEY_NAME_ALREADY_EXISTS -23 \
 
-
 #define ERROR_IN_ENCLAVE -33
 
 #define FILE_NOT_FOUND -44

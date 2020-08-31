@@ -77,7 +77,8 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
     string *ret = nullptr;
     mpz_t t;
-    mpz_init(t);SAFE_CHAR_BUF(arr, BUF_LEN);
+    mpz_init(t);
+    SAFE_CHAR_BUF(arr, BUF_LEN);
 
     try {
         _fq->as_bigint().to_mpz(t);
@@ -140,11 +141,14 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
 
     mpz_t skey;
-    mpz_init(skey);SAFE_CHAR_BUF(skey_dec, BUF_LEN);
+    mpz_init(skey);
+    SAFE_CHAR_BUF(skey_dec, BUF_LEN);
     libff::alt_bn128_Fr *ret = nullptr;
 
+    if (mpz_set_str(skey, _keyStringHex, 16) == -1) {
+        goto clean;
+    }
 
-    mpz_set_str(skey, _keyStringHex, 16);
     mpz_get_str(skey_dec, 10, skey);
 
     ret = new libff::alt_bn128_Fr(skey_dec);

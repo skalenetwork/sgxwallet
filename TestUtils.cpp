@@ -70,10 +70,10 @@ string TestUtils::stringFromFr(libff::alt_bn128_Fr &el) {
     mpz_init(t);
     el.as_bigint().to_mpz(t);
     char arr[mpz_sizeinbase(t, 10) + 2];
-    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return string(tmp);
+    return string(arr);
 }
 
 
@@ -196,13 +196,11 @@ void TestUtils::sendRPCRequest() {
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
-                string pubShare = verifVects[i]["Verification Vector"][k][j].asString();
+                string pubShare = verifVects[i]["verificationVector"][k][j].asString();
                 pubShares[i] += convertDecToHex(pubShare);
             }
         }
     }
-
-    int k = 0;
 
     vector <string> secShares(n);
 
@@ -212,8 +210,6 @@ void TestUtils::sendRPCRequest() {
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
             CHECK_STATE(verif["status"] == 0);
-
-            k++;
         }
 
     BLSSigShareSet sigShareSet(t, n);
@@ -228,6 +224,14 @@ void TestUtils::sendRPCRequest() {
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
 
+    Json::Value publicShares;
+    for (int i = 0; i < n; ++i) {
+        publicShares["publicShares"][i] = pubShares[i];
+    }
+
+    Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
+    CHECK_STATE(blsPublicKeys["status"] == 0);
+
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
@@ -238,8 +242,18 @@ void TestUtils::sendRPCRequest() {
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
+        libff::alt_bn128_G2 publicKey(libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][1].asCString())),
+                                      libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][2].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][3].asCString())),
+                                      libff::alt_bn128_Fq2::one());
+
+        string public_key_str = convertG2ToString(publicKey);
+
+        CHECK_STATE(public_key_str == blsPublicKeys["publicKeys"][i].asString());
+
         string hash = SAMPLE_HASH;
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
         CHECK_STATE(blsSigShares[i]["status"] == 0);
 
         shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
@@ -376,7 +390,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     for (int i = 0; i < t; i++) {
 
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n, i + 1);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
         CHECK_STATE(blsSigShares[i]["status"] == 0);
         shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);

@@ -59,10 +59,10 @@ std::string *FqToString(libff::alt_bn128_Fq *_fq) {
 
     char arr[mpz_sizeinbase(t, 10) + 2];
 
-    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(tmp);
+    return new std::string(arr);
 }
 
 int char2int(char _input) {
@@ -155,8 +155,7 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
     return true;
 }
 
-bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
-              char *_sig) {
+bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
     auto hash = make_shared<array<uint8_t, 32>>();
 
     uint64_t binLen;
@@ -240,15 +239,15 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     return true;
 }
 
-bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
-              char *_sig) {
-    return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _signerIndex, _sig);
+bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
+    return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
 std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
     auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
+
     strncpy(keyArray->data(), _key, BUF_LEN);
     *errStatus = -1;
 
@@ -265,7 +264,7 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
 
     if (status != SGX_SUCCESS) {
         *errStatus = -1;
-        return nullptr;
+        return "";
     }
 
     std::string result(2 * BUF_LEN, '\0');

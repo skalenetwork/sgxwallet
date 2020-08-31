@@ -58,7 +58,6 @@ void SGXWallet::printUsage() {
 }
 
 
-
 void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector<string>& _blsKeyNames, const string& _fileName) {
     Json::Value top(Json::objectValue);
     Json::Value ecdsaKeysJson(Json::objectValue);

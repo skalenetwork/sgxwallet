@@ -683,7 +683,12 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
 
     CHECK_STATUS("AES decrypt failed")
 
-    enclave_sign(key, _hashX, _hashY, sig);
+    if (!enclave_sign(key, _hashX, _hashY, sig)) {
+        strncpy(errString, "Enclave failed to create bls signature", BUF_LEN);
+        LOG_ERROR(errString);
+        *errStatus = -1;
+        goto clean;
+    }
 
     strncpy(signature, sig, BUF_LEN);
 
@@ -971,9 +976,6 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
         status = session_key_recover(skey, s_share, common_key);
 
         CHECK_STATUS("session_key_recover failed");
-
-
-
 
         common_key[64] = 0;
 
