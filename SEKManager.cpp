@@ -84,9 +84,7 @@ void create_test_key() {
 }
 
 
-
-
-bool check_SEK(const string &SEK) {
+shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     vector <uint8_t> encr_test_key(BUF_LEN, 0);
     uint64_t len;
@@ -99,41 +97,44 @@ bool check_SEK(const string &SEK) {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
 
-    vector <uint8_t> encr_SEK(1024, 0);
+    auto encrypted_SEK = make_shared < vector < uint8_t >> (1024, 0);
 
     uint32_t l = len;
 
-    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &l, SEK.c_str());
+    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
+
     if (status != SGX_SUCCESS) {
-        cerr << "RPCException thrown with status " << status << endl;
-        throw SGXException(status, errMsg.data());
+        spdlog::error("trustedSetSEK_backup failed with error code {}", status);
+        exit(-1);
     }
 
     if (err_status != 0) {
-        cerr << "RPCException thrown with status " << err_status << endl;
-        throw SGXException(err_status, errMsg.data());
+        spdlog::error("trustedSetSEK_backup failed with error status {}", status);
+        exit(-1);
     }
 
     status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     if (status != SGX_SUCCESS || err_status != 0) {
-        spdlog::error("failed to decrypt test key");
+        spdlog::error("Failed to decrypt test key");
         spdlog::error(errMsg.data());
         exit(-1);
     }
 
     string test_key = TEST_VALUE;
     if (test_key.compare(decr_key.data()) != 0) {
-        cerr << "decrypted key is " << decr_key.data() << endl;
         spdlog::error("Invalid SEK");
-        return false;
+        exit(-1);
     }
-    return true;
+
+    encrypted_SEK->resize(l);
+
+    return encrypted_SEK;
 }
 
 void gen_SEK() {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
-    vector <uint8_t> encr_SEK(1024, 0);
+    vector <uint8_t> encrypted_SEK(1024, 0);
     uint32_t enc_len = 0;
 
     char SEK[65];
@@ -141,7 +142,7 @@ void gen_SEK() {
 
     spdlog::error("Generating backup key. Will be stored in backup_key.txt ... ");
 
-    status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, SEK);
+    status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
 
     if (status != SGX_SUCCESS) {
         throw SGXException(status, errMsg.data());
@@ -157,7 +158,7 @@ void gen_SEK() {
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
-    carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
+    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data());
 
     ofstream sek_file(BACKUP_PATH);
     sek_file.clear();
@@ -186,20 +187,20 @@ void gen_SEK() {
     create_test_key();
 }
 
-void trustedSetSEK(shared_ptr <string> hex_encr_SEK) {
+void trustedSetSEK(shared_ptr <string> hex_encrypted_SEK) {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
 
-    uint8_t encr_SEK[BUF_LEN];
-    memset(encr_SEK, 0, BUF_LEN);
+    uint8_t encrypted_SEK[BUF_LEN];
+    memset(encrypted_SEK, 0, BUF_LEN);
 
     uint64_t len;
 
-    if (!hex2carray(hex_encr_SEK->c_str(), &len, encr_SEK)) {
+    if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK)) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
     }
 
-    status = trustedSetSEK(eid, &err_status, errMsg.data(), encr_SEK);
+    status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
     if (status != SGX_SUCCESS) {
         cerr << "RPCException thrown" << endl;
         throw SGXException(status, errMsg.data());
@@ -214,10 +215,8 @@ void trustedSetSEK(shared_ptr <string> hex_encr_SEK) {
 #include "experimental/filesystem"
 
 void enter_SEK() {
-    vector<char> errMsg(1024, 0);
-    int err_status = 0;
-    vector <uint8_t> encr_SEK(BUF_LEN, 0);
-    uint32_t enc_len;
+    vector<char> errMsg(BUF_LEN, 0);
+
 
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     if (test_key_ptr == nullptr) {
@@ -236,29 +235,20 @@ void enter_SEK() {
     spdlog::info("Reading backup key from file ...");
 
     string sek((istreambuf_iterator<char>(sek_file)),
-                    istreambuf_iterator<char>());
-
-    while (!checkHex(sek, 16) || !check_SEK(sek)) {
-        spdlog::error("Invalid key");
-        exit(-1);
-    }
+               istreambuf_iterator<char>());
 
     spdlog::info("Setting backup key ...");
 
-    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encr_SEK.data(), &enc_len, sek.c_str());
-    if (status != SGX_SUCCESS) {
-        spdlog::error("RPCException thrown with status {}", status);
-        throw SGXException(status, errMsg.data());
-    }
-
-    if (err_status != 0) {
-        spdlog::error("trustedSetSEK_backup returned err_status {}", err_status);
+    while (!checkHex(sek, 16)) {
+        spdlog::error("Invalid hex in key");
         exit(-1);
     }
 
-    vector<char> hexEncrKey(2 * enc_len + 1, 0);
+    auto encrypted_SEK = check_and_set_SEK(sek);
 
-    carray2Hex(encr_SEK.data(), enc_len, hexEncrKey.data());
+    vector<char> hexEncrKey(BUF_LEN, 0);
+
+    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey.data());
 
     spdlog::info("Got sealed storage encryption key.");
 
@@ -272,15 +262,15 @@ void enter_SEK() {
 }
 
 void initSEK() {
-    shared_ptr <string> encr_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
     if (enterBackupKey) {
         enter_SEK();
     } else {
-        if (encr_SEK_ptr == nullptr) {
+        if (encrypted_SEK_ptr == nullptr) {
             spdlog::warn("SEK was not created yet. Going to create SEK");
             gen_SEK();
         } else {
-            trustedSetSEK(encr_SEK_ptr);
+            trustedSetSEK(encrypted_SEK_ptr);
         }
     }
 }
