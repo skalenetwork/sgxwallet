@@ -451,7 +451,7 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    std::ifstream sek_file("backup_key.txt");
+    std::ifstream sek_file("sgxwallet_backup_key.txt");
     REQUIRE(sek_file.good());
 
     std::string sek;
