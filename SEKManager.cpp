@@ -140,7 +140,7 @@ void gen_SEK() {
     char SEK[65];
     memset(SEK, 0, 65);
 
-    spdlog::error("Generating backup key. Will be stored in backup_key.txt ... ");
+    spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
     status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
 
