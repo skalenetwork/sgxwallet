@@ -220,7 +220,7 @@ void enter_SEK() {
 
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     if (test_key_ptr == nullptr) {
-        spdlog::error("empty db");
+        spdlog::error("Error: corrupt or empty LevelDB database");
         exit(-1);
     }
 
@@ -259,6 +259,7 @@ void enter_SEK() {
     LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
     spdlog::info("Stored storage encryption key in LevelDB.");
+
 }
 
 void initSEK() {
