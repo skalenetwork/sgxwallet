@@ -39,7 +39,7 @@
 
 using namespace std;
 
-#define BACKUP_PATH "./sgx_data/backup_key.txt"
+#define BACKUP_PATH "./sgx_data/sgxwallet_backup_key.txt"
 
 
 bool case_insensitive_match(string s1, string s2) {
@@ -214,6 +214,8 @@ void trustedSetSEK(shared_ptr <string> hex_encrypted_SEK) {
 
 #include "experimental/filesystem"
 
+#include <boost/algorithm/string.hpp>
+
 void enter_SEK() {
     vector<char> errMsg(BUF_LEN, 0);
 
@@ -236,6 +238,8 @@ void enter_SEK() {
 
     string sek((istreambuf_iterator<char>(sek_file)),
                istreambuf_iterator<char>());
+
+    boost::trim(sek);
 
     spdlog::info("Setting backup key ...");
 
