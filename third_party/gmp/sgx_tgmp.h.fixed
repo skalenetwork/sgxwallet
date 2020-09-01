@@ -1,5 +1,6 @@
 /* Definitions for GNU multiple precision functions.   -*- mode: c -*-
 
+
 Copyright 1991, 1993-1997, 1999-2016 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
@@ -23,6 +24,7 @@ The GNU MP Library is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
+
 
 You should have received copies of the GNU General Public License and the
 GNU Lesser General Public License along with the GNU MP Library.  If not,
