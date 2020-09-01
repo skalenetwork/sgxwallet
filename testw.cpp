@@ -95,6 +95,19 @@ public:
     }
 };
 
+class TestFixtureNoResetFromBackup {
+public:
+    TestFixtureNoResetFromBackup() {
+        setFullOptions(L_INFO, false, true, true );
+        initAll(L_INFO, false, true);
+    }
+
+    ~TestFixtureNoResetFromBackup() {
+        TestUtils::destroyEnclave();
+    }
+};
+
+
 class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
@@ -106,7 +119,6 @@ public:
         TestUtils::destroyEnclave();
     }
 };
-
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes-key-sig-gen]") {
     vector<char> errMsg(BUF_LEN, 0);
@@ -439,7 +451,7 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-    std::ifstream sek_file("backup_key.txt");
+    std::ifstream sek_file("sgx_data/sgxwallet_backup_key.txt");
     REQUIRE(sek_file.good());
 
     std::string sek;
@@ -720,4 +732,7 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 }
 
 TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
+}
+
+TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore", "[backup-restore]") {
 }
