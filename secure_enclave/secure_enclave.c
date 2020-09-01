@@ -84,7 +84,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         goto clean;}
 
 #define CHECK_STATUS(__ERRMESSAGE__) if (status != SGX_SUCCESS) { \
-snprintf(errString, BUF_LEN, __ERRMESSAGE__); \
+LOG_ERROR(__FUNCTION__); \
+snprintf(errString, BUF_LEN, "failed with status %d : %s",  status,  __ERRMESSAGE__); \
 LOG_ERROR(errString); \
 *errStatus = status; \
 goto clean; \
@@ -112,7 +113,17 @@ void free_function(void *, size_t);
 
 unsigned char *globalRandom;
 
+
+#define CALL_ONCE \
+    static volatile bool called = false;\
+    if (called)  { \
+        LOG_ERROR(__FUNCTION__); \
+        LOG_ERROR("This function shouldnt be called twice. Aborting!"); \
+        abort(); \
+    } else {called = true;};
+
 void trustedEnclaveInit(uint32_t _logLevel) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
 
     globalLogLevel_ = _logLevel;
@@ -130,7 +141,7 @@ void trustedEnclaveInit(uint32_t _logLevel) {
 
     globalRandom = calloc(32,1);
 
-    auto ret = sgx_read_rand(globalRandom, 32);
+    int ret = sgx_read_rand(globalRandom, 32);
 
     if(ret != SGX_SUCCESS)
     {
@@ -200,7 +211,6 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 }
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
-
     char errString[BUF_LEN];
     int status;
     int *errStatus = &status;
@@ -223,11 +233,13 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
 void sealHexSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint32_t *enc_len, char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
+    CHECK_STATE(strnlen(sek_hex, 33) == 32)
     
 
     uint64_t plaintextLen = strlen(sek_hex + 1);
@@ -262,14 +274,16 @@ void sealHexSEK(int *errStatus, char *errString,
 
     SET_SUCCESS
     clean:
-    ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
 void trustedGenerateSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint32_t *enc_len, char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
+
 
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
@@ -281,18 +295,19 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
 
-    if (errStatus != 0) {
+    if (*errStatus != 0) {
         LOG_ERROR("sealHexSEK failed");
         goto clean;
     }
 
     SET_SUCCESS
     clean:
-    ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
 void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
     CHECK_STATE(encrypted_sek);
@@ -319,12 +334,13 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
 
     SET_SUCCESS
     clean:
-    ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
 void trustedSetSEK_backup(int *errStatus, char *errString,
                           uint8_t *encrypted_sek, uint32_t *enc_len, const char *sek_hex) {
+    CALL_ONCE
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
@@ -336,7 +352,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
 
-    if (errStatus != 0) {
+    if (*errStatus != 0) {
         LOG_ERROR("sealHexSEK failed");
         goto clean;
     }
@@ -344,6 +360,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -414,6 +431,7 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     mpz_clear(seed);
     mpz_clear(skey);
     point_clear(Pkey);
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -480,7 +498,16 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     mpz_clear(privateKeyMpz);
     point_clear(pKey);
     point_clear(pKey_test);
-    LOG_DEBUG("SGX call completed");
+
+    static uint64_t counter = 0;
+
+    if (counter % 1000 == 0) {
+        LOG_INFO(__FUNCTION__);
+        LOG_INFO("Thousand SGX calls completed");
+    }
+
+    counter++;
+
 }
 
 static uint64_t sigCounter = 0;
@@ -564,6 +591,7 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     signature_free(sign);
+    LOG_DEBUG(__FUNCTION__ );
     LOG_DEBUG("SGX call completed");
 }
 
@@ -647,6 +675,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -730,6 +759,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -752,6 +782,7 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
 
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -772,6 +803,7 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -836,6 +868,7 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
 
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -912,6 +945,7 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     clean:
 
     mpz_clear(s);
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -1013,6 +1047,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     mpz_clear(bls_key);
     mpz_clear(sum);
     mpz_clear(q);
+    LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
 
@@ -1039,7 +1074,12 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     CHECK_STATUS("could not calculate bls public key");
 
     SET_SUCCESS
+    static uint64_t counter = 0;
     clean:
-    ;
-    LOG_DEBUG("SGX call completed");
+    if (counter % 1000 == 0) {
+        LOG_INFO(__FUNCTION__);
+        LOG_INFO("Thousand SGX calls completed");
+    }
+
+    counter++;
 }

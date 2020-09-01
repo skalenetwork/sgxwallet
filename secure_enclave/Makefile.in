@@ -323,8 +323,7 @@ AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
 AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -Wall \
 	-Wno-implicit-function-declaration $(TGMP_CPPFLAGS) \
 	-I./third_party/SCIPR -I../third_party/SCIPR \
-	-I../sgx-sdk-build/sgxsdk/include/libcxx \
-	-I../intel-sgx-ssl/Linux/package/include
+	-I../sgx-sdk-build/sgxsdk/include/libcxx
 AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin \
 	-fstack-protector-strong
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@ $(TGMP_LDFLAGS) -L./tgmp-build/lib \
@@ -344,7 +343,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx ../intel-sgx-ssl/Linux/package/lib64/libsgx_tsgxssl_crypto.a
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice  -lsgx_urts -lsgx_tcxx 
 all: all-am
 
 .SUFFIXES:

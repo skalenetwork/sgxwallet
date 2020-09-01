@@ -49,7 +49,7 @@ void SGXWallet::printUsage() {
     cerr << "   -v  Verbose mode: turn on debug output\n";
     cerr << "   -vv Detailed verbose mode: turn on debug and trace outputs\n";
     cerr << "\nBackup, restore, update flags:\n\n";
-    cerr << "   -b  Restore from back up or software update. You will need to type in the backup key. \n";
+    cerr << "   -b  filename Restore from back up or software update. You will need to put backup key into a file in sgx_data dir. \n";
     cerr << "   -y  Do not ask user to acknowledge receipt of the backup key \n";
     cerr << "\nHTTPS flags:\n\n";
     cerr << "   -n  Launch sgxwallet using http. Default is to use https with a selg-signed server cert.  \n";
