@@ -2,7 +2,7 @@ FROM skalenetwork/sgxwallet_base:latest
 
 COPY . /usr/src/sdk
 RUN cp -f secure_enclave/secure_enclave.config.xml.release secure_enclave/secure_enclave.config.xml
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl secure-delete
 WORKDIR /usr/src/sdk
 #Test signing key generation
 RUN cd scripts && ./generate_signing_key.bash
