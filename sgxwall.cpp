@@ -35,8 +35,14 @@
 #include "TestUtils.h"
 
 #include "testw.h"
+#include "common.h"
 #include "sgxwall.h"
+
 #include "sgxwallet.h"
+
+
+std::shared_timed_mutex initMutex;
+uint64_t initTime;
 
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";

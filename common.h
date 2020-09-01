@@ -57,3 +57,17 @@ inline std::string className(const std::string &prettyFunction) {
 
 
 #endif //SGXWALLET_COMMON_H
+
+#include <shared_mutex>
+
+extern std::shared_timed_mutex initMutex;
+extern uint64_t initTime;
+
+#if SGX_MODE == SIM
+#define ENCLAVE_RESTART_PERIOD_S 5
+#else
+#define ENCLAVE_RESTART_PERIOD_S 60 * 10
+#endif
+
+#define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
+#define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
