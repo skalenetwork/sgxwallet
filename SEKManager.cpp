@@ -217,7 +217,6 @@ void trustedSetSEK(shared_ptr <string> hex_encrypted_SEK) {
 #include <boost/algorithm/string.hpp>
 
 void enter_SEK() {
-    vector<char> errMsg(BUF_LEN, 0);
 
 
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
