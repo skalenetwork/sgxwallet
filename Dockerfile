@@ -2,12 +2,13 @@
 FROM skalenetwork/sgxwallet_base:latest
 
 # Setup base tools.
-RUN apt-get update && apt-get install -y curl && \
+RUN apt-get update && apt-get install -y curl secure-delete && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # /usr/src/sdk is made available to use as a location for the SGX SDK.
 COPY . /usr/src/sdk
+
 WORKDIR /usr/src/sdk
 
 # Setup hardware mode flag for entry point script.

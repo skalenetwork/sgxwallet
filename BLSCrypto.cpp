@@ -59,10 +59,10 @@ std::string *FqToString(libff::alt_bn128_Fq *_fq) {
 
     char arr[mpz_sizeinbase(t, 10) + 2];
 
-    char *tmp = mpz_get_str(arr, 10, t);
+    mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(tmp);
+    return new std::string(arr);
 }
 
 int char2int(char _input) {

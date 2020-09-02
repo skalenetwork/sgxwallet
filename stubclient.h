@@ -6,6 +6,7 @@
 #define JSONRPC_CPP_STUB_STUBCLIENT_H_
 
 #include <jsonrpccpp/client.h>
+#include <cassert>
 
 class StubClient : public jsonrpc::Client
 {
@@ -38,35 +39,11 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value importECDSAKey(const std::string& key, const std::string& keyName) 
-        {
-            Json::Value p;
-            p["key"] = key;
-            p["keyName"] = keyName;
-            Json::Value result = this->CallMethod("importECDSAKey",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
         Json::Value generateECDSAKey() 
         {
           Json::Value p;
           p = Json::nullValue;
           Json::Value result = this->CallMethod("generateECDSAKey",p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) 
-        {
-          Json::Value p;
-          p["keyName"] = KeyName;
-          p["tempKeyName"] = tempKeyName;
-          Json::Value result = this->CallMethod("renameECDSAKey",p);
           if (result.isObject())
             return result;
           else
@@ -174,6 +151,20 @@ class StubClient : public jsonrpc::Client
             p["blsKeyName"] = blsKeyName;
 
             Json::Value result = this->CallMethod("getBLSPublicKeyShare",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n)
+        {
+            Json::Value p;
+            p["publicShares"] = publicShares["publicShares"];
+            p["t"] = t;
+            p["n"] = n;
+
+            Json::Value result = this->CallMethod("calculateAllBLSPublicKeys", p);
             if (result.isObject())
                 return result;
             else

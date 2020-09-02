@@ -30,8 +30,6 @@
 #include "SGXWalletServer.hpp"
 #include "SGXException.h"
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
@@ -65,12 +63,63 @@ template<class T> string ConvertToString(T field_elem, int base = 10) {
 
     char arr[mpz_sizeinbase(t, base) + 2];
 
-    char *tmp = mpz_get_str(arr, base, t);
+    mpz_get_str(arr, base, t);
     mpz_clear(t);
 
-    string output = tmp;
+    string output = arr;
 
     return output;
+}
+
+string convertHexToDec(const string& hex_str) {
+    mpz_t dec;
+    mpz_init(dec);
+
+    string ret = "";
+
+    try {
+        if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
+            mpz_clear(dec);
+            return ret;
+        }
+
+        char arr[mpz_sizeinbase(dec, 10) + 2];
+        mpz_get_str(arr, 10, dec);
+        ret = arr;
+    } catch (exception &e) {
+        mpz_clear(dec);
+        throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
+    } catch (...) {
+        mpz_clear(dec);
+        throw SGXException(UNKNOWN_ERROR, "");
+    }
+
+    return ret;
+}
+
+string convertG2ToString(const libff::alt_bn128_G2& elem, int base, const string& delim) {
+    string result = "";
+
+    try {
+        result += ConvertToString(elem.X.c0);
+        result += delim;
+        result += ConvertToString(elem.X.c1);
+        result += delim;
+        result += ConvertToString(elem.Y.c0);
+        result += delim;
+        result += ConvertToString(elem.Y.c1);
+
+        return result;
+
+    } catch (exception &e) {
+        throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
+        return result;
+    } catch (...) {
+        throw SGXException(UNKNOWN_ERROR, "");
+        return result;
+    }
+
+    return result;
 }
 
 string gen_dkg_poly(int _t) {
@@ -316,6 +365,55 @@ vector<string> GetBLSPubKey(const char *encryptedKeyHex) {
         spdlog::debug("{}", pubKeyVect.at(i));
 
     return pubKeyVect;
+}
+
+vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares) {
+    size_t n = public_shares.size();
+    size_t t = public_shares[0].length() / 256;
+    uint64_t share_length = 256;
+    uint8_t coord_length = 64;
+
+    vector<libff::alt_bn128_G2> public_keys(n, libff::alt_bn128_G2::zero());
+
+    vector<libff::alt_bn128_G2> public_values(t, libff::alt_bn128_G2::zero());
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < t; ++j) {
+            libff::alt_bn128_G2 public_share;
+
+            uint64_t pos0 = share_length * j;
+            string x_c0_str = convertHexToDec(public_shares[i].substr(pos0, coord_length));
+            string x_c1_str = convertHexToDec(public_shares[i].substr(pos0 + coord_length, coord_length));
+            string y_c0_str = convertHexToDec(public_shares[i].substr(pos0 + 2 * coord_length, coord_length));
+            string y_c1_str = convertHexToDec(public_shares[i].substr(pos0 + 3 * coord_length, coord_length));
+
+            if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" || y_c1_str == "") {
+                return {};
+            }
+
+            public_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
+            public_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
+            public_share.Y.c0 = libff::alt_bn128_Fq(y_c0_str.c_str());
+            public_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
+            public_share.Z = libff::alt_bn128_Fq2::one();
+
+            public_values[j] = public_values[j] + public_share;
+
+        }
+    }
+
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < t; ++j) {
+            public_keys[i] = public_keys[i] + libff::power(libff::alt_bn128_Fr(i + 1), j) * public_values[j];
+        }
+        public_keys[i].to_affine_coordinates();
+    }
+
+    vector<string> result(n);
+    for (size_t i = 0; i < n; ++i) {
+        result[i] = convertG2ToString(public_keys[i]);
+    }
+
+    return result;
 }
 
 string decryptDHKey(const string &polyName, int ind) {
