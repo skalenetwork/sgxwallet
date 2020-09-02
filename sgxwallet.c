@@ -1,6 +1,6 @@
 /*
 
-Modifications Copyright (C) 2019 SKALE Labs
+Modifications Copyright (C) 2019-2020 SKALE Labs
 
 Copyright 2018 Intel Corporation
 

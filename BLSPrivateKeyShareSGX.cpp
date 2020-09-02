@@ -1,27 +1,25 @@
 /*
   Copyright (C) 2018-2019 SKALE Labs
 
-  This file is part of libBLS.
+  This file is part of sgxwallet.
 
-  libBLS is free software: you can redistribute it and/or modify
+  sgxwallet is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published
   by the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  libBLS is distributed in the hope that it will be useful,
+  sgxwallet is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Affero General Public License for more details.
 
   You should have received a copy of the GNU Affero General Public License
-  along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
+  along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
   @file BLSPrivateKeyShare.cpp
   @author Stan Kladko
   @date 2019
 */
-
-
 
 #include "BLSSigShare.h"
 #include "BLSSignature.h"
@@ -36,7 +34,6 @@
 #include "common.h"
 
 #include "BLSPrivateKeyShareSGX.h"
-
 
 std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
   mpz_t t;
@@ -66,15 +63,11 @@ std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
   return sG1;
 }
 
-
-
 BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
     shared_ptr<string> _encryptedKeyHex, size_t _requiredSigners,
     size_t _totalSigners) {
-
   requiredSigners = _requiredSigners;
   totalSigners = _totalSigners;
-
 
   if (requiredSigners > totalSigners) {
     throw std::invalid_argument("requiredSigners > totalSigners");
@@ -101,7 +94,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   shared_ptr<signatures::Bls> obj;
 
   if (hash_byte_arr == nullptr) {
-    std::cerr <<   "Hash is null" << std::endl;
+    std::cerr << "Hash is null" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Hash is null"));
   }
 
@@ -116,14 +109,15 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   string* xStr = stringFromFq(&(hash_with_hint.first.X));
 
   if (xStr == nullptr) {
-    std::cerr <<   "Null xStr" << std::endl;
+    std::cerr << "Null xStr" << std::endl;
     BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
   }
 
   string* yStr = stringFromFq(&(hash_with_hint.first.Y));
 
   if (yStr == nullptr) {
-    std::cerr <<   "Null yStr" << std::endl;
+    std::cerr << "Null yStr" << std::endl;
+    delete xStr;
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 
@@ -140,6 +134,9 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   strncpy(xStrArg, xStr->c_str(), BUF_LEN);
   strncpy(yStrArg, yStr->c_str(), BUF_LEN);
 
+  delete xStr;
+  delete yStr;
+
   size_t sz = 0;
 
   uint8_t encryptedKey[BUF_LEN];
@@ -147,14 +144,14 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 
   if (!result) {
-    cerr <<   "Invalid hex encrypted key" << endl;
+    cerr << "Invalid hex encrypted key" << endl;
     BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
   }
 
   cerr << "Key is " + *encryptedKeyHex << endl;
 
   sgx_status_t status =
-      trustedBlsSignMessage(eid, &errStatus, errMsg, encryptedKey,
+      trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
   printf("sig is: %s\n", signature);
@@ -166,7 +163,6 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   if (errStatus != 0) {
     BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
-    return nullptr;
   }
 
   int sigLen;

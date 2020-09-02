@@ -24,7 +24,6 @@
 #ifndef SGXD_RPCEXCEPTION_H
 #define SGXD_RPCEXCEPTION_H
 
-
 #include <string>
 #include <exception>
 
@@ -37,7 +36,10 @@ public:
 
     SGXException(int32_t _status, const char* _errString) : status(_status), errString(_errString) {}
 
-};
+    std::string getMessage() {
+        return "SGXException:status:" + std::to_string(status) + ":" + errString;
+    }
 
+};
 
 #endif //SGXD_RPCEXCEPTION_H

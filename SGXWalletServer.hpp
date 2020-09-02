@@ -24,15 +24,9 @@
 #ifndef SGXWALLET_SGXWALLETSERVER_HPP
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
-
-typedef boost::shared_mutex Lock;
-typedef boost::unique_lock< Lock >  WriteLock;
-typedef boost::shared_lock< Lock >  ReadLock;
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <mutex>
+
 #include "abstractstubserver.h"
 
 using namespace jsonrpc;
@@ -42,17 +36,9 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
-
-
-
-    Lock m;
-
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
-
-
 public:
-
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);
     }
@@ -60,17 +46,12 @@ public:
     SGXWalletServer(AbstractServerConnector &_connector, serverVersion_t _type);
 
     virtual Json::Value
-    importBLSKeyShare(const string &_keyShare, const string &_keyShareName, int _t, int _n, int index);
+    importBLSKeyShare(const string &_keyShare, const string &_keyShareName);
 
     virtual Json::Value
-    blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n,
-                       int _signerIndex);
-
-    virtual Json::Value importECDSAKey(const string &_key, const string &_keyName);
+    blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
 
     virtual Json::Value generateECDSAKey();
-
-    virtual Json::Value renameECDSAKey(const string &_keyName, const string &_tmpKeyName);
 
     virtual Json::Value
     ecdsaSignMessageHash(int _base, const string &_keyShareName, const string &_messageHash);
@@ -93,6 +74,8 @@ public:
 
     virtual Json::Value getBLSPublicKeyShare(const string &blsKeyName);
 
+    virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
+
     virtual Json::Value complaintResponse(const string &polyName, int ind);
 
     virtual Json::Value multG2(const string &x);
@@ -103,26 +86,21 @@ public:
 
     virtual Json::Value getServerVersion();
 
+    virtual Json::Value deleteBlsKey( const std::string& name );
+
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
     static void writeDataToDB(const string &Name, const string &value);
 
-    static void writeKeyShare(const string &_keyShareName, const string &_value, int _index, int _n, int _t);
-
-    static shared_ptr<string> readKeyShare(const string &_keyShare);
+    static void writeKeyShare(const string &_keyShareName, const string &_value);
 
     static Json::Value
-    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName, int t, int n, int _index);
+    importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName);
 
     static Json::Value
-    blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n,
-                           int _signerIndex);
-
-    static Json::Value importECDSAKeyImpl(const string &_key, const string &_keyName);
+    blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);
 
     static Json::Value generateECDSAKeyImpl();
-
-    static Json::Value renameECDSAKeyImpl(const string &_keyName, const string &_tempKeyName);
 
     static Json::Value ecdsaSignMessageHashImpl(int _base, const string &keyName, const string &_messageHash);
 
@@ -144,6 +122,8 @@ public:
 
     static Json::Value getBLSPublicKeyShareImpl(const string &_blsKeyName);
 
+    static Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n);
+
     static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
 
     static Json::Value multG2Impl(const string &_x);
@@ -153,6 +133,8 @@ public:
     static Json::Value getServerStatusImpl();
 
     static Json::Value getServerVersionImpl();
+
+    static Json::Value deleteBlsKeyImpl(const std::string& name);
 
     static void printDB();
 

@@ -29,13 +29,11 @@
 #include "BLSPrivateKeyShare.h"
 
 class BLSPrivateKeyShareSGX {
-
   size_t requiredSigners;
 
   size_t totalSigners;
 
   std::shared_ptr<std::string> encryptedKeyHex;
-
 public:
   std::shared_ptr<BLSSigShare>
       signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash,
@@ -47,8 +45,6 @@ public:
 
   BLSPrivateKeyShareSGX(std::shared_ptr<std::string> _encryptedKeyHex,
                         size_t _requiredSigners, size_t _totalSigners);
-
-
 };
 
 #endif // LIBBLS_BLSPRIVATEKEYSHARE_H

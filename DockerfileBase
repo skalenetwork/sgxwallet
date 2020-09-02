@@ -15,7 +15,7 @@ RUN    apt update && \
            libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev  libboost-all-dev \
            alien cmake debhelper uuid-dev libxml2-dev ccache vim libprotobuf10 \
            yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev \
-           libboost-all-dev libjsonrpccpp-dev libjsonrpccpp-tools && \
+           libboost-all-dev libjsonrpccpp-dev curl libjsonrpccpp-tools && \
        ln -s /usr/bin/ccache /usr/local/bin/clang && \
        ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \

@@ -21,34 +21,25 @@
     @date 2019
 */
 
-
 #include <iostream>
 #include <fstream>
 
-
-
-
 #include <jsonrpccpp/server/connectors/httpserver.h>
-
 
 #include "CSRManagerServer.h"
 #include "SGXException.h"
 #include "sgxwallet_common.h"
 
-
 #include "Log.h"
 #include "common.h"
 
-
 shared_ptr<CSRManagerServer> CSRManagerServer::cs = nullptr;
 shared_ptr<jsonrpc::HttpServer> CSRManagerServer::hs3 = nullptr;
-
 
 CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
                                    serverVersion_t type) : abstractCSRManagerServer(connector, type) {}
 
 Json::Value getUnsignedCSRsImpl() {
-    spdlog::info(__FUNCTION__);
     INIT_RESULT(result)
 
     try {
@@ -58,12 +49,11 @@ Json::Value getUnsignedCSRsImpl() {
         }
     } HANDLE_SGX_EXCEPTION(result);
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value signByHashImpl(const string &hash, int status) {
-    Json::Value result;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         if (!(status == 0 || status == 2)) {
@@ -97,7 +87,6 @@ Json::Value signByHashImpl(const string &hash, int status) {
                 LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
                 LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, "-1");
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-                //exit(-1);
             }
         }
 
@@ -110,17 +99,14 @@ Json::Value signByHashImpl(const string &hash, int status) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
-
 Json::Value CSRManagerServer::getUnsignedCSRs() {
-    LOCK(m)
     return getUnsignedCSRsImpl();
 }
 
 Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
-    LOCK(m)
     return signByHashImpl(hash, status);
 }
 

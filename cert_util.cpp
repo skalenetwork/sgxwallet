@@ -16,11 +16,10 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.cpp
+    @file cert_util.cpp
     @author Stan Kladko
     @date 2019
 */
-
 
 #include <iostream>
 #include <cstring>
@@ -46,7 +45,6 @@ void sign_by_hash(std::string & hash, int status){
 }
 
 int main(int argc, char *argv[]) {
-
   int opt;
 
   if (argc > 1 && strlen(argv[1]) == 1) {
@@ -61,23 +59,21 @@ int main(int argc, char *argv[]) {
     std::cout << " -r [hash] reject csr by hash" << std::endl;
     exit(0);
   }
-     std::string hash;
-      while ((opt = getopt(argc, argv, "ps:r:")) != -1) {
-          switch (opt) {
-
-              case 'p': print_hashes();
-                        break;
-              case 's': hash = optarg;
-                        sign_by_hash(hash, 0);
-                        break;
-              case 'r': hash = optarg;
-                        sign_by_hash(hash, 2);
-                        break;
-              case '?': // fprintf(stderr, "unknown flag\n");
-                        exit(1);
-
-          }
+  std::string hash;
+  while ((opt = getopt(argc, argv, "ps:r:")) != -1) {
+      switch (opt) {
+          case 'p': print_hashes();
+                    break;
+          case 's': hash = optarg;
+                    sign_by_hash(hash, 0);
+                    break;
+          case 'r': hash = optarg;
+                    sign_by_hash(hash, 2);
+                    break;
+          case '?': // fprintf(stderr, "unknown flag\n");
+                    exit(1);
       }
+  }
 
   return 0;
 }

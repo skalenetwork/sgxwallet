@@ -28,38 +28,33 @@ username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Top directory is:" + topDir)
-
-testList = [ "[cert-sign]",
+testList = ["[first-run]",
+            "[second-run]",
+            "[backup-restore]",
+            "[cert-sign]",
             "[get-server-status]",
             "[get-server-version]",
-            "[ecdsa-key-gen]",
+            "[backup-key]",
+            "[delete-bls-key]",
             "[ecdsa-aes-key-gen]",
-            "[ecdsa-key-sig-gen]",
             "[ecdsa-aes-key-sig-gen]",
-            "[ecdsa-get-pub-key]",
             "[ecdsa-aes-get-pub-key]",
             "[ecdsa-key-gen-api]",
-            "[ecdsa-key-gen-sign-api]",
             "[bls-key-encrypt]",
-            "[dkg-gen]",
             "[dkg-aes-gen]",
-            "[dkg-encr-sshares]",
             "[dkg-aes-encr-sshares]",
             "[dkg-verify]",
             "[dkg-api]",
             "[dkg-bls]",
             "[dkg-poly-exists]",
-            "[dkg-pub-shares]",
             "[dkg-aes-pub-shares]",
             "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
-            "[sgx-encrypt-decrypt]",
-            "[aes-dkg]",
-            "[aes-not-aes]"
+            "[aes-dkg]"
             ]
 
 
 for t in testList:
     print("Starting " + t)
     assert subprocess.call(["./testw", t]) == 0
-    print("Ending " + t) 
+    print("Ending " + t)

@@ -6,20 +6,18 @@
 #define JSONRPC_CPP_STUB_STUBCLIENT_H_
 
 #include <jsonrpccpp/client.h>
+#include <cassert>
 
 class StubClient : public jsonrpc::Client
 {
     public:
         StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName, int t, int n, int index)
+        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName)
         {
             Json::Value p;
-            p["index"] = index;
             p["keyShare"] = keyShare;
             p["keyShareName"] = keyShareName;
-            p["n"] = n;
-            p["t"] = t;
             Json::Value result = this->CallMethod("importBLSKeyShare",p);
             if (result.isObject())
                 return result;
@@ -27,27 +25,14 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n, int signerIndex) 
+        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n)
         {
             Json::Value p;
             p["keyShareName"] = keyShareName;
             p["messageHash"] = messageHash;
             p["n"] = n;
-            p["signerIndex"] = signerIndex;
             p["t"] = t;
             Json::Value result = this->CallMethod("blsSignMessageHash",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value importECDSAKey(const std::string& key, const std::string& keyName) 
-        {
-            Json::Value p;
-            p["key"] = key;
-            p["keyName"] = keyName;
-            Json::Value result = this->CallMethod("importECDSAKey",p);
             if (result.isObject())
                 return result;
             else
@@ -59,18 +44,6 @@ class StubClient : public jsonrpc::Client
           Json::Value p;
           p = Json::nullValue;
           Json::Value result = this->CallMethod("generateECDSAKey",p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value renameECDSAKey(const std::string& KeyName, const std::string& tempKeyName) 
-        {
-          Json::Value p;
-          p["keyName"] = KeyName;
-          p["tempKeyName"] = tempKeyName;
-          Json::Value result = this->CallMethod("renameECDSAKey",p);
           if (result.isObject())
             return result;
           else
@@ -184,6 +157,20 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n)
+        {
+            Json::Value p;
+            p["publicShares"] = publicShares["publicShares"];
+            p["t"] = t;
+            p["n"] = n;
+
+            Json::Value result = this->CallMethod("calculateAllBLSPublicKeys", p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
         Json::Value complaintResponse(const std::string& polyName, int ind) 
         {
           Json::Value p;
@@ -214,6 +201,18 @@ class StubClient : public jsonrpc::Client
             p["polyName"] = polyName;
 
             Json::Value result = this->CallMethod("isPolyExists",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value deleteBlsKey(const std::string & polyName)
+        {
+            Json::Value p;
+            p["blsKeyName"] = polyName;
+
+            Json::Value result = this->CallMethod("deleteBlsKey",p);
             if (result.isObject())
                 return result;
             else

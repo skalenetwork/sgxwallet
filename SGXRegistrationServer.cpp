@@ -46,10 +46,10 @@
 #include "Log.h"
 #include "common.h"
 
-int printDebugInfo = -1;
-int useHTTPS = -1;
-int encryptKeys = -1;
-int autoconfirm = -1;
+bool printDebugInfo = false;
+bool useHTTPS = false;
+bool enterBackupKey = false;
+bool autoconfirm = false;
 
 shared_ptr <SGXRegistrationServer> SGXRegistrationServer::server = nullptr;
 shared_ptr <HttpServer> SGXRegistrationServer::httpServer = nullptr;
@@ -112,7 +112,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value getCertificateImpl(const string &hash) {
@@ -147,19 +147,17 @@ Json::Value getCertificateImpl(const string &hash) {
 
     } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 
 Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info(__FUNCTION__);
-    LOCK(m)
     return signCertificateImpl(csr, autoSign);
 }
 
 Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     spdlog::info(__FUNCTION__);
-    LOCK(m)
     return getCertificateImpl(hash);
 }
 

@@ -21,12 +21,10 @@
     @date 2019
 */
 
-
 #include <stdexcept>
 #include <memory>
 #include <string>
 #include <iostream>
-
 
 #include "leveldb/db.h"
 
@@ -36,7 +34,7 @@
 
 #include "ServerInit.h"
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 using namespace leveldb;
@@ -45,89 +43,63 @@ static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
 std::shared_ptr<string> LevelDB::readString(const string &_key) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     auto result = std::make_shared<string>();
 
-    if (db == nullptr) {
-        throw SGXException(NULL_DATABASE, "Null db");
-    }
+    CHECK_STATE(db)
 
-    auto status = db->Get(readOptions, _key, &*result);
-
-    spdlog::debug("key to read from db: {}",_key );
+    auto status = db->Get(readOptions, _key, result.get());
 
     throwExceptionOnError(status);
 
-    if (status.IsNotFound())
+    if (status.IsNotFound()) {
         return nullptr;
+    }
 
     return result;
 }
 
 void LevelDB::writeString(const string &_key, const string &_value) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
 
     throwExceptionOnError(status);
-
-    spdlog::debug("written key: {}",_key );
 }
 
 
-void LevelDB::deleteDHDKGKey (const string &_key) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
+void LevelDB::deleteDHDKGKey(const string &_key) {
 
     string full_key = "DKG_DH_KEY_" + _key;
 
-    auto status = db->Delete(writeOptions, Slice(_key));
+    auto status = db->Delete(writeOptions, Slice(full_key));
 
     throwExceptionOnError(status);
 
-    spdlog::debug("key deleted: {}",full_key );
 }
 
 void LevelDB::deleteTempNEK(const string &_key) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    string prefix = _key.substr(0,8);
-    if (prefix != "tmp_NEK:") {
-      return;
-    }
+    CHECK_STATE(_key.rfind("tmp_NEK", 0) == 0);
 
     auto status = db->Delete(writeOptions, Slice(_key));
 
     throwExceptionOnError(status);
-
-    std::cerr << "key deleted " << _key << std::endl;
 }
 
 void LevelDB::deleteKey(const string &_key) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     auto status = db->Delete(writeOptions, Slice(_key));
 
     throwExceptionOnError(status);
 
-    spdlog::debug("key deleted: {}",_key );
 }
 
-
-
-void LevelDB::writeByteArray(const char *_key, size_t _keyLen, const char *value,
-                             size_t _valueLen) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-
-    auto status = db->Put(writeOptions, Slice(_key, _keyLen), Slice(value, _valueLen));
-
-    throwExceptionOnError(status);
-}
 
 
 void LevelDB::writeByteArray(string &_key, const char *value,
                              size_t _valueLen) {
-    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    CHECK_STATE(value);
 
     auto status = db->Put(writeOptions, Slice(_key), Slice(value, _valueLen));
 
@@ -144,6 +116,9 @@ void LevelDB::throwExceptionOnError(Status _status) {
 }
 
 uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVisit) {
+
+    CHECK_STATE(_visitor);
+
     uint64_t readCounter = 0;
 
     leveldb::Iterator *it = db->NewIterator(readOptions);
@@ -189,7 +164,7 @@ void LevelDB::writeDataUnique(const string & Name, const string &value) {
 
   writeString(key, value);
 
-  spdlog::debug("{}",Name, " is written to db");
+
 }
 
 

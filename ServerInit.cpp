@@ -31,20 +31,21 @@
 #include <sys/stat.h>
 
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include <libff/common/profiling.hpp>
 #include "bls.h"
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 
 
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
-#include "create_enclave.h"
+#include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
-#include "sgx_detect.h"
+#include "third_party/intel/sgx_detect.h"
 #include "sgxwallet.h"
 #include "LevelDB.h"
 #include "SGXWalletServer.h"
@@ -53,10 +54,15 @@
 #include "CSRManagerServer.h"
 #include "BLSCrypto.h"
 #include "ServerInit.h"
+#include "SGXException.h"
 #include "SGXWalletServer.hpp"
 
 void initUserSpace() {
+
+    libff::inhibit_profiling_counters = true;
+
     libff::init_alt_bn128_params();
+
     LevelDB::initDataFolderAndDBs();
 }
 
@@ -73,7 +79,7 @@ void initEnclave(uint32_t _logLevel) {
     }
 #endif
 
-    spdlog::debug("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
+    spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
 
     status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);
@@ -99,23 +105,43 @@ void initEnclave(uint32_t _logLevel) {
     spdlog::info("Enclave libtgmp library and logging initialized successfully");
 }
 
-void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign) {
 
-    static atomic<int> sgxServerInited(0);
+void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
-    cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
+    static atomic<bool> sgxServerInited(false);
+    static mutex initMutex;
 
-    CHECK_STATE(sgxServerInited != 1)
-    sgxServerInited = 1;
-    initEnclave(_logLevel);
-    initUserSpace();
-    initSEK();
+    lock_guard <mutex> lock(initMutex);
 
-    if (useHTTPS) {
-        SGXWalletServer::initHttpsServer(_checkCert);
-        SGXRegistrationServer::initRegistrationServer(_autoSign);
-        CSRManagerServer::initCSRManagerServer();
-    } else {
-        SGXWalletServer::initHttpServer();
+    if (sgxServerInited)
+        return;
+
+    try {
+
+        cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
+
+        CHECK_STATE(sgxServerInited != 1)
+        sgxServerInited = 1;
+        initEnclave(_logLevel);
+        initUserSpace();
+        initSEK();
+
+        if (useHTTPS) {
+            SGXWalletServer::initHttpsServer(_checkCert);
+            SGXRegistrationServer::initRegistrationServer(_autoSign);
+            CSRManagerServer::initCSRManagerServer();
+        } else {
+            SGXWalletServer::initHttpServer();
+        }
+        sgxServerInited = true;
+    } catch (SGXException &_e) {
+        spdlog::error(_e.getMessage());
+    } catch (exception &_e) {
+        spdlog::error(_e.what());
     }
-}
+    catch (...) {
+        exception_ptr p = current_exception();
+        printf("Exception %s \n", p.__cxa_exception_type()->name());
+        spdlog::error("Unknown exception");
+    }
+};
