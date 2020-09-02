@@ -474,9 +474,6 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
 
 
 
-
-
-
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
 
     PRINT_SRC_LINE
