@@ -8,10 +8,9 @@ RUN apt-get update && apt-get install -y curl secure-delete && \
 
 RUN ccache -sz
 
-RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
-
 # /usr/src/sdk is made available to use as a location for the SGX SDK.
 COPY . /usr/src/sdk
+RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 WORKDIR /usr/src/sdk
 
 # Configure build and make SGXWallet.
