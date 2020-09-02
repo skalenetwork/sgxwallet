@@ -23,10 +23,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+
+#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
+#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
+#ifdef USER_SPACE
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 #include "NumberTheory.h"
 
@@ -50,20 +59,7 @@ void point_at_infinity(point p)
 }
 
 /*Print point to standart output stream*/
-void point_print(point p)
-{
- /*	//Write something if point is a infinity
-	if(p->infinity)
-	{	
-		printf("Point is at infinity!");
-	}else{
-		printf("\nPoint: (\n\t");
-		//mpz_out_str(stdout, 10, p->x);
-		printf("\n,\n\t");
-		//mpz_out_str(stdout, 10, p->y);
-		printf("\n)\n");
-	}*/
-}
+
 
 /*Set a point from another point*/
 void point_set(point R, point P)
@@ -77,16 +73,19 @@ void point_set(point R, point P)
 }
 
 /*Set point from strings of a base from 2-62*/
-void point_set_str(point p, char *x, char *y, int base)
+int point_set_str(point p, const  char *x, const char *y, int base)
 {
-	mpz_set_str(p->x, x, base);
-	mpz_set_str(p->y, y, base);
+	if (mpz_set_str(p->x, x, base) != 0 || mpz_set_str(p->y, y, base) != 0) {
+        return 1;
+    }
+
+    return 0;
 }
 
 /*Set point from hexadecimal strings*/
-void point_set_hex(point p, char *x, char *y)
+int point_set_hex(point p, const char *x, const char *y)
 {
-	point_set_str(p,x,y,16);
+	return point_set_str(p,x,y,16);
 }
 
 /*Set point from decimal unsigned long ints*/
@@ -287,7 +286,7 @@ Loops through the integer bit per bit, if a bit is 1 then x is added to the resu
 This is not the most effecient method of point multiplication, but it's faster than P+P+P+... which is not computational feasiable.
 */
 		int bits = mpz_sizeinbase(multiplier, 2);
-		unsigned long int bit = 0;
+		long int bit = 0;
 		while(bit <= bits)
 		{
 			if(mpz_tstbit(multiplier, bit))
@@ -306,55 +305,6 @@ This is not the most effecient method of point multiplication, but it's faster t
 	}
 }
 
-/*Decompress a point from hexadecimal representation
- *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.4.*/
-void point_decompress(point P, char* zPoint, domain_parameters curve)
-{
-	//Initialiser variabler
-	mpz_t x;mpz_init(x);
-	mpz_t a;mpz_init(a);
-	mpz_t b;mpz_init(b);
-	mpz_t t1;mpz_init(t1);
-	mpz_t t2;mpz_init(t2);
-	mpz_t t3;mpz_init(t3);
-	mpz_t t4;mpz_init(t4);
-
-	//Get x coordinate
-	mpz_set_str(x, zPoint + 2, 16);
-
-	//alpha = x^3+a*x+b mod p
-	number_theory_exp_modp_ui(t1, x, 3, curve->p);//t1 = x^3 mod p
-	mpz_mul(t3, x, curve->a);		//t3 = a*x
-	mpz_mod(t2, t3, curve->p);		//t2 = t3 mod p
-	mpz_add(t3, t1, t2);			//t3 = t1 + t2
-	mpz_add(t4, t3, curve->b);		//t4 = t3 + b
-	mpz_mod(a, t4, curve->p);		//a = t4 mod p
-
-	//beta = sqrt(alpha) mod p
-	number_theory_squareroot_modp(b, a, curve->p);
-
-	//Get y mod 2 from input
-	mpz_set_ui(t2, zPoint[1] == '2' ? 0 : 1);
-
-	//Set x
-	mpz_set(P->x, x);
-
-	//t2 = beta mod p
-	mpz_mod_ui(t1, b, 2);
-	if(mpz_cmp(t1, t2))
-		mpz_set(P->y, b);	//y = beta
-	else
-		mpz_sub(P->y, curve->p, b);//y = p -beta
-
-	//Release variables
-	mpz_clear(x);
-	mpz_clear(a);
-	mpz_clear(b);
-	mpz_clear(t1);
-	mpz_clear(t2);
-	mpz_clear(t3);
-	mpz_clear(t4);
-}
 
 /*Compress a point to hexadecimal string
  *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.3.*/
@@ -367,19 +317,20 @@ char* point_compress(point P)
 	int l = mpz_sizeinbase(P->x, 16) + 2;
 	char* result = (char*)calloc(l + 1, 1);
 	result[l] = '\0';
-	mpz_t t1;mpz_init(t1);
-
-	//Add x coordinat in hex to result
-	mpz_get_str(result +2, 16, P->x);
+	mpz_t t1;
+	mpz_init(t1);
 
 	//Determine if it's odd or even
 	mpz_mod_ui(t1, P->y, 2);
 	if(mpz_cmp_ui(t1, 0))
-		strncpy(result, "02", 2);
+		strncpy(result, "02", 3);
 	else
-		strncpy(result, "03", 2);
+		strncpy(result, "03", 3);
 
 	mpz_clear(t1);
+
+	//Add x coordinat in hex to result
+	mpz_get_str(result +2, 16, P->x);
 
 	return result;
 }
@@ -387,8 +338,10 @@ char* point_compress(point P)
 /*Release point*/
 void point_clear(point p)
 {
+    if (!p)
+        return;
 	mpz_clear(p->x);
 	mpz_clear(p->y);
-	free(p);
+	SAFE_FREE(p);
 }
 

@@ -27,7 +27,7 @@
 
 #include <iostream>
 
-#include "spdlog/spdlog.h"
+#include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
 vector<string> SplitString(const string& str, const string& delim = ":"){
@@ -73,14 +73,13 @@ bool checkECDSAKeyName(const string& keyName) {
 bool checkHex(const string& hex, const uint32_t sizeInBytes){
   if ( hex.length() > sizeInBytes * 2 || hex.length() == 0){
     spdlog::error("key is too long or zero - ", hex.length());
-    std::cerr << "key length is " << hex.length() << std::endl;
     return false;
   }
 
   mpz_t num;
   mpz_init(num);
 
-  if ( mpz_set_str(num, hex.c_str(), 16) == -1){
+  if (mpz_set_str(num, hex.c_str(), 16) == -1) {
     spdlog::error("key is not hex {}", hex);
     mpz_clear(num);
     return false;
@@ -129,9 +128,9 @@ bool checkName (const string& Name, const string& prefix){
     mpz_t num;
     mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(2).c_str(), 10) == -1){
+    if ( mpz_set_str(num, parts.at(2).c_str(), 10) == -1) {
         mpz_clear(num);
-        spdlog::info("parts.at(2) not num");
+        spdlog::info("parts.at(2) is not decimal number");
         return false;
     }
     mpz_clear(num);
@@ -139,7 +138,7 @@ bool checkName (const string& Name, const string& prefix){
 
     if ( mpz_set_str(num, parts.at(4).c_str(), 10) == -1){
         mpz_clear(num);
-        spdlog::info("parts.at(4) not num");
+        spdlog::info("parts.at(4) is not decimal number");
         return false;
     }
     mpz_clear(num);
@@ -147,7 +146,7 @@ bool checkName (const string& Name, const string& prefix){
 
     if ( mpz_set_str(num, parts.at(6).c_str(),10) == -1){
         mpz_clear(num);
-        spdlog::info("parts.at(6) not num");
+        spdlog::info("parts.at(6) is not decimal number");
         return false;
     }
     mpz_clear(num);

@@ -1,5 +1,7 @@
 # sgxwallet: SKALE SGX-based hardware crypto wallet
 
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
 ## Intro
@@ -24,6 +26,14 @@ The sgxwallet server is still in active development and therefore should be rega
 ![Build, test and push sim mode container](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sim%20mode%20container/badge.svg)
 
 ## Running sgxwallet
+
+### Clone this repo
+
+As you probably suspect, the first thing to do is to clone this repository and all it is sub-repositories. 
+
+```bash
+git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
+```
 
 ### Try in simulation mode
 
@@ -53,12 +63,12 @@ Never run a production sgxserver in simulation mode.
 If you are a SKALE validator and want to run sgxwallet for testnet or mainnet usage, you need
  a SGX-capable server.  
 Please refer to Admin guide for details on how to setup sgxwallet in a secure hardware mode 
- [docs/admin_guide.md](docs/admin_guide.md).
+ [docs/admin-guide.md](docs/admin-guide.md).
 
 ## Developer guide
 
 If you are a SKALE developer and want to build sgxwallet from source, please refer to Developer
-guide [docs/developer_guide.md](docs/developer_guide.md).
+guide [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Contributing
 

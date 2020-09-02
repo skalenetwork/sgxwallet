@@ -23,9 +23,25 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <../tgmp-build/include/sgx_tgmp.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
+
+#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
+#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
+
+#ifdef USER_SPACE
+#include <gmp.h>
+
+
+#else
+
+#include <../tgmp-build/include/sgx_tgmp.h>
+
+#endif
+
 #include "DomainParameters.h"
 #include "Point.h"
 #include "NumberTheory.h"
@@ -41,24 +57,18 @@ signature signature_init() {
     return sig;
 }
 
-/*Print signature to standart output stream*/
-void signature_print(signature sig) {
-    /*printf("\nSignature (r,s): \n\t(");
-    mpz_out_str(stdout, 10, sig->r);
-    printf(",\n\t");
-    mpz_out_str(stdout, 10, sig->s);
-    printf(")\n");*/
-}
 
 /*Set signature from strings of a base from 2-62*/
-void signature_set_str(signature sig, char *r, char *s, int base) {
-    mpz_set_str(sig->r, r, base);
-    mpz_set_str(sig->s, s, base);
+int signature_set_str(signature sig, const char *r, const char *s, int base) {
+    if (mpz_set_str(sig->r, r, base) != 0 || mpz_set_str(sig->s, s, base) != 0) {
+        return 1;
+    }
+    return 0;
 }
 
 /*Set signature from hexadecimal strings*/
-void signature_set_hex(signature sig, char *r, char *s) {
-    signature_set_str(sig, r, s, 16);
+int signature_set_hex(signature sig, const char *r, const char *s) {
+    return signature_set_str(sig, r, s, 16);
 }
 
 /*Set signature from decimal unsigned long ints*/
@@ -84,37 +94,48 @@ void signature_extract_public_key(point public_key, mpz_t private_key, domain_pa
     point_multiplication(public_key, private_key, curve->G, curve);
 }
 
+#ifndef USER_SPACE
+
 /*Generate signature for a message*/
 void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_parameters curve) {
     //message must not have a bit length longer than that of n
-    //see: Guide to Elliptic Curve Cryptography, section 4.4.1.
-    assert(mpz_sizeinbase(message, 2) <= mpz_sizeinbase(curve->n, 2));
+    if (mpz_sizeinbase(message, 2) > mpz_sizeinbase(curve->n, 2)) {
+        LOG_ERROR("mpz_sizeinbase(message, 2) > mpz_sizeinbase(curve->n, 2))");
+        return;
+    }
 
     point Q = point_init();
 
     //Initializing variables
-    mpz_t k, x, r, t1, t2, t3, t4, t5,  s, n_div_2, rem, neg, seed;
-    mpz_init(k); mpz_init(x); mpz_init(r); mpz_init(t1); mpz_init(t2); mpz_init(t3); mpz_init(s);
-    mpz_init(t4); mpz_init(t5); mpz_init(n_div_2); mpz_init(rem); mpz_init(neg); mpz_init(seed);
+    mpz_t k, x, r, t1, t2, t3, t4, t5, s, n_div_2, rem, neg, seed;
+    mpz_init(k);
+    mpz_init(x);
+    mpz_init(r);
+    mpz_init(t1);
+    mpz_init(t2);
+    mpz_init(t3);
+    mpz_init(s);
+    mpz_init(t4);
+    mpz_init(t5);
+    mpz_init(n_div_2);
+    mpz_init(rem);
+    mpz_init(neg);
+    mpz_init(seed);
+    mpz_t s_mul_2;
+    mpz_init(s_mul_2);
 
-    unsigned char *rand_char = (unsigned char *) calloc(32,1);
+    SAFE_CHAR_BUF(rand_char, 32);
 
-    sgx_read_rand(rand_char, 32);
-
-    gmp_randstate_t r_state;
+    get_global_random(rand_char, 32);
 
     signature_sign_start:
 
-    //Set k
-    sgx_read_rand(rand_char, 32);
-;
+
+    get_global_random(rand_char, 32);
+
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
     mpz_mod(k, seed, curve->p);
-
-    //mpz_set_str(k, "49a0d7b786ec9cde0d0721d72804befd06571c974b191efb42ecf322ba9ddd9a", 16);
-    //  mpz_set_str(k, "DC87789C4C1A09C97FF4DE72C0D0351F261F10A2B9009C80AEE70DDEC77201A0", 16);
-    //mpz_set_str(k,"29932781130098090011281004827843485745127563886526054275935615017309884975795",10);
 
     //Calculate x
     point_multiplication(Q, k, curve->G, curve);
@@ -139,8 +160,7 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     //Calculate v
 
     mpz_mod_ui(rem, Q->y, 2);
-    mpz_t s_mul_2;
-    mpz_init(s_mul_2);
+
     mpz_mul_ui(s_mul_2, s, 2);
 
     unsigned b = 0;
@@ -160,15 +180,33 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_set(sig->r, r);
     mpz_set(sig->s, s);
 
-    clean:
 
-    free(rand_char);
     point_clear(Q);
 
-    mpz_clear(k); mpz_clear(r); mpz_clear(s); mpz_clear(x); mpz_clear(rem); mpz_clear(neg);
-    mpz_clear(t1); mpz_clear(t2); mpz_clear(t3); mpz_clear(seed); mpz_clear(n_div_2);
+    mpz_clear(k);
+    mpz_clear(r);
+    mpz_clear(s);
+    mpz_clear(x);
+    mpz_clear(rem);
+    mpz_clear(neg);
+    mpz_clear(t1);
+    mpz_clear(t2);
+    mpz_clear(t3);
+    mpz_clear(seed);
+    mpz_clear(n_div_2);
     mpz_clear(s_mul_2);
 
+}
+
+#endif
+
+/*Release signature*/
+void signature_free(signature sig) {
+    if (!sig)
+        return;
+    mpz_clear(sig->r);
+    mpz_clear(sig->s);
+    free(sig);
 }
 
 /*Verify the integrity of a message using it's signature*/
@@ -176,8 +214,12 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
 
     //Initialize variables
     mpz_t one, w, u1, u2, t, tt2;
-    mpz_init(one); mpz_init(w); mpz_init(u1);
-    mpz_init(u2); mpz_init(t); mpz_init(tt2);
+    mpz_init(one);
+    mpz_init(w);
+    mpz_init(u1);
+    mpz_init(u2);
+    mpz_init(t);
+    mpz_init(tt2);
 
     mpz_set_ui(one, 1);
 
@@ -224,15 +266,15 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     point_clear(t1);
     point_clear(t2);
 
-    mpz_clear(one); mpz_clear(w); mpz_clear(u1); mpz_clear(u2); mpz_clear(t);
+    mpz_clear(one);
+    mpz_clear(w);
+    mpz_clear(u1);
+    mpz_clear(u2);
+    mpz_clear(t);
     mpz_clear(tt2);
 
     return result;
+
 }
 
-/*Release signature*/
-void signature_free(signature sig) {
-    mpz_clear(sig->r);
-    mpz_clear(sig->s);
-    free(sig);
-}
+

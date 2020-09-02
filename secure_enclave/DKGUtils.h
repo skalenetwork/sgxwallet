@@ -30,7 +30,12 @@
 #define EXTERNC
 #endif
 
-#include <sgx_tgmp.h>
+#ifdef USER_SPACE
+
+#include <gmp.h>
+#else
+#include <../tgmp-build/include/sgx_tgmp.h>
+#endif
 
 EXTERNC int gen_dkg_poly( char* secret, unsigned _t);
 
@@ -47,8 +52,6 @@ EXTERNC int Verification ( char * public_shares, mpz_t decr_secret_share, int _t
 
 EXTERNC int calc_bls_public_key(char* skey, char* pub_key);
 
-EXTERNC void calc_secret_shareG2_old(const char* public_shares, char * s_shareG2,
-                                 unsigned _t, unsigned ind);
 
 EXTERNC int calc_secret_shareG2(const char* s_share, char * s_shareG2);
 #endif

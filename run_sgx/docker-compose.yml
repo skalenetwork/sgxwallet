@@ -6,6 +6,7 @@ services:
       - "1026:1026"
       - "1027:1027"
       - "1028:1028"
+      - "1029:1029"
     devices:
       - "/dev/isgx"
       - "/dev/mei0"
@@ -20,5 +21,5 @@ services:
     restart: unless-stopped
     command: -s -y -d
     healthcheck:
-      test: ["CMD", "ls /dev/isg /dev/mei0"]
+      test: ["CMD", "ls", "/dev/isgx", "/dev/mei0"]
 

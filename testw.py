@@ -22,37 +22,39 @@
 #    @date 2020
 #
 
-import sys, getpass,os, subprocess, socket, time
-
+import getpass, os, subprocess
 
 username = getpass.getuser()
 
-
-
-
 topDir = os.getcwd() + "/sgxwallet"
-print("Starting build push")
 print("Top directory is:" + topDir)
-
-
-testList = ["[bls-key-encrypt]", "[dkg-gen]",
-            "[dkg-encr-sshares]",
-            "[dkg-verify]",
-            "[ecdsa]",
-            "[test]",
-            "[get-pub-ecdsa-key-test]",
-            "[bls-dkg]",
-            "[api]",
+testList = ["[first-run]",
+            "[second-run]",
+            "[backup-restore]",
+            "[cert-sign]",
             "[get-server-status]",
-            "[many-threads]",
-            "[ecdsa-api]",
+            "[get-server-version]",
+            "[backup-key]",
+            "[delete-bls-key]",
+            "[ecdsa-aes-key-gen]",
+            "[ecdsa-aes-key-sig-gen]",
+            "[ecdsa-aes-get-pub-key]",
+            "[ecdsa-key-gen-api]",
+            "[bls-key-encrypt]",
+            "[dkg-aes-gen]",
+            "[dkg-aes-encr-sshares]",
+            "[dkg-verify]",
             "[dkg-api]",
-            "[is-poly]",
-#            "[bls-sign]",
-            "[aes-encrypt-decrypt]"]
+            "[dkg-bls]",
+            "[dkg-poly-exists]",
+            "[dkg-aes-pub-shares]",
+            "[many-threads-crypto]",
+            "[aes-encrypt-decrypt]",
+            "[aes-dkg]"
+            ]
 
 
 for t in testList:
     print("Starting " + t)
     assert subprocess.call(["./testw", t]) == 0
-    print("Ending " + t) 
+    print("Ending " + t)

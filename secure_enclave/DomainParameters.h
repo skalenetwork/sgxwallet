@@ -23,6 +23,11 @@
 #ifndef SGXWALLET_DOMAINPARAMETERS_H
 #define SGXWALLET_DOMAINPARAMETERS_H
 
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
 
 /*Type that represents a point*/
 typedef struct point_s* point;
@@ -48,13 +53,13 @@ struct domain_parameters_s
 };
 
 /*Initialize a curve*/
-domain_parameters domain_parameters_init();
+EXTERNC domain_parameters domain_parameters_init();
 
 /*Sets the name of a curve*/
-void domain_parameters_set_name(domain_parameters curve, char* name);
+EXTERNC void domain_parameters_set_name(domain_parameters curve, char* name);
 
 /*Set domain parameters from decimal unsigned long ints*/
-void domain_parameters_set_ui(domain_parameters curve,
+EXTERNC void domain_parameters_set_ui(domain_parameters curve,
 								char* name,
 								unsigned long int p,
 								unsigned long int a,
@@ -65,9 +70,9 @@ void domain_parameters_set_ui(domain_parameters curve,
 								unsigned long int h);
 
 /*Set domain parameters from hexadecimal string*/
-void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, char* a, char* b, char* Gx, char* Gy, char* n, char* h);
+EXTERNC void domain_parameters_set_hex(domain_parameters curve, char* name, char* p, char* a, char* b, char* Gx, char* Gy, char* n, char* h);
 
 /*Release memory*/
-void domain_parameters_clear(domain_parameters curve);
+EXTERNC void domain_parameters_clear(domain_parameters curve);
 
 #endif

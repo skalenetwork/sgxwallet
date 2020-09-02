@@ -21,52 +21,39 @@
     @date 2019
 */
 
-
-#include "CSRManagerServer.h"
-#include "SGXException.h"
-#include "sgxwallet_common.h"
-
 #include <iostream>
 #include <fstream>
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "spdlog/spdlog.h"
+#include "CSRManagerServer.h"
+#include "SGXException.h"
+#include "sgxwallet_common.h"
+
+#include "Log.h"
 #include "common.h"
 
-
-CSRManagerServer *cs = nullptr;
-jsonrpc::HttpServer *hs3 = nullptr;
-
+shared_ptr<CSRManagerServer> CSRManagerServer::cs = nullptr;
+shared_ptr<jsonrpc::HttpServer> CSRManagerServer::hs3 = nullptr;
 
 CSRManagerServer::CSRManagerServer(AbstractServerConnector &connector,
                                    serverVersion_t type) : abstractCSRManagerServer(connector, type) {}
 
-
 Json::Value getUnsignedCSRsImpl() {
-    spdlog::info("Enter getUnsignedCSRsImpl");
-    Json::Value result;
-    result["status"] = 0;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         vector<string> hashes_vect = LevelDB::getCsrDb()->writeKeysToVector1(MAX_CSR_NUM);
         for (int i = 0; i < (int) hashes_vect.size(); i++) {
             result["hashes"][i] = hashes_vect.at(i);
         }
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
+    } HANDLE_SGX_EXCEPTION(result);
 
-    }
-
-    return result;
+    RETURN_SUCCESS(result)
 }
 
 Json::Value signByHashImpl(const string &hash, int status) {
-    Json::Value result;
-    result["errorMessage"] = "";
+    INIT_RESULT(result)
 
     try {
         if (!(status == 0 || status == 2)) {
@@ -100,7 +87,6 @@ Json::Value signByHashImpl(const string &hash, int status) {
                 LevelDB::getCsrStatusDb()->deleteKey(status_db_key);
                 LevelDB::getCsrStatusDb()->writeDataUnique(status_db_key, "-1");
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
-                //exit(-1);
             }
         }
 
@@ -111,30 +97,23 @@ Json::Value signByHashImpl(const string &hash, int status) {
 
         result["status"] = status;
 
-    } catch (SGXException &_e) {
-        cerr << " err str " << _e.errString << endl;
-        result["status"] = _e.status;
-        result["errorMessage"] = _e.errString;
-    }
+    } HANDLE_SGX_EXCEPTION(result)
 
-    return result;
+    RETURN_SUCCESS(result)
 }
 
-
 Json::Value CSRManagerServer::getUnsignedCSRs() {
-    lock_guard<recursive_mutex> lock(m);
     return getUnsignedCSRsImpl();
 }
 
 Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
-    lock_guard<recursive_mutex> lock(m);
     return signByHashImpl(hash, status);
 }
 
-int init_csrmanager_server() {
-    hs3 = new jsonrpc::HttpServer(BASE_PORT + 2);
+int CSRManagerServer::initCSRManagerServer() {
+    hs3 = make_shared<jsonrpc::HttpServer>(BASE_PORT + 2);
     hs3->BindLocalhost();
-    cs = new CSRManagerServer(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)
+    cs = make_shared<CSRManagerServer>(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)
 
     if (!cs->StartListening()) {
         spdlog::info("CSR manager server could not start listening");
