@@ -218,14 +218,19 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
                                  sz, xStrArg, yStrArg, signature);
 
     if (status != SGX_SUCCESS) {
-        cerr << "SGX enclave call to trustedBlsSignMessage failed with status:" << status << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
+        string errString = string("SGX enclave call to ") +
+                           __FUNCTION__  +  " failed with errStatus:" + to_string(status) +
+                           " Err message:" + errMsg;
+        BOOST_THROW_EXCEPTION(runtime_error(errString));
     }
 
     if (errStatus != 0) {
-        cerr << "SGX enclave call to trustedBlsSignMessage failed with errStatus:" << errStatus << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
+        string errString = string("SGX enclave call to ") +
+                           __FUNCTION__  +  " failed with errStatus:" + to_string(errStatus) +
+                           " Err message:" + errMsg;
+        BOOST_THROW_EXCEPTION(runtime_error(errString));
     }
+    
 
     std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
@@ -255,11 +260,8 @@ std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char 
 
     status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
-    spdlog::debug("errStatus is {}", *errStatus);
-    spdlog::debug("errMsg is ", errMsg->data());
-
     if (*errStatus != 0) {
-        throw SGXException(-666, errMsg->data());
+        BOOST_THROW_EXCEPTION(SGXException(-666, errMsg->data()));
     }
 
     if (status != SGX_SUCCESS) {
