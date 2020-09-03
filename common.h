@@ -32,6 +32,8 @@ using namespace std;
 #include <map>
 #include <memory>
 
+#include <boost/throw_exception.hpp>
+
 #include <gmp.h>
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
@@ -72,6 +74,7 @@ string __ERR_STRING__ = string("SGX enclave call to ") +\
                    " Err message:" + __ERR_MSG__;\
 BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 }
+
 
 
 #endif //SGXWALLET_COMMON_H

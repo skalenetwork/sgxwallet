@@ -22,34 +22,31 @@
 */
 
 #include <memory>
-
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "leveldb/db.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
+#include "third_party/intel/create_enclave.h"
+
+
 
 #include "bls.h"
 #include <bls/BLSutils.h>
 
-#include "leveldb/db.h"
-#include <jsonrpccpp/server/connectors/httpserver.h>
 #include "BLSPrivateKeyShareSGX.h"
 
+
+
 #include "sgxwallet_common.h"
-#include "third_party/intel/create_enclave.h"
-#include "secure_enclave_u.h"
-#include "third_party/intel/sgx_detect.h"
-#include <gmp.h>
-#include <sgx_urts.h>
-
 #include "sgxwallet.h"
-
+#include "SGXException.h"
+#include "third_party/spdlog/spdlog.h"
+#include "common.h"
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include "SGXException.h"
-
-#include "third_party/spdlog/spdlog.h"
-#include "common.h"
 
 string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_t t;

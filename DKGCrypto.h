@@ -43,9 +43,9 @@ bool verifyShares(const char* publicShares, const char* encr_sshare, const char 
 
 string decryptDHKey(const string& polyName, int ind);
 
-bool CreateBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
+bool createBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 
-vector<string> GetBLSPubKey(const char * encryptedKeyHex);
+vector<string> getBLSPubKey(const char * encryptedKeyHex);
 
 vector<string> mult_G2(const string& x);
 
@@ -55,6 +55,6 @@ string convertG2ToString(const libff::alt_bn128_G2& elem, int base = 10, const s
 
 vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares);
 
-bool TestCreateBLSShare( const char * s_shares);
+bool TestcreateBLSShare( const char * s_shares);
 
 #endif //SGXD_DKGCRYPTO_H
