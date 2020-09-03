@@ -168,15 +168,11 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     string *xStr = FqToString(&(hash_with_hint.first.X));
 
-    if (xStr == nullptr) {
-        cerr << "Null xStr" << endl;
-        BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
-    }
+    CHECK_STATE(xStr);
 
     string *yStr = FqToString(&(hash_with_hint.first.Y));
 
     if (yStr == nullptr) {
-        cerr << "Null yStr" << endl;
         delete xStr;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
@@ -222,10 +218,15 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 }
 
 bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
+    CHECK_STATE(_encryptedKeyHex);
+    CHECK_STATE(_hashHex);
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
 string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+    CHECK_STATE(errStatus);
+    CHECK_STATE(err_string);
+    CHECK_STATE(_key);
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
 

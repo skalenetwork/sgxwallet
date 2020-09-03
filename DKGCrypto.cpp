@@ -44,6 +44,7 @@
 
 
 vector <string> splitString(const char *coeffs, const char symbol) {
+    CHECK_STATE(coeffs);
     string str(coeffs);
     string delim;
     delim.push_back(symbol);
@@ -132,7 +133,7 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base, const string
 }
 
 string gen_dkg_poly(int _t) {
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
     uint32_t enc_len = 0;
 
@@ -154,11 +155,12 @@ string gen_dkg_poly(int _t) {
 }
 
 vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n) {
+
+    CHECK_STATE(encryptedPolyHex);
+
     vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
-
-    spdlog::debug("got encr poly size {}", char_traits<char>::length(encryptedPolyHex));
 
     vector<char> pubShares(10000, 0);
 
@@ -190,6 +192,9 @@ string
 getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector <string> &_publicKeys,
                        int _t,
                        int _n) {
+
+    CHECK_STATE(_encryptedPolyHex);
+
     vector<char> hexEncrKey(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
     int errStatus = 0;
@@ -250,6 +255,11 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
 bool
 verifyShares(const char *publicShares, const char *encr_sshare, const char *encryptedKeyHex, int t, int n, int ind) {
+
+    CHECK_STATE(publicShares);
+    CHECK_STATE(encr_sshare);
+    CHECK_STATE(encryptedKeyHex);
+
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t decKeyLen = 0;
@@ -259,10 +269,6 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
-
-
-
-    spdlog::debug("publicShares length is {}", char_traits<char>::length(publicShares));
 
     SAFE_CHAR_BUF(pshares,8193);
     strncpy(pshares, publicShares, strlen(publicShares));
@@ -279,6 +285,9 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 }
 
 bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *encryptedKeyHex) {
+
+    CHECK_STATE(s_shares);
+    CHECK_STATE(encryptedKeyHex);
 
     vector<char> errMsg(BUF_LEN,0);
     int errStatus = 0;
@@ -308,6 +317,9 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 }
 
 vector <string> getBLSPubKey(const char *encryptedKeyHex) {
+
+    CHECK_STATE(encryptedKeyHex);
+
     vector<char> errMsg1(BUF_LEN, 0);
     int errStatus = 0;
 
@@ -382,7 +394,7 @@ vector <string> calculateAllBlsPublicKeys(const vector <string> &public_shares) 
 }
 
 string decryptDHKey(const string &polyName, int ind) {
-    vector<char> errMsg1(1024, 0);
+    vector<char> errMsg1(BUF_LEN, 0);
     int errStatus = 0;
 
     string DH_key_name = polyName + "_" + to_string(ind) + ":";

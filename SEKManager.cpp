@@ -66,12 +66,6 @@ void create_test_key() {
 
     carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
 
-    uint64_t test_len;
-    vector <uint8_t> test_encr_key(1024, 0);
-    if (!hex2carray(hexEncrKey.data(), &test_len, test_encr_key.data())) {
-        cerr << "wrong encrypted test key" << endl;
-    }
-
     LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
 
@@ -80,8 +74,9 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     vector <uint8_t> encr_test_key(BUF_LEN, 0);
     uint64_t len;
+
     if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data())) {
-        spdlog::error("wrong test key");
+        spdlog::error("Corrupt test key is LevelDB");
         exit(-1);
     }
 
@@ -97,14 +92,16 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
-
     status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
     string test_key = TEST_VALUE;
+
     if (test_key.compare(decr_key.data()) != 0) {
-        spdlog::error("Invalid SEK");
+        spdlog::error("Invalid storage key. You need to recover using backup key");
+        spdlog::error("Set the correct backup key into sgx_datasgxwallet_backup_key.txt");
+        spdlog::error("Then run sgxwallet using backup flag");
         exit(-1);
     }
 
@@ -119,7 +116,7 @@ void gen_SEK() {
     vector <uint8_t> encrypted_SEK(1024, 0);
     uint32_t enc_len = 0;
 
-    SAFE_CHAR_BUF(SEK,65);
+    SAFE_CHAR_BUF(SEK, 65);
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
@@ -164,6 +161,9 @@ void gen_SEK() {
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
+
+    CHECK_STATE(hex_encrypted_SEK);
+
     vector<char> errMsg(1024, 0);
     int err_status = 0;
 
@@ -186,7 +186,6 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 #include <boost/algorithm/string.hpp>
 
 void enter_SEK() {
-
 
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     if (test_key_ptr == nullptr) {

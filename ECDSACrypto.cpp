@@ -48,11 +48,11 @@ void fillRandomBuffer(vector<unsigned char> &_buffer) {
 }
 
 vector <string> genECDSAKey() {
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector <uint8_t> encr_pr_key(1024, 0);
-    vector<char> pub_key_x(1024, 0);
-    vector<char> pub_key_y(1024, 0);
+    vector <uint8_t> encr_pr_key(BUF_LEN, 0);
+    vector<char> pub_key_x(BUF_LEN, 0);
+    vector<char> pub_key_y(BUF_LEN, 0);
 
     uint32_t enc_len = 0;
 
@@ -114,6 +114,11 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS, int base) {
+
+    CHECK_STATE(hashHex)
+    CHECK_STATE(signatureR)
+    CHECK_STATE(signatureS)
+
     auto x = pubKeyStr.substr(0, 64);
     auto y = pubKeyStr.substr(64, 128);
 
@@ -157,13 +162,16 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
 }
 
 vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *hashHex, int base) {
+
+    CHECK_STATE(hashHex);
+
     vector <string> signatureVector(3);
 
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector<char> signatureR(1024, 0);
-    vector<char> signatureS(1024, 0);
-    vector<uint8_t> encryptedKey(1024, 0);
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    vector<uint8_t> encryptedKey(BUF_LEN, 0);
     uint8_t signatureV = 0;
     uint64_t decLen = 0;
 
