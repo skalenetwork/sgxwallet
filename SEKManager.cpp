@@ -59,16 +59,9 @@ void create_test_key() {
 
     string key = TEST_VALUE;
 
-    status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
-    if (status != SGX_SUCCESS) {
-        cerr << "encrypt test key failed with status " << status << endl;
-        throw SGXException(status, errMsg.data());
-    }
+    sgx_status_t status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
 
-    if (errStatus != 0) {
-        cerr << "encrypt test key failed with status " << errStatus << endl;
-        throw SGXException(errStatus, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
@@ -101,24 +94,14 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     uint32_t l = len;
 
-    status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
+    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
 
-    if (status != SGX_SUCCESS) {
-        spdlog::error("trustedSetSEK_backup failed with error code {}", status);
-        exit(-1);
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
-    if (err_status != 0) {
-        spdlog::error("trustedSetSEK_backup failed with error status {}", status);
-        exit(-1);
-    }
 
     status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
-    if (status != SGX_SUCCESS || err_status != 0) {
-        spdlog::error("Failed to decrypt test key");
-        spdlog::error(errMsg.data());
-        exit(-1);
-    }
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
     string test_key = TEST_VALUE;
     if (test_key.compare(decr_key.data()) != 0) {
@@ -142,15 +125,10 @@ void gen_SEK() {
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
-    status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
+    sgx_status_t status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
 
-    if (status != SGX_SUCCESS) {
-        throw SGXException(status, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
-    if (err_status != 0) {
-        throw SGXException(err_status, errMsg.data());
-    }
 
     if (strnlen(SEK, 33) != 32) {
         throw SGXException(-1, "strnlen(SEK,33) != 32");
@@ -187,7 +165,7 @@ void gen_SEK() {
     create_test_key();
 }
 
-void trustedSetSEK(shared_ptr <string> hex_encrypted_SEK) {
+void setSEK(shared_ptr <string> hex_encrypted_SEK) {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
 
@@ -200,16 +178,10 @@ void trustedSetSEK(shared_ptr <string> hex_encrypted_SEK) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
     }
 
-    status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
-    if (status != SGX_SUCCESS) {
-        cerr << "RPCException thrown" << endl;
-        throw SGXException(status, errMsg.data());
-    }
+    sgx_status_t status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
 
-    if (err_status != 0) {
-        cerr << "RPCException thrown" << endl;
-        throw SGXException(err_status, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
 }
 
 #include "experimental/filesystem"
@@ -274,7 +246,7 @@ void initSEK() {
             spdlog::warn("SEK was not created yet. Going to create SEK");
             gen_SEK();
         } else {
-            trustedSetSEK(encrypted_SEK_ptr);
+            setSEK(encrypted_SEK_ptr);
         }
     }
 }

@@ -147,9 +147,10 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
                                      hex.data(),
                                      signatureR.data(),
                                      signatureS.data(), &signatureV, 16);
+        REQUIRE(status == SGX_SUCCESS);
+        REQUIRE(errStatus == SGX_SUCCESS);
     }
-    REQUIRE(status == SGX_SUCCESS);
-    REQUIRE(errStatus == SGX_SUCCESS);
+
 }
 
 
@@ -691,7 +692,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 }
 
 TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
-    int errStatus = -1;
+    int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
     uint32_t encLen;
     string key = SAMPLE_AES_KEY;

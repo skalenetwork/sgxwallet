@@ -32,7 +32,7 @@
 void gen_SEK();
 
 #ifdef __cplusplus
-void trustedSetSEK(std::shared_ptr<std::string> hex_encr_SEK);
+void setSEK(std::shared_ptr<std::string> hex_encr_SEK);
 #endif
 
 #ifdef __cplusplus

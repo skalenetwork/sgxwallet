@@ -124,8 +124,8 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   }
 
 
-  char errMsg[BUF_LEN];
-  memset(errMsg, 0, BUF_LEN);
+  vector<char> errMsg(BUF_LEN, 0);
+
 
   char xStrArg[BUF_LEN];
   char yStrArg[BUF_LEN];
@@ -152,10 +152,10 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   }
 
   sgx_status_t status =
-      trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
+      trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
-  HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg );
+  HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data() );
 
 
   int sigLen;

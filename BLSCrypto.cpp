@@ -233,15 +233,16 @@ bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
-    auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
+
+    vector<char> errMsg(BUF_LEN, 0);
 
     strncpy(keyArray->data(), _key, BUF_LEN);
-    *errStatus = -1;
+    *errStatus = 0;
     unsigned int encryptedLen = 0;
 
-    status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
+    sgx_status_t status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg->data());
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
     string result(2 * BUF_LEN, '\0');
 

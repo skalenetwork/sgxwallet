@@ -37,7 +37,7 @@ vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int 
 
 vector<string> splitString(const char* coeffs, const char symbol);
 
-string trustedGetSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
+string getSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
 
 bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
 
