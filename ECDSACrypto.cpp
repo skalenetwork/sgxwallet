@@ -48,22 +48,20 @@ void fillRandomBuffer(vector<unsigned char> &_buffer) {
 }
 
 vector <string> genECDSAKey() {
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector <uint8_t> encr_pr_key(1024, 0);
-    vector<char> pub_key_x(1024, 0);
-    vector<char> pub_key_y(1024, 0);
+    vector <uint8_t> encr_pr_key(BUF_LEN, 0);
+    vector<char> pub_key_x(BUF_LEN, 0);
+    vector<char> pub_key_y(BUF_LEN, 0);
 
     uint32_t enc_len = 0;
 
-    status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+    sgx_status_t status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
                                         errMsg.data(), encr_pr_key.data(), &enc_len,
                                         pub_key_x.data(), pub_key_y.data());
 
-    if (status != SGX_SUCCESS || errStatus != 0) {
-        spdlog::error("RPCException thrown with status {}", status);
-        throw SGXException(status, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
+
     vector <string> keys(3);
 
     vector<char> hexEncrKey(BUF_LEN * 2, 0);
@@ -99,18 +97,11 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
+    sgx_status_t status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
                                          errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
 
-    if (errStatus != 0) {
-        spdlog::error("failed to get ECDSA public key {}", status);
-        throw SGXException(-666, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
 
-    if (status != SGX_SUCCESS) {
-        spdlog::error("failed to get ECDSA public key {}", status);
-        throw SGXException(666, "failed to get ECDSA public key");
-    }
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());
 
     if (pubKey.size() != 128) {
@@ -123,6 +114,11 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS, int base) {
+
+    CHECK_STATE(hashHex)
+    CHECK_STATE(signatureR)
+    CHECK_STATE(signatureS)
+
     auto x = pubKeyStr.substr(0, 64);
     auto y = pubKeyStr.substr(64, 128);
 
@@ -166,13 +162,16 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
 }
 
 vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *hashHex, int base) {
+
+    CHECK_STATE(hashHex);
+
     vector <string> signatureVector(3);
 
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector<char> signatureR(1024, 0);
-    vector<char> signatureS(1024, 0);
-    vector<uint8_t> encryptedKey(1024, 0);
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    vector<uint8_t> encryptedKey(BUF_LEN, 0);
     uint8_t signatureV = 0;
     uint64_t decLen = 0;
 
@@ -182,22 +181,16 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    status = trustedEcdsaSignAES(eid, &errStatus,
+    sgx_status_t status = trustedEcdsaSignAES(eid, &errStatus,
             errMsg.data(), encryptedKey.data(), decLen, hashHex,
                                  signatureR.data(),
                                  signatureS.data(), &signatureV, base);
 
-    if (errStatus != 0) {
-        spdlog::error("failed to sign {}", errStatus);
-        throw SGXException(666, errMsg.data());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    if (status != SGX_SUCCESS) {
-        spdlog::error("failed to sign in enclave {}", status);
-        throw SGXException(666, "failed to sign");
-    }
 
     signatureVector.at(0) = to_string(signatureV);
+
     if (base == 16) {
         signatureVector.at(1) = "0x" + string(signatureR.data());
         signatureVector.at(2) = "0x" + string(signatureS.data());

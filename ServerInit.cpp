@@ -81,7 +81,7 @@ void initEnclave(uint32_t _logLevel) {
 
     spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
 
-    status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
+    sgx_status_t status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
                                        &updated, &eid, 0);
 
     if (status != SGX_SUCCESS) {
@@ -97,6 +97,7 @@ void initEnclave(uint32_t _logLevel) {
     spdlog::info("Enclave created and started successfully");
 
     status = trustedEnclaveInit(eid, _logLevel);
+
     if (status != SGX_SUCCESS) {
         spdlog::error("trustedEnclaveInit failed: {}", status);
         exit(1);

@@ -22,47 +22,44 @@
 */
 
 #include <memory>
-
 #include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "leveldb/db.h"
+#include <jsonrpccpp/server/connectors/httpserver.h>
+
+#include "third_party/intel/create_enclave.h"
+
+
 
 #include "bls.h"
 #include <bls/BLSutils.h>
 
-#include "leveldb/db.h"
-#include <jsonrpccpp/server/connectors/httpserver.h>
 #include "BLSPrivateKeyShareSGX.h"
 
+
+
 #include "sgxwallet_common.h"
-#include "third_party/intel/create_enclave.h"
-#include "secure_enclave_u.h"
-#include "third_party/intel/sgx_detect.h"
-#include <gmp.h>
-#include <sgx_urts.h>
-
 #include "sgxwallet.h"
-
+#include "SGXException.h"
+#include "third_party/spdlog/spdlog.h"
+#include "common.h"
 #include "SGXWalletServer.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
-#include "SGXException.h"
 
-#include "third_party/spdlog/spdlog.h"
-#include "common.h"
-
-std::string *FqToString(libff::alt_bn128_Fq *_fq) {
+string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_t t;
     mpz_init(t);
 
     _fq->as_bigint().to_mpz(t);
 
-    char arr[mpz_sizeinbase(t, 10) + 2];
+    SAFE_CHAR_BUF(arr,mpz_sizeinbase(t, 10) + 2);
 
     mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(arr);
+    return new string(arr);
 }
 
 int char2int(char _input) {
@@ -167,32 +164,24 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     shared_ptr<signatures::Bls> obj;
     obj = make_shared<signatures::Bls>(signatures::Bls(_t, _n));
 
-    std::pair<libff::alt_bn128_G1, std::string> hash_with_hint = obj->HashtoG1withHint(hash);
+    pair<libff::alt_bn128_G1, string> hash_with_hint = obj->HashtoG1withHint(hash);
 
     string *xStr = FqToString(&(hash_with_hint.first.X));
 
-    if (xStr == nullptr) {
-        std::cerr << "Null xStr" << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
-    }
+    CHECK_STATE(xStr);
 
     string *yStr = FqToString(&(hash_with_hint.first.Y));
 
     if (yStr == nullptr) {
-        std::cerr << "Null yStr" << std::endl;
         delete xStr;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
-    char errMsg[BUF_LEN];
-    memset(errMsg, 0, BUF_LEN);
+    vector<char> errMsg(BUF_LEN,0);
 
-    char xStrArg[BUF_LEN];
-    char yStrArg[BUF_LEN];
-    char signature[BUF_LEN];
-
-    memset(xStrArg, 0, BUF_LEN);
-    memset(yStrArg, 0, BUF_LEN);
+    SAFE_CHAR_BUF(xStrArg,BUF_LEN);
+    SAFE_CHAR_BUF(yStrArg,BUF_LEN);
+    SAFE_CHAR_BUF(signature,BUF_LEN);
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
@@ -202,34 +191,23 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     size_t sz = 0;
 
-    uint8_t encryptedKey[BUF_LEN];
+    SAFE_UINT8_BUF(encryptedKey,BUF_LEN);
 
     bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey);
 
     if (!result) {
-        cerr << "Invalid hex encrypted key" << endl;
-        BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
+        BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
     }
 
     int errStatus = 0;
-
     sgx_status_t status =
-            trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
+            trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    if (status != SGX_SUCCESS) {
-        cerr << "SGX enclave call to trustedBlsSignMessage failed with status:" << status << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
-    }
+    string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
-    if (errStatus != 0) {
-        cerr << "SGX enclave call to trustedBlsSignMessage failed with errStatus:" << errStatus << std::endl;
-        BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call to trustedBlsSignMessage failed"));
-    }
-
-    std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
-
-    std::string sig = signature;
+    string sig = signature;
 
     sig.append(":");
     sig.append(hint);
@@ -240,34 +218,29 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 }
 
 bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
+    CHECK_STATE(_encryptedKeyHex);
+    CHECK_STATE(_hashHex);
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
-std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+    CHECK_STATE(errStatus);
+    CHECK_STATE(err_string);
+    CHECK_STATE(_key);
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
-    auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
+
+    vector<char> errMsg(BUF_LEN, 0);
 
     strncpy(keyArray->data(), _key, BUF_LEN);
-    *errStatus = -1;
-
+    *errStatus = 0;
     unsigned int encryptedLen = 0;
 
-    status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
+    sgx_status_t status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
-    spdlog::debug("errStatus is {}", *errStatus);
-    spdlog::debug("errMsg is ", errMsg->data());
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
-    if (*errStatus != 0) {
-        throw SGXException(-666, errMsg->data());
-    }
-
-    if (status != SGX_SUCCESS) {
-        *errStatus = -1;
-        return "";
-    }
-
-    std::string result(2 * BUF_LEN, '\0');
+    string result(2 * BUF_LEN, '\0');
 
     carray2Hex(encryptedKey->data(), encryptedLen, &result.front());
 

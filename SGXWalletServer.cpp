@@ -425,7 +425,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
 
-        string s = trustedGetSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
+        string s = getSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
         result["secretShare"] = s;
         result["SecretShare"] = s;
     } HANDLE_SGX_EXCEPTION(result)
@@ -489,7 +489,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
-        bool res = CreateBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
+        bool res = createBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
         if (res) {
             spdlog::info("BLS KEY SHARE CREATED ");
         } else {
@@ -519,7 +519,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
         }
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
 
-        vector <string> public_key_vect = GetBLSPubKey(encryptedKeyHex_ptr->c_str());
+        vector <string> public_key_vect = getBLSPubKey(encryptedKeyHex_ptr->c_str());
         for (uint8_t i = 0; i < 4; i++) {
             result["blsPublicKeyShare"][i] = public_key_vect.at(i);
         }
