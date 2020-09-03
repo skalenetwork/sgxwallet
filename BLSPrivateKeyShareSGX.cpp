@@ -43,9 +43,10 @@ std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
 
   _fq->as_bigint().to_mpz(t);
 
-  char arr[mpz_sizeinbase(t, 10) + 2];
+  SAFE_CHAR_BUF(arr,mpz_sizeinbase(t, 10) + 2);
 
   char *tmp = mpz_get_str(arr, 10, t);
+
   mpz_clear(t);
 
   return new std::string(tmp);
@@ -127,12 +128,10 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   vector<char> errMsg(BUF_LEN, 0);
 
 
-  char xStrArg[BUF_LEN];
-  char yStrArg[BUF_LEN];
-  char signature [BUF_LEN];
+  SAFE_CHAR_BUF(xStrArg,BUF_LEN)
+  SAFE_CHAR_BUF(yStrArg,BUF_LEN)
+  SAFE_CHAR_BUF(signature,BUF_LEN);
 
-  memset(xStrArg, 0, BUF_LEN);
-  memset(yStrArg, 0, BUF_LEN);
 
   strncpy(xStrArg, xStr->c_str(), BUF_LEN);
   strncpy(yStrArg, yStr->c_str(), BUF_LEN);
@@ -142,7 +141,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   size_t sz = 0;
 
-  uint8_t encryptedKey[BUF_LEN];
+  SAFE_UINT8_BUF(encryptedKey,BUF_LEN);
 
   bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 

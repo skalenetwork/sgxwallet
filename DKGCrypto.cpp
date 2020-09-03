@@ -70,7 +70,7 @@ string ConvertToString(T field_elem, int base = 10) {
 
     field_elem.as_bigint().to_mpz(t);
 
-    char arr[mpz_sizeinbase(t, base) + 2];
+    SAFE_CHAR_BUF(arr,mpz_sizeinbase(t, base) + 2);
 
     mpz_get_str(arr, base, t);
     mpz_clear(t);
@@ -92,7 +92,7 @@ string convertHexToDec(const string &hex_str) {
             return ret;
         }
 
-        char arr[mpz_sizeinbase(dec, 10) + 2];
+        SAFE_CHAR_BUF(arr,mpz_sizeinbase(dec, 10) + 2);
         mpz_get_str(arr, 10, dec);
         ret = arr;
     } catch (exception &e) {
@@ -134,10 +134,11 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base, const string
 string gen_dkg_poly(int _t) {
     vector<char> errMsg(1024, 0);
     int errStatus = 0;
+    uint32_t enc_len = 0;
 
     vector <uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
 
-    uint32_t enc_len = 0;
+
 
     sgx_status_t status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -251,19 +252,19 @@ bool
 verifyShares(const char *publicShares, const char *encr_sshare, const char *encryptedKeyHex, int t, int n, int ind) {
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
+    uint64_t decKeyLen = 0;
+    int result = 0;
 
-    uint64_t decKeyLen;
-    uint8_t encr_key[BUF_LEN];
-    memset(encr_key, 0, BUF_LEN);
+    SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
-    int result;
+
+
 
     spdlog::debug("publicShares length is {}", char_traits<char>::length(publicShares));
 
-    char pshares[8193];
-    memset(pshares, 0, 8193);
+    SAFE_CHAR_BUF(pshares,8193);
     strncpy(pshares, publicShares, strlen(publicShares));
 
     sgx_status_t status = trustedDkgVerifyAES(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
@@ -283,10 +284,8 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
     int errStatus = 0;
 
     uint64_t decKeyLen;
-    uint8_t encr_bls_key[BUF_LEN];
-    memset(encr_bls_key, 0, BUF_LEN);
-    uint8_t encr_key[BUF_LEN];
-    memset(encr_key, 0, BUF_LEN);
+    SAFE_UINT8_BUF(encr_bls_key,BUF_LEN);
+    SAFE_UINT8_BUF(encr_key,BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
@@ -298,7 +297,7 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    char hexBLSKey[2 * BUF_LEN];
+    SAFE_CHAR_BUF(hexBLSKey,2 * BUF_LEN)
 
     carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
 
@@ -313,12 +312,13 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
     int errStatus = 0;
 
     uint64_t decKeyLen;
-    uint8_t encrKey[BUF_LEN];
+
+    SAFE_UINT8_BUF(encrKey, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encrKey)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    char pubKey[320];
+    SAFE_CHAR_BUF(pubKey,320)
 
     sgx_status_t status = trustedGetBlsPubKeyAES(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
@@ -393,14 +393,14 @@ string decryptDHKey(const string &polyName, int ind) {
     vector<char> hexEncrKey(2 * BUF_LEN, 0);
 
     uint64_t dhEncLen = 0;
-    uint8_t encryptedDHKey[BUF_LEN];
+    SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
     if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey)) {
         throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);
     spdlog::debug("hex encr DH key length is {}", hexEncrKeyPtr->length());
 
-    char DHKey[ECDSA_SKEY_LEN];
+    SAFE_CHAR_BUF(DHKey, ECDSA_SKEY_LEN);
 
     sgx_status_t status = trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());

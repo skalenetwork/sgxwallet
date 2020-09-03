@@ -54,8 +54,7 @@ void create_test_key() {
     vector<char> errMsg(1024, 0);
     uint32_t enc_len;
 
-    uint8_t encrypted_key[BUF_LEN];
-    memset(encrypted_key, 0, BUF_LEN);
+    SAFE_UINT8_BUF(encrypted_key, BUF_LEN);
 
     string key = TEST_VALUE;
 
@@ -120,8 +119,7 @@ void gen_SEK() {
     vector <uint8_t> encrypted_SEK(1024, 0);
     uint32_t enc_len = 0;
 
-    char SEK[65];
-    memset(SEK, 0, 65);
+    SAFE_CHAR_BUF(SEK,65);
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
@@ -169,10 +167,9 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
 
-    uint8_t encrypted_SEK[BUF_LEN];
-    memset(encrypted_SEK, 0, BUF_LEN);
+    SAFE_UINT8_BUF(encrypted_SEK, BUF_LEN);
 
-    uint64_t len;
+    uint64_t len = 0;
 
     if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK)) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
