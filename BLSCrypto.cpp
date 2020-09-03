@@ -49,6 +49,9 @@
 
 
 string *FqToString(libff::alt_bn128_Fq *_fq) {
+
+    CHECK_STATE(_fq);
+
     mpz_t t;
     mpz_init(t);
 
@@ -72,9 +75,16 @@ int char2int(char _input) {
     return -1;
 }
 
-void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
+void carray2Hex(const unsigned char *d, uint64_t _len, char *_hexArray,
+                uint64_t _hexArrayLen) {
+
+    CHECK_STATE(d);
+    CHECK_STATE(_hexArray);
+
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    CHECK_STATE(_hexArrayLen > 2 * _len);
 
     for (int j = 0; j < _len; j++) {
         _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
@@ -84,31 +94,23 @@ void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
     _hexArray[_len * 2] = 0;
 }
 
-bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin) {
-    int len = strnlen(_hex, 2 * BUF_LEN);
 
-    if (len == 0 && len % 2 == 1)
-        return false;
 
-    *_bin_len = len / 2;
+bool hex2carray(const char *_hex, uint64_t *_bin_len,
+                 uint8_t *_bin, uint64_t _max_length) {
 
-    for (int i = 0; i < len / 2; i++) {
-        int high = char2int((char) _hex[i * 2]);
-        int low = char2int((char) _hex[i * 2 + 1]);
 
-        if (high < 0 || low < 0) {
-            return false;
-        }
+    CHECK_STATE(_hex);
+    CHECK_STATE(_bin);
+    CHECK_STATE(_bin_len)
 
-        _bin[i] = (unsigned char) (high * 16 + low);
-    }
 
-    return true;
-}
+    int len = strnlen(_hex, 2 * _max_length + 1);
 
-bool hex2carray2(const char *_hex, uint64_t *_bin_len,
-                 uint8_t *_bin, const int _max_length) {
-    int len = strnlen(_hex, _max_length);
+    CHECK_STATE(len != 2 * _max_length + 1);
+
+    CHECK_STATE(len <= 2 * _max_length );
+
 
     if (len == 0 && len % 2 == 1)
         return false;
@@ -131,13 +133,19 @@ bool hex2carray2(const char *_hex, uint64_t *_bin_len,
 
 bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
           char *_sig) {
+
+
+    CHECK_STATE(_encryptedKeyHex);
+    CHECK_STATE(_hashHex);
+    CHECK_STATE(_sig);
+
     auto keyStr = make_shared<string>(_encryptedKeyHex);
 
     auto hash = make_shared<array<uint8_t, 32>>();
 
     uint64_t binLen;
 
-    if (!hex2carray(_hashHex, &binLen, hash->data())) {
+    if (!hex2carray(_hashHex, &binLen, hash->data(), hash->size())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
@@ -153,11 +161,16 @@ bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t 
 }
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
+
+    CHECK_STATE(_encryptedKeyHex);
+    CHECK_STATE(_hashHex);
+    CHECK_STATE(_sig);
+
     auto hash = make_shared<array<uint8_t, 32>>();
 
     uint64_t binLen;
 
-    if (!hex2carray(_hashHex, &binLen, hash->data())) {
+    if (!hex2carray(_hashHex, &binLen, hash->data(), hash->size())) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
@@ -193,7 +206,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     SAFE_UINT8_BUF(encryptedKey,BUF_LEN);
 
-    bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey);
+    bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey, BUF_LEN);
 
     if (!result) {
         BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
@@ -240,9 +253,9 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
-    string result(2 * BUF_LEN, '\0');
+    SAFE_CHAR_BUF(resultBuf, 2 * BUF_LEN + 1);
 
-    carray2Hex(encryptedKey->data(), encryptedLen, &result.front());
+    carray2Hex(encryptedKey->data(), encryptedLen, resultBuf, 2 * BUF_LEN + 1);
 
-    return result;
+    return string(resultBuf);
 }

@@ -52,9 +52,26 @@ inline std::string className(const std::string &prettyFunction) {
 
 #define __CLASS_NAME__ className( __PRETTY_FUNCTION__ )
 
+#include <execinfo.h>
+
+inline void print_stack() {
+    void *array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    fprintf(stderr, "Error: signal \n");
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
+
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
+        print_stack();                                \
         throw InvalidStateException(__msg__, __CLASS_NAME__);}
 
 

@@ -649,7 +649,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     uint64_t binLen;
 
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
