@@ -56,4 +56,22 @@ inline std::string className(const std::string &prettyFunction) {
         throw InvalidStateException(__msg__, __CLASS_NAME__);}
 
 
+#define HANDLE_TRUSTED_FUNCTION_ERROR(__STATUS__, __ERR_STATUS__, __ERR_MSG__) \
+if (__STATUS__ != SGX_SUCCESS) { \
+string __ERR_STRING__ = string("SGX enclave call to ") + \
+                   __FUNCTION__  +  " failed with status:" \
+                   + to_string(__STATUS__) + \
+                   " Err message:" + __ERR_MSG__; \
+BOOST_THROW_EXCEPTION(runtime_error(__ERR_MSG__)); \
+}\
+\
+if (__ERR_STATUS__ != 0) {\
+string __ERR_STRING__ = string("SGX enclave call to ") +\
+                   __FUNCTION__  +  " failed with errStatus:" +                \
+                     to_string(__ERR_STATUS__) + \
+                   " Err message:" + __ERR_MSG__;\
+BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
+}
+
+
 #endif //SGXWALLET_COMMON_H

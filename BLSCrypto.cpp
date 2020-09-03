@@ -51,7 +51,7 @@
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
 
-std::string *FqToString(libff::alt_bn128_Fq *_fq) {
+string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_t t;
     mpz_init(t);
 
@@ -62,7 +62,7 @@ std::string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new std::string(arr);
+    return new string(arr);
 }
 
 int char2int(char _input) {
@@ -167,19 +167,19 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     shared_ptr<signatures::Bls> obj;
     obj = make_shared<signatures::Bls>(signatures::Bls(_t, _n));
 
-    std::pair<libff::alt_bn128_G1, std::string> hash_with_hint = obj->HashtoG1withHint(hash);
+    pair<libff::alt_bn128_G1, string> hash_with_hint = obj->HashtoG1withHint(hash);
 
     string *xStr = FqToString(&(hash_with_hint.first.X));
 
     if (xStr == nullptr) {
-        std::cerr << "Null xStr" << std::endl;
+        cerr << "Null xStr" << endl;
         BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
     }
 
     string *yStr = FqToString(&(hash_with_hint.first.Y));
 
     if (yStr == nullptr) {
-        std::cerr << "Null yStr" << std::endl;
+        cerr << "Null yStr" << endl;
         delete xStr;
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
@@ -208,33 +208,18 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     if (!result) {
         cerr << "Invalid hex encrypted key" << endl;
-        BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
+        BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
     }
 
     int errStatus = 0;
-
     sgx_status_t status =
             trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg);
 
-    if (status != SGX_SUCCESS) {
-        string errString = string("SGX enclave call to ") +
-                           __FUNCTION__  +  " failed with errStatus:" + to_string(status) +
-                           " Err message:" + errMsg;
-        BOOST_THROW_EXCEPTION(runtime_error(errString));
-    }
+    string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
-    if (errStatus != 0) {
-        string errString = string("SGX enclave call to ") +
-                           __FUNCTION__  +  " failed with errStatus:" + to_string(errStatus) +
-                           " Err message:" + errMsg;
-        BOOST_THROW_EXCEPTION(runtime_error(errString));
-    }
-    
-
-    std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
-
-    std::string sig = signature;
+    string sig = signature;
 
     sig.append(":");
     sig.append(hint);
@@ -248,28 +233,20 @@ bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
-std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
+string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
     auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
     auto errMsg = make_shared<vector<char>>(BUF_LEN, 0);
 
     strncpy(keyArray->data(), _key, BUF_LEN);
     *errStatus = -1;
-
     unsigned int encryptedLen = 0;
 
     status = trustedEncryptKeyAES(eid, errStatus, errMsg->data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 
-    if (*errStatus != 0) {
-        BOOST_THROW_EXCEPTION(SGXException(-666, errMsg->data()));
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg->data());
 
-    if (status != SGX_SUCCESS) {
-        *errStatus = -1;
-        return "";
-    }
-
-    std::string result(2 * BUF_LEN, '\0');
+    string result(2 * BUF_LEN, '\0');
 
     carray2Hex(encryptedKey->data(), encryptedLen, &result.front());
 

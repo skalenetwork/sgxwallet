@@ -25,6 +25,8 @@
 #include "BLSSignature.h"
 #include "BLSutils.h"
 
+#include "third_party/spdlog/spdlog.h"
+
 #include "secure_enclave_u.h"
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
@@ -121,6 +123,7 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
     BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
   }
 
+
   char errMsg[BUF_LEN];
   memset(errMsg, 0, BUF_LEN);
 
@@ -144,26 +147,16 @@ std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 
   if (!result) {
-    cerr << "Invalid hex encrypted key" << endl;
-    BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
+    spdlog::error("Invalid hex encrypted key");
+    BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
   }
-
-  cerr << "Key is " + *encryptedKeyHex << endl;
 
   sgx_status_t status =
       trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
                        encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
-  printf("sig is: %s\n", signature);
+  HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg );
 
-  if (status != SGX_SUCCESS) {
-    gmp_printf("SGX enclave call to trustedBlsSignMessage failed: 0x%04x\n", status);
-    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
-  }
-
-  if (errStatus != 0) {
-    BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
-  }
 
   int sigLen;
 
