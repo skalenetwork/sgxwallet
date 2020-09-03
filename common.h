@@ -76,5 +76,8 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 }
 
 
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+#define SAFE_UINT8_BUF(__X__, __Y__)  ;uint8_t __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
 
 #endif //SGXWALLET_COMMON_H

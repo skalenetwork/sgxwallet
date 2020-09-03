@@ -54,7 +54,7 @@ string *FqToString(libff::alt_bn128_Fq *_fq) {
 
     _fq->as_bigint().to_mpz(t);
 
-    char arr[mpz_sizeinbase(t, 10) + 2];
+    SAFE_CHAR_BUF(arr,mpz_sizeinbase(t, 10) + 2);
 
     mpz_get_str(arr, 10, t);
     mpz_clear(t);
@@ -181,15 +181,11 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
-    char errMsg[BUF_LEN];
-    memset(errMsg, 0, BUF_LEN);
+    vector<char> errMsg(BUF_LEN,0);
 
-    char xStrArg[BUF_LEN];
-    char yStrArg[BUF_LEN];
-    char signature[BUF_LEN];
-
-    memset(xStrArg, 0, BUF_LEN);
-    memset(yStrArg, 0, BUF_LEN);
+    SAFE_CHAR_BUF(xStrArg,BUF_LEN);
+    SAFE_CHAR_BUF(yStrArg,BUF_LEN);
+    SAFE_CHAR_BUF(signature,BUF_LEN);
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
@@ -199,20 +195,19 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     size_t sz = 0;
 
-    uint8_t encryptedKey[BUF_LEN];
+    SAFE_UINT8_BUF(encryptedKey,BUF_LEN);
 
     bool result = hex2carray(_encryptedKeyHex, &sz, encryptedKey);
 
     if (!result) {
-        cerr << "Invalid hex encrypted key" << endl;
         BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
     }
 
     int errStatus = 0;
     sgx_status_t status =
-            trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
+            trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
                                  sz, xStrArg, yStrArg, signature);
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg);
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
