@@ -733,6 +733,9 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
     try {
         PRINT_SRC_LINE
         auto keyName = genECDSAKeyAPI(c);
+        ofstream namefile("/tmp/keyname");
+        namefile << keyName;
+
         PRINT_SRC_LINE
     } catch (JsonRpcException & e)
     {
@@ -749,7 +752,10 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
     try {
         PRINT_SRC_LINE
-        string keyName = "haha";
+        string keyName;
+        ifstream namefile("/tmp/keyname");
+        getline(namefile, keyName);
+
         Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
         REQUIRE(sig["status"].asInt() == 0);
         Json::Value getPubKey = c.getPublicECDSAKey(keyName);
