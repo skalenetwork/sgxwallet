@@ -71,27 +71,33 @@ void create_test_key() {
 
 
 shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
+
+    vector<char> decr_key(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
+
+    int err_status = 0;
+
+    auto encrypted_SEK = make_shared < vector < uint8_t >> (BUF_LEN, 0);
+
+    uint32_t l = 0;
+
+    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
+
+    encrypted_SEK->resize(l);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
+
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     vector <uint8_t> encr_test_key(BUF_LEN, 0);
-    uint64_t len;
+
+    uint64_t len = 0;
 
     if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data(),
                     BUF_LEN)) {
         spdlog::error("Corrupt test key is LevelDB");
         exit(-1);
     }
-
-    vector<char> decr_key(1024, 0);
-    vector<char> errMsg(1024, 0);
-    int err_status = 0;
-
-    auto encrypted_SEK = make_shared < vector < uint8_t >> (1024, 0);
-
-    uint32_t l = len;
-
-    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
-
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
     status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
 
@@ -105,8 +111,6 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
         spdlog::error("Then run sgxwallet using backup flag");
         exit(-1);
     }
-
-    encrypted_SEK->resize(l);
 
     return encrypted_SEK;
 }
@@ -180,6 +184,7 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
     sgx_status_t status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
 
 }
 
