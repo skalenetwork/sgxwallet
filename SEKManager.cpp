@@ -64,7 +64,7 @@ void create_test_key() {
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
-    carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
+    carray2Hex(encrypted_key, enc_len, hexEncrKey.data(), 2 * enc_len + 1);
 
     LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
@@ -75,7 +75,8 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
     vector <uint8_t> encr_test_key(BUF_LEN, 0);
     uint64_t len;
 
-    if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data())) {
+    if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data(),
+                    BUF_LEN)) {
         spdlog::error("Corrupt test key is LevelDB");
         exit(-1);
     }
@@ -131,7 +132,7 @@ void gen_SEK() {
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
-    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data());
+    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data(), 2 * enc_len + 1);
 
     ofstream sek_file(BACKUP_PATH);
     sek_file.clear();
@@ -171,7 +172,8 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     uint64_t len = 0;
 
-    if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK)) {
+    if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK,
+                    BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
     }
 
@@ -219,7 +221,8 @@ void enter_SEK() {
 
     vector<char> hexEncrKey(BUF_LEN, 0);
 
-    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey.data());
+    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey.data(),
+               BUF_LEN);
 
     spdlog::info("Got sealed storage encryption key.");
 

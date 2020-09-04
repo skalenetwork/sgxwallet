@@ -146,9 +146,9 @@ string gen_dkg_poly(int _t) {
 
     uint64_t length = enc_len;;
 
-    vector<char> hexEncrPoly(2 * length + 1, 0);
+    vector<char> hexEncrPoly(BUF_LEN, 0);
     CHECK_STATE(encrypted_dkg_secret.size() >= length);
-    carray2Hex(encrypted_dkg_secret.data(), length, hexEncrPoly.data());
+    carray2Hex(encrypted_dkg_secret.data(), length, hexEncrPoly.data(), BUF_LEN);
     string result(hexEncrPoly.data());
 
     return result;
@@ -168,7 +168,7 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
 
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
-    if (!hex2carray2(encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
+    if (!hex2carray(encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
@@ -197,12 +197,13 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
     vector<char> hexEncrKey(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
+    vector <uint8_t> encrDKGPoly(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t encLen = 0;
 
-    vector <uint8_t> encrDKGPoly(BUF_LEN, 0);
 
-    if (!hex2carray2(_encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
+
+    if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
@@ -234,7 +235,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         result += string(currentShare.data());
 
         spdlog::debug("dec len is {}", decLen);
-        carray2Hex(encryptedSkey.data(), decLen, hexEncrKey.data());
+        carray2Hex(encryptedSkey.data(), decLen, hexEncrKey.data(), BUF_LEN);
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
         spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
@@ -266,7 +267,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     int result = 0;
 
     SAFE_UINT8_BUF(encr_key, BUF_LEN);
-    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key)) {
+    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
@@ -295,7 +296,7 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
     uint64_t decKeyLen;
     SAFE_UINT8_BUF(encr_bls_key,BUF_LEN);
     SAFE_UINT8_BUF(encr_key,BUF_LEN);
-    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key)) {
+    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
@@ -308,7 +309,7 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     SAFE_CHAR_BUF(hexBLSKey,2 * BUF_LEN)
 
-    carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
+    carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey, 2 * BUF_LEN);
 
     SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey);
 
@@ -321,12 +322,12 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
     CHECK_STATE(encryptedKeyHex);
 
     vector<char> errMsg1(BUF_LEN, 0);
-    int errStatus = 0;
 
-    uint64_t decKeyLen;
+    int errStatus = 0;
+    uint64_t decKeyLen = 0;
 
     SAFE_UINT8_BUF(encrKey, BUF_LEN);
-    if (!hex2carray(encryptedKeyHex, &decKeyLen, encrKey)) {
+    if (!hex2carray(encryptedKeyHex, &decKeyLen, encrKey, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
@@ -406,7 +407,7 @@ string decryptDHKey(const string &polyName, int ind) {
 
     uint64_t dhEncLen = 0;
     SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
-    if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey)) {
+    if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);

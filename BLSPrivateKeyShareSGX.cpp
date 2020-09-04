@@ -140,7 +140,8 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
     SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
 
-    bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
+    bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey,
+                             BUF_LEN);
 
     if (!result) {
         spdlog::error("Invalid hex encrypted key");

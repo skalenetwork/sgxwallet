@@ -66,16 +66,17 @@ vector <string> genECDSAKey() {
 
     vector<char> hexEncrKey(BUF_LEN * 2, 0);
 
-    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data());
+    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data(),
+               BUF_LEN * 2);
     keys.at(0) = hexEncrKey.data();
     keys.at(1) = string(pub_key_x.data()) + string(pub_key_y.data());
 
     vector<unsigned char> randBuffer(32, 0);
     fillRandomBuffer(randBuffer);
 
-    vector<char> rand_str(64, 0);
+    vector<char> rand_str(BUF_LEN, 0);
 
-    carray2Hex(randBuffer.data(), 32, rand_str.data());
+    carray2Hex(randBuffer.data(), 32, rand_str.data(), BUF_LEN);
 
     keys.at(2) = rand_str.data();
 
@@ -93,7 +94,8 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
     int errStatus = 0;
     uint64_t enc_len = 0;
 
-    if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data())) {
+    if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data(),
+                    BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
@@ -177,7 +179,8 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     string pubKeyStr = "";
 
-    if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data())) {
+    if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data(),
+                    BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
