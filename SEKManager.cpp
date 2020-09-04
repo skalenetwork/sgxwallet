@@ -146,6 +146,8 @@ void gen_SEK() {
 
     carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data(), 2 * enc_len + 1);
 
+    spdlog::info(string("Encrypted storage encryption key:") + hexEncrKey.data());
+
     ofstream sek_file(BACKUP_PATH);
     sek_file.clear();
 
@@ -173,6 +175,13 @@ void gen_SEK() {
     create_test_key();
 
     validate_SEK();
+
+    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+
+    setSEK(encrypted_SEK_ptr);
+
+    validate_SEK();
+
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
@@ -195,7 +204,9 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
+
     validate_SEK();
+
 
 }
 
