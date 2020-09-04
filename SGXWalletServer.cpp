@@ -243,6 +243,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         value = readFromDb(_keyShareName);
+
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, signature.data())) {
             throw SGXException(-1, "Could not sign data ");
         }
