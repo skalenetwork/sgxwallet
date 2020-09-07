@@ -173,10 +173,14 @@ void enclave_init() {
         return;
     inited = 1;
 
+
     LOG_INFO("Initing libff");
     try {
+
         LOG_INFO("Initing params");
+
         libff::init_alt_bn128_params();
+
         LOG_INFO("Initing curve");
         curve = domain_parameters_init();
         LOG_INFO("Initing curve domain");
