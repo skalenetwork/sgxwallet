@@ -111,7 +111,7 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
-unsigned char *globalRandom;
+unsigned char *globalRandom = NULL;
 
 
 #define CALL_ONCE \
