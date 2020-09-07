@@ -10,13 +10,13 @@ include_directories(tgmp-build)
 include_directories(tgmp-build/include)
 
 add_executable(sgxwallet
-        secure_enclave/AESUtils.c
+        secure_enclave/AESUtils.cpp
         secure_enclave/AESUtils.h
         secure_enclave/EnclaveCommon.cpp
         secure_enclave/EnclaveCommon.h
         secure_enclave/Curves.c
         secure_enclave/Curves.h
-        secure_enclave/DHDkg.c
+        secure_enclave/DHDkg.cpp
         secure_enclave/DHDkg.h
         secure_enclave/DKGUtils.cpp
         secure_enclave/DKGUtils.h
