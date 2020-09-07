@@ -46,16 +46,25 @@
 /*Initialize a curve*/
 domain_parameters domain_parameters_init()
 {
+
+
+    LOG_INFO("Allocating curver");
+
 	domain_parameters curve;
 	curve = calloc(sizeof(struct domain_parameters_s),1);
+
+    LOG_INFO("Initing members");
 
 	//Initialize all members
 	mpz_init(curve->p);
 	mpz_init(curve->a);
 	mpz_init(curve->b);
+    mpz_init(curve->n);
+    mpz_init(curve->h);
+
+    LOG_INFO("Initing point");
+
 	curve->G = point_init();
-	mpz_init(curve->n);
-	mpz_init(curve->h);
 
 	return curve;
 }
