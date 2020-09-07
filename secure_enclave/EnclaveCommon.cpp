@@ -175,12 +175,17 @@ void enclave_init() {
 
     LOG_INFO("Initing libff");
     try {
+        LOG_INFO("Initing params");
         libff::init_alt_bn128_params();
+        LOG_INFO("Initing curve");
         curve = domain_parameters_init();
+        LOG_INFO("Initing curve domain");
         domain_parameters_load_curve(curve, secp256k1);
     } catch (exception& e) {
         LOG_ERROR("Exception in libff init");
         LOG_ERROR(e.what());
+    } catch (...) {
+        LOG_ERROR("Unknown exception in libff");
     }
     LOG_INFO("Inited libff");
 }
