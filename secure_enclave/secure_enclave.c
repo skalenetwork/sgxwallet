@@ -153,7 +153,7 @@ void trustedEnclaveInit(uint32_t _logLevel) {
         LOG_ERROR("sgx_read_rand failed. Aboring enclave.");
         abort();
     }
-    
+
     LOG_INFO("Successfully inited enclave. Signed enclave version:" SIGNED_ENCLAVE_VERSION );
 #ifndef SGX_DEBUG
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
