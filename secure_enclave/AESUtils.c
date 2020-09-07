@@ -41,7 +41,7 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
         return -2;
     }
 
-    uint64_t len = strlen(message);
+    uint64_t len = strlen(message) + 1;
 
     if (len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE > encrLen ) {
         LOG_ERROR("Output buffer too small");

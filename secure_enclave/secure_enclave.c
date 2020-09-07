@@ -242,7 +242,7 @@ void sealHexSEK(int *errStatus, char *errString,
     CHECK_STATE(strnlen(sek_hex, 33) == 32)
     
 
-    uint64_t plaintextLen = strlen(sek_hex + 1);
+    uint64_t plaintextLen = strlen(sek_hex) + 1;
     
     uint64_t sealedLen = sgx_calc_sealed_data_size(0, plaintextLen);
 
