@@ -292,6 +292,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, sek_hex);
     memcpy(AES_key, SEK_raw, SGX_AESGCM_KEY_SIZE);
+    derive_DH_Key();
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
 
@@ -331,6 +332,7 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
 
 
     hex2carray(aes_key_hex, &len, (uint8_t *) AES_key);
+    derive_DH_Key();
 
     SET_SUCCESS
     clean:
@@ -349,6 +351,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 
     uint64_t len;
     hex2carray(sek_hex, &len, (uint8_t *) AES_key);
+    derive_DH_Key();
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
 
@@ -607,7 +610,7 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
 
     *errStatus = -9;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072);
+    int status = AES_decrypt_DH(encryptedPrivateKey, enc_len, key, 3072);
 
     if (status != 0) {
         *errStatus = status;
@@ -644,7 +647,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
 
     *errStatus = UNKNOWN_ERROR;
 
-    int status = AES_encrypt((char *)key, encryptedPrivateKey, BUF_LEN);
+    int status = AES_encrypt_DH((char *)key, encryptedPrivateKey, BUF_LEN);
 
     CHECK_STATUS2("AES encrypt failed with status %d");
 

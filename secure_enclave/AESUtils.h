@@ -24,13 +24,16 @@
 #ifndef SGXD_AESUTILS_H
 #define SGXD_AESUTILS_H
 
-sgx_aes_gcm_128bit_key_t AES_key;
+extern sgx_aes_gcm_128bit_key_t AES_key;
+extern sgx_aes_gcm_128bit_key_t AES_DH_key;
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen);
 int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) ;
 
-int AES_encrypt_dh(char *message, uint8_t *encr_message, uint64_t encrLen);
-int AES_decrypt_dh(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) ;
+int AES_encrypt_DH(char *message, uint8_t *encr_message, uint64_t encrLen);
+int AES_decrypt_DH(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) ;
+
+void derive_DH_Key();
 
 
 #endif //SGXD_AESUTILS_H
