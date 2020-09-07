@@ -184,8 +184,10 @@ void enclave_init() {
     } catch (exception& e) {
         LOG_ERROR("Exception in libff init");
         LOG_ERROR(e.what());
+        abort();
     } catch (...) {
         LOG_ERROR("Unknown exception in libff");
+        abort();
     }
     LOG_INFO("Inited libff");
 }
