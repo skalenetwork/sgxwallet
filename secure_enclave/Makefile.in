@@ -337,7 +337,7 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	Curves.c  NumberTheory.c Point.c Signature.c DHDkg.cpp AESUtils.cpp \
+	Curves.cpp  NumberTheory.cpp Point.cpp Signature.cpp DHDkg.cpp AESUtils.cpp \
     DKGUtils.cpp   EnclaveCommon.cpp  DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)

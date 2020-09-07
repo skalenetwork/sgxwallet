@@ -14,7 +14,7 @@ add_executable(sgxwallet
         secure_enclave/AESUtils.h
         secure_enclave/EnclaveCommon.cpp
         secure_enclave/EnclaveCommon.h
-        secure_enclave/Curves.c
+        secure_enclave/Curves.cpp
         secure_enclave/Curves.h
         secure_enclave/DHDkg.cpp
         secure_enclave/DHDkg.h
@@ -23,7 +23,7 @@ add_executable(sgxwallet
         secure_enclave/DomainParameters.cpp
         secure_enclave/DomainParameters.h
         secure_enclave/EnclaveConstants.h
-        secure_enclave/NumberTheory.c
+        secure_enclave/NumberTheory.cpp
         secure_enclave/NumberTheory.h
         secure_enclave/point.c
         secure_enclave/point.h
