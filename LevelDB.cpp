@@ -163,7 +163,7 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
   }
 
   writeString(key, value);
-  
+
 }
 
 

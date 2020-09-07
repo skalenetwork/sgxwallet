@@ -352,19 +352,19 @@ void logMsg(log_level _level, const char *_msg) {
 }
 
 
-EXTERNC void LOG_INFO(const char *_msg) {
+void LOG_INFO(const char *_msg) {
     logMsg(L_INFO, _msg);
 };
-EXTERNC void LOG_WARN(const char *_msg) {
+void LOG_WARN(const char *_msg) {
     logMsg(L_WARNING, _msg);
 };
 
-EXTERNC void LOG_ERROR(const char *_msg) {
+void LOG_ERROR(const char *_msg) {
     logMsg(L_ERROR, _msg);
 };
-EXTERNC void LOG_DEBUG(const char *_msg) {
+void LOG_DEBUG(const char *_msg) {
     logMsg(L_DEBUG, _msg);
 };
-EXTERNC void LOG_TRACE(const char *_msg) {
+void LOG_TRACE(const char *_msg) {
     logMsg(L_TRACE, _msg);
 };

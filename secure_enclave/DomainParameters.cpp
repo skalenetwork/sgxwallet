@@ -31,10 +31,13 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "EnclaveCommon.h"
 #include "Point.h"
+
 #include "DomainParameters.h"
 
 #define CHECK_ARG_ABORT(_EXPRESSION_) \
@@ -48,12 +51,12 @@ domain_parameters domain_parameters_init()
 {
 
 
-    LOG_INFO("Allocating curver");
 
 	domain_parameters curve;
-	curve = calloc(sizeof(struct domain_parameters_s),1);
+	curve = (domain_parameters) calloc(sizeof(struct domain_parameters_s),1);
 
-    LOG_INFO("Initing members");
+	CHECK_ARG_ABORT(curve);
+
 
 	//Initialize all members
 	mpz_init(curve->p);
@@ -62,9 +65,11 @@ domain_parameters domain_parameters_init()
     mpz_init(curve->n);
     mpz_init(curve->h);
 
-    LOG_INFO("Initing point");
 
 	curve->G = point_init();
+
+	CHECK_ARG_ABORT(curve->G);
+
 
 	return curve;
 }

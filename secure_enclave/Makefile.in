@@ -108,9 +108,9 @@ PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) Curves.$(OBJEXT) \
-	DomainParameters.$(OBJEXT) NumberTheory.$(OBJEXT) \
-	Point.$(OBJEXT) Signature.$(OBJEXT) DHDkg.$(OBJEXT) \
-	AESUtils.$(OBJEXT) DKGUtils.$(OBJEXT) EnclaveCommon.$(OBJEXT) \
+	NumberTheory.$(OBJEXT) Point.$(OBJEXT) Signature.$(OBJEXT) \
+	DHDkg.$(OBJEXT) AESUtils.$(OBJEXT) DKGUtils.$(OBJEXT) \
+	EnclaveCommon.$(OBJEXT) DomainParameters.$(OBJEXT) \
 	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
 	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
@@ -337,8 +337,8 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	Curves.c DomainParameters.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
-    DKGUtils.cpp   EnclaveCommon.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+	Curves.c  NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
+    DKGUtils.cpp   EnclaveCommon.cpp  DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
