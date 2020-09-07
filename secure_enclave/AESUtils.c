@@ -176,5 +176,6 @@ int AES_decrypt_DH(uint8_t *encr_message, uint64_t length, char *message, uint64
 
 void derive_DH_Key() {
     memcpy(AES_DH_key, AES_key, SGX_AESGCM_KEY_SIZE );
+    /*AES_DH_key[1] = 1;AES_DH_key[2] = 2;*/
 }
 

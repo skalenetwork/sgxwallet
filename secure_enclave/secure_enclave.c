@@ -655,7 +655,7 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN);
 
-    status = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN);
+    status = AES_decrypt_DH(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN);
 
     CHECK_STATUS2("trustedDecryptKey failed with status %d");
 
