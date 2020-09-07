@@ -137,12 +137,15 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
+        exit(-1);
     } catch (exception &_e) {
         spdlog::error(_e.what());
+        exit(-1);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
+        exit (-1);
     }
 };

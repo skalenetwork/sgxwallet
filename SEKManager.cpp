@@ -70,10 +70,15 @@ void create_test_key() {
 }
 
 
-shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
+void validate_SEK() {
+
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     vector <uint8_t> encr_test_key(BUF_LEN, 0);
-    uint64_t len;
+    vector<char> decr_key(BUF_LEN, 0);
+    uint64_t len = 0;
+    vector<char> errMsg(BUF_LEN, 0);
+
+    int err_status = 0;
 
     if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data(),
                     BUF_LEN)) {
@@ -81,19 +86,7 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
         exit(-1);
     }
 
-    vector<char> decr_key(1024, 0);
-    vector<char> errMsg(1024, 0);
-    int err_status = 0;
-
-    auto encrypted_SEK = make_shared < vector < uint8_t >> (1024, 0);
-
-    uint32_t l = len;
-
-    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l, SEK.c_str());
-
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
-
-    status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    sgx_status_t status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -105,8 +98,27 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
         spdlog::error("Then run sgxwallet using backup flag");
         exit(-1);
     }
+}
+
+
+shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
+
+    vector<char> decr_key(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
+    int err_status = 0;
+
+    auto encrypted_SEK = make_shared < vector < uint8_t >> (BUF_LEN, 0);
+
+    uint32_t l = 0;
+
+    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
+                                               SEK.c_str());
 
     encrypted_SEK->resize(l);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
+    validate_SEK();
 
     return encrypted_SEK;
 }
@@ -134,6 +146,8 @@ void gen_SEK() {
 
     carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data(), 2 * enc_len + 1);
 
+    spdlog::info(string("Encrypted storage encryption key:") + hexEncrKey.data());
+
     ofstream sek_file(BACKUP_PATH);
     sek_file.clear();
 
@@ -159,6 +173,15 @@ void gen_SEK() {
     LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
     create_test_key();
+
+    validate_SEK();
+
+    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+
+    setSEK(encrypted_SEK_ptr);
+
+    validate_SEK();
+
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
@@ -180,6 +203,10 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
     sgx_status_t status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
+
+    validate_SEK();
+
 
 }
 
