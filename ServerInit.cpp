@@ -66,7 +66,8 @@ void initUserSpace() {
     LevelDB::initDataFolderAndDBs();
 }
 
-void initEnclave(uint32_t _logLevel) {
+void initEnclave() {
+
 
 #ifndef SGX_HW_SIM
     unsigned long support;
@@ -82,7 +83,14 @@ void initEnclave(uint32_t _logLevel) {
     sgx_status_t status = SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        WRITE_LOCK(initMutex);
+
+        if (eid != 0) {
+            if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
+                spdlog::error("Could not destroy enclave");
+                return;
+            }
+        }
 
         eid = 0;
         updated = 0;
@@ -101,9 +109,8 @@ void initEnclave(uint32_t _logLevel) {
         }
 
         spdlog::info("Enclave created and started successfully");
-
-
-        status = trustedEnclaveInit(eid, _logLevel);
+        
+        status = trustedEnclaveInit(eid, logLevel);
     }
 
     if (status != SGX_SUCCESS) {
