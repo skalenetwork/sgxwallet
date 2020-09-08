@@ -38,6 +38,7 @@
 
 #include "BLSCrypto.h"
 
+#include "SEKManager.h"
 #include "ECDSACrypto.h"
 
 void fillRandomBuffer(vector<unsigned char> &_buffer) {
@@ -58,12 +59,11 @@ vector <string> genECDSAKey() {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    {
-        READ_LOCK(initMutex);
+    RESTART_BEGIN
         status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
                                    errMsg.data(), encr_pr_key.data(), &enc_len,
                                    pub_key_x.data(), pub_key_y.data());
-    }
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
@@ -106,11 +106,10 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    {
-        READ_LOCK(initMutex);
+    RESTART_BEGIN
         status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
                                              errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
-    }
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
 
@@ -196,13 +195,12 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     sgx_status_t status = SGX_SUCCESS;
 
-    {
-        READ_LOCK(initMutex);
+    RESTART_BEGIN
         status = trustedEcdsaSignAES(eid, &errStatus,
                             errMsg.data(), encryptedKey.data(), decLen, hashHex,
                             signatureR.data(),
                             signatureS.data(), &signatureV, base);
-    }
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

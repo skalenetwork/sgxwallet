@@ -124,7 +124,7 @@ spdlog::error(__FUNCTION__); \
 spdlog::error("Restarting sgx ..."); \
 reinitEnclave(); \
 } \
-} while (__ATTEMPTS__ < 2);
+} while (status != SGX_SUCCESS && __ATTEMPTS__ < 2);
 
 
 
