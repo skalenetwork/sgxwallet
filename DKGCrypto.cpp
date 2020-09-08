@@ -209,10 +209,11 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
     }
 
     sgx_status_t status = SGX_SUCCESS;
-    {
-        READ_LOCK(initMutex);
-        status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
-    }
+
+    READ_LOCK(initMutex);
+
+    status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
+
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     string result;
@@ -232,12 +233,10 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         spdlog::debug("pubKeyB is {}", pub_keyB);
 
         sgx_status_t status = SGX_SUCCESS;
-        {
-            READ_LOCK(initMutex);
-            status = trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
-                                                       currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
-                                                       i + 1);
-        }
+        status = trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+                                                   currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
+                                                   i + 1);
+
         HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
         spdlog::debug("cur_share is {}", currentShare.data());

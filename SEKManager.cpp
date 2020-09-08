@@ -21,21 +21,25 @@
     @date 2020
 */
 
-#include "SEKManager.h"
-#include "SGXException.h"
-#include "BLSCrypto.h"
-#include "LevelDB.h"
 
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 
+#include "third_party/spdlog/spdlog.h"
+
+
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "sgxwallet.h"
 
+#include "SGXException.h"
+#include "BLSCrypto.h"
+#include "LevelDB.h"
+
 #include "ServerDataChecker.h"
-#include "third_party/spdlog/spdlog.h"
+#include "ServerInit.h"
+#include "SEKManager.h"
 
 using namespace std;
 
@@ -152,7 +156,7 @@ void gen_SEK() {
 
     sgx_status_t status = SGX_SUCCESS;
     {
-        READ_LOCK(initMutex);
+
         status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
     }
 
@@ -205,6 +209,13 @@ void gen_SEK() {
 
 }
 
+void  reinitEnclave() {
+    WRITE_LOCK(initMutex);
+    initEnclave();
+    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+    setSEK(encrypted_SEK_ptr);
+}
+
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     CHECK_STATE(hex_encrypted_SEK);
@@ -223,7 +234,6 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     sgx_status_t status = SGX_SUCCESS;
     {
-        READ_LOCK(initMutex);
         status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
     }
 

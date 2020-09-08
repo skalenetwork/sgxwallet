@@ -42,8 +42,10 @@
 #include "common.h"
 #include "SGXWalletServer.h"
 
-#include "BLSCrypto.h"
+#include "SEKManager.h"
+#include "LevelDB.h"
 #include "ServerInit.h"
+#include "BLSCrypto.h"
 
 
 string *FqToString(libff::alt_bn128_Fq *_fq) {
@@ -213,12 +215,26 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
 
     sgx_status_t status = SGX_SUCCESS;
+    int attempts = 0;
+    do {
+        attempts++;
+        {
+            READ_LOCK(initMutex);
 
-    {
-        READ_LOCK(initMutex);
-        status = trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
-                                          sz, xStrArg, yStrArg, signature);
-    }
+            status = trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
+                                              sz, xStrArg, yStrArg, signature);
+
+        }
+        if (status != SGX_SUCCESS) {
+            spdlog::error(__FUNCTION__);
+            spdlog::error("Restarting sgx ...");
+            reinitEnclave();
+        }
+    } while (attempts < 2);
+
+
+
+
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
