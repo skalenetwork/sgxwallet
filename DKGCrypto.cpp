@@ -26,7 +26,6 @@
 #include <memory>
 
 
-
 #include "third_party/spdlog/spdlog.h"
 #include "sgxwallet.h"
 #include "SGXException.h"
@@ -36,11 +35,6 @@
 
 #include "DKGCrypto.h"
 #include "BLSCrypto.h"
-
-
-
-
-
 
 
 vector <string> splitString(const char *coeffs, const char symbol) {
@@ -71,7 +65,7 @@ string ConvertToString(T field_elem, int base = 10) {
 
     field_elem.as_bigint().to_mpz(t);
 
-    SAFE_CHAR_BUF(arr,mpz_sizeinbase(t, base) + 2);
+    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
     mpz_get_str(arr, base, t);
     mpz_clear(t);
@@ -93,7 +87,7 @@ string convertHexToDec(const string &hex_str) {
             return ret;
         }
 
-        SAFE_CHAR_BUF(arr,mpz_sizeinbase(dec, 10) + 2);
+        SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
         mpz_get_str(arr, 10, dec);
         ret = arr;
     } catch (exception &e) {
@@ -139,8 +133,12 @@ string gen_dkg_poly(int _t) {
 
     vector <uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
 
-    sgx_status_t status = trustedGenDkgSecretAES(
-            eid, &errStatus,errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedGenDkgSecretAES(
+                eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -173,9 +171,13 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
     }
 
 
+    sgx_status_t status = SGX_SUCCESS;
 
-    sgx_status_t status = trustedGetPublicSharesAES(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
-                                       pubShares.data(), t, n);
+    {
+        READ_LOCK(initMutex);
+        status = trustedGetPublicSharesAES(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
+                                           pubShares.data(), t, n);
+    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     vector <string> g2Strings = splitString(pubShares.data(), ',');
@@ -190,8 +192,8 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
 
 string
 getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const vector <string> &_publicKeys,
-                       int _t,
-                       int _n) {
+                int _t,
+                int _n) {
 
     CHECK_STATE(_encryptedPolyHex);
 
@@ -202,12 +204,15 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
     uint64_t encLen = 0;
 
 
-
     if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
-    sgx_status_t status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
+    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     string result;
@@ -226,8 +231,13 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
         spdlog::debug("pubKeyB is {}", pub_keyB);
 
-        sgx_status_t status = trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
-                                          currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n, i + 1);
+        sgx_status_t status = SGX_SUCCESS;
+        {
+            READ_LOCK(initMutex);
+            status = trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+                                                       currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
+                                                       i + 1);
+        }
         HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
         spdlog::debug("cur_share is {}", currentShare.data());
@@ -271,11 +281,15 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
-    SAFE_CHAR_BUF(pshares,8193);
+    SAFE_CHAR_BUF(pshares, 8193);
     strncpy(pshares, publicShares, strlen(publicShares));
 
-    sgx_status_t status = trustedDkgVerifyAES(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
-                                              ind, &result);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedDkgVerifyAES(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
+                                     ind, &result);
+    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     if (result == 2) {
@@ -290,24 +304,27 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
     CHECK_STATE(s_shares);
     CHECK_STATE(encryptedKeyHex);
 
-    vector<char> errMsg(BUF_LEN,0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
 
-    uint64_t decKeyLen;
-    SAFE_UINT8_BUF(encr_bls_key,BUF_LEN);
-    SAFE_UINT8_BUF(encr_key,BUF_LEN);
+    uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
     uint64_t enc_bls_len = 0;
 
-    sgx_status_t status = trustedCreateBlsKeyAES(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
-                                                 &enc_bls_len);
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedCreateBlsKeyAES(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
+                                        &enc_bls_len);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    SAFE_CHAR_BUF(hexBLSKey,2 * BUF_LEN)
+    SAFE_CHAR_BUF(hexBLSKey, 2 * BUF_LEN)
 
     carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey, 2 * BUF_LEN);
 
@@ -331,9 +348,14 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    SAFE_CHAR_BUF(pubKey,320)
+    SAFE_CHAR_BUF(pubKey, 320)
 
-    sgx_status_t status = trustedGetBlsPubKeyAES(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
+
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedGetBlsPubKeyAES(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
+    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     vector <string> pubKeyVect = splitString(pubKey, ':');
@@ -405,8 +427,7 @@ string decryptDHKey(const string &polyName, int ind) {
 
     vector<char> hexEncrKey(2 * BUF_LEN, 0);
 
-    uint64_t dhEncLen = 0;
-    SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
+    uint64_t dhEncLen = 0;SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
     if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
     }
@@ -415,7 +436,11 @@ string decryptDHKey(const string &polyName, int ind) {
 
     SAFE_CHAR_BUF(DHKey, ECDSA_SKEY_LEN);
 
-    sgx_status_t status = trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedDecryptKeyAES(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     return DHKey;

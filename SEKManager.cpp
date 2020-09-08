@@ -58,7 +58,12 @@ void create_test_key() {
 
     string key = TEST_VALUE;
 
-    sgx_status_t status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+    sgx_status_t status =  SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -86,7 +91,12 @@ void validate_SEK() {
         exit(-1);
     }
 
-    sgx_status_t status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -111,12 +121,18 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     uint64_t l = 0;
 
-    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
-                                               SEK.c_str());
+    sgx_status_t status = SGX_SUCCESS;
 
-    encrypted_SEK->resize(l);
+    {
+        READ_LOCK(initMutex);
+        status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
+                             SEK.c_str());
+    }
+
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
+    encrypted_SEK->resize(l);
 
     validate_SEK();
 
@@ -133,7 +149,12 @@ void gen_SEK() {
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
-    sgx_status_t status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
+
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -200,7 +221,11 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
     }
 
-    sgx_status_t status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 

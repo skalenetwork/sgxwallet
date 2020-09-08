@@ -56,9 +56,14 @@ vector <string> genECDSAKey() {
 
     uint64_t enc_len = 0;
 
-    sgx_status_t status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
-                                        errMsg.data(), encr_pr_key.data(), &enc_len,
-                                        pub_key_x.data(), pub_key_y.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+                                   errMsg.data(), encr_pr_key.data(), &enc_len,
+                                   pub_key_x.data(), pub_key_y.data());
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
@@ -99,8 +104,13 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    sgx_status_t status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
-                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
+                                             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
 
@@ -184,10 +194,15 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    sgx_status_t status = trustedEcdsaSignAES(eid, &errStatus,
-            errMsg.data(), encryptedKey.data(), decLen, hashHex,
-                                 signatureR.data(),
-                                 signatureS.data(), &signatureV, base);
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedEcdsaSignAES(eid, &errStatus,
+                            errMsg.data(), encryptedKey.data(), decLen, hashHex,
+                            signatureR.data(),
+                            signatureS.data(), &signatureV, base);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

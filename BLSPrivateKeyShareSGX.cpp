@@ -148,9 +148,12 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
         BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
     }
 
-    sgx_status_t status =
-            trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
-                                     encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        READ_LOCK(initMutex);
+        status = trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
+                                          encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -162,7 +165,7 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
     }
 
     string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
-                       hash_with_hint.second;
+                  hash_with_hint.second;
 
     string sig = signature;
 
@@ -183,7 +186,7 @@ shared_ptr <BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
     auto sig = make_shared<string>(signature);
 
     shared_ptr <BLSSigShare> s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
-                                                                    totalSigners);
+                                                          totalSigners);
 
     return s;
 }

@@ -292,7 +292,7 @@ void trustedGenerateSEK(int *errStatus, char *errString,
 
     carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, sek_hex);
     memcpy(AES_key, SEK_raw, SGX_AESGCM_KEY_SIZE);
-    derive_DH_Key();
+
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
 
@@ -332,7 +332,6 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
 
 
     hex2carray(aes_key_hex, &len, (uint8_t *) AES_key);
-    derive_DH_Key();
 
     SET_SUCCESS
     clean:
@@ -351,7 +350,7 @@ void trustedSetSEK_backup(int *errStatus, char *errString,
 
     uint64_t len;
     hex2carray(sek_hex, &len, (uint8_t *) AES_key);
-    derive_DH_Key();
+
 
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
 
