@@ -96,5 +96,19 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 #define SAFE_UINT8_BUF(__X__, __Y__)  ;uint8_t __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
+#include <shared_mutex>
+
+extern std::shared_timed_mutex initMutex;
+extern uint64_t initTime;
+
+#if SGX_MODE == SIM
+#define ENCLAVE_RESTART_PERIOD_S 5
+#else
+#define ENCLAVE_RESTART_PERIOD_S 60 * 10
+#endif
+
+#define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
+#define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
+
 
 #endif //SGXWALLET_COMMON_H
