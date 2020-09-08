@@ -215,24 +215,11 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
 
     sgx_status_t status = SGX_SUCCESS;
-    int attempts = 0;
-    do {
-        attempts++;
-        {
-            READ_LOCK(initMutex);
 
+    RESTART_BEGIN
             status = trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
                                               sz, xStrArg, yStrArg, signature);
-
-        }
-        if (status != SGX_SUCCESS) {
-            spdlog::error(__FUNCTION__);
-            spdlog::error("Restarting sgx ...");
-            reinitEnclave();
-        }
-    } while (attempts < 2);
-
-
+    RESTART_END
 
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -270,12 +257,12 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
     uint64_t encryptedLen = 0;
 
     sgx_status_t status = SGX_SUCCESS;
-    {
-        READ_LOCK(initMutex);
+
+    RESTART_BEGIN
         status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
                                       &encryptedLen);
+    RESTART_END
 
-    }
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
     SAFE_CHAR_BUF(resultBuf, 2 * BUF_LEN + 1);
