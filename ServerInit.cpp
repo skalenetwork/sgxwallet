@@ -57,6 +57,8 @@
 #include "SGXException.h"
 #include "SGXWalletServer.hpp"
 
+uint32_t enclaveLogLevel = 0;
+
 void initUserSpace() {
 
     libff::inhibit_profiling_counters = true;
@@ -110,7 +112,7 @@ void initEnclave() {
 
         spdlog::info("Enclave created and started successfully");
         
-        status = trustedEnclaveInit(eid, logLevel);
+        status = trustedEnclaveInit(eid, enclaveLogLevel);
     }
 
     if (status != SGX_SUCCESS) {
@@ -122,10 +124,13 @@ void initEnclave() {
 }
 
 
+
+
 void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
+    enclaveLogLevel = _logLevel;
 
     lock_guard <mutex> lock(initMutex);
 
@@ -138,7 +143,8 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
-        initEnclave(_logLevel);
+
+        initEnclave();
         initUserSpace();
         initSEK();
 

@@ -111,4 +111,5 @@ extern uint64_t initTime;
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
 
 
+
 #endif //SGXWALLET_COMMON_H
