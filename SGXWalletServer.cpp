@@ -563,7 +563,7 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& pu
 
         vector<string> public_keys = calculateAllBlsPublicKeys(public_shares);
 
-        if (public_keys.size() != n) {
+        if (public_keys.size() != (uint64_t)n) {
             throw SGXException(UNKNOWN_ERROR, "");
         }
 

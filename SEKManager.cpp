@@ -52,7 +52,7 @@ bool case_insensitive_match(string s1, string s2) {
 void create_test_key() {
     int errStatus = 0;
     vector<char> errMsg(1024, 0);
-    uint32_t enc_len;
+    uint64_t enc_len;
 
     SAFE_UINT8_BUF(encrypted_key, BUF_LEN);
 
@@ -109,7 +109,7 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     auto encrypted_SEK = make_shared < vector < uint8_t >> (BUF_LEN, 0);
 
-    uint32_t l = 0;
+    uint64_t l = 0;
 
     sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
                                                SEK.c_str());
@@ -127,7 +127,7 @@ void gen_SEK() {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
     vector <uint8_t> encrypted_SEK(1024, 0);
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
     SAFE_CHAR_BUF(SEK, 65);
 

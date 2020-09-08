@@ -135,13 +135,13 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base, const string
 string gen_dkg_poly(int _t) {
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
     vector <uint8_t> encrypted_dkg_secret(BUF_LEN, 0);
 
+    sgx_status_t status = trustedGenDkgSecretAES(
+            eid, &errStatus,errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
 
-
-    sgx_status_t status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     uint64_t length = enc_len;;
@@ -214,7 +214,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
     for (int i = 0; i < _n; i++) {
         vector <uint8_t> encryptedSkey(BUF_LEN, 0);
-        uint32_t decLen;
+        uint64_t decLen;
         vector<char> currentShare(193, 0);
         vector<char> sShareG2(320, 0);
 
@@ -300,7 +300,7 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    uint32_t enc_bls_len = 0;
+    uint64_t enc_bls_len = 0;
 
     sgx_status_t status = trustedCreateBlsKeyAES(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
                                                  &enc_bls_len);

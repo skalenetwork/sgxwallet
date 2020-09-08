@@ -54,7 +54,7 @@ vector <string> genECDSAKey() {
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
 
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
     sgx_status_t status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
                                         errMsg.data(), encr_pr_key.data(), &enc_len,

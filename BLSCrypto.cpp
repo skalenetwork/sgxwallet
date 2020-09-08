@@ -86,7 +86,7 @@ void carray2Hex(const unsigned char *d, uint64_t _len, char *_hexArray,
 
     CHECK_STATE(_hexArrayLen > 2 * _len);
 
-    for (int j = 0; j < _len; j++) {
+    for (uint64_t j = 0; j < _len; j++) {
         _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
         _hexArray[j * 2 + 1] = hexval[(d[j]) & 0x0F];
     }
@@ -105,7 +105,7 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
     CHECK_STATE(_bin_len)
 
 
-    int len = strnlen(_hex, 2 * _max_length + 1);
+    uint64_t len = strnlen(_hex, 2 * _max_length + 1);
 
     CHECK_STATE(len != 2 * _max_length + 1);
 
@@ -117,7 +117,7 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
 
     *_bin_len = len / 2;
 
-    for (int i = 0; i < len / 2; i++) {
+    for (uint64_t i = 0; i < len / 2; i++) {
         int high = char2int((char) _hex[i * 2]);
         int low = char2int((char) _hex[i * 2 + 1]);
 
@@ -247,7 +247,8 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     strncpy(keyArray->data(), _key, BUF_LEN);
     *errStatus = 0;
-    unsigned int encryptedLen = 0;
+
+    uint64_t encryptedLen = 0;
 
     sgx_status_t status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(), &encryptedLen);
 

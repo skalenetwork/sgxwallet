@@ -127,7 +127,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
 
-    uint32_t encLen = 0;
+    uint64_t encLen = 0;
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
                                              pubKeyX.data(),
@@ -160,7 +160,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     vector <uint8_t> encrPrivKey(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
-    uint32_t encLen = 0;
+    uint64_t encLen = 0;
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
                                              pubKeyX.data(),
@@ -177,7 +177,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     vector <uint8_t> encPrivKey(BUF_LEN, 0);
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
-    uint32_t encLen = 0;
+
+    uint64_t encLen = 0;
 
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
@@ -291,7 +292,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t encLen = 0;
+    uint64_t encLen = 0;
 
     PRINT_SRC_LINE
     auto status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 32);
@@ -314,7 +315,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     vector<char> errMsg(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t encLen = 0;
+    uint64_t encLen = 0;
 
     unsigned t = 32, n = 32;
     PRINT_SRC_LINE
@@ -363,7 +364,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
     vector<char> result(BUF_LEN, 0);
 
     int errStatus = 0;
-    uint32_t encLen = 0;
+    uint64_t encLen = 0;
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     PRINT_SRC_LINE
@@ -694,7 +695,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);
-    uint32_t encLen;
+    uint64_t encLen;
     string key = SAMPLE_AES_KEY;
     vector <uint8_t> encrypted_key(BUF_LEN, 0);
 
