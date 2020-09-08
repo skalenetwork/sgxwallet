@@ -29,10 +29,9 @@ extern sgx_aes_gcm_128bit_key_t AES_DH_key;
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen,
                 unsigned char type, unsigned char decryptable, uint64_t* resultLen);
-int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) ;
+int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen,
+                uint8_t *type, uint8_t* decryptable) ;
 
-int AES_encrypt_DH(char *message, uint8_t *encr_message, uint64_t encrLen);
-int AES_decrypt_DH(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) ;
 
 void derive_DH_Key();
 

@@ -86,7 +86,8 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
     return status;
 }
 
-int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) {
+int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen,
+                uint8_t *type, uint8_t* decryptable){
 
     if (!message) {
         LOG_ERROR("Null message in AES_encrypt");
@@ -96,6 +97,16 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
     if (!encr_message) {
         LOG_ERROR("Null encr message in AES_encrypt");
         return -2;
+    }
+
+    if (!type) {
+        LOG_ERROR("Null type in AES_encrypt");
+        return -3;
+    }
+
+    if (!encr_message) {
+        LOG_ERROR("Null decryptable in AES_encrypt");
+        return -4;
     }
 
 
@@ -120,6 +131,8 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
                                                    NULL, 0,
                                                    (sgx_aes_gcm_128bit_tag_t *)encr_message);
 
+  *type = message[0];
+  *decryptable = message[1];
   for (int i = 2; i < strlen(message) + 1; i++) {
       message[i - 2 ] = message[i];
   }
