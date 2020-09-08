@@ -25,22 +25,20 @@
 #define SGXD_AESUTILS_H
 
 extern sgx_aes_gcm_128bit_key_t AES_key;
-extern sgx_aes_gcm_128bit_key_t AES_DH_key;
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen,
-                unsigned char type, unsigned char decryptable, uint64_t* resultLen);
+                unsigned char type, unsigned char exportable, uint64_t* resultLen);
 int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen,
-                uint8_t *type, uint8_t* decryptable) ;
+                uint8_t *type, uint8_t* exportable) ;
 
 
-void derive_DH_Key();
 
 #define ECDSA '1'
 #define BLS '2'
 #define DKG '3'
 
-#define DECRYPTABLE '1'
-#define NON_DECRYPTABLE '2'
+#define EXPORTABLE '1'
+#define NON_EXPORTABLE '2'
 
 
 

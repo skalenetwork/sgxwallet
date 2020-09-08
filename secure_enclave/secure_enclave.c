@@ -421,13 +421,13 @@ void trustedGenerateEcdsaKeyAES(int *errStatus, char *errString,
     snprintf(errString, BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
     int status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
-                             ECDSA, NON_DECRYPTABLE, enc_len);
+                             ECDSA, NON_EXPORTABLE, enc_len);
     CHECK_STATUS("ecdsa private key encryption failed");
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
-    status = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, BUF_LEN, &type, &decryptable);
+    status = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, BUF_LEN, &type, &exportable);
 
     CHECK_STATUS2("ecdsa private key decr failed with status %d");
 
@@ -458,10 +458,10 @@ void trustedGetPublicEcdsaKeyAES(int *errStatus, char *errString,
     CHECK_STATE(pub_key_y);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
-                             &type, &decryptable);
+                             &type, &exportable);
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
@@ -541,11 +541,11 @@ void trustedEcdsaSignAES(int *errStatus, char *errString, uint8_t *encryptedPriv
     signature sign = signature_init();
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
-                             &type, &decryptable);
+                             &type, &exportable);
 
     CHECK_STATUS2("aes decrypt failed with status %d");
 
@@ -622,12 +622,12 @@ void trustedDecryptKeyAES(int *errStatus, char *errString, uint8_t *encryptedPri
     *errStatus = -9;
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072,
-                             &type, &decryptable);
+                             &type, &exportable);
 
-    if (decryptable != DECRYPTABLE) {
+    if (exportable != EXPORTABLE) {
         *errStatus = -11;
         snprintf(errString, BUF_LEN, "Key is not exportable");
     }
@@ -668,17 +668,17 @@ void trustedEncryptKeyAES(int *errStatus, char *errString, const char *key,
     *errStatus = UNKNOWN_ERROR;
 
     int status = AES_encrypt((char *)key, encryptedPrivateKey, BUF_LEN,
-                             DKG, DECRYPTABLE, enc_len);
+                             DKG, EXPORTABLE, enc_len);
 
     CHECK_STATUS2("AES encrypt failed with status %d");
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     status = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN,
-                         &type, &decryptable);
+                         &type, &exportable);
 
     CHECK_STATUS2("trustedDecryptKey failed with status %d");
 
@@ -722,9 +722,9 @@ void trustedBlsSignMessageAES(int *errStatus, char *errString, uint8_t *encrypte
     SAFE_CHAR_BUF(key, BUF_LEN);SAFE_CHAR_BUF(sig, BUF_LEN);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, BUF_LEN, &type, &decryptable);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, BUF_LEN, &type, &exportable);
 
     CHECK_STATUS("AES decrypt failed")
 
@@ -767,7 +767,7 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     CHECK_STATUS("gen_dkg_poly failed")
 
     status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * BUF_LEN,
-                         DKG, DECRYPTABLE, enc_len);
+                         DKG, EXPORTABLE, enc_len);
 
     CHECK_STATUS("SGX AES encrypt DKG poly failed");
 
@@ -776,10 +776,10 @@ trustedGenDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_dkg_s
     SAFE_CHAR_BUF(decr_dkg_secret, DKG_BUFER_LENGTH);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret,
-                         DKG_BUFER_LENGTH, &type, &decryptable);
+                         DKG_BUFER_LENGTH, &type, &exportable);
 
     CHECK_STATUS("aes decrypt dkg poly failed");
 
@@ -809,10 +809,10 @@ trustedDecryptDkgSecretAES(int *errStatus, char *errString, uint8_t *encrypted_d
     CHECK_STATE(decrypted_dkg_secret);
 
     uint8_t  type;
-    uint8_t  decryptable;
+    uint8_t  exportable;
 
     int status = AES_decrypt(encrypted_dkg_secret, enc_len, (char *) decrypted_dkg_secret,
-                             3072, &type, &decryptable);
+                             3072, &type, &exportable);
 
     CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d")
 
@@ -834,10 +834,10 @@ void trustedSetEncryptedDkgPolyAES(int *errStatus, char *errString, uint8_t *enc
     memset(getThreadLocalDecryptedDkgPoly(), 0, DKG_BUFER_LENGTH);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     int status = AES_decrypt(encrypted_poly, enc_len, (char *) getThreadLocalDecryptedDkgPoly(),
-                             DKG_BUFER_LENGTH, &type, &decryptable);
+                             DKG_BUFER_LENGTH, &type, &exportable);
 
     CHECK_STATUS2("sgx_unseal_data - encrypted_poly failed with status %d")
 
@@ -874,9 +874,9 @@ void trustedGetEncryptedSecretShareAES(int *errStatus, char *errString, uint8_t 
     CHECK_STATUS("trustedGenerateEcdsaKeyAES failed");
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
-    status = AES_decrypt(encrypted_skey, enc_len, skey, BUF_LEN, &type, &decryptable);
+    status = AES_decrypt(encrypted_skey, enc_len, skey, BUF_LEN, &type, &exportable);
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
@@ -930,10 +930,10 @@ void trustedGetPublicSharesAES(int *errStatus, char *errString, uint8_t *encrypt
     SAFE_CHAR_BUF(decrypted_dkg_secret, DKG_MAX_SEALED_LEN);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     int status = AES_decrypt(encrypted_dkg_secret, enc_len, decrypted_dkg_secret,
-                             DKG_MAX_SEALED_LEN, &type, &decryptable);
+                             DKG_MAX_SEALED_LEN, &type, &exportable);
 
     CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d");
 
@@ -963,10 +963,10 @@ void trustedDkgVerifyAES(int *errStatus, char *errString, const char *public_sha
     mpz_init(s);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
-                             &type, &decryptable);
+                             &type, &exportable);
 
     CHECK_STATUS2("AES_decrypt failed (in trustedDkgVerifyAES) with status %d");
 
@@ -1026,11 +1026,11 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     mpz_init(bls_key);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey, BUF_LEN,
-                             &type, &decryptable);
+                             &type, &exportable);
     CHECK_STATUS2("aes decrypt failed with status %d");
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
@@ -1090,7 +1090,7 @@ void trustedCreateBlsKeyAES(int *errStatus, char *errString, const char *s_share
     strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
     key_share[BLS_KEY_LENGTH - 1] = 0;
 
-    status = AES_encrypt(key_share, encr_bls_key, BUF_LEN, BLS, DECRYPTABLE, enc_bls_key_len);
+    status = AES_encrypt(key_share, encr_bls_key, BUF_LEN, BLS, NON_EXPORTABLE, enc_bls_key_len);
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
 
@@ -1117,12 +1117,12 @@ trustedGetBlsPubKeyAES(int *errStatus, char *errString, uint8_t *encryptedPrivat
     SAFE_CHAR_BUF(skey_hex, BUF_LEN);
 
     uint8_t type = 0;
-    uint8_t decryptable = 0;
+    uint8_t exportable = 0;
 
 
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
-                             &type, &decryptable);
+                             &type, &exportable);
 
     CHECK_STATUS2("AES decrypt failed %d");
 
