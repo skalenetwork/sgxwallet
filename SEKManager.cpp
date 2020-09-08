@@ -21,21 +21,25 @@
     @date 2020
 */
 
-#include "SEKManager.h"
-#include "SGXException.h"
-#include "BLSCrypto.h"
-#include "LevelDB.h"
 
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 
+#include "third_party/spdlog/spdlog.h"
+
+
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "sgxwallet.h"
 
+#include "SGXException.h"
+#include "BLSCrypto.h"
+#include "LevelDB.h"
+
 #include "ServerDataChecker.h"
-#include "third_party/spdlog/spdlog.h"
+#include "ServerInit.h"
+#include "SEKManager.h"
 
 using namespace std;
 
@@ -52,13 +56,18 @@ bool case_insensitive_match(string s1, string s2) {
 void create_test_key() {
     int errStatus = 0;
     vector<char> errMsg(1024, 0);
-    uint32_t enc_len;
+    uint64_t enc_len;
 
     SAFE_UINT8_BUF(encrypted_key, BUF_LEN);
 
     string key = TEST_VALUE;
 
-    sgx_status_t status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+    sgx_status_t status =  SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -86,7 +95,12 @@ void validate_SEK() {
         exit(-1);
     }
 
-    sgx_status_t status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    {
+        READ_LOCK(initMutex);
+        status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -109,14 +123,20 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     auto encrypted_SEK = make_shared < vector < uint8_t >> (BUF_LEN, 0);
 
-    uint32_t l = 0;
+    uint64_t l = 0;
 
-    sgx_status_t status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
-                                               SEK.c_str());
+    sgx_status_t status = SGX_SUCCESS;
 
-    encrypted_SEK->resize(l);
+    {
+        READ_LOCK(initMutex);
+        status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
+                             SEK.c_str());
+    }
+
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
+
+    encrypted_SEK->resize(l);
 
     validate_SEK();
 
@@ -127,13 +147,18 @@ void gen_SEK() {
     vector<char> errMsg(1024, 0);
     int err_status = 0;
     vector <uint8_t> encrypted_SEK(1024, 0);
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
     SAFE_CHAR_BUF(SEK, 65);
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
-    sgx_status_t status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
+
+    sgx_status_t status = SGX_SUCCESS;
+    {
+
+        status = trustedGenerateSEK(eid, &err_status, errMsg.data(), encrypted_SEK.data(), &enc_len, SEK);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -184,6 +209,13 @@ void gen_SEK() {
 
 }
 
+void  reinitEnclave() {
+    WRITE_LOCK(initMutex);
+    initEnclave();
+    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
+    setSEK(encrypted_SEK_ptr);
+}
+
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     CHECK_STATE(hex_encrypted_SEK);
@@ -200,7 +232,10 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
         throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
     }
 
-    sgx_status_t status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
+    sgx_status_t status = SGX_SUCCESS;
+    {
+        status = trustedSetSEK(eid, &err_status, errMsg.data(), encrypted_SEK);
+    }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 

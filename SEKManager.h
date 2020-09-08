@@ -45,4 +45,11 @@ EXTERNC void enter_SEK();
 
 EXTERNC void initSEK();
 
+EXTERNC void setSEK();
+
+EXTERNC void reinitEnclave();
+
+
+
+
 #endif //SGXD_SEKMANAGER_H

@@ -57,6 +57,8 @@
 #include "SGXException.h"
 #include "SGXWalletServer.hpp"
 
+uint32_t enclaveLogLevel = 0;
+
 void initUserSpace() {
 
     libff::inhibit_profiling_counters = true;
@@ -66,9 +68,8 @@ void initUserSpace() {
     LevelDB::initDataFolderAndDBs();
 }
 
-void initEnclave(uint32_t _logLevel) {
-    eid = 0;
-    updated = 0;
+void initEnclave() {
+
 
 #ifndef SGX_HW_SIM
     unsigned long support;
@@ -81,22 +82,38 @@ void initEnclave(uint32_t _logLevel) {
 
     spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
 
-    sgx_status_t status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
-                                       &updated, &eid, 0);
+    sgx_status_t status = SGX_SUCCESS;
 
-    if (status != SGX_SUCCESS) {
-        if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
-            spdlog::error("sgx_create_enclave: {}: file not found", ENCLAVE_NAME);
-            spdlog::error("Did you forget to set LD_LIBRARY_PATH?");
-        } else {
-            spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
+    {
+        WRITE_LOCK(initMutex);
+
+        if (eid != 0) {
+            if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
+                spdlog::error("Could not destroy enclave");
+                return;
+            }
         }
-        exit(1);
+
+        eid = 0;
+        updated = 0;
+
+        status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
+                                           &updated, &eid, 0);
+
+        if (status != SGX_SUCCESS) {
+            if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
+                spdlog::error("sgx_create_enclave: {}: file not found", ENCLAVE_NAME);
+                spdlog::error("Did you forget to set LD_LIBRARY_PATH?");
+            } else {
+                spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
+            }
+            exit(1);
+        }
+
+        spdlog::info("Enclave created and started successfully");
+        
+        status = trustedEnclaveInit(eid, enclaveLogLevel);
     }
-
-    spdlog::info("Enclave created and started successfully");
-
-    status = trustedEnclaveInit(eid, _logLevel);
 
     if (status != SGX_SUCCESS) {
         spdlog::error("trustedEnclaveInit failed: {}", status);
@@ -107,10 +124,13 @@ void initEnclave(uint32_t _logLevel) {
 }
 
 
+
+
 void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
+    enclaveLogLevel = _logLevel;
 
     lock_guard <mutex> lock(initMutex);
 
@@ -123,7 +143,8 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
-        initEnclave(_logLevel);
+
+        initEnclave();
         initUserSpace();
         initSEK();
 
@@ -146,6 +167,6 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit (-1);
+        exit(-1);
     }
 };

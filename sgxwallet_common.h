@@ -109,4 +109,23 @@ extern bool autoconfirm;
 
 #define TEST_VALUE "1234567890"
 
+
+#define RESTART_BEGIN \
+int __ATTEMPTS__ = 0; \
+do {\
+__ATTEMPTS__++; \
+{\
+READ_LOCK(initMutex);
+
+#define RESTART_END \
+} \
+if (status != SGX_SUCCESS) { \
+spdlog::error(__FUNCTION__); \
+spdlog::error("Restarting sgx ..."); \
+reinitEnclave(); \
+} \
+} while (status != SGX_SUCCESS && __ATTEMPTS__ < 2);
+
+
+
 #endif //SGXWALLET_SGXWALLET_COMMON_H

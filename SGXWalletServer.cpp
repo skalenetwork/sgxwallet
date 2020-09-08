@@ -54,6 +54,9 @@
 
 using namespace std;
 
+std::shared_timed_mutex initMutex;
+uint64_t initTime;
+
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
     spdlog::info("Entering {}", __FUNCTION__);
 
@@ -563,7 +566,7 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& pu
 
         vector<string> public_keys = calculateAllBlsPublicKeys(public_shares);
 
-        if (public_keys.size() != n) {
+        if (public_keys.size() != (uint64_t)n) {
             throw SGXException(UNKNOWN_ERROR, "");
         }
 

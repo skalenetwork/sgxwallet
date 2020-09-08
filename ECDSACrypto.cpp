@@ -38,6 +38,7 @@
 
 #include "BLSCrypto.h"
 
+#include "SEKManager.h"
 #include "ECDSACrypto.h"
 
 void fillRandomBuffer(vector<unsigned char> &_buffer) {
@@ -54,11 +55,15 @@ vector <string> genECDSAKey() {
     vector<char> pub_key_x(BUF_LEN, 0);
     vector<char> pub_key_y(BUF_LEN, 0);
 
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
-    sgx_status_t status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
-                                        errMsg.data(), encr_pr_key.data(), &enc_len,
-                                        pub_key_x.data(), pub_key_y.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    RESTART_BEGIN
+        status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
+                                   errMsg.data(), encr_pr_key.data(), &enc_len,
+                                   pub_key_x.data(), pub_key_y.data());
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
@@ -99,8 +104,12 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    sgx_status_t status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
-                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    sgx_status_t status = SGX_SUCCESS;
+
+    RESTART_BEGIN
+        status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
+                                             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
 
@@ -184,10 +193,14 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    sgx_status_t status = trustedEcdsaSignAES(eid, &errStatus,
-            errMsg.data(), encryptedKey.data(), decLen, hashHex,
-                                 signatureR.data(),
-                                 signatureS.data(), &signatureV, base);
+    sgx_status_t status = SGX_SUCCESS;
+
+    RESTART_BEGIN
+        status = trustedEcdsaSignAES(eid, &errStatus,
+                            errMsg.data(), encryptedKey.data(), decLen, hashHex,
+                            signatureR.data(),
+                            signatureS.data(), &signatureV, base);
+    RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

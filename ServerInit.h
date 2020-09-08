@@ -36,7 +36,7 @@ EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign);
 
 EXTERNC void initUserSpace();
 
-EXTERNC void initEnclave(uint32_t _logLevel);
+EXTERNC void initEnclave();
 
 
 
