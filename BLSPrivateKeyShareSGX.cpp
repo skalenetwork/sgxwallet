@@ -26,15 +26,14 @@
 #include "BLSutils.h"
 
 #include "third_party/spdlog/spdlog.h"
-
+#include "common.h"
 #include "secure_enclave_u.h"
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
-#include "common.h"
-
+#include "SEKManager.h"
 #include "BLSPrivateKeyShareSGX.h"
 
 string *stringFromFq(libff::alt_bn128_Fq *_fq) {
