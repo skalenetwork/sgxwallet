@@ -261,7 +261,7 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
     RESTART_BEGIN
         status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
                                       &encryptedLen);
-    RESTART_END
+    RESTART_END_POINTER
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
