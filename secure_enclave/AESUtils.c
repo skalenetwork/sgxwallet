@@ -30,7 +30,8 @@
 
 #include "AESUtils.h"
 
-uint8_t AES_key[2* BUF_LEN];
+sgx_aes_gcm_128bit_key_t AES_key;
+sgx_aes_gcm_128bit_key_t AES_DH_key;
 
 
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
@@ -74,7 +75,7 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
 
     sgx_read_rand(encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE);
 
-    sgx_status_t status = sgx_rijndael128GCM_encrypt(AES_key + BUF_LEN, (uint8_t*)message, len,
+    sgx_status_t status = sgx_rijndael128GCM_encrypt(&AES_key, (uint8_t*)message, len,
                                                      encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE,
                                                      encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                      NULL, 0,
@@ -123,7 +124,7 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
         return -2;
   }
 
-  sgx_status_t status = sgx_rijndael128GCM_decrypt(AES_key + BUF_LEN,
+  sgx_status_t status = sgx_rijndael128GCM_decrypt(&AES_key,
                                                    encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
                                                    (unsigned char*) message,
                                                    encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
