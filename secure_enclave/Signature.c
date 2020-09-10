@@ -57,6 +57,15 @@ signature signature_init() {
     return sig;
 }
 
+/*Release signature*/
+void signature_free(signature sig) {
+    if (!sig)
+        return;
+    mpz_clear(sig->r);
+    mpz_clear(sig->s);
+    free(sig);
+}
+
 
 /*Set signature from strings of a base from 2-62*/
 int signature_set_str(signature sig, const char *r, const char *s, int base) {
@@ -200,14 +209,7 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 #endif
 
-/*Release signature*/
-void signature_free(signature sig) {
-    if (!sig)
-        return;
-    mpz_clear(sig->r);
-    mpz_clear(sig->s);
-    free(sig);
-}
+
 
 /*Verify the integrity of a message using it's signature*/
 bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve) {
