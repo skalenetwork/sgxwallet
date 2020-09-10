@@ -24,7 +24,8 @@
 #ifndef SGXD_AESUTILS_H
 #define SGXD_AESUTILS_H
 
-extern sgx_aes_gcm_128bit_key_t AES_key;
+#define BUF_LEN 1024
+extern uint8_t AES_key[2* BUF_LEN] ;
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen,
                 unsigned char type, unsigned char exportable, uint64_t* resultLen);
