@@ -68,7 +68,7 @@ void initUserSpace() {
     LevelDB::initDataFolderAndDBs();
 }
 
-void initEnclave() {
+uint64_t initEnclave() {
 
 
 #ifndef SGX_HW_SIM
@@ -85,12 +85,12 @@ void initEnclave() {
     sgx_status_t status = SGX_SUCCESS;
 
     {
+
         WRITE_LOCK(initMutex);
 
         if (eid != 0) {
             if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
                 spdlog::error("Could not destroy enclave");
-                return;
             }
         }
 
@@ -117,10 +117,12 @@ void initEnclave() {
 
     if (status != SGX_SUCCESS) {
         spdlog::error("trustedEnclaveInit failed: {}", status);
-        exit(1);
+        return status;
     }
 
     spdlog::info("Enclave libtgmp library and logging initialized successfully");
+
+    return SGX_SUCCESS;
 }
 
 
@@ -144,7 +146,18 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
 
-        initEnclave();
+        uint64_t  counter = 0;
+
+        uint64_t initResult = 0;
+        while ((initResult = initEnclave()) != 0 && counter < 10){
+            sleep(1);
+            counter ++;
+        }
+
+        if (initResult != 0) {
+            spdlog::error("Coult not init enclave");
+        }
+
         initUserSpace();
         initSEK();
 
