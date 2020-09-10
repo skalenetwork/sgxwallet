@@ -66,7 +66,7 @@ void create_test_key() {
 
     {
         READ_LOCK(initMutex);
-        status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
+        status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
     }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -99,7 +99,7 @@ void validate_SEK() {
 
     {
         READ_LOCK(initMutex);
-        status = trustedDecryptKeyAES(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
+        status = trustedDecryptKey(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
@@ -129,7 +129,7 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     {
         READ_LOCK(initMutex);
-        status = trustedSetSEK_backup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
+        status = trustedSetSEKBackup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
                              SEK.c_str());
     }
 
