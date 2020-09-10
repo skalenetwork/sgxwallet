@@ -217,7 +217,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     sgx_status_t status = SGX_SUCCESS;
 
     RESTART_BEGIN
-            status = trustedBlsSignMessageAES(eid, &errStatus, errMsg.data(), encryptedKey,
+            status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
                                               sz, xStrArg, yStrArg, signature);
     RESTART_END
 
@@ -259,9 +259,9 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
     sgx_status_t status = SGX_SUCCESS;
 
     RESTART_BEGIN
-        status = trustedEncryptKeyAES(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
+        status = trustedEncryptKey(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
                                       &encryptedLen);
-    RESTART_END
+    RESTART_END_POINTER
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 

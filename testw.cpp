@@ -129,7 +129,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
 
     uint64_t encLen = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
                                              pubKeyX.data(),
                                              pubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -143,7 +143,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
 
     for (int i = 0; i < 50; i++) {
         PRINT_SRC_LINE
-        status = trustedEcdsaSignAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
+        status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
                                      hex.data(),
                                      signatureR.data(),
                                      signatureS.data(), &signatureV, 16);
@@ -162,7 +162,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     vector<char> pubKeyY(BUF_LEN, 0);
     uint64_t encLen = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
                                              pubKeyX.data(),
                                              pubKeyY.data());
 
@@ -181,7 +181,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     uint64_t encLen = 0;
 
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKeyAES(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
                                              pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
@@ -191,7 +191,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     vector<char> receivedPubKeyY(BUF_LEN, 0);
 
     PRINT_SRC_LINE
-    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen,
+    status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen,
                                          receivedPubKeyX.data(),
                                          receivedPubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -295,14 +295,14 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     uint64_t encLen = 0;
 
     PRINT_SRC_LINE
-    auto status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 32);
+    auto status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 32);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
     vector<char> secret(BUF_LEN, 0);
     vector<char> errMsg1(BUF_LEN, 0);
 
-    status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
+    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
                                         encLen, (uint8_t *) secret.data());
 
     REQUIRE(status == SGX_SUCCESS);
@@ -319,7 +319,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
 
     unsigned t = 32, n = 32;
     PRINT_SRC_LINE
-    auto status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, n);
+    auto status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, n);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -328,7 +328,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     char colon = ':';
     vector<char> pubShares(10000, 0);
     PRINT_SRC_LINE
-    status = trustedGetPublicSharesAES(eid, &errStatus, errMsg1.data(),
+    status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
                                        encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -343,7 +343,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
 
     vector<char> secret(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedDecryptDkgSecretAES(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(), encLen,
+    status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(), encLen,
                                         (uint8_t *) secret.data());
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -368,14 +368,14 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     PRINT_SRC_LINE
-    auto status = trustedGenDkgSecretAES(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
+    auto status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), &encLen, 2);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
     uint64_t enc_len = encLen;
 
     PRINT_SRC_LINE
-    status = trustedSetEncryptedDkgPolyAES(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), enc_len);
+    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), enc_len);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -385,7 +385,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
     vector<char> s_shareG2(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedGetEncryptedSecretShareAES(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &encLen,
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &encLen,
                                                result.data(),
                                                s_shareG2.data(),
                                                (char *) pub_keyB.data(), 2, 2, 1);
@@ -700,14 +700,14 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     vector <uint8_t> encrypted_key(BUF_LEN, 0);
 
     PRINT_SRC_LINE
-    auto status = trustedEncryptKeyAES(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
+    auto status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
 
     REQUIRE(status == 0);
     REQUIRE(errStatus == 0);
 
     vector<char> decr_key(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedDecryptKeyAES(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
     REQUIRE(errStatus == 0);

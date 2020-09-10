@@ -55,6 +55,6 @@ string convertG2ToString(const libff::alt_bn128_G2& elem, int base = 10, const s
 
 vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares);
 
-bool TestcreateBLSShare( const char * s_shares);
+bool testCreateBLSShare( const char * s_shares);
 
 #endif //SGXD_DKGCRYPTO_H

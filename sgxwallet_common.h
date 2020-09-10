@@ -119,12 +119,23 @@ READ_LOCK(initMutex);
 
 #define RESTART_END \
 } \
-if (status != SGX_SUCCESS) { \
-spdlog::error(__FUNCTION__); \
-spdlog::error("Restarting sgx ..."); \
+if (status != SGX_SUCCESS || errStatus != 0) { \
+spdlog::error(__FUNCTION__);                   \
+spdlog::error("Restarting sgx on status errStatus... {} {}", status, errStatus);                    \
 reinitEnclave(); \
 } \
-} while (status != SGX_SUCCESS && __ATTEMPTS__ < 2);
+} while ((status != SGX_SUCCESS || errStatus != 0) && __ATTEMPTS__ < 2);
+
+
+
+#define RESTART_END_POINTER \
+} \
+if (status != SGX_SUCCESS || *errStatus != 0) { \
+spdlog::error(__FUNCTION__);\
+spdlog::error("Restarting sgx on status errStatus... {} {}", status, *errStatus);                            \
+reinitEnclave(); \
+} \
+} while ((status != SGX_SUCCESS || *errStatus != 0) && __ATTEMPTS__ < 2);
 
 
 
