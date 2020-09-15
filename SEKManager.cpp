@@ -210,7 +210,6 @@ void gen_SEK() {
 }
 
 void  reinitEnclave() {
-    WRITE_LOCK(initMutex);
     // unfortunately process needs to be restarted to reinit enclave
     // exiting with error code 3 (SGX_OUT_OF_MEMORY), so docker container can restart the
     // wallet
