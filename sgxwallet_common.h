@@ -119,7 +119,7 @@ READ_LOCK(initMutex);
 
 #define RESTART_END \
 } \
-if (status != SGX_SUCCESS || errStatus != 0) { \
+if (status != SGX_SUCCESS || errStatus == 3) { \
 spdlog::error(__FUNCTION__);                   \
 spdlog::error("Restarting sgx on status errStatus... {} {}", status, errStatus);                    \
 reinitEnclave(); \
