@@ -306,6 +306,8 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         verifVects[i] = c.getVerificationVector(polyName, t, n);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
+
+        REQUIRE_NOTHROW(c.getVerificationVector(polyName, t, n));
     }
 
     for (uint8_t i = 0; i < n; i++) {
@@ -318,6 +320,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
                 pubShares[i] += TestUtils::convertDecToHex(pubShare);
             }
         }
+        REQUIRE_NOTHROW(c.getSecretShare(polyNames[i], pubEthKeys, t, n));
     }
 
     int k = 0;
