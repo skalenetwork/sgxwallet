@@ -523,9 +523,11 @@ TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {
 
     Json::Value verifVectWrongName = c.getVerificationVector("poly", 2, 2);
     REQUIRE(verifVectWrongName["status"].asInt() != 0);
+    REQUIRE_NOTHROW(c.getVerificationVector("poly", 2, 2));
 
     Json::Value secretSharesWrongName = c.getSecretShare("poly", publicKeys, 2, 2);
     REQUIRE(secretSharesWrongName["status"].asInt() != 0);
+    REQUIRE_NOTHROW(c.getSecretShare("poly", publicKeys, 2, 2));
 
     // wrong_t
     Json::Value genPolyWrong_t = c.generateDKGPoly(polyName, 33);
