@@ -211,9 +211,10 @@ void gen_SEK() {
 
 void  reinitEnclave() {
     WRITE_LOCK(initMutex);
-    initEnclave();
-    shared_ptr <string> encrypted_SEK_ptr = LevelDB::getLevelDb()->readString("SEK");
-    setSEK(encrypted_SEK_ptr);
+    // unfortunately process needs to be restarted to reinit enclave
+    // exiting with error code 3 (SGX_OUT_OF_MEMORY), so docker container can restart the
+    // wallet
+    exit(3);
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
