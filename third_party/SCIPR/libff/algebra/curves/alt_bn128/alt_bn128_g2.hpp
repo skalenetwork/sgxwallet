@@ -15,8 +15,6 @@
 namespace libff {
 
 class alt_bn128_G2;
-//std::ostream& operator<<(std::ostream &, const alt_bn128_G2&);
-//std::istream& operator>>(std::istream &, alt_bn128_G2&);
 
 class alt_bn128_G2 {
 public:
@@ -69,9 +67,6 @@ public:
     static size_t size_in_bits() { return twist_field::size_in_bits() + 1; }
     static bigint<base_field::num_limbs> base_field_char() { return base_field::field_char(); }
     static bigint<scalar_field::num_limbs> order() { return scalar_field::field_char(); }
-
-    //friend std::ostream& operator<<(std::ostream &out, const alt_bn128_G2 &g);
-    //friend std::istream& operator>>(std::istream &in, alt_bn128_G2 &g);
 
     static void batch_to_special_all_non_zeros(std::vector<alt_bn128_G2> &vec);
 };
