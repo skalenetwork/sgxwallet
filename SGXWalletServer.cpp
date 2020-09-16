@@ -406,7 +406,6 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
     result["secretShare"] = "";
-    result["SecretShare"] = "";
 
     try {
         if (_pubKeys.size() != (uint64_t) _n) {
@@ -429,9 +428,15 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
 
-        string s = getSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
-        result["secretShare"] = s;
-        result["SecretShare"] = s;
+        string secret_share_name = "encryptedSecretShare:" + _polyName;
+        shared_ptr <string> encryptedSecretShare = checkDataFromDb(secret_share_name);
+
+        if (encryptedSecretShare != nullptr) {
+            result["secretShare"] = *encryptedSecretShare.get();
+        } else {
+            string s = getSecretShares(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
+            result["secretShare"] = s;
+        }
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)
@@ -507,6 +512,9 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
         LevelDB::getLevelDb()->deleteKey(_polyName);
+
+        string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+        LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
 
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -594,6 +602,18 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
+
+//        TODO: delete dh keys
+//        for (int i = 0; i < _n; i++) {
+//            string name = _polyName + "_" + to_string(i) + ":";
+//            LevelDB::getLevelDb()->deleteDHDKGKey(name);
+//            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+//            LevelDB::getLevelDb()->deleteKey(shareG2_name);
+//        }
+        LevelDB::getLevelDb()->deleteKey(_polyName);
+
+        string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+        LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
@@ -742,11 +762,17 @@ Json::Value SGXWalletServer::deleteBlsKey(const string &name) {
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
-    auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
+    auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
         throw SGXException(KEY_SHARE_DOES_NOT_EXIST, "Data with this name does not exist");
     }
+
+    return dataStr;
+}
+
+shared_ptr <string> SGXWalletServer::checkDataFromDb(const string &name, const string &prefix) {
+    auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
 
     return dataStr;
 }

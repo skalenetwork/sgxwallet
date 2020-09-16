@@ -552,7 +552,13 @@ TEST_CASE_METHOD(TestFixture, "DKG API test", "[dkg-api]") {
 
     //wrong verif
     Json::Value Skeys = c.getSecretShare(polyName, publicKeys, 2, 2);
+    REQUIRE_NOTHROW(c.getSecretShare(polyName, publicKeys, 2, 2));
+    REQUIRE(Skeys == c.getSecretShare(polyName, publicKeys, 2, 2));
+
     Json::Value verifVect = c.getVerificationVector(polyName, 2, 2);
+    REQUIRE_NOTHROW(c.getVerificationVector(polyName, 2, 2));
+    REQUIRE(verifVect == c.getVerificationVector(polyName, 2, 2));
+
     Json::Value verificationWrongSkeys = c.dkgVerification("", "", "", 2, 2, 1);
     REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
 }
