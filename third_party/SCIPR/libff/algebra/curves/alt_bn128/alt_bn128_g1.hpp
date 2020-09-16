@@ -9,10 +9,10 @@
 #define ALT_BN128_G1_HPP_
 #include <vector>
 
-#include <../SCIPR/libff/common/utils.hpp>
+#include "../../../common/utils.hpp"
 
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
-#include <../SCIPR/libff/algebra/curves/curve_utils.hpp>
+#include "alt_bn128_init.hpp"
+#include "../curve_utils.hpp"
 
 namespace libff {
 

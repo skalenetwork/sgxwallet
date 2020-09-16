@@ -7,9 +7,9 @@
 
 #ifndef ALT_BN128_PP_HPP_
 #define ALT_BN128_PP_HPP_
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.hpp>
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
-#include <../SCIPR/libff/algebra/curves/public_params.hpp>
+#include "alt_bn128_g1.hpp"
+#include "alt_bn128_init.hpp"
+#include "../public_params.hpp"
 
 namespace libff {
 

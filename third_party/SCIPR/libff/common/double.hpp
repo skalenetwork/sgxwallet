@@ -14,7 +14,7 @@
 
 #include <complex>
 
-#include <../SCIPR/libff/algebra/fields/bigint.hpp>
+#include "../algebra/fields/bigint.hpp"
 
 namespace libff {
 

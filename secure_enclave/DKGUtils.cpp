@@ -31,10 +31,10 @@
 
 #endif
 
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <../SCIPR/libff/algebra/fields/fp.hpp>
+#include <../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <../third_party/SCIPR/libff/algebra/fields/fp.hpp>
 
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
+#include <../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 #include "EnclaveConstants.h"
 #include <cstdio>

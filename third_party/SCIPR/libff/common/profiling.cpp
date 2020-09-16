@@ -19,9 +19,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include <../SCIPR/libff/common/default_types/ec_pp.hpp>
-#include <../SCIPR/libff/common/profiling.hpp>
-#include <../SCIPR/libff/common/utils.hpp>
+#include "default_types/ec_pp.hpp"
+#include "profiling.hpp"
+#include "utils.hpp"
 
 #ifndef NO_PROCPS
 #include <proc/readproc.h>
