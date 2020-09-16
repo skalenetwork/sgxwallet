@@ -31,42 +31,6 @@ alt_bn128_Fq2 alt_bn128_G2::mul_by_b(const alt_bn128_Fq2 &elt)
     return alt_bn128_Fq2(alt_bn128_twist_mul_by_b_c0 * elt.c0, alt_bn128_twist_mul_by_b_c1 * elt.c1);
 }
 
-/*void alt_bn128_G2::print() const
-{
-    if (this->is_zero())
-    {
-        printf("O\n");
-    }
-    else
-    {
-        alt_bn128_G2 copy(*this);
-        copy.to_affine_coordinates();
-        gmp_printf("(%Nd*z + %Nd , %Nd*z + %Nd)\n",
-                   copy.X.c1.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   copy.X.c0.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   copy.Y.c1.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   copy.Y.c0.as_bigint().data, alt_bn128_Fq::num_limbs);
-    }
-}
-
-void alt_bn128_G2::print_coordinates() const
-{
-    if (this->is_zero())
-    {
-        printf("O\n");
-    }
-    else
-    {
-        gmp_printf("(%Nd*z + %Nd : %Nd*z + %Nd : %Nd*z + %Nd)\n",
-                   this->X.c1.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   this->X.c0.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   this->Y.c1.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   this->Y.c0.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   this->Z.c1.as_bigint().data, alt_bn128_Fq::num_limbs,
-                   this->Z.c0.as_bigint().data, alt_bn128_Fq::num_limbs);
-    }
-}*/
-
 void alt_bn128_G2::to_affine_coordinates()
 {
     if (this->is_zero())
@@ -414,68 +378,6 @@ alt_bn128_G2 alt_bn128_G2::random_element()
 {
     return (alt_bn128_Fr::random_element().as_bigint()) * G2_one;
 }
-
-/*std::ostream& operator<<(std::ostream &out, const alt_bn128_G2 &g)
-{
-    alt_bn128_G2 copy(g);
-    copy.to_affine_coordinates();
-    out << (copy.is_zero() ? 1 : 0) << OUTPUT_SEPARATOR;
-#ifdef NO_PT_COMPRESSION
-    out << copy.X << OUTPUT_SEPARATOR << copy.Y;
-#else
-     //storing LSB of Y
-    out << copy.X << OUTPUT_SEPARATOR << (copy.Y.c0.as_bigint().data[0] & 1);
-#endif
-
-    return out;
-}
-
-std::istream& operator>>(std::istream &in, alt_bn128_G2 &g)
-{
-    char is_zero;
-    alt_bn128_Fq2 tX, tY;
-
-#ifdef NO_PT_COMPRESSION
-    in >> is_zero >> tX >> tY;
-    is_zero -= '0';
-#else
-    in.read((char*)&is_zero, 1); // this reads is_zero;
-    is_zero -= '0';
-    consume_OUTPUT_SEPARATOR(in);
-
-    unsigned char Y_lsb;
-    in >> tX;
-    consume_OUTPUT_SEPARATOR(in);
-    in.read((char*)&Y_lsb, 1);
-    Y_lsb -= '0';
-
-    // y = +/- sqrt(x^3 + b)
-    if (!is_zero)
-    {
-        alt_bn128_Fq2 tX2 = tX.squared();
-        alt_bn128_Fq2 tY2 = tX2 * tX + alt_bn128_twist_coeff_b;
-        tY = tY2.sqrt();
-
-        if ((tY.c0.as_bigint().data[0] & 1) != Y_lsb)
-        {
-            tY = -tY;
-        }
-    }
-#endif
-    // using projective coordinates
-    if (!is_zero)
-    {
-        g.X = tX;
-        g.Y = tY;
-        g.Z = alt_bn128_Fq2::one();
-    }
-    else
-    {
-        g = alt_bn128_G2::zero();
-    }
-
-    return in;
-}*/
 
 void alt_bn128_G2::batch_to_special_all_non_zeros(std::vector<alt_bn128_G2> &vec)
 {

@@ -29,19 +29,12 @@ typedef Fp2_model<alt_bn128_q_limbs, alt_bn128_modulus_q> alt_bn128_Fq2;
 // parameters for Barreto--Naehrig curve E/Fq : y^2 = x^3 + b
 extern alt_bn128_Fq alt_bn128_coeff_b;
 // parameters for twisted Barreto--Naehrig curve E'/Fq2 : y^2 = x^3 + b/xi
-    extern alt_bn128_Fq2 alt_bn128_twist;
-    extern alt_bn128_Fq2 alt_bn128_twist_coeff_b;
-    extern alt_bn128_Fq alt_bn128_twist_mul_by_b_c0;
-    extern alt_bn128_Fq alt_bn128_twist_mul_by_b_c1;
-    extern alt_bn128_Fq2 alt_bn128_twist_mul_by_q_X;
-    extern alt_bn128_Fq2 alt_bn128_twist_mul_by_q_Y;
-
-// parameters for pairing
-extern bigint<alt_bn128_q_limbs> alt_bn128_ate_loop_count;
-extern bool alt_bn128_ate_is_loop_count_neg;
-extern bigint<12*alt_bn128_q_limbs> alt_bn128_final_exponent;
-extern bigint<alt_bn128_q_limbs> alt_bn128_final_exponent_z;
-extern bool alt_bn128_final_exponent_is_z_neg;
+extern alt_bn128_Fq2 alt_bn128_twist;
+extern alt_bn128_Fq2 alt_bn128_twist_coeff_b;
+extern alt_bn128_Fq alt_bn128_twist_mul_by_b_c0;
+extern alt_bn128_Fq alt_bn128_twist_mul_by_b_c1;
+extern alt_bn128_Fq2 alt_bn128_twist_mul_by_q_X;
+extern alt_bn128_Fq2 alt_bn128_twist_mul_by_q_Y;
 
 void init_alt_bn128_params();
 

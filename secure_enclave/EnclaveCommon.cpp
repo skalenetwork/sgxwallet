@@ -198,12 +198,10 @@ void enclave_init() {
 
 bool enclave_sign(const char *_keyString, const char *_hashXString, const char *_hashYString,
                   char *sig) {
-
     bool ret = false;
 
     libff::alt_bn128_Fr* key = nullptr;
     string * r = nullptr;
-
 
     if (!_keyString) {
         LOG_ERROR("Null key string");

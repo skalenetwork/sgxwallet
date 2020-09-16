@@ -23,8 +23,6 @@ public:
     static long long add_cnt;
     static long long dbl_cnt;
 #endif
-    static std::vector<size_t> wnaf_window_table;
-    static std::vector<size_t> fixed_base_exp_window_table;
     static alt_bn128_G1 G1_zero;
     static alt_bn128_G1 G1_one;
 
