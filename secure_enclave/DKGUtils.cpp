@@ -56,10 +56,9 @@ string stringFromFr(const libff::alt_bn128_Fr &_el) {
 
         SAFE_CHAR_BUF(arr, BUF_LEN);
 
-        char *tmp = mpz_get_str(arr, 10, t);
+        mpz_get_str(arr, 10, t);
 
-
-        ret = string(tmp);
+        ret = string(arr);
 
     } catch (exception &e) {
         LOG_ERROR(e.what());
@@ -90,9 +89,9 @@ string ConvertToString(const T &field_elem, int base = 10) {
 
         SAFE_CHAR_BUF(arr, BUF_LEN);
 
-        char *tmp = mpz_get_str(arr, base, t);
+        mpz_get_str(arr, base, t);
 
-        ret = string(tmp);
+        ret = string(arr);
 
         goto clean;
 
@@ -328,9 +327,9 @@ int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
 
         SAFE_CHAR_BUF(arr, BUF_LEN);
 
-        char *share_str = mpz_get_str(arr, 10, share);
+        mpz_get_str(arr, 10, share);
 
-        libff::alt_bn128_Fr secret_share(share_str);
+        libff::alt_bn128_Fr secret_share(arr);
 
         libff::alt_bn128_G2 secret_shareG2 = secret_share * libff::alt_bn128_G2::one();
 
@@ -410,9 +409,9 @@ string ConvertHexToDec(string hex_str) {
         }
 
         char arr[mpz_sizeinbase(dec, 10) + 2];
-        char *result = mpz_get_str(arr, 10, dec);
-        CHECK_ARG_CLEAN(result);
-        ret = result;
+        mpz_get_str(arr, 10, dec);
+        CHECK_ARG_CLEAN(arr);
+        ret = arr;
     } catch (exception &e) {
         LOG_ERROR(e.what());
         goto clean;
@@ -465,14 +464,14 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
         }
 
         SAFE_CHAR_BUF(arr, BUF_LEN);
-        char *tmp = mpz_get_str(arr, 10, decr_secret_share);
+        mpz_get_str(arr, 10, decr_secret_share);
 
-        libff::alt_bn128_Fr sshare(tmp);
+        libff::alt_bn128_Fr sshare(arr);
 
         libff::alt_bn128_G2 val2 = sshare * libff::alt_bn128_G2::one();
 
         memset(public_shares, 0, strlen(public_shares));
-        strncpy(public_shares, tmp, strlen(tmp));
+        strncpy(public_shares, arr, strlen(arr));
 
         val.to_affine_coordinates();
         val2.to_affine_coordinates();
