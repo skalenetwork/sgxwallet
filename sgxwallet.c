@@ -36,6 +36,5 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgxwallet.h"
 
 sgx_launch_token_t token = {0};
-sgx_enclave_id_t eid;
-sgx_status_t status;
-int updated;
+sgx_enclave_id_t eid = 0;
+int updated = 0;

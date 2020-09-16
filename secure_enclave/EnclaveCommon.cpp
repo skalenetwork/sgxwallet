@@ -173,14 +173,25 @@ void enclave_init() {
         return;
     inited = 1;
 
+
     LOG_INFO("Initing libff");
     try {
+
+        LOG_INFO("Initing params");
+
         libff::init_alt_bn128_params();
+
+        LOG_INFO("Initing curve");
         curve = domain_parameters_init();
+        LOG_INFO("Initing curve domain");
         domain_parameters_load_curve(curve, secp256k1);
     } catch (exception& e) {
         LOG_ERROR("Exception in libff init");
         LOG_ERROR(e.what());
+        abort();
+    } catch (...) {
+        LOG_ERROR("Unknown exception in libff");
+        abort();
     }
     LOG_INFO("Inited libff");
 }
@@ -345,19 +356,19 @@ void logMsg(log_level _level, const char *_msg) {
 }
 
 
-EXTERNC void LOG_INFO(const char *_msg) {
+void LOG_INFO(const char *_msg) {
     logMsg(L_INFO, _msg);
 };
-EXTERNC void LOG_WARN(const char *_msg) {
+void LOG_WARN(const char *_msg) {
     logMsg(L_WARNING, _msg);
 };
 
-EXTERNC void LOG_ERROR(const char *_msg) {
+void LOG_ERROR(const char *_msg) {
     logMsg(L_ERROR, _msg);
 };
-EXTERNC void LOG_DEBUG(const char *_msg) {
+void LOG_DEBUG(const char *_msg) {
     logMsg(L_DEBUG, _msg);
 };
-EXTERNC void LOG_TRACE(const char *_msg) {
+void LOG_TRACE(const char *_msg) {
     logMsg(L_TRACE, _msg);
 };

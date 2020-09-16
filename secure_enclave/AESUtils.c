@@ -27,9 +27,23 @@
 #include "stdlib.h"
 #include <string.h>
 
+
 #include "AESUtils.h"
 
-int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
+sgx_aes_gcm_128bit_key_t AES_key[1024];
+
+
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+
+int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned  char type,
+                unsigned char exportable, uint64_t* resultLen) {
+
+
+
+    if (!type) {
+        LOG_ERROR("Null type in AES_encrypt");
+        return -1;
+    }
 
     if (!message) {
         LOG_ERROR("Null message in AES_encrypt");
@@ -41,25 +55,38 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen) {
         return -2;
     }
 
-    uint64_t len = strlen(message);
+    uint64_t len = strlen(message) + 1;
 
-    if (len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE > encrLen ) {
+    if (2 + len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE > encrBufLen ) {
         LOG_ERROR("Output buffer too small");
         return -3;
     }
 
+    SAFE_CHAR_BUF(fullMessage, len + 2);
+
+    fullMessage[0] = type;
+    fullMessage[1] = exportable;
+
+    strncpy(fullMessage + 2, message, len );
+
+    len = len + 2;
+    message = fullMessage;
+
     sgx_read_rand(encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE);
 
-    sgx_status_t status = sgx_rijndael128GCM_encrypt(&AES_key, (uint8_t*)message, strlen(message),
+    sgx_status_t status = sgx_rijndael128GCM_encrypt(&(AES_key[512]), (uint8_t*)message, len,
                                                      encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE,
                                                      encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                      NULL, 0,
                                                      (sgx_aes_gcm_128bit_tag_t *) encr_message);
 
+    *resultLen = len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE;
+
     return status;
 }
 
-int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen) {
+int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen,
+                uint8_t *type, uint8_t* exportable){
 
     if (!message) {
         LOG_ERROR("Null message in AES_encrypt");
@@ -69,6 +96,16 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
     if (!encr_message) {
         LOG_ERROR("Null encr message in AES_encrypt");
         return -2;
+    }
+
+    if (!type) {
+        LOG_ERROR("Null type in AES_encrypt");
+        return -3;
+    }
+
+    if (!encr_message) {
+        LOG_ERROR("Null exportable in AES_encrypt");
+        return -4;
     }
 
 
@@ -86,12 +123,18 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
         return -2;
   }
 
-  sgx_status_t status = sgx_rijndael128GCM_decrypt(&AES_key,
+  sgx_status_t status = sgx_rijndael128GCM_decrypt(&(AES_key[512]),
                                                    encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
                                                    (unsigned char*) message,
                                                    encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                    NULL, 0,
                                                    (sgx_aes_gcm_128bit_tag_t *)encr_message);
+
+  *type = message[0];
+  *exportable = message[1];
+  for (int i = 2; i < strlen(message) + 1; i++) {
+      message[i - 2 ] = message[i];
+  }
 
   return status;
 }

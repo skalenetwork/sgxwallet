@@ -2,12 +2,12 @@
 
 # SGXWallet Backup Procedure
 
-When SGXWallet is initialized, the server will print the backup key. 
+When SGXWallet is initialized, the server will write the backup key into `sgx_data/sgxwallet_backup_key.txt`.
 **This key must be securely recorded and stored.**
 Be sure to store this key in a safe place, then go into a docker container and securely remove it with the following command:
 
 ```bash
-docker exec -it <SGX_CONTAINER_NAME> bash && apt-get install secure-delete && srm -vz backup_key.txt
+docker exec -it <SGX_CONTAINER_NAME> bash && srm -vz ./sgx_data/sgxwallet_backup_key.txt
 ```
 
 Master-Slave replication is recommended to support the SGXWallet backup strategy. Below are general instructions for a basic backup and recovery process.
@@ -30,24 +30,12 @@ docker-compose down
 command: -s -y -d -b
 ```
 
-2.  Edit the `docker-compose.yml` and add `stdin_open: true` option. For example:
-
-```yaml
-version: "3"
-services:
-  sgxwallet:
-    image: skalenetwork/sgxwallet:latest
-    stdin_open: true
-```
-
-3.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
+2.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
+3.  Create file `sgx_data/sgxwallet_backup_key.txt` in the recovery directory and write the backup key into it.
 4.  Execute:
 
 ```bash
 docker-compose up -d
 ```
 
-5.  Open another terminal window and run `docker attach container_name` there.
-
-6.  Enter the backup key when prompted.
-7.  Edit the `docker-compose.yml` file, remove the `-b` flag and `stdin_open: true` option.
+5.  Edit the `docker-compose.yml` file, remove the `-b` flag.

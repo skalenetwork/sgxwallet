@@ -38,6 +38,7 @@
 
 #include "BLSCrypto.h"
 
+#include "SEKManager.h"
 #include "ECDSACrypto.h"
 
 void fillRandomBuffer(vector<unsigned char> &_buffer) {
@@ -48,36 +49,39 @@ void fillRandomBuffer(vector<unsigned char> &_buffer) {
 }
 
 vector <string> genECDSAKey() {
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector <uint8_t> encr_pr_key(1024, 0);
-    vector<char> pub_key_x(1024, 0);
-    vector<char> pub_key_y(1024, 0);
+    vector <uint8_t> encr_pr_key(BUF_LEN, 0);
+    vector<char> pub_key_x(BUF_LEN, 0);
+    vector<char> pub_key_y(BUF_LEN, 0);
 
-    uint32_t enc_len = 0;
+    uint64_t enc_len = 0;
 
-    status = trustedGenerateEcdsaKeyAES(eid, &errStatus,
-                                        errMsg.data(), encr_pr_key.data(), &enc_len,
-                                        pub_key_x.data(), pub_key_y.data());
+    sgx_status_t status = SGX_SUCCESS;
 
-    if (status != SGX_SUCCESS || errStatus != 0) {
-        spdlog::error("RPCException thrown with status {}", status);
-        throw SGXException(status, errMsg.data());
-    }
+    RESTART_BEGIN
+        status = trustedGenerateEcdsaKey(eid, &errStatus,
+                                   errMsg.data(), encr_pr_key.data(), &enc_len,
+                                   pub_key_x.data(), pub_key_y.data());
+    RESTART_END
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
+
     vector <string> keys(3);
 
     vector<char> hexEncrKey(BUF_LEN * 2, 0);
 
-    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data());
+    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data(),
+               BUF_LEN * 2);
     keys.at(0) = hexEncrKey.data();
     keys.at(1) = string(pub_key_x.data()) + string(pub_key_y.data());
 
     vector<unsigned char> randBuffer(32, 0);
     fillRandomBuffer(randBuffer);
 
-    vector<char> rand_str(64, 0);
+    vector<char> rand_str(BUF_LEN, 0);
 
-    carray2Hex(randBuffer.data(), 32, rand_str.data());
+    carray2Hex(randBuffer.data(), 32, rand_str.data(), BUF_LEN);
 
     keys.at(2) = rand_str.data();
 
@@ -95,22 +99,20 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
     int errStatus = 0;
     uint64_t enc_len = 0;
 
-    if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data())) {
+    if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data(),
+                    BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    status = trustedGetPublicEcdsaKeyAES(eid, &errStatus,
-                                         errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    sgx_status_t status = SGX_SUCCESS;
 
-    if (errStatus != 0) {
-        spdlog::error("failed to get ECDSA public key {}", status);
-        throw SGXException(-666, errMsg.data());
-    }
+    RESTART_BEGIN
+        status = trustedGetPublicEcdsaKey(eid, &errStatus,
+                                             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
+    RESTART_END
 
-    if (status != SGX_SUCCESS) {
-        spdlog::error("failed to get ECDSA public key {}", status);
-        throw SGXException(666, "failed to get ECDSA public key");
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
+
     string pubKey = string(pubKeyX.data()) + string(pubKeyY.data());
 
     if (pubKey.size() != 128) {
@@ -123,6 +125,11 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
 bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatureR,
         const char *signatureS, int base) {
+
+    CHECK_STATE(hashHex)
+    CHECK_STATE(signatureR)
+    CHECK_STATE(signatureS)
+
     auto x = pubKeyStr.substr(0, 64);
     auto y = pubKeyStr.substr(64, 128);
 
@@ -166,38 +173,40 @@ bool verifyECDSASig(string& pubKeyStr, const char *hashHex, const char *signatur
 }
 
 vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *hashHex, int base) {
+
+    CHECK_STATE(hashHex);
+
     vector <string> signatureVector(3);
 
-    vector<char> errMsg(1024, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
-    vector<char> signatureR(1024, 0);
-    vector<char> signatureS(1024, 0);
-    vector<uint8_t> encryptedKey(1024, 0);
+    vector<char> signatureR(BUF_LEN, 0);
+    vector<char> signatureS(BUF_LEN, 0);
+    vector<uint8_t> encryptedKey(BUF_LEN, 0);
     uint8_t signatureV = 0;
     uint64_t decLen = 0;
 
     string pubKeyStr = "";
 
-    if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data())) {
+    if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data(),
+                    BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
     }
 
-    status = trustedEcdsaSignAES(eid, &errStatus,
-            errMsg.data(), encryptedKey.data(), decLen, hashHex,
-                                 signatureR.data(),
-                                 signatureS.data(), &signatureV, base);
+    sgx_status_t status = SGX_SUCCESS;
 
-    if (errStatus != 0) {
-        spdlog::error("failed to sign {}", errStatus);
-        throw SGXException(666, errMsg.data());
-    }
+    RESTART_BEGIN
+        status = trustedEcdsaSign(eid, &errStatus,
+                            errMsg.data(), encryptedKey.data(), decLen, hashHex,
+                            signatureR.data(),
+                            signatureS.data(), &signatureV, base);
+    RESTART_END
 
-    if (status != SGX_SUCCESS) {
-        spdlog::error("failed to sign in enclave {}", status);
-        throw SGXException(666, "failed to sign");
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
 
     signatureVector.at(0) = to_string(signatureV);
+
     if (base == 16) {
         signatureVector.at(1) = "0x" + string(signatureR.data());
         signatureVector.at(2) = "0x" + string(signatureS.data());

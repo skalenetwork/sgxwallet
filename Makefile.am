@@ -64,6 +64,7 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 
 ## You can't use $(wildcard ...) with automake so all source files
 ## have to be explicitly listed.
+## have to be explicitly listed
 
 COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
@@ -102,7 +103,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
-    -lboost_system -lboost_thread -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
+   -lboost_system -lboost_thread -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)

@@ -32,6 +32,7 @@
 #include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
 #include "third_party/intel/sgx_detect.h"
+#include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 #include <stdio.h>
@@ -218,7 +219,7 @@ void TestUtils::sendRPCRequest() {
 
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 
@@ -351,7 +352,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data())) {
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
         throw SGXException(INVALID_HEX, "Invalid hash");
     }
 

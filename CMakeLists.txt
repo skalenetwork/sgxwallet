@@ -20,7 +20,7 @@ add_executable(sgxwallet
         secure_enclave/DHDkg.h
         secure_enclave/DKGUtils.cpp
         secure_enclave/DKGUtils.h
-        secure_enclave/DomainParameters.c
+        secure_enclave/DomainParameters.cpp
         secure_enclave/DomainParameters.h
         secure_enclave/EnclaveConstants.h
         secure_enclave/NumberTheory.c

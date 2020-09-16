@@ -57,6 +57,15 @@ signature signature_init() {
     return sig;
 }
 
+/*Release signature*/
+void signature_free(signature sig) {
+    if (!sig)
+        return;
+    mpz_clear(sig->r);
+    mpz_clear(sig->s);
+    free(sig);
+}
+
 
 /*Set signature from strings of a base from 2-62*/
 int signature_set_str(signature sig, const char *r, const char *s, int base) {
@@ -104,10 +113,9 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
         return;
     }
 
-    point Q = point_init();
-
     //Initializing variables
-    mpz_t k, x, r, t1, t2, t3, t4, t5, s, n_div_2, rem, neg, seed;
+    point Q = point_init();
+    mpz_t k, x, r, t1, t2, t3, t4, t5, s, n_div_2, rem, neg, seed,  s_mul_2;
     mpz_init(k);
     mpz_init(x);
     mpz_init(r);
@@ -121,7 +129,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_init(rem);
     mpz_init(neg);
     mpz_init(seed);
-    mpz_t s_mul_2;
     mpz_init(s_mul_2);
 
     SAFE_CHAR_BUF(rand_char, 32);
@@ -182,32 +189,27 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
 
     point_clear(Q);
-
     mpz_clear(k);
-    mpz_clear(r);
     mpz_clear(s);
+    mpz_clear(r);
     mpz_clear(x);
     mpz_clear(rem);
     mpz_clear(neg);
     mpz_clear(t1);
     mpz_clear(t2);
     mpz_clear(t3);
+    mpz_clear(t4);
+    mpz_clear(t5);
     mpz_clear(seed);
     mpz_clear(n_div_2);
     mpz_clear(s_mul_2);
+
 
 }
 
 #endif
 
-/*Release signature*/
-void signature_free(signature sig) {
-    if (!sig)
-        return;
-    mpz_clear(sig->r);
-    mpz_clear(sig->s);
-    free(sig);
-}
+
 
 /*Verify the integrity of a message using it's signature*/
 bool signature_verify(mpz_t message, signature sig, point public_key, domain_parameters curve) {
