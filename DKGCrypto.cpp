@@ -255,11 +255,12 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         spdlog::debug("name to write to db is {}", shareG2_name);
         spdlog::debug("s_shareG2: {}", sShareG2.data());
 
-        try {
-            SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
-            SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
-        } catch (const SGXException&) {}
+        SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
+        SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
     }
+
+    string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+    SGXWalletServer::writeDataToDB(encryptedSecretShareName, result);
 
     return result;
 }

@@ -90,6 +90,8 @@ public:
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
+    static shared_ptr <string> checkDataFromDb(const string &name, const string &prefix = "");
+
     static void writeDataToDB(const string &Name, const string &value);
 
     static void writeKeyShare(const string &_keyShareName, const string &_value);
