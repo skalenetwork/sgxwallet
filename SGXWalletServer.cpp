@@ -193,7 +193,12 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
             throw SGXException(INVALID_BLS_NAME, "Invalid BLS key name");
         }
 
-        if (!checkHex(_keyShare)) {
+        string hashTmp = _keyShare;
+        if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
+        }
+
+        if (!checkHex(hashTmp)) {
             throw SGXException(INVALID_HEX, "Invalid BLS key share, please use hex");
         }
 
