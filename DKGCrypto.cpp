@@ -152,7 +152,7 @@ string gen_dkg_poly(int _t) {
     return result;
 }
 
-vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n) {
+vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n) {
 
     CHECK_STATE(encryptedPolyHex);
 
@@ -166,7 +166,7 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
 
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
-    if (!hex2carray(encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
+    if (!hex2carray(encryptedPolyHex.c_str(), &encLen, encrDKGPoly.data(), 6100)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
@@ -192,7 +192,7 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
 }
 
 vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind) {
-    auto verificationVector = get_verif_vect(encryptedPolyHex.c_str(), t, n);
+    auto verificationVector = get_verif_vect(encryptedPolyHex, t, n);
 
     vector<vector<string>> result(t);
 
