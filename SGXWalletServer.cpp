@@ -388,7 +388,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
 
-        verifVector = get_verif_vect(encrPoly.get().c_str(), _t, _n);
+        verifVector = get_verif_vect((encrPoly.get()).c_str(), _t, _n);
 
         for (int i = 0; i < _t; i++) {
             vector <string> currentCoef = verifVector.at(i);
