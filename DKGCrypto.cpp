@@ -154,7 +154,9 @@ string gen_dkg_poly(int _t) {
 
 vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n) {
 
-    CHECK_STATE(encryptedPolyHex);
+    auto encryptedPolyHexPtr = encryptedPolyHex.c_str()
+
+    CHECK_STATE(encryptedPolyHexPtr);
 
     vector<char> errMsg(BUF_LEN, 0);
 
@@ -166,7 +168,7 @@ vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, in
 
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
-    if (!hex2carray(encryptedPolyHex.c_str(), &encLen, encrDKGPoly.data(), 6100)) {
+    if (!hex2carray(encryptedPolyHexPtr, &encLen, encrDKGPoly.data(), 6100)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
