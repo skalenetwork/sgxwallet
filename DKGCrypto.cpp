@@ -154,7 +154,7 @@ string gen_dkg_poly(int _t) {
 
 vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n) {
 
-    auto encryptedPolyHexPtr = encryptedPolyHex.c_str()
+    auto encryptedPolyHexPtr = encryptedPolyHex.c_str();
 
     CHECK_STATE(encryptedPolyHexPtr);
 
