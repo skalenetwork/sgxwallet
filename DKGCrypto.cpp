@@ -200,10 +200,10 @@ vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPo
 
     for (size_t i = 0; i < t; ++i) {
         libff::alt_bn128_G2 current_coefficient;
-        current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0]);
-        current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1]);
-        current_coefficient.Y.c0 = libff::alt_bn128_Fq(verificationVector[i][2]);
-        current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3]);
+        current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0].c_str());
+        current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1].c_str());
+        current_coefficient.Y.c0 = libff::alt_bn128_Fq(verificationVector[i][2].c_str());
+        current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3].c_str());
         current_coefficient.Z = libff::alt_bn128_Fq2::one();
 
         current_coefficient =  libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
