@@ -206,7 +206,7 @@ vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPo
         current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3]);
         current_coefficient.Z = libff::alt_bn128_Fq2::one();
 
-        current_coefficient = current_coefficient * libff::power(libff::alt_bn128_Fr(ind + 1), i);
+        current_coefficient =  libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
         current_coefficient.to_affine_coordinates();
 
         auto g2_str = convertG2ToString(current_coefficient);
