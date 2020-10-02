@@ -605,7 +605,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
 
-        verificationVectorMult = getVerificationVectorMult(encrPoly->c_str(), _t, _n, ind);
+        verificationVectorMult = getVerificationVectorMult(encrPoly->c_str(), _t, _n, _ind);
 
         for (int i = 0; i < _t; i++) {
             vector <string> currentCoef = verifVector.at(i);
