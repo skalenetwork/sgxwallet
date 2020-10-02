@@ -586,7 +586,7 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& pu
     RETURN_SUCCESS(result);
 }
 
-Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _ind) {
+Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _t, int _n, int _ind) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -614,13 +614,12 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
             }
         }
 
-//        TODO: delete dh keys
-//        for (int i = 0; i < _n; i++) {
-//            string name = _polyName + "_" + to_string(i) + ":";
-//            LevelDB::getLevelDb()->deleteDHDKGKey(name);
-//            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-//            LevelDB::getLevelDb()->deleteKey(shareG2_name);
-//        }
+       for (int i = 0; i < _n; i++) {
+           string name = _polyName + "_" + to_string(i) + ":";
+           LevelDB::getLevelDb()->deleteDHDKGKey(name);
+           string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+           LevelDB::getLevelDb()->deleteKey(shareG2_name);
+       }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
         string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
@@ -748,8 +747,8 @@ Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, con
     return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n);
 }
 
-Json::Value SGXWalletServer::complaintResponse(const string &polyName, int ind) {
-    return complaintResponseImpl(polyName, ind);
+Json::Value SGXWalletServer::complaintResponse(const string &polyName, int t, int n, int ind) {
+    return complaintResponseImpl(polyName, t, n, ind);
 }
 
 Json::Value SGXWalletServer::multG2(const string &x) {
