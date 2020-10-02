@@ -182,13 +182,37 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     vector <string> g2Strings = splitString(pubShares.data(), ',');
-    vector <vector<string>> pubSharesVect;
+    vector <vector<string>> pubSharesVect(t);
     for (uint64_t i = 0; i < g2Strings.size(); i++) {
         vector <string> coeffStr = splitString(g2Strings.at(i).c_str(), ':');
-        pubSharesVect.push_back(coeffStr);
+        pubSharesVect[i] = coeffStr;
     }
 
     return pubSharesVect;
+}
+
+vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind) {
+    auto verificationVector = get_verif_vect(encryptedPolyHex.c_str(), t, n);
+
+    vector<vector<string>> result(t);
+
+    for (size_t i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 current_coefficient;
+        current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0]);
+        current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1]);
+        current_coefficient.Y.c0 = libff::alt_bn128_Fq(verificationVector[i][2]);
+        current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3]);
+        current_coefficient.Z = libff::alt_bn128_Fq2::one();
+
+        current_coefficient = current_coefficient * libff::power(libff::alt_bn128_Fr(ind + 1), i);
+        current_coefficient.to_affine_coordinates();
+
+        auto g2_str = convertG2ToString(current_coefficient);
+
+        result[i] = splitString(g2_str.c_str(), ':');
+    }
+
+    return result;
 }
 
 string

@@ -35,6 +35,8 @@ string gen_dkg_poly( int _t);
 
 vector <vector<string>> get_verif_vect(const char* encryptedPolyHex, int t, int n);
 
+vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind);
+
 vector<string> splitString(const char* coeffs, const char symbol);
 
 string getSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);

@@ -388,7 +388,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
 
-        verifVector = get_verif_vect(encrPoly->c_str(), _t, _n);
+        verifVector = get_verif_vect(encrPoly.get(), _t, _n);
 
         for (int i = 0; i < _t; i++) {
             vector <string> currentCoef = verifVector.at(i);
@@ -602,6 +602,17 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
         result["share*G2"] = *shareG2_ptr;
         result["dhKey"] = DHKey;
+
+        shared_ptr <string> encrPoly = readFromDb(_polyName);
+
+        verificationVectorMult = getVerificationVectorMult(encrPoly->c_str(), _t, _n, ind);
+
+        for (int i = 0; i < _t; i++) {
+            vector <string> currentCoef = verifVector.at(i);
+            for (int j = 0; j < 4; j++) {
+                result["verificationVectorMult"][i][j] = currentCoef.at(j);
+            }
+        }
 
 //        TODO: delete dh keys
 //        for (int i = 0; i < _n; i++) {
