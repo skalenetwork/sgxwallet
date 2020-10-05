@@ -439,13 +439,20 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
 TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
+
     std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
     libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
             "6507625568967977077291849236396320012317305261598035438182864059942098934847");
     std::string key_str = TestUtils::stringFromFr(key);
-    PRINT_SRC_LINE
-    c.importBLSKeyShare(key_str, name);
-    PRINT_SRC_LINE
+    auto response = c.importBLSKeyShare(key_str, name);
+    REQUIRE(response["status"] != 0);
+
+    key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    response = c.importBLSKeyShare(key_str, name);
+    REQUIRE(response["status"] == 0);
+
+    REQUIRE(c.blsSignMessageHash(name, SAMPLE_HASH, 1, 1)["status"] == 0);
+
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
 
@@ -643,7 +650,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
             REQUIRE(res);
         }
 
-    Json::Value complaintResponse = c.complaintResponse(polyNames[1], 0);
+    Json::Value complaintResponse = c.complaintResponse(polyNames[1], t, n, 0);
     REQUIRE(complaintResponse["status"] == 0);
 
     BLSSigShareSet sigShareSet(t, n);
