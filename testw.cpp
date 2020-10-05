@@ -650,7 +650,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
             REQUIRE(res);
         }
 
-    Json::Value complaintResponse = c.complaintResponse(polyNames[1], 0);
+    Json::Value complaintResponse = c.complaintResponse(polyNames[1], t, n, 0);
     REQUIRE(complaintResponse["status"] == 0);
 
     BLSSigShareSet sigShareSet(t, n);
