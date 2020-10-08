@@ -78,4 +78,8 @@ public:
                                  int schainID, int dkgID);
 };
 
+int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key);
+
+int xorDecryptDH(char *key, const char *cypher, char *message);
+
 #endif //SGXWALLET_TESTW_H

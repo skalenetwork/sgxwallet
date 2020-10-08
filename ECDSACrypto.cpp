@@ -71,8 +71,7 @@ vector <string> genECDSAKey() {
 
     vector<char> hexEncrKey(BUF_LEN * 2, 0);
 
-    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data(),
-               BUF_LEN * 2);
+    carray2Hex(encr_pr_key.data(), enc_len, hexEncrKey.data());
     keys.at(0) = hexEncrKey.data();
     keys.at(1) = string(pub_key_x.data()) + string(pub_key_y.data());
 
@@ -81,7 +80,7 @@ vector <string> genECDSAKey() {
 
     vector<char> rand_str(BUF_LEN, 0);
 
-    carray2Hex(randBuffer.data(), 32, rand_str.data(), BUF_LEN);
+    carray2Hex(randBuffer.data(), 32, rand_str.data());
 
     keys.at(2) = rand_str.data();
 

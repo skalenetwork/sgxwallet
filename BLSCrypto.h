@@ -38,8 +38,8 @@ EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t
 
 EXTERNC int char2int(char _input);
 
-EXTERNC void  carray2Hex(const unsigned char *d, uint64_t , char* _hexArray,
-                         uint64_t _hexArrayLen);
+EXTERNC void  carray2Hex(const unsigned char *d, uint64_t , char* _hexArray);
+
 EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                  uint8_t* _bin, uint64_t _max_length );
 
