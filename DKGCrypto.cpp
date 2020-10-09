@@ -152,9 +152,11 @@ string gen_dkg_poly(int _t) {
     return result;
 }
 
-vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int n) {
+vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n) {
 
-    CHECK_STATE(encryptedPolyHex);
+    auto encryptedPolyHexPtr = encryptedPolyHex.c_str();
+
+    CHECK_STATE(encryptedPolyHexPtr);
 
     vector<char> errMsg(BUF_LEN, 0);
 
@@ -166,7 +168,7 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
 
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
-    if (!hex2carray(encryptedPolyHex, &encLen, encrDKGPoly.data(), 6100)) {
+    if (!hex2carray(encryptedPolyHexPtr, &encLen, encrDKGPoly.data(), 6100)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
@@ -182,13 +184,37 @@ vector <vector<string>> get_verif_vect(const char *encryptedPolyHex, int t, int 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     vector <string> g2Strings = splitString(pubShares.data(), ',');
-    vector <vector<string>> pubSharesVect;
+    vector <vector<string>> pubSharesVect(t);
     for (uint64_t i = 0; i < g2Strings.size(); i++) {
         vector <string> coeffStr = splitString(g2Strings.at(i).c_str(), ':');
-        pubSharesVect.push_back(coeffStr);
+        pubSharesVect[i] = coeffStr;
     }
 
     return pubSharesVect;
+}
+
+vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind) {
+    auto verificationVector = get_verif_vect(encryptedPolyHex, t, n);
+
+    vector<vector<string>> result(t);
+
+    for (size_t i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 current_coefficient;
+        current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0].c_str());
+        current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1].c_str());
+        current_coefficient.Y.c0 = libff::alt_bn128_Fq(verificationVector[i][2].c_str());
+        current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3].c_str());
+        current_coefficient.Z = libff::alt_bn128_Fq2::one();
+
+        current_coefficient =  libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
+        current_coefficient.to_affine_coordinates();
+
+        auto g2_str = convertG2ToString(current_coefficient);
+
+        result[i] = splitString(g2_str.c_str(), ':');
+    }
+
+    return result;
 }
 
 string

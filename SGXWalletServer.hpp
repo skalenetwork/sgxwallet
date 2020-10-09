@@ -76,7 +76,7 @@ public:
 
     virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
 
-    virtual Json::Value complaintResponse(const string &polyName, int ind);
+    virtual Json::Value complaintResponse(const string &polyName, int t, int n, int ind);
 
     virtual Json::Value multG2(const string &x);
 
@@ -126,7 +126,7 @@ public:
 
     static Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n);
 
-    static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
+    static Json::Value complaintResponseImpl(const string &_polyName, int t, int n, int _ind);
 
     static Json::Value multG2Impl(const string &_x);
 
