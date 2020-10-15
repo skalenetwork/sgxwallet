@@ -149,7 +149,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
     int numThreads = 64;
 
-#if SGX_MODE == SIM
+#ifdef SGX_HW_SIM
    numThreads = 16; 
 #endif
 
