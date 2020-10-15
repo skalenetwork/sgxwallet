@@ -683,7 +683,6 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
 
-
     BLSSigShareSet sigShareSet(t, n);
 
     string hash = SAMPLE_HASH;
