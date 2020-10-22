@@ -657,8 +657,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
 
     uint64_t binLen;
 
@@ -723,8 +722,8 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
-    REQUIRE(errStatus == 0);
     REQUIRE(key.compare(decr_key.data()) == 0);
+    REQUIRE(errStatus == 0);
 }
 
 

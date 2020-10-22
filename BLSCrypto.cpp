@@ -166,8 +166,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     CHECK_STATE(_hashHex);
     CHECK_STATE(_sig);
 
-    auto hash = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash = make_shared < array < uint8_t, 32 >> ();
 
     uint64_t binLen;
 
