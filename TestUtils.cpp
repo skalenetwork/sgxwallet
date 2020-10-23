@@ -529,7 +529,7 @@ int xorDecryptDH(char *key, const char *cypher, vector<char>& message) {
         msg_bin[i] = cypher_bin[i] ^ key_bin[i];
     }
 
-    carray2Hex((unsigned char*) msg_bin, 32, message);
+    message = carray2Hex((unsigned char*) msg_bin, 32);
 
     ret = 0;
 

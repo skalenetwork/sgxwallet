@@ -75,14 +75,13 @@ int char2int(char _input) {
     return -1;
 }
 
-void carray2Hex(const unsigned char *d, uint64_t _len, vector<char>& _hexArray) {
+vector<char> carray2Hex(const unsigned char *d, uint64_t _len) {
 
     CHECK_STATE(d);
+    vector<char> _hexArray( 2 * _len + 1);
 
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-    CHECK_STATE(_hexArray.size() > 2 * _len);
 
     for (uint64_t j = 0; j < _len; j++) {
         _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
@@ -90,6 +89,8 @@ void carray2Hex(const unsigned char *d, uint64_t _len, vector<char>& _hexArray) 
     }
 
     _hexArray[_len * 2] = 0;
+
+    return _hexArray;
 }
 
 
@@ -262,9 +263,7 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
-    vector<char> resultBuf(2 * BUF_LEN + 1, 0);
-
-    carray2Hex(encryptedKey->data(), encryptedLen, resultBuf);
+    vector<char> resultBuf = carray2Hex(encryptedKey->data(), encryptedLen);
 
     return string(resultBuf.begin(), resultBuf.end());
 }
