@@ -8,8 +8,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: Login to docker
-        - name: Login to docker
-          run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+        run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
       - uses: actions/checkout@v1
       - name: submodule update
         run: git submodule update --init --recursive
