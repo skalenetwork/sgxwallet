@@ -73,7 +73,7 @@ void create_test_key() {
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
-    carray2Hex(encrypted_key, enc_len, hexEncrKey.data());
+    carray2Hex(encrypted_key, enc_len, hexEncrKey);
 
     LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
@@ -169,7 +169,7 @@ void gen_SEK() {
 
     vector<char> hexEncrKey(2 * enc_len + 1, 0);
 
-    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data());
+    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey);
 
     spdlog::info(string("Encrypted storage encryption key:") + hexEncrKey.data());
 
@@ -283,7 +283,7 @@ void enter_SEK() {
 
     vector<char> hexEncrKey(BUF_LEN, 0);
 
-    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey.data());
+    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey);
 
     spdlog::info("Got sealed storage encryption key.");
 

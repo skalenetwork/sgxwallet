@@ -658,7 +658,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     string shareG2 = complaintResponse["share*G2"].asString();
     string secretShare = secretShares[1]["secretShare"].asString().substr(0, 192);
 
-    SAFE_CHAR_BUF(message, 32)
+    vector<char> message (65, 0);
 
     SAFE_CHAR_BUF(encr_sshare, BUF_LEN)
     strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
@@ -673,7 +673,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     mpz_t hex_share;
     mpz_init(hex_share);
-    mpz_set_str(hex_share, message, 16);
+    mpz_set_str(hex_share, message.data(), 16);
 
     libff::alt_bn128_Fr share(hex_share);
     libff::alt_bn128_G2 decrypted_share_G2 = share * libff::alt_bn128_G2::one();

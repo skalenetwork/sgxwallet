@@ -75,13 +75,14 @@ int char2int(char _input) {
     return -1;
 }
 
-void carray2Hex(const unsigned char *d, uint64_t _len, char *_hexArray) {
+void carray2Hex(const unsigned char *d, uint64_t _len, vector<char>& _hexArray) {
 
     CHECK_STATE(d);
-    CHECK_STATE(_hexArray);
 
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    CHECK_STATE(_hexArray.size() > 2 * _len);
 
     for (uint64_t j = 0; j < _len; j++) {
         _hexArray[j * 2] = hexval[((d[j] >> 4) & 0xF)];
@@ -163,8 +164,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     CHECK_STATE(_hashHex);
     CHECK_STATE(_sig);
 
-    auto hash = make_shared < array < uint8_t,
-    32 >> ();
+    auto hash = make_shared < array < uint8_t, 32 >> ();
 
     uint64_t binLen;
 
@@ -262,9 +262,9 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 
-    SAFE_CHAR_BUF(resultBuf, 2 * BUF_LEN + 1);
+    vector<char> resultBuf(2 * BUF_LEN + 1, 0);
 
     carray2Hex(encryptedKey->data(), encryptedLen, resultBuf);
 
-    return string(resultBuf);
+    return string(resultBuf.begin(), resultBuf.end());
 }

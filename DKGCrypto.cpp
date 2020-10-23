@@ -146,7 +146,7 @@ string gen_dkg_poly(int _t) {
 
     vector<char> hexEncrPoly(BUF_LEN, 0);
     CHECK_STATE(encrypted_dkg_secret.size() >= length);
-    carray2Hex(encrypted_dkg_secret.data(), length, hexEncrPoly.data());
+    carray2Hex(encrypted_dkg_secret.data(), length, hexEncrPoly);
     string result(hexEncrPoly.data());
 
     return result;
@@ -271,7 +271,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         result += string(currentShare.data());
 
         spdlog::debug("dec len is {}", decLen);
-        carray2Hex(encryptedSkey.data(), decLen, hexEncrKey.data());
+        carray2Hex(encryptedSkey.data(), decLen, hexEncrKey);
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
         spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
@@ -351,11 +351,11 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    SAFE_CHAR_BUF(hexBLSKey, 2 * BUF_LEN)
+    vector<char> hexBLSKey(2 * BUF_LEN, 0);
 
     carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey);
 
-    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey);
+    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
 
     return true;
 
