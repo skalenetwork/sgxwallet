@@ -16,3 +16,6 @@
 [submodule "sgx-software-enable"]
 	path = sgx-software-enable
 	url = https://github.com/intel/sgx-software-enable
+[submodule "secp256k1-sgx"]
+	path = secure_enclave/secp256k1-sgx
+	url = https://github.com/bl4ck5un/secp256k1-sgx
