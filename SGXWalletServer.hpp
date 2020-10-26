@@ -51,6 +51,9 @@ public:
     virtual Json::Value
     blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
 
+    virtual Json::Value importECDSAKey(const std::string& keyShare,
+                                       const std::string& keyShareName);
+
     virtual Json::Value generateECDSAKey();
 
     virtual Json::Value
@@ -101,6 +104,8 @@ public:
 
     static Json::Value
     blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);
+
+    static Json::Value importECDSAKeyImpl(const string &_keyShare, const string &_keyShareName);
 
     static Json::Value generateECDSAKeyImpl();
 

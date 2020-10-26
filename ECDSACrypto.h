@@ -35,5 +35,7 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex);
 
 vector<string> ecdsaSignHash(const std::string& encryptedKeyHex, const char* hashHex, int base);
 
+string encryptECDSAKey(const string& key);
+
 
 #endif //SGXD_ECDSACRYPTO_H

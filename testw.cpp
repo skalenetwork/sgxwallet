@@ -457,6 +457,21 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
 
+TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[import-ecdsa-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    std::string name = "NEK:abcdef";
+    auto response = c.importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847", name);
+    REQUIRE(response["status"] != 0);
+
+    string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    response = c.importECDSAKey(key_str, name);
+    REQUIRE(response["status"] == 0);
+
+    REQUIRE(c.ecdsaSignMessageHash(16, name, SAMPLE_HASH)["status"] == 0);
+}
+
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
