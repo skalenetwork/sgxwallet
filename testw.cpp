@@ -698,6 +698,21 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
 
+    Json::Value verificationVectorMult = complaintResponse["verificationVectorMult"];
+
+    libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+    for (int i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 value;
+        value.Z = libff::alt_bn128_Fq2::one();
+        value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
+        value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
+        value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
+        value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+        verificationValue = verificationValue + value;
+    }
+    verificationValue.to_affine_coordinates();
+    REQUIRE( verificationValue == decrypted_share_G2 );
+
     BLSSigShareSet sigShareSet(t, n);
 
     string hash = SAMPLE_HASH;
