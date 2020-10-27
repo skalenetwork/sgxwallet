@@ -228,3 +228,31 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     return signatureVector;
 }
+
+string encryptECDSAKey(const string& _key) {
+    vector<char> key(BUF_LEN, 0);
+    for (size_t i = 0; i < _key.size(); ++i) {
+        key[i] = _key[i];
+    }
+
+    vector<uint8_t> encryptedKey(BUF_LEN, 0);
+
+    int errStatus = 0;
+    vector<char> errString(BUF_LEN, 0);
+    uint64_t enc_len = 0;
+
+    sgx_status_t status = SGX_SUCCESS;
+    std::cout << "HERE" << std::endl;
+    RESTART_BEGIN
+        status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
+                                   encryptedKey.data(), &enc_len);
+    RESTART_END
+
+    if (status != 0) {
+        throw SGXException(status, string("Could not encrypt ECDSA key: " + string(errString.begin(), errString.end())).c_str());
+    }
+
+    vector<char> hexEncrKey = carray2Hex(encryptedKey.data(), enc_len);
+
+    return string(hexEncrKey.begin(), hexEncrKey.end());
+}

@@ -268,6 +268,37 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 }
 
+Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
+                                                const string &_keyShareName) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+    result["encryptedKey"] = "";
+
+    try {
+      if (!checkECDSAKeyName(_keyShareName)) {
+          throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+      }
+
+      string hashTmp = _keyShare;
+      if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
+          hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
+      }
+
+      if (!checkHex(hashTmp)) {
+          throw SGXException(INVALID_HEX, "Invalid ECDSA key share, please use hex");
+      }
+
+      string encryptedKey = encryptECDSAKey(hashTmp);
+
+      writeDataToDB(_keyShareName, encryptedKey);
+
+      result["encryptedKey"] = encryptedKey;
+      result["publicKey"] = getECDSAPubKey(encryptedKey);
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result);
+}
+
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -733,6 +764,10 @@ Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
 
 Json::Value SGXWalletServer::calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) {
     return calculateAllBLSPublicKeysImpl(publicShares, t, n);
+}
+
+Json::Value SGXWalletServer::importECDSAKey(const std::string& keyShare, const std::string& keyShareName) {
+    return importECDSAKeyImpl(keyShare, keyShareName);
 }
 
 Json::Value SGXWalletServer::generateECDSAKey() {
