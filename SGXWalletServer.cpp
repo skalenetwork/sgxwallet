@@ -54,7 +54,7 @@
 
 using namespace std;
 
-std::shared_timed_mutex initMutex;
+std::shared_timed_mutex sgxInitMutex;
 uint64_t initTime;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {

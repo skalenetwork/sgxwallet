@@ -242,7 +242,6 @@ string encryptECDSAKey(const string& _key) {
     uint64_t enc_len = 0;
 
     sgx_status_t status = SGX_SUCCESS;
-    std::cout << "HERE" << std::endl;
     RESTART_BEGIN
         status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
                                    encryptedKey.data(), &enc_len);
