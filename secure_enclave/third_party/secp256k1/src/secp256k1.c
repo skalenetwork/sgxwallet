@@ -3,6 +3,64 @@
  * Distributed under the MIT software license, see the accompanying   *
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
  **********************************************************************/
+// START_SKALE
+#include <sgx_tgmp.h>
+
+/*
+    Copyright (C) 2019-Present SKALE Labs
+
+    This file is part of sgxwallet.
+
+    sgxwallet is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sgxwallet is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+
+    @file BLSEnclave.h
+    @author Stan Kladko
+    @date 2019
+*/
+
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
+
+
+
+EXTERNC void LOG_INFO(const char* msg);
+EXTERNC void LOG_WARN(const char* _msg);
+EXTERNC void LOG_ERROR(const char* _msg);
+EXTERNC void LOG_DEBUG(const char* _msg);
+EXTERNC void LOG_TRACE(const char* _msg);
+
+extern unsigned int globalLogLevel_;
+
+
+#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
+#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
+#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+#define RANDOM_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; get_global_random( \
+(unsigned char*) __X__, __Y__);
+
+#define CHECK_ARG_CLEAN(_EXPRESSION_) \
+    if (!(_EXPRESSION_)) {        \
+        LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
+        LOG_ERROR(__FILE__); LOG_ERROR(__FUNCTION__);\
+        goto clean;}
+
+
+#include "libsecp256k1-config.h"
+// END_SKALE
 
 #include "include/secp256k1.h"
 #include "include/secp256k1_preallocated.h"
@@ -44,12 +102,14 @@
 #include <stdio.h>
 static void secp256k1_default_illegal_callback_fn(const char* str, void* data) {
     (void)data;
-    fprintf(stderr, "[libsecp256k1] illegal argument: %s\n", str);
+    LOG_ERROR("[libsecp256k1] illegal argument: %s\n");
+    LOG_ERROR(str);
     abort();
 }
 static void secp256k1_default_error_callback_fn(const char* str, void* data) {
     (void)data;
-    fprintf(stderr, "[libsecp256k1] internal consistency check failed: %s\n", str);
+    LOG_ERROR("[libsecp256k1] internal consistency check failed: %s\n");
+    LOG_ERROR(str);
     abort();
 }
 #else

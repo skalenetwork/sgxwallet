@@ -7,7 +7,9 @@
 #ifndef SECP256K1_NUM_REPR_H
 #define SECP256K1_NUM_REPR_H
 
-#include <gmp.h>
+// START_SKALE
+//#include <gmp.h>
+// END_SKALE
 
 #define NUM_LIMBS ((256+GMP_NUMB_BITS-1)/GMP_NUMB_BITS)
 

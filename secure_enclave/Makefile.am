@@ -62,7 +62,7 @@ ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 ## Additional Automake flags needed to build the enclave.
 
-AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx 
+AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./third_party/secp256k1 -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx 
 AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
@@ -83,7 +83,7 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-	Curves.c  NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
+	Curves.c third_party/secp256k1/src/secp256k1.c NumberTheory.c Point.c Signature.c DHDkg.c AESUtils.c \
     DKGUtils.cpp   EnclaveCommon.cpp  DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
                 ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)

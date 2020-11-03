@@ -27,12 +27,12 @@ static SECP256K1_INLINE void secp256k1_callback_call(const secp256k1_callback * 
 
 #ifdef DETERMINISTIC
 #define TEST_FAILURE(msg) do { \
-    fprintf(stderr, "%s\n", msg); \
+    LOG_ERROR(msg); \
     abort(); \
 } while(0);
 #else
 #define TEST_FAILURE(msg) do { \
-    fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, msg); \
+    LOG_ERROR(msg); \
     abort(); \
 } while(0)
 #endif
