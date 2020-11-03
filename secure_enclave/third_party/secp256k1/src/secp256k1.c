@@ -204,7 +204,7 @@ secp256k1_context* secp256k1_context_preallocated_create(void* prealloc, unsigne
         secp256k1_ecmult_gen_context_build(&ret->ecmult_gen_ctx, &prealloc);
     }
     if (flags & SECP256K1_FLAGS_BIT_CONTEXT_VERIFY) {
-        LOG_ERROR("Step4");
+
         secp256k1_ecmult_context_build(&ret->ecmult_ctx, &prealloc);
     }
     ret->declassify = !!(flags & SECP256K1_FLAGS_BIT_CONTEXT_DECLASSIFY);
@@ -599,17 +599,17 @@ int secp256k1_ecdsa_sign(const secp256k1_context* ctx, secp256k1_ecdsa_signature
     secp256k1_scalar r, s;
     int ret;
 
-    LOG_ERROR("Step0");
+
 
     VERIFY_CHECK(ctx != NULL);
 
-    LOG_ERROR("Step1");
+
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
     ARG_CHECK(msg32 != NULL);
     ARG_CHECK(signature != NULL);
     ARG_CHECK(seckey != NULL);
 
-    LOG_ERROR("Step1");
+
 
     ret = secp256k1_ecdsa_sign_inner(ctx, &r, &s, NULL, msg32, seckey, noncefp, noncedata);
 

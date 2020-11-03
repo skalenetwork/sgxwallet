@@ -96,7 +96,7 @@
 #define USE_ASM_X86_64 1
 
 /* Define this symbol to use a statically generated ecmult table */
-#define USE_ECMULT_STATIC_PRECOMPUTATION 1
+#define USE_ECMULT_STATIC_PRECOMPUTATION 0
 
 /* Define this symbol if an external (non-inline) assembly implementation is
    used */

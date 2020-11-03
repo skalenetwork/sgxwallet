@@ -559,16 +559,15 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     CHECK_STATE(secp256k1_selftest());
 
 
-    SAFE_CHAR_BUF(preCtx, 10000 * BUF_LEN);
 
-    auto ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
+
+
 
     uint64_t binLen = 0;
 
     CHECK_STATE(hex2carray(skey, &binLen, decryptedKey));
 
 
-    CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey) == 1);
 
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
@@ -587,13 +586,22 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
-    SAFE_CHAR_BUF(sig, BUF_LEN);SAFE_CHAR_BUF(hashBin, BUF_LEN);
-    int binHashLen = 0;
 
-    CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, hashBin));
+    for (uint64_t i = 0; i < 20000; i++) { SAFE_CHAR_BUF(preCtx, BUF_LEN);
+        auto ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
+        CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey) == 1);
 
-    CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(&ctx, sig, hashBin, decryptedKey,
-                                           NULL, NULL) == 1);
+        SAFE_CHAR_BUF(sig, BUF_LEN);SAFE_CHAR_BUF(hashBin, BUF_LEN);
+        int binHashLen = 0;
+
+        CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, hashBin));
+
+        CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(&ctx, sig, hashBin, decryptedKey,
+                                               NULL, NULL) == 1);
+
+    }
+
+
 
     sigCounter++;
 
@@ -634,10 +642,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_clear(msgMpz);
     signature_free(sign);
 
-    LOG_ERROR("step8");
-
-
-    LOG_ERROR("step9");
 
     LOG_DEBUG(__FUNCTION__);
     LOG_DEBUG("SGX call completed");

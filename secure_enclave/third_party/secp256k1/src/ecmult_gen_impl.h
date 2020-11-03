@@ -103,7 +103,7 @@ static void secp256k1_ecmult_gen_context_build(secp256k1_ecmult_gen_context *ctx
 
 static int secp256k1_ecmult_gen_context_is_built(const secp256k1_ecmult_gen_context* ctx) {
 
-    LOG_ERROR("Step7");
+
     return ctx->prec != NULL;
 }
 
