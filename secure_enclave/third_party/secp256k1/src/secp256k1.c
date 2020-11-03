@@ -86,14 +86,14 @@ extern unsigned int globalLogLevel_;
 
 #define ARG_CHECK(cond) do { \
     if (EXPECT(!(cond), 0)) { \
-        secp256k1_callback_call(&ctx->illegal_callback, #cond); \
+        LOG_ERROR("ARG CHECK FAILED"); \
         return 0; \
     } \
 } while(0)
 
 #define ARG_CHECK_NO_RETURN(cond) do { \
     if (EXPECT(!(cond), 0)) { \
-        secp256k1_callback_call(&ctx->illegal_callback, #cond); \
+        LOG_ERROR("ARG CHECK FAILED");  \
     } \
 } while(0)
 
@@ -102,15 +102,11 @@ extern unsigned int globalLogLevel_;
 #include <stdio.h>
 static void secp256k1_default_illegal_callback_fn(const char* str, void* data) {
     (void)data;
-    LOG_ERROR("[libsecp256k1] illegal argument: %s\n");
-    LOG_ERROR(str);
-    abort();
+    LOG_ERROR("[libsecp256k1] illegal argument: \n");
 }
 static void secp256k1_default_error_callback_fn(const char* str, void* data) {
     (void)data;
-    LOG_ERROR("[libsecp256k1] internal consistency check failed: %s\n");
-    LOG_ERROR(str);
-    abort();
+    LOG_ERROR("[libsecp256k1] internal consistency check failed: \n");
 }
 #else
 void secp256k1_default_illegal_callback_fn(const char* str, void* data);
@@ -190,6 +186,7 @@ secp256k1_context* secp256k1_context_preallocated_create(void* prealloc, unsigne
         return NULL;
     }
     VERIFY_CHECK(prealloc != NULL);
+
     ret = (secp256k1_context*)manual_alloc(&prealloc, sizeof(secp256k1_context), base, prealloc_size);
     ret->illegal_callback = default_illegal_callback;
     ret->error_callback = default_error_callback;
@@ -197,12 +194,17 @@ secp256k1_context* secp256k1_context_preallocated_create(void* prealloc, unsigne
     secp256k1_ecmult_context_init(&ret->ecmult_ctx);
     secp256k1_ecmult_gen_context_init(&ret->ecmult_gen_ctx);
 
+
+
     /* Flags have been checked by secp256k1_context_preallocated_size. */
     VERIFY_CHECK((flags & SECP256K1_FLAGS_TYPE_MASK) == SECP256K1_FLAGS_TYPE_CONTEXT);
     if (flags & SECP256K1_FLAGS_BIT_CONTEXT_SIGN) {
+
+
         secp256k1_ecmult_gen_context_build(&ret->ecmult_gen_ctx, &prealloc);
     }
     if (flags & SECP256K1_FLAGS_BIT_CONTEXT_VERIFY) {
+        LOG_ERROR("Step4");
         secp256k1_ecmult_context_build(&ret->ecmult_ctx, &prealloc);
     }
     ret->declassify = !!(flags & SECP256K1_FLAGS_BIT_CONTEXT_DECLASSIFY);
@@ -596,13 +598,22 @@ static int secp256k1_ecdsa_sign_inner(const secp256k1_context* ctx, secp256k1_sc
 int secp256k1_ecdsa_sign(const secp256k1_context* ctx, secp256k1_ecdsa_signature *signature, const unsigned char *msg32, const unsigned char *seckey, secp256k1_nonce_function noncefp, const void* noncedata) {
     secp256k1_scalar r, s;
     int ret;
+
+    LOG_ERROR("Step0");
+
     VERIFY_CHECK(ctx != NULL);
+
+    LOG_ERROR("Step1");
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
     ARG_CHECK(msg32 != NULL);
     ARG_CHECK(signature != NULL);
     ARG_CHECK(seckey != NULL);
 
+    LOG_ERROR("Step1");
+
     ret = secp256k1_ecdsa_sign_inner(ctx, &r, &s, NULL, msg32, seckey, noncefp, noncedata);
+
+
     secp256k1_ecdsa_signature_save(signature, &r, &s);
     return ret;
 }
