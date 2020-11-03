@@ -47,6 +47,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sgx_key.h>
 
+
+#include "third_party/secp256k1/include/secp256k1.h"
+#include "third_party/secp256k1/src/util.h"
+#include "third_party/secp256k1/src/hash.h"
+#include "third_party/secp256k1/src/hash_impl.h"
+
+#include "third_party/secp256k1/src/selftest.h"
+
 #include "Point.h"
 #include "DomainParameters.h"
 
@@ -377,12 +385,16 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     CHECK_STATE(pub_key_x);
     CHECK_STATE(pub_key_y);
 
+    CHECK_STATE(secp256k1_selftest());
+
     RANDOM_CHAR_BUF(rand_char, 32);
 
     mpz_t seed;
     mpz_init(seed);
     mpz_t skey;
     mpz_init(skey);
+
+
 
     point Pkey = point_init();
 
