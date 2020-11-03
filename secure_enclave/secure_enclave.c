@@ -385,7 +385,6 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     CHECK_STATE(pub_key_x);
     CHECK_STATE(pub_key_y);
 
-    CHECK_STATE(secp256k1_selftest());
 
     RANDOM_CHAR_BUF(rand_char, 32);
 
@@ -561,6 +560,23 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     CHECK_STATUS2("aes decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
+
+    SAFE_CHAR_BUF(decryptedKey, BUF_LEN)
+
+    LOG_ERROR("CALCULATED length");
+
+
+    CHECK_STATE(secp256k1_selftest());
+
+    auto ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+
+    CHECK_STATE(ctx);
+
+    uint64_t binLen = 0;
+
+    CHECK_STATE(hex2carray(skey, &binLen , decryptedKey));
+
+    CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey ) == 1);
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
