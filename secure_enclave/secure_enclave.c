@@ -563,20 +563,23 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN)
 
-    LOG_ERROR("CALCULATED length");
-
 
     CHECK_STATE(secp256k1_selftest());
 
-    auto ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+
+    SAFE_CHAR_BUF(ctx, BUF_LEN);
 
     CHECK_STATE(ctx);
+
+
 
     uint64_t binLen = 0;
 
     CHECK_STATE(hex2carray(skey, &binLen , decryptedKey));
 
+
     CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey ) == 1);
+
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
@@ -632,6 +635,12 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     signature_free(sign);
+
+    LOG_ERROR("step8");
+
+
+    LOG_ERROR("step9");
+
     LOG_DEBUG(__FUNCTION__ );
     LOG_DEBUG("SGX call completed");
 }
