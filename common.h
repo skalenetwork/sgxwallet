@@ -71,7 +71,6 @@ inline void print_stack() {
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack();                                \
         throw InvalidStateException(__msg__, __CLASS_NAME__);}
 
 

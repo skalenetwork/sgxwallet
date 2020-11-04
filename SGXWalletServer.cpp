@@ -341,9 +341,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
             hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-        while (hashTmp[0] == '0') {
-            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
-        }
 
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");

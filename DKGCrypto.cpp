@@ -197,7 +197,7 @@ vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPo
 
     vector<vector<string>> result(t);
 
-    for (size_t i = 0; i < t; ++i) {
+    for (int i = 0; i < t; ++i) {
         libff::alt_bn128_G2 current_coefficient;
         current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0].c_str());
         current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1].c_str());

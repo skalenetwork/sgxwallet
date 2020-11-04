@@ -526,23 +526,18 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 static uint64_t sigCounter = 0;
 
 void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint64_t enc_len,
-                      const char *hash, char *sigR, char *sigS, uint8_t *sig_v, int base) {
+                      const char *hash, char *_sigR, char *_sigS, uint8_t *_sigV, int base) {
     LOG_DEBUG(__FUNCTION__);
 
     INIT_ERROR_STATE
 
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(hash);
-    CHECK_STATE(sigR);
-    CHECK_STATE(sigS);
+    CHECK_STATE(strnlen(hash, 65) == 64);
+    CHECK_STATE(_sigR);
+    CHECK_STATE(_sigS);
 
     SAFE_CHAR_BUF(skey, BUF_LEN);
-
-    mpz_t privateKeyMpz;
-    mpz_init(privateKeyMpz);
-    mpz_t msgMpz;
-    mpz_init(msgMpz);
-    signature sign = signature_init();
 
     uint8_t type = 0;
     uint8_t exportable = 0;
@@ -556,29 +551,11 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN)
 
-
     CHECK_STATE(secp256k1_selftest());
 
     uint64_t binLen = 0;
 
     CHECK_STATE(hex2carray(skey, &binLen, (uint8_t *) decryptedKey));
-
-    if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
-        *errStatus = -1;
-        snprintf(errString, BUF_LEN, "invalid secret key");
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
-    if (mpz_set_str(msgMpz, hash, 16) == -1) {
-        *errStatus = -1;
-        snprintf(errString, BUF_LEN, "invalid message hash");
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
-    signature_sign(sign, msgMpz, privateKeyMpz, curve);
-
 
     SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
     secp256k1_context *ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
@@ -598,50 +575,27 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
                                                        NULL, NULL) == 1);
 
     SAFE_CHAR_BUF(sigBytes, BUF_LEN);
-    int id;
+    int sigV;
 
     CHECK_STATE_CLEAN(secp256k1_ecdsa_recoverable_signature_serialize_compact(
-                              ctx, (unsigned char*) sigBytes, & id, &sig) == 1);
+                              ctx, (unsigned char*) sigBytes, & sigV, &sig) == 1);
 
+    CHECK_STATE_CLEAN(sigV < 2);
+
+    SAFE_CHAR_BUF(sigR,65);
+    SAFE_CHAR_BUF(sigS,65);
+
+    carray2Hex((unsigned char*)sigBytes, 32, sigR);
+    carray2Hex((unsigned char*) sigBytes + 32, 32, sigS);
 
     sigCounter++;
 
-    if (sigCounter % 1000 == 0) {
-
-        point Pkey = point_init();
-
-        signature_extract_public_key(Pkey, privateKeyMpz, curve);
-
-        if (!signature_verify(msgMpz, sign, Pkey, curve)) {
-            *errStatus = -2;
-            snprintf(errString, BUF_LEN, "signature is not verified! ");
-            point_clear(Pkey);
-            goto clean;
-        }
-
-        point_clear(Pkey);
-    }
-
-    SAFE_CHAR_BUF(arrM, BUF_LEN);
-    mpz_get_str(arrM, 16, msgMpz);
-    snprintf(errString, BUF_LEN, "message is %s ", arrM);
-
-    SAFE_CHAR_BUF(arrR, BUF_LEN);
-    mpz_get_str(arrR, base, sign->r);
-    strncpy(sigR, arrR, 1024);
-
-    SAFE_CHAR_BUF(arrS, BUF_LEN);
-    mpz_get_str(arrS, base, sign->s);
-    strncpy(sigS, arrS, 1024);
-
-    *sig_v = sign->v;
+    strncpy(_sigR, sigR, 65);
+    strncpy(_sigS, sigS, 65);
+    *_sigV = sigV;
 
     SET_SUCCESS
     clean:
-
-    mpz_clear(privateKeyMpz);
-    mpz_clear(msgMpz);
-    signature_free(sign);
 
     LOG_DEBUG(__FUNCTION__);
     LOG_DEBUG("SGX call completed");
