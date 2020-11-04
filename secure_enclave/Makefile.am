@@ -62,7 +62,7 @@ ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 ## Additional Automake flags needed to build the enclave.
 
-AM_CPPFLAGS +=  -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -Wno-unused-function -Wno-nonnull-compare -I./third_party/secp256k1 -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx 
+AM_CPPFLAGS +=  -Wall -W -Wno-unused-function -Wnonnull-compare -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -Wno-unused-function -Wno-nonnull-compare -I./third_party/secp256k1 -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx
 AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 

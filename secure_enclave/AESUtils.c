@@ -8,7 +8,8 @@
     by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    sgxwallet is distributed in the hope that it will be useful,
+    sgxwallet is distributed in the hope th
+    at it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
@@ -132,7 +133,7 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
 
   *type = message[0];
   *exportable = message[1];
-  for (int i = 2; i < strlen(message) + 1; i++) {
+  for (uint64_t i = 2; i < strlen(message) + 1; i++) {
       message[i - 2 ] = message[i];
   }
 
