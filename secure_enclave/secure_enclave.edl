@@ -57,8 +57,7 @@ enclave {
                                 [in, string] const char* hash,
                                 [out, count = SMALL_BUF_SIZE] char* sig_r,
                                 [out, count = SMALL_BUF_SIZE] char* sig_s,
-                                [out] uint8_t* sig_v,
-                                int base);
+                                [out] uint8_t* sig_v);
 
         public void trustedEncryptKey (
                                 [out] int *errStatus,

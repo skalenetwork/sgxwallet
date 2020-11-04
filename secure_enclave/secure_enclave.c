@@ -526,14 +526,14 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 static uint64_t sigCounter = 0;
 
 void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint64_t enc_len,
-                      const char *hash, char *_sigR, char *_sigS, uint8_t *_sigV, int base) {
+                      const char *_hash, char *_sigR, char *_sigS, uint8_t *_sigV) {
     LOG_DEBUG(__FUNCTION__);
 
     INIT_ERROR_STATE
 
     CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(hash);
-    CHECK_STATE(strnlen(hash, 65) == 64);
+    CHECK_STATE(_hash);
+    CHECK_STATE(strnlen(_hash, 65) == 64);
     CHECK_STATE(_sigR);
     CHECK_STATE(_sigS);
 
@@ -551,15 +551,14 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     SAFE_CHAR_BUF(decryptedKey, BUF_LEN)
 
-    CHECK_STATE(secp256k1_selftest());
 
     uint64_t binLen = 0;
 
-    CHECK_STATE(hex2carray(skey, &binLen, (uint8_t *) decryptedKey));
+    CHECK_STATE_CLEAN(hex2carray(skey, &binLen, (uint8_t *) decryptedKey));
 
-    SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
+    SAFE_CHAR_BUF(preCtx, 10 * BUF_LEN);
     secp256k1_context *ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
-    CHECK_STATE(secp256k1_ec_seckey_verify(ctx, (unsigned char *) decryptedKey) == 1);
+    CHECK_STATE_CLEAN(secp256k1_ec_seckey_verify(ctx, (unsigned char *) decryptedKey) == 1);
 
     secp256k1_ecdsa_recoverable_signature sig;
     memset(&sig, 0, sizeof(sig));
@@ -568,13 +567,14 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     uint64_t binHashLen = 0;
 
-    CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, (uint8_t *) hashBin));
+    CHECK_STATE_CLEAN(hex2carray(_hash, &binHashLen, (uint8_t *) hashBin));
 
     CHECK_STATE_CLEAN(secp256k1_ecdsa_sign_recoverable(ctx, &sig,
                                                        (unsigned char *) hashBin, (unsigned char *) decryptedKey,
                                                        NULL, NULL) == 1);
 
     SAFE_CHAR_BUF(sigBytes, BUF_LEN);
+
     int sigV;
 
     CHECK_STATE_CLEAN(secp256k1_ecdsa_recoverable_signature_serialize_compact(
@@ -596,6 +596,9 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     SET_SUCCESS
     clean:
+
+    if (ctx)
+        secp256k1_context_preallocated_destroy(ctx);
 
     LOG_DEBUG(__FUNCTION__);
     LOG_DEBUG("SGX call completed");

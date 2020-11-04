@@ -148,6 +148,10 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     string pubKeyStr = "";
 
+    if (strlen(hashHex) != 64) {
+        throw SGXException(INVALID_HEX, "Length of hash string not equal 64");
+    }
+
     if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data(),
                     BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
@@ -157,9 +161,9 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     RESTART_BEGIN
         status = trustedEcdsaSign(eid, &errStatus,
-                            errMsg.data(), encryptedKey.data(), decLen, hashHex,
-                            signatureR.data(),
-                            signatureS.data(), &signatureV, base);
+                                  errMsg.data(), encryptedKey.data(), decLen, hashHex,
+                                  signatureR.data(),
+                                  signatureS.data(), &signatureV);
     RESTART_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
