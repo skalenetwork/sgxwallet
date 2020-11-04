@@ -144,7 +144,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
         status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
                                      hex.data(),
                                      signatureR.data(),
-                                     signatureS.data(), &signatureV, 16);
+                                     signatureS.data(), &signatureV);
         REQUIRE(status == SGX_SUCCESS);
         REQUIRE(errStatus == SGX_SUCCESS);
     }
