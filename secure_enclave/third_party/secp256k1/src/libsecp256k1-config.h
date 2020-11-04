@@ -21,7 +21,7 @@
 /* #undef ENABLE_MODULE_EXTRAKEYS */
 
 /* Define this symbol to enable the ECDSA pubkey recovery module */
-/* #undef ENABLE_MODULE_RECOVERY */
+#define ENABLE_MODULE_RECOVERY
 
 /* Define this symbol to enable the schnorrsig module */
 /* #undef ENABLE_MODULE_SCHNORRSIG */

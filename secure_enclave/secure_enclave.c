@@ -53,8 +53,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "third_party/secp256k1/src/util.h"
 #include "third_party/secp256k1/src/hash.h"
 #include "third_party/secp256k1/src/hash_impl.h"
-
 #include "third_party/secp256k1/src/selftest.h"
+
+#include "third_party/secp256k1/include/secp256k1_recovery.h"
 
 #include "Point.h"
 #include "DomainParameters.h"
@@ -560,7 +561,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     uint64_t binLen = 0;
 
-    CHECK_STATE(hex2carray(skey, &binLen, (uint8_t* ) decryptedKey));
+    CHECK_STATE(hex2carray(skey, &binLen, (uint8_t *) decryptedKey));
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
@@ -579,24 +580,22 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
 
-SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
-        secp256k1_context* ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
-        CHECK_STATE(secp256k1_ec_seckey_verify(ctx, (unsigned char *) decryptedKey) == 1);
+    SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
+    secp256k1_context *ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
+    CHECK_STATE(secp256k1_ec_seckey_verify(ctx, (unsigned char *) decryptedKey) == 1);
 
-        secp256k1_ecdsa_signature sig;
-        memset(&sig, 0, sizeof(sig));
+    secp256k1_ecdsa_recoverable_signature sig;
+    memset(&sig, 0, sizeof(sig));
 
-        SAFE_CHAR_BUF(hashBin, BUF_LEN);
+    SAFE_CHAR_BUF(hashBin, BUF_LEN);
 
-        uint64_t binHashLen = 0;
+    uint64_t binHashLen = 0;
 
-        CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, (uint8_t *) hashBin));
+    CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, (uint8_t *) hashBin));
 
-        CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(ctx, &sig,
-                          ( unsigned char *) hashBin, (unsigned char *) decryptedKey,
-                                               NULL, NULL) == 1);
-
-
+    CHECK_STATE_CLEAN(secp256k1_ecdsa_sign_recoverable(ctx, &sig,
+                                           (unsigned char *) hashBin, (unsigned char *) decryptedKey,
+                                           NULL, NULL) == 1);
 
 
     sigCounter++;
