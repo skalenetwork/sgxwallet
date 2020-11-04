@@ -594,8 +594,14 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, (uint8_t *) hashBin));
 
     CHECK_STATE_CLEAN(secp256k1_ecdsa_sign_recoverable(ctx, &sig,
-                                           (unsigned char *) hashBin, (unsigned char *) decryptedKey,
-                                           NULL, NULL) == 1);
+                                                       (unsigned char *) hashBin, (unsigned char *) decryptedKey,
+                                                       NULL, NULL) == 1);
+
+    SAFE_CHAR_BUF(sigBytes, BUF_LEN);
+    int id;
+
+    CHECK_STATE_CLEAN(secp256k1_ecdsa_recoverable_signature_serialize_compact(
+                              ctx, (unsigned char*) sigBytes, & id, &sig) == 1);
 
 
     sigCounter++;
