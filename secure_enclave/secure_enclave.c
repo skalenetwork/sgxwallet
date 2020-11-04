@@ -587,7 +587,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     signature_sign(sign, msgMpz, privateKeyMpz, curve);
 
 
-    for (uint64_t i = 0; i < 20000; i++) { SAFE_CHAR_BUF(preCtx, BUF_LEN);
+SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
         auto ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
         CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey) == 1);
 
@@ -599,7 +599,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(&ctx, sig, hashBin, decryptedKey,
                                                NULL, NULL) == 1);
 
-    }
 
 
 
@@ -641,7 +640,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
     signature_free(sign);
-
 
     LOG_DEBUG(__FUNCTION__);
     LOG_DEBUG("SGX call completed");
