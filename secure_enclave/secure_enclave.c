@@ -87,7 +87,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CHECK_STATE_CLEAN(_EXPRESSION_) \
     if (!(_EXPRESSION_)) {        \
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
-        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
+        LOG_ERROR(__FILE__);                  \
         snprintf(errString, BUF_LEN, "State check failed. Check log."); \
         *errStatus = -1;                          \
         goto clean;}
@@ -558,17 +558,9 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     CHECK_STATE(secp256k1_selftest());
 
-
-
-
-
-
     uint64_t binLen = 0;
 
-    CHECK_STATE(hex2carray(skey, &binLen, decryptedKey));
-
-
-
+    CHECK_STATE(hex2carray(skey, &binLen, (uint8_t* ) decryptedKey));
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
@@ -588,15 +580,20 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 
 SAFE_CHAR_BUF(preCtx, 1000 * BUF_LEN);
-        auto ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
-        CHECK_STATE(secp256k1_ec_seckey_verify(ctx, decryptedKey) == 1);
+        secp256k1_context* ctx = secp256k1_context_preallocated_create(preCtx, SECP256K1_CONTEXT_SIGN);
+        CHECK_STATE(secp256k1_ec_seckey_verify(ctx, (unsigned char *) decryptedKey) == 1);
 
-        SAFE_CHAR_BUF(sig, BUF_LEN);SAFE_CHAR_BUF(hashBin, BUF_LEN);
-        int binHashLen = 0;
+        secp256k1_ecdsa_signature sig;
+        memset(&sig, 0, sizeof(sig));
 
-        CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, hashBin));
+        SAFE_CHAR_BUF(hashBin, BUF_LEN);
 
-        CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(&ctx, sig, hashBin, decryptedKey,
+        uint64_t binHashLen = 0;
+
+        CHECK_STATE_CLEAN(hex2carray(hash, &binHashLen, (uint8_t *) hashBin));
+
+        CHECK_STATE_CLEAN(secp256k1_ecdsa_sign(ctx, &sig,
+                          ( unsigned char *) hashBin, (unsigned char *) decryptedKey,
                                                NULL, NULL) == 1);
 
 

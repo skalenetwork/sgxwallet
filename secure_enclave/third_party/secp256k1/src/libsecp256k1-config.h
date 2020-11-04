@@ -113,7 +113,5 @@
 /* Define this symbol to use the num-based scalar inverse implementation */
 #define USE_SCALAR_INV_NUM 1
 
-/* Version number of package */
-#define VERSION "0.1"
 
 #endif /*LIBSECP256K1_CONFIG_H*/
