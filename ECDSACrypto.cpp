@@ -162,7 +162,6 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
                             signatureS.data(), &signatureV, base);
     RESTART_END
 
-    cerr << "4" << endl;
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
 
@@ -183,8 +182,6 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
     static uint64_t  i = 0;
 
     i++;
-
-
 
     return signatureVector;
 }
