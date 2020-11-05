@@ -21,16 +21,14 @@
     @date 2020
 */
 
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/exponentiation/exponentiation.hpp>
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
+#include "secure_enclave/DHDkg.h"
 #include "third_party/intel/sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
@@ -456,6 +454,21 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
 
+TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[import-ecdsa-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    std::string name = "NEK:abcdef";
+    auto response = c.importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847", name);
+    REQUIRE(response["status"] != 0);
+
+    string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    response = c.importECDSAKey(key_str, name);
+    REQUIRE(response["status"] == 0);
+
+    REQUIRE(c.ecdsaSignMessageHash(16, name, SAMPLE_HASH)["status"] == 0);
+}
+
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -653,11 +666,55 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     Json::Value complaintResponse = c.complaintResponse(polyNames[1], t, n, 0);
     REQUIRE(complaintResponse["status"] == 0);
 
+    string dhKey = complaintResponse["dhKey"].asString();
+    string shareG2 = complaintResponse["share*G2"].asString();
+    string secretShare = secretShares[1]["secretShare"].asString().substr(0, 192);
+
+    vector<char> message (65, 0);
+
+    SAFE_CHAR_BUF(encr_sshare, BUF_LEN)
+    strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
+
+    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    REQUIRE(sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
+
+    SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
+    strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
+
+    REQUIRE(xorDecryptDH(common_key, encr_sshare_check, message) == 0);
+
+    mpz_t hex_share;
+    mpz_init(hex_share);
+    mpz_set_str(hex_share, message.data(), 16);
+
+    libff::alt_bn128_Fr share(hex_share);
+    libff::alt_bn128_G2 decrypted_share_G2 = share * libff::alt_bn128_G2::one();
+    decrypted_share_G2.to_affine_coordinates();
+
+    mpz_clear(hex_share);
+
+    REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
+
+    Json::Value verificationVectorMult = complaintResponse["verificationVectorMult"];
+
+    libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+    for (int i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 value;
+        value.Z = libff::alt_bn128_Fq2::one();
+        value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
+        value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
+        value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
+        value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+        verificationValue = verificationValue + value;
+    }
+    verificationValue.to_affine_coordinates();
+    REQUIRE( verificationValue == decrypted_share_G2 );
+
     BLSSigShareSet sigShareSet(t, n);
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
+    auto hash_arr = make_shared < array < uint8_t, 32 > >();
 
     uint64_t binLen;
 

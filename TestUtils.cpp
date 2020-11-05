@@ -21,12 +21,9 @@
     @date 2020
 */
 
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/exponentiation/exponentiation.hpp>
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -411,4 +408,127 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     for (auto&& i : _blsKeyNames)
         cerr << i << endl;
+}
+
+int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key) {
+
+    int ret = -1;
+
+    SAFE_CHAR_BUF(pb_keyB_x, 65);
+    SAFE_CHAR_BUF(pb_keyB_y, 65);
+
+    mpz_t skey;
+    mpz_init(skey);
+    point pub_keyB = point_init();
+    point session_key = point_init();
+
+    pb_keyB_x[64] = 0;
+    strncpy(pb_keyB_x, sshare, 64);
+    strncpy(pb_keyB_y, sshare + 64, 64);
+    pb_keyB_y[64] = 0;
+
+
+    if (!common_key) {
+        mpz_clear(skey);
+        point_clear(pub_keyB);
+        point_clear(session_key);
+
+        return  ret;
+    }
+
+    common_key[0] = 0;
+
+    if (!skey_str) {
+        mpz_clear(skey);
+        point_clear(pub_keyB);
+        point_clear(session_key);
+
+        return  ret;
+    }
+
+    if (!sshare) {
+        mpz_clear(skey);
+        point_clear(pub_keyB);
+        point_clear(session_key);
+
+        return  ret;
+    }
+
+    if (mpz_set_str(skey, skey_str, 16) == -1) {
+        mpz_clear(skey);
+        point_clear(pub_keyB);
+        point_clear(session_key);
+
+        return  ret;
+    }
+
+    domain_parameters curve;
+    curve = domain_parameters_init();
+    domain_parameters_load_curve(curve, secp256k1);
+
+    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+        return ret;
+    }
+
+    point_multiplication(session_key, skey, pub_keyB, curve);
+
+    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+
+    mpz_get_str(arr_x, 16, session_key->x);
+    int n_zeroes = 64 - strlen(arr_x);
+    for (int i = 0; i < n_zeroes; i++) {
+        common_key[i] = '0';
+    }
+    strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
+
+    ret = 0;
+
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+
+    return  ret;
+}
+
+int xorDecryptDH(char *key, const char *cypher, vector<char>& message) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        return ret;
+    }
+
+    if (!key) {
+        return ret;
+    }
+
+    if (!message.data()) {
+        return ret;
+    }
+
+    SAFE_CHAR_BUF(msg_bin,33)
+
+    SAFE_CHAR_BUF(key_bin,33)
+
+    uint64_t key_length;
+    if (!hex2carray(key, &key_length, (uint8_t*) key_bin, 33)) {
+        return ret;
+    }
+
+    uint64_t cypher_length;
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin, 33)) {
+        return ret;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        msg_bin[i] = cypher_bin[i] ^ key_bin[i];
+    }
+
+    message = carray2Hex((unsigned char*) msg_bin, 32);
+
+    ret = 0;
+
+    return ret;
 }
