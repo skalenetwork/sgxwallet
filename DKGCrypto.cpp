@@ -144,9 +144,8 @@ string gen_dkg_poly(int _t) {
 
     uint64_t length = enc_len;;
 
-    vector<char> hexEncrPoly(BUF_LEN, 0);
     CHECK_STATE(encrypted_dkg_secret.size() >= length);
-    carray2Hex(encrypted_dkg_secret.data(), length, hexEncrPoly.data(), BUF_LEN);
+    vector<char> hexEncrPoly = carray2Hex(encrypted_dkg_secret.data(), length);
     string result(hexEncrPoly.data());
 
     return result;
@@ -271,7 +270,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         result += string(currentShare.data());
 
         spdlog::debug("dec len is {}", decLen);
-        carray2Hex(encryptedSkey.data(), decLen, hexEncrKey.data(), BUF_LEN);
+        hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
         spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
@@ -351,11 +350,9 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    SAFE_CHAR_BUF(hexBLSKey, 2 * BUF_LEN)
+    vector<char> hexBLSKey = carray2Hex(encr_bls_key, enc_bls_len);
 
-    carray2Hex(encr_bls_key, enc_bls_len, hexBLSKey, 2 * BUF_LEN);
-
-    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey);
+    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
 
     return true;
 
@@ -452,24 +449,25 @@ string decryptDHKey(const string &polyName, int ind) {
     shared_ptr <string> hexEncrKeyPtr = SGXWalletServer::readFromDb(DH_key_name, "DKG_DH_KEY_");
 
     spdlog::debug("encr DH key is {}", *hexEncrKeyPtr);
+    spdlog::debug("encr DH key length is {}", hexEncrKeyPtr->length());
 
     vector<char> hexEncrKey(2 * BUF_LEN, 0);
 
-    uint64_t dhEncLen = 0;SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
+    uint64_t dhEncLen = 0;
+    SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN)
     if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey, BUF_LEN)) {
         throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);
-    spdlog::debug("hex encr DH key length is {}", hexEncrKeyPtr->length());
 
-    SAFE_CHAR_BUF(DHKey, ECDSA_SKEY_LEN);
+    SAFE_CHAR_BUF(DHKey, ECDSA_SKEY_LEN)
 
     sgx_status_t status = SGX_SUCCESS;
 
     RESTART_BEGIN
         status = trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
     RESTART_END
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data())
 
     return DHKey;
 }

@@ -623,12 +623,12 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
             }
         }
 
-       for (int i = 0; i < _n; i++) {
+        for (int i = 0; i < _n; i++) {
            string name = _polyName + "_" + to_string(i) + ":";
            LevelDB::getLevelDb()->deleteDHDKGKey(name);
            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
            LevelDB::getLevelDb()->deleteKey(shareG2_name);
-       }
+        }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
         string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
