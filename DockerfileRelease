@@ -16,6 +16,6 @@ RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 RUN rm  /usr/src/sdk/secure_enclave/secure_enclave*.so
 RUN cd /usr/src/sdk/secure_enclave && \
-     curl --output secure_enclave_signed.so  \
+     curl --output secure_enclave.signed.so  \
      https://raw.githubusercontent.com/skalenetwork/signed_sgx_enclaves/master/secure_enclave_signed.so.1
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
