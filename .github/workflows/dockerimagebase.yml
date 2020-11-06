@@ -11,7 +11,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - name: Fail, if older Github Actions machine
-      run: cat /proc/cpuinfo | grep avv
+      run: cat /proc/cpuinfo | grep avx512
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v1
