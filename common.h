@@ -98,7 +98,7 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 
 #include <shared_mutex>
 
-extern std::shared_timed_mutex initMutex;
+extern std::shared_timed_mutex sgxInitMutex;
 extern uint64_t initTime;
 
 #ifdef SGX_HW_SIM

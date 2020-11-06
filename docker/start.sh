@@ -28,7 +28,7 @@ cd /usr/src/sdk;
 if [[ -f "/var/hwmode" ]]
 then
 echo "Running in SGX hardware mode"
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/sgxpsw/aesm/
+export LD_LIBRARY_PATH=/usr/src/sdk/secure_enclave:${LD_LIBRARY_PATH}:/opt/intel/sgxpsw/aesm
 jhid -d
 /opt/intel/sgxpsw/aesm/aesm_service &
 pid=$!

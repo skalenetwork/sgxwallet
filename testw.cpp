@@ -21,12 +21,9 @@
     @date 2020
 */
 
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/exponentiation/exponentiation.hpp>
-#include <libff/algebra/fields/fp.hpp>
 #include <dkg/dkg.h>
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -457,6 +454,21 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
 
+TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[import-ecdsa-key]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    std::string name = "NEK:abcdef";
+    auto response = c.importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847", name);
+    REQUIRE(response["status"] != 0);
+
+    string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    response = c.importECDSAKey(key_str, name);
+    REQUIRE(response["status"] == 0);
+
+    REQUIRE(c.ecdsaSignMessageHash(16, name, SAMPLE_HASH)["status"] == 0);
+}
+
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -682,6 +694,21 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     mpz_clear(hex_share);
 
     REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
+
+    Json::Value verificationVectorMult = complaintResponse["verificationVectorMult"];
+
+    libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+    for (int i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 value;
+        value.Z = libff::alt_bn128_Fq2::one();
+        value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
+        value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
+        value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
+        value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+        verificationValue = verificationValue + value;
+    }
+    verificationValue.to_affine_coordinates();
+    REQUIRE( verificationValue == decrypted_share_G2 );
 
     BLSSigShareSet sigShareSet(t, n);
 
