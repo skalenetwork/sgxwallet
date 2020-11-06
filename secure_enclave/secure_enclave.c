@@ -163,7 +163,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
 #endif
 
-#if SGX_MODE == SIM
+#ifdef SGX_HW_SIM
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
 #endif
 
