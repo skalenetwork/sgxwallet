@@ -115,7 +115,7 @@ int __ATTEMPTS__ = 0; \
 do {\
 __ATTEMPTS__++; \
 {\
-READ_LOCK(initMutex);
+READ_LOCK(sgxInitMutex);
 
 #define RESTART_END \
 } \

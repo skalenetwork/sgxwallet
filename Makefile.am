@@ -103,7 +103,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
-   -lboost_system -lboost_thread -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
+   -lboost_system -lboost_thread -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
@@ -115,4 +115,4 @@ cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentExcep
 cert_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
                    -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                   -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
