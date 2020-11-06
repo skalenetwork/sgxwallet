@@ -39,6 +39,18 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName)
+        {
+            Json::Value p;
+            p["key"] = keyShare;
+            p["keyName"] = keyShareName;
+            Json::Value result = this->CallMethod("importECDSAKey",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
         Json::Value generateECDSAKey() 
         {
           Json::Value p;
@@ -171,10 +183,12 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value complaintResponse(const std::string& polyName, int ind) 
+        Json::Value complaintResponse(const std::string& polyName, int t, int n,int ind) 
         {
           Json::Value p;
           p["polyName"] = polyName;
+          p["t"] = t;
+          p["n"] = n;
           p["ind"] = ind;
           Json::Value result = this->CallMethod("complaintResponse",p);
           if (result.isObject())

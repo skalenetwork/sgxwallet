@@ -47,7 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern sgx_enclave_id_t eid;
 extern int updated;
 extern sgx_launch_token_t token;
-extern sgx_status_t status;
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 

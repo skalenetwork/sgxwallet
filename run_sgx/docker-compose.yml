@@ -1,7 +1,8 @@
 version: '3'
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet:latest
+    image: skalenetwork/sgxwallet_signed:latest
+    restart: always
     ports:
       - "1026:1026"
       - "1027:1027"

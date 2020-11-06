@@ -1,13 +1,13 @@
 FROM skalenetwork/sgxwallet_base:latest
 
 
-RUN apt update &&  apt install -y curl secure-delete
+RUN apt update && apt install -y curl secure-delete
 
 RUN ccache -sz
 
 COPY . /usr/src/sdk
-RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 WORKDIR /usr/src/sdk
+RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 RUN ./autoconf.bash && \
     ./configure --enable-sgx-simulation && \
     bash -c "make" && \
@@ -15,5 +15,6 @@ RUN ./autoconf.bash && \
     mkdir -p /usr/src/sdk/sgx_data
 
 COPY docker/start.sh ./
+RUN rm -rf /usr/src/sdk/sgx-sdk-build/
 
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

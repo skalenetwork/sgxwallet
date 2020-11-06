@@ -25,172 +25,167 @@
 #include "BLSSignature.h"
 #include "BLSutils.h"
 
+#include "third_party/spdlog/spdlog.h"
+#include "common.h"
 #include "secure_enclave_u.h"
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
-#include "common.h"
-
+#include "SEKManager.h"
 #include "BLSPrivateKeyShareSGX.h"
 
-std::string *stringFromFq(libff::alt_bn128_Fq*_fq) {
-  mpz_t t;
-  mpz_init(t);
+string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
-  _fq->as_bigint().to_mpz(t);
+    CHECK_STATE(_fq);
 
-  char arr[mpz_sizeinbase(t, 10) + 2];
+    mpz_t t;
+    mpz_init(t);
 
-  char *tmp = mpz_get_str(arr, 10, t);
-  mpz_clear(t);
+    _fq->as_bigint().to_mpz(t);
 
-  return new std::string(tmp);
+    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, 10) + 2);
+
+    char *tmp = mpz_get_str(arr, 10, t);
+
+    mpz_clear(t);
+
+    return new string(tmp);
 }
 
-std::string *stringFromG1(libff::alt_bn128_G1 *_g1) {
-  auto sX = stringFromFq(&_g1->X);
-  auto sY = stringFromFq(&_g1->Y);
-  auto sZ = stringFromFq(&_g1->Z);
+string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
-  auto sG1 = new std::string(*sX + ":" +  *sY + ":" + *sZ);
+    CHECK_STATE(_g1);
 
-  delete(sX);
-  delete(sY);
-  delete(sZ);
+    auto sX = stringFromFq(&_g1->X);
+    auto sY = stringFromFq(&_g1->Y);
+    auto sZ = stringFromFq(&_g1->Z);
 
-  return sG1;
+    auto sG1 = new string(*sX + ":" + *sY + ":" + *sZ);
+
+    delete (sX);
+    delete (sY);
+    delete (sZ);
+
+    return sG1;
 }
 
 BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
-    shared_ptr<string> _encryptedKeyHex, size_t _requiredSigners,
-    size_t _totalSigners) {
-  requiredSigners = _requiredSigners;
-  totalSigners = _totalSigners;
+        shared_ptr <string> _encryptedKeyHex, size_t _requiredSigners,
+        size_t _totalSigners) {
+    requiredSigners = _requiredSigners;
+    totalSigners = _totalSigners;
 
-  if (requiredSigners > totalSigners) {
-    throw std::invalid_argument("requiredSigners > totalSigners");
-  }
+    if (requiredSigners > totalSigners) {
+        throw invalid_argument("requiredSigners > totalSigners");
+    }
 
-  if (totalSigners == 0) {
-    throw std::invalid_argument("totalSigners == 0");
-  }
+    if (totalSigners == 0) {
+        throw invalid_argument("totalSigners == 0");
+    }
 
-  if (_encryptedKeyHex == nullptr) {
-    throw std::invalid_argument("Null key");
-  }
+    if (_encryptedKeyHex == nullptr) {
+        throw invalid_argument("Null key");
+    }
 
-  if (_encryptedKeyHex->size() > 2 * MAX_ENCRYPTED_KEY_LENGTH) {
-    throw std::invalid_argument("Encrypted key size too long");
-  }
+    if (_encryptedKeyHex->size() > 2 * MAX_ENCRYPTED_KEY_LENGTH) {
+        throw invalid_argument("Encrypted key size too long");
+    }
 
-  encryptedKeyHex = _encryptedKeyHex;
+    encryptedKeyHex = _encryptedKeyHex;
 }
 
-std::string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
-    std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
-    size_t _signerIndex) {
-  shared_ptr<signatures::Bls> obj;
+string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
+        shared_ptr <array<uint8_t, 32>> hash_byte_arr,
+        size_t _signerIndex) {
+    shared_ptr <signatures::Bls> obj;
 
-  if (hash_byte_arr == nullptr) {
-    std::cerr << "Hash is null" << std::endl;
-    BOOST_THROW_EXCEPTION(runtime_error("Hash is null"));
-  }
+    CHECK_STATE(hash_byte_arr)
 
-  obj = make_shared<signatures::Bls>(
-      signatures::Bls(requiredSigners, totalSigners));
+    obj = make_shared<signatures::Bls>(
+            signatures::Bls(requiredSigners, totalSigners));
 
-  std::pair<libff::alt_bn128_G1, std::string> hash_with_hint =
-      obj->HashtoG1withHint(hash_byte_arr);
+    pair <libff::alt_bn128_G1, string> hash_with_hint =
+            obj->HashtoG1withHint(hash_byte_arr);
 
-  int errStatus = 0;
+    int errStatus = 0;
 
-  string* xStr = stringFromFq(&(hash_with_hint.first.X));
+    string *xStr = stringFromFq(&(hash_with_hint.first.X));
 
-  if (xStr == nullptr) {
-    std::cerr << "Null xStr" << std::endl;
-    BOOST_THROW_EXCEPTION(runtime_error("Null xStr"));
-  }
+    CHECK_STATE(xStr);
 
-  string* yStr = stringFromFq(&(hash_with_hint.first.Y));
+    string *yStr = stringFromFq(&(hash_with_hint.first.Y));
 
-  if (yStr == nullptr) {
-    std::cerr << "Null yStr" << std::endl;
+    if (yStr == nullptr) {
+        delete xStr;
+        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
+    }
+
+
+    vector<char> errMsg(BUF_LEN, 0);
+
+
+    SAFE_CHAR_BUF(xStrArg, BUF_LEN)SAFE_CHAR_BUF(yStrArg, BUF_LEN)SAFE_CHAR_BUF(signature, BUF_LEN);
+
+
+    strncpy(xStrArg, xStr->c_str(), BUF_LEN);
+    strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+
     delete xStr;
-    BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
-  }
+    delete yStr;
 
-  char errMsg[BUF_LEN];
-  memset(errMsg, 0, BUF_LEN);
+    size_t sz = 0;
 
-  char xStrArg[BUF_LEN];
-  char yStrArg[BUF_LEN];
-  char signature [BUF_LEN];
+    SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
 
-  memset(xStrArg, 0, BUF_LEN);
-  memset(yStrArg, 0, BUF_LEN);
+    bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey,
+                             BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+    if (!result) {
+        spdlog::error("Invalid hex encrypted key");
+        BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
+    }
 
-  delete xStr;
-  delete yStr;
+    sgx_status_t status = SGX_SUCCESS;
 
-  size_t sz = 0;
+    RESTART_BEGIN
+        status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
+                                          encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
+    RESTART_END
 
-  uint8_t encryptedKey[BUF_LEN];
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  bool result = hex2carray(encryptedKeyHex->c_str(), &sz, encryptedKey);
 
-  if (!result) {
-    cerr << "Invalid hex encrypted key" << endl;
-    BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex encrypted key"));
-  }
+    int sigLen;
 
-  cerr << "Key is " + *encryptedKeyHex << endl;
+    if ((sigLen = strnlen(signature, 10)) < 10) {
+        BOOST_THROW_EXCEPTION(runtime_error("Signature is too short:" + to_string(sigLen)));
+    }
 
-  sgx_status_t status =
-      trustedBlsSignMessageAES(eid, &errStatus, errMsg, encryptedKey,
-                       encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
+    string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
+                  hash_with_hint.second;
 
-  printf("sig is: %s\n", signature);
+    string sig = signature;
 
-  if (status != SGX_SUCCESS) {
-    gmp_printf("SGX enclave call to trustedBlsSignMessage failed: 0x%04x\n", status);
-    BOOST_THROW_EXCEPTION(runtime_error("SGX enclave call  to trustedBlsSignMessage failed"));
-  }
+    sig.append(":");
+    sig.append(hint);
 
-  if (errStatus != 0) {
-    BOOST_THROW_EXCEPTION(runtime_error("Enclave trustedBlsSignMessage failed:" + to_string(errStatus) + ":" + errMsg ));
-  }
-
-  int sigLen;
-
-  if ((sigLen = strnlen(signature, 10)) < 10) {
-     BOOST_THROW_EXCEPTION(runtime_error("Signature is too short:" + to_string(sigLen)));
-  }
-
-  std::string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
-                     hash_with_hint.second;
-
-  std::string sig = signature;
-
-  sig.append(":");
-  sig.append(hint);
-
-  return sig;
+    return sig;
 }
 
-std::shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
-    std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
-    size_t _signerIndex) {
-  std::string signature = signWithHelperSGXstr(hash_byte_arr, _signerIndex);
+shared_ptr <BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
+        shared_ptr <array<uint8_t, 32>> hash_byte_arr,
+        size_t _signerIndex) {
 
-  auto sig = make_shared<string>(signature);
+    CHECK_STATE(hash_byte_arr);
 
-  std::shared_ptr<BLSSigShare> s = std::make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
-  totalSigners);
+    string signature = signWithHelperSGXstr(hash_byte_arr, _signerIndex);
 
-  return s;
+    auto sig = make_shared<string>(signature);
+
+    shared_ptr <BLSSigShare> s = make_shared<BLSSigShare>(sig, _signerIndex, requiredSigners,
+                                                          totalSigners);
+
+    return s;
 }

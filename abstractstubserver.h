@@ -39,6 +39,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("importBLSKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"keyShare",jsonrpc::JSON_STRING,"keyShareName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importBLSKeyShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("blsSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyShareName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::blsSignMessageHashI);
 
+          this->bindAndAddMethod(jsonrpc::Procedure("importECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"key",jsonrpc::JSON_STRING,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::importECDSAKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("generateECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::generateECDSAKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("getPublicECDSAKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "keyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::getPublicECDSAKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("ecdsaSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "base",jsonrpc::JSON_INTEGER,"keyName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::ecdsaSignMessageHashI);
@@ -50,7 +51,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::createBLSPrivateKeyI);
           this->bindAndAddMethod(jsonrpc::Procedure("getBLSPublicKeyShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::getBLSPublicKeyShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("calculateAllBLSPublicKeys", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares", jsonrpc::JSON_ARRAY, "n", jsonrpc::JSON_INTEGER, "t", jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::calculateAllBLSPublicKeysI);
-          this->bindAndAddMethod(jsonrpc::Procedure("complaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::complaintResponseI);
+          this->bindAndAddMethod(jsonrpc::Procedure("complaintResponse", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "ind",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::complaintResponseI);
           this->bindAndAddMethod(jsonrpc::Procedure("multG2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "x",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::multG2I);
           this->bindAndAddMethod(jsonrpc::Procedure("isPolyExists", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::isPolyExistsI);
 
@@ -68,6 +69,10 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->blsSignMessageHash(request["keyShareName"].asString(), request["messageHash"].asString(), request["t"].asInt(), request["n"].asInt());
         }
 
+        inline virtual void importECDSAKeyI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->importECDSAKey( request["key"].asString(), request["keyName"].asString());
+        }
         inline virtual void generateECDSAKeyI(const Json::Value &request, Json::Value &response)
         {
           (void)request;
@@ -111,7 +116,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         }
         inline virtual void complaintResponseI(const Json::Value &request, Json::Value &response)
         {
-          response = this->complaintResponse( request["polyName"].asString(), request["ind"].asInt());
+          response = this->complaintResponse( request["polyName"].asString(), request["t"].asInt(), request["n"].asInt(), request["ind"].asInt());
         }
         inline virtual void multG2I(const Json::Value &request, Json::Value &response)
         {
@@ -141,6 +146,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
 
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n ) = 0;
+        virtual Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value generateECDSAKey() = 0;
         virtual Json::Value getPublicECDSAKey(const std::string& keyName) = 0;
         virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) = 0;
@@ -152,7 +158,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value createBLSPrivateKey(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n) = 0;
         virtual Json::Value getBLSPublicKeyShare(const std::string & blsKeyName) = 0;
         virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) = 0;
-        virtual Json::Value complaintResponse(const std::string& polyName, int ind) = 0;
+        virtual Json::Value complaintResponse(const std::string& polyName, int t, int n, int ind) = 0;
         virtual Json::Value multG2(const std::string & x) = 0;
         virtual Json::Value isPolyExists(const std::string& polyName) = 0;
 

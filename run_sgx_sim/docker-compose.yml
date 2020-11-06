@@ -2,6 +2,7 @@ version: '3'
 services:
   sgxwallet:
     image: skalenetwork/sgxwallet_sim:develop-latest
+    restart: always
     ports:
       - "1026:1026"
       - "1027:1027"

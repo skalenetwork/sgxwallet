@@ -72,7 +72,7 @@ bool checkECDSAKeyName(const string& keyName) {
 
 bool checkHex(const string& hex, const uint32_t sizeInBytes){
   if ( hex.length() > sizeInBytes * 2 || hex.length() == 0){
-    spdlog::error("key is too long or zero - ", hex.length());
+    spdlog::error("key is too long or zero {} ", hex.length());
     return false;
   }
 

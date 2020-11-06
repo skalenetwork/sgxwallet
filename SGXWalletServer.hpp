@@ -51,6 +51,9 @@ public:
     virtual Json::Value
     blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
 
+    virtual Json::Value importECDSAKey(const std::string& keyShare,
+                                       const std::string& keyShareName);
+
     virtual Json::Value generateECDSAKey();
 
     virtual Json::Value
@@ -76,7 +79,7 @@ public:
 
     virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
 
-    virtual Json::Value complaintResponse(const string &polyName, int ind);
+    virtual Json::Value complaintResponse(const string &polyName, int t, int n, int ind);
 
     virtual Json::Value multG2(const string &x);
 
@@ -90,6 +93,8 @@ public:
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
+    static shared_ptr <string> checkDataFromDb(const string &name, const string &prefix = "");
+
     static void writeDataToDB(const string &Name, const string &value);
 
     static void writeKeyShare(const string &_keyShareName, const string &_value);
@@ -99,6 +104,8 @@ public:
 
     static Json::Value
     blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);
+
+    static Json::Value importECDSAKeyImpl(const string &_keyShare, const string &_keyShareName);
 
     static Json::Value generateECDSAKeyImpl();
 
@@ -124,7 +131,7 @@ public:
 
     static Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n);
 
-    static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
+    static Json::Value complaintResponseImpl(const string &_polyName, int t, int n, int _ind);
 
     static Json::Value multG2Impl(const string &_x);
 
