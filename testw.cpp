@@ -774,8 +774,8 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
 
     REQUIRE(status == 0);
-    REQUIRE(errStatus == 0);
     REQUIRE(key.compare(decr_key.data()) == 0);
+    REQUIRE(errStatus == 0);
 }
 
 
