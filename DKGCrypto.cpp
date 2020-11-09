@@ -197,7 +197,7 @@ vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPo
 
     vector<vector<string>> result(t);
 
-    for (size_t i = 0; i < t; ++i) {
+    for (int i = 0; i < t; ++i) {
         libff::alt_bn128_G2 current_coefficient;
         current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0].c_str());
         current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1].c_str());
@@ -224,7 +224,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
     CHECK_STATE(_encryptedPolyHex);
 
     vector<char> hexEncrKey(BUF_LEN, 0);
-    vector<char> errMsg1(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     vector <uint8_t> encrDKGPoly(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t encLen = 0;
@@ -237,10 +237,6 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
     sgx_status_t status = SGX_SUCCESS;
 
     READ_LOCK(sgxInitMutex);
-
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
-
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     string result;
 
@@ -259,26 +255,22 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         spdlog::debug("pubKeyB is {}", pub_keyB);
 
         sgx_status_t status = SGX_SUCCESS;
-        status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
+        status = trustedGetEncryptedSecretShare(eid, &errStatus,
+                                                errMsg.data(),
+                                                encrDKGPoly.data(), encLen,
+                                                encryptedSkey.data(), &decLen,
                                                    currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
                                                    i + 1);
 
-        HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
+        HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-        spdlog::debug("cur_share is {}", currentShare.data());
 
         result += string(currentShare.data());
 
-        spdlog::debug("dec len is {}", decLen);
         hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
-        spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
-        spdlog::debug("name to write to db is {}", dhKeyName);
-
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-        spdlog::debug("name to write to db is {}", shareG2_name);
-        spdlog::debug("s_shareG2: {}", sShareG2.data());
 
         SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
         SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
