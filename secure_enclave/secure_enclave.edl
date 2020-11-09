@@ -88,6 +88,10 @@ enclave {
                                 [out, count = 3072] uint8_t* decrypted_dkg_secret
                                 );
 
+
+
+
+
         public void trustedGetEncryptedSecretShare(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,

@@ -868,7 +868,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     LOG_DEBUG(__FUNCTION__);
 
-    trustedSetEncryptedDkgPoly(errStatus, errString, _encrypted_poly, _enc_len);
+    trustedSetEncryptedDkgPoly(&status, errString, _encrypted_poly, _enc_len);
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
 

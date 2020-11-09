@@ -370,20 +370,15 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
-    uint64_t enc_len = encLen;
-
-    PRINT_SRC_LINE
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(), enc_len);
-    REQUIRE(status == SGX_SUCCESS);
-    REQUIRE(errStatus == SGX_SUCCESS);
-
     vector <uint8_t> encrPRDHKey(BUF_LEN, 0);
 
     string pub_keyB = SAMPLE_PUBLIC_KEY_B;
 
     vector<char> s_shareG2(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(), encrPRDHKey.data(), &encLen,
+    status = trustedGetEncryptedSecretShare(eid, &errStatus,errMsg.data(),
+                                            encryptedDKGSecret.data(), encLen,
+                                            encrPRDHKey.data(), &encLen,
                                                result.data(),
                                                s_shareG2.data(),
                                                (char *) pub_keyB.data(), 2, 2, 1);
