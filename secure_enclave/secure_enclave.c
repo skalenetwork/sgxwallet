@@ -1118,8 +1118,6 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-
-
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
                              &type, &exportable);
 
