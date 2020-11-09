@@ -236,7 +236,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
     sgx_status_t status = SGX_SUCCESS;
 
-    READ_LOCK(initMutex);
+    READ_LOCK(sgxInitMutex);
 
     status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
 

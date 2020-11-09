@@ -65,7 +65,7 @@ void create_test_key() {
     sgx_status_t status =  SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
     }
 
@@ -96,7 +96,7 @@ void validate_SEK() {
     sgx_status_t status = SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedDecryptKey(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     }
 
@@ -126,7 +126,7 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
     sgx_status_t status = SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedSetSEKBackup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
                              SEK.c_str());
     }
