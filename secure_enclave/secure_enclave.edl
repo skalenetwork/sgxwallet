@@ -88,15 +88,11 @@ enclave {
                                 [out, count = 3072] uint8_t* decrypted_dkg_secret
                                 );
 
-        public void trustedSetEncryptedDkgPoly(
-                                [out] int *errStatus,
-                                [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 3050] uint8_t* encrypted_poly,
-                                uint64_t enc_len);
-
         public void trustedGetEncryptedSecretShare(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
+                                [in, count = 3050] uint8_t* encrypted_poly,
+                                uint64_t enc_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
                                 [out] uint64_t* dec_len,
                                 [out, count = 193] char* result_str,
