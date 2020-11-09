@@ -7,6 +7,8 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+    - name: Fail, if older Github Actions machine. Click "Re-run jobs"
+      run: cat /proc/cpuinfo | grep avx512
     - name: Check that /dev/urandom exists
       run: ls /dev/urandom
     - name: Login to docker
