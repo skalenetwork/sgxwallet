@@ -1,5 +1,7 @@
 name: Build, test and push sim mode container
 on: [push]
+  schedule:
+    - cron: "*/1 * * * *"
 jobs:
   build:
     runs-on: ubuntu-18.04
