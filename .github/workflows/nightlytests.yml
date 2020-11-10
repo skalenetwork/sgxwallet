@@ -9,10 +9,6 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-    - name: Check that /dev/urandom exists
-      run: ls /dev/urandom
-    - name: Login to docker
-      run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
