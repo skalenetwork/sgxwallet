@@ -1,0 +1,22 @@
+name: Build, test and push sim mode container
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+    - name: Check that /dev/urandom exists
+      run: ls /dev/urandom
+    - name: Login to docker
+      run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+    - uses: actions/checkout@v1
+    - name: submodule update
+      run: git submodule update --init --recursive
+    - name: build container for testing
+      run: python3 scripts/docker_build.py DockerfileSimulation sgxwalletsim ${GITHUB_SHA}
+    - name: test
+      run: python3 scripts/docker_test.py DockerfileSimulation sgxwalletsim
+
+
