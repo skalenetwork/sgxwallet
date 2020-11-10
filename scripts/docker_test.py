@@ -25,19 +25,24 @@
 import sys, os, subprocess, socket, time
 
 os.chdir("..")
-topDir = os.getcwd() + "/sgxwallet"
+topDir:str = os.getcwd() + "/sgxwallet"
 print("Starting container test")
 print("Top directory is:" + topDir)
 
-DOCKER_FILE_NAME = sys.argv[1];
+DOCKER_FILE_NAME = sys.argv[1]
 IMAGE_NAME = sys.argv[2]
 TAG_POSTFIX = "latest_commit"
 
-FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX;
+FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX
 
 print("Running tests");
 
-dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
+isNightly = os.environ.get("NIGHTLY_TESTS")
+
+iterations = 2 if isNightly else 1
+
+for i in iter(iterations):
+    dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
                             "-v", "/dev/urandom:/dev/random", "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
 
 print(dockerRun.stdout)
@@ -50,8 +55,6 @@ assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/
                     "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"]) == 0
 
 time.sleep(5);
-
-
 
 assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
 assert os.path.isdir(topDir + '/sgx_data/cert_data');
