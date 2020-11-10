@@ -1,5 +1,5 @@
 name: Build, test and push sim mode container
-on: [push]
+on:
   schedule:
     - cron: "*/1 * * * *"
 jobs:
