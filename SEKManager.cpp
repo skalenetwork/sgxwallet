@@ -205,11 +205,13 @@ void gen_SEK() {
 
 }
 
-void  reinitEnclave() {
-    // unfortunately process needs to be restarted to reinit enclave
-    // exiting with error code 3 (SGX_OUT_OF_MEMORY), so docker container can restart the
-    // wallet
-    exit(3);
+
+static std::atomic<int> isSgxWalletExiting(0);
+
+void  safeExit() {
+    // this is to make sure exit is only called once if called from multiple threads
+    if (isSgxWalletExiting.exchange(1) != 1)
+        exit(3);
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {

@@ -111,6 +111,14 @@ void SGXWalletServer::printDB() {
     LevelDB::getLevelDb()->visitKeys(&v, 100000000);
 }
 
+
+#ifdef SGX_HW_SIM
+#define NUM_THREADS 16
+#else
+#define NUM_THREADS 64
+#endif
+
+
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     spdlog::info("Entering {}", __FUNCTION__);
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
@@ -147,14 +155,12 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     }
 
 
-    int numThreads = 64;
-
-#ifdef SGX_HW_SIM
-   numThreads = 16; 
-#endif
 
 
-    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, numThreads);
+
+
+    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
+                                         NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -169,7 +175,8 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
 int SGXWalletServer::initHttpServer() { //without ssl
     spdlog::info("Entering {}", __FUNCTION__);
-    httpServer = make_shared<HttpServer>(BASE_PORT + 3);
+    httpServer = make_shared<HttpServer>(BASE_PORT + 3, "", "",  "", false,
+                                         NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     if (!server->StartListening()) {
