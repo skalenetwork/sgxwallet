@@ -1,15 +1,18 @@
 name: Build base container
 on:
+  workflow_dispatch:
   push:
     tags:
       - build_base*
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+    - name: Fail, if older Github Actions machine
+      run: cat /proc/cpuinfo | grep avx512
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v1
