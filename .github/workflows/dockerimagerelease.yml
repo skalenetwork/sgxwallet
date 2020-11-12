@@ -1,8 +1,10 @@
 name: Build, test and push release SGX container
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -17,7 +19,10 @@ jobs:
       - name: build
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
       - name: deploy docker image
-        if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
+        if: |
+          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+          contains(github.ref, 'master') || contains(github.ref, 'stable') ||
+          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"

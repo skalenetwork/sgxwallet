@@ -1,8 +1,10 @@
 name: Build, test and push sim mode container
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -17,7 +19,10 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: build container for release
-      if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
+      if: |
+        contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+        contains(github.ref, 'master') || contains(github.ref, 'stable') ||
+        contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
       run: |
         export BRANCH=${GITHUB_REF##*/}
         echo "Branch $BRANCH"
