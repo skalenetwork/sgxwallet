@@ -52,4 +52,5 @@ EXTERNC void safeExit();
 
 
 
+
 #endif //SGXD_SEKMANAGER_H
