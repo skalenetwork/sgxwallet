@@ -209,8 +209,12 @@ void gen_SEK() {
 static std::atomic<int> isSgxWalletExiting(0);
 
 void  safeExit() {
+
     // this is to make sure exit is only called once if called from multiple threads
-    if (isSgxWalletExiting.exchange(1) != 1)
+
+    auto previousValue = isSgxWalletExiting.exchange(1);
+
+    if (previousValue != 1)
         exit(3);
 }
 
