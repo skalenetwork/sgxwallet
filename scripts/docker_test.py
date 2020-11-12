@@ -41,7 +41,7 @@ isNightly = os.environ.get("NIGHTLY_TESTS")
 
 iterations = 2 if isNightly else 1
 
-for i in iter(iterations):
+for i in iter(range(iterations)):
     dockerRun = subprocess.run(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-t",
                             "-v", "/dev/urandom:/dev/random", "--name", "sgxwallet", "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-t"])
 
