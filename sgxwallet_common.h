@@ -138,5 +138,4 @@ safeExit(); \
 } while ((status != SGX_SUCCESS || *errStatus == 3) && __ATTEMPTS__ < 2);
 
 
-
 #endif //SGXWALLET_SGXWALLET_COMMON_H
