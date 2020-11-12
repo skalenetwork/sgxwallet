@@ -1,5 +1,7 @@
 name: Build, test and push SGX container
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 jobs:
   build:
     runs-on: ubuntu-latest
