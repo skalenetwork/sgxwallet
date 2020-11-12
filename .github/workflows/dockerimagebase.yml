@@ -1,5 +1,6 @@
 name: Build base container
 on:
+  workflow_dispatch:
   push:
     tags:
       - build_base*
