@@ -111,6 +111,14 @@ void SGXWalletServer::printDB() {
     LevelDB::getLevelDb()->visitKeys(&v, 100000000);
 }
 
+
+#ifdef SGX_HW_SIM
+#define NUM_THREADS 16
+#else
+#define NUM_THREADS 64
+#endif
+
+
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     spdlog::info("Entering {}", __FUNCTION__);
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
@@ -147,14 +155,8 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     }
 
 
-    int numThreads = 64;
-
-#if SGX_MODE == SIM
-   numThreads = 16; 
-#endif
-
-
-    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts, numThreads);
+    httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
+                                         NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -169,7 +171,8 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
 int SGXWalletServer::initHttpServer() { //without ssl
     spdlog::info("Entering {}", __FUNCTION__);
-    httpServer = make_shared<HttpServer>(BASE_PORT + 3);
+    httpServer = make_shared<HttpServer>(BASE_PORT + 3, "", "", "", false,
+                                         NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     if (!server->StartListening()) {
@@ -275,25 +278,25 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
     result["encryptedKey"] = "";
 
     try {
-      if (!checkECDSAKeyName(_keyShareName)) {
-          throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
-      }
+        if (!checkECDSAKeyName(_keyShareName)) {
+            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+        }
 
-      string hashTmp = _keyShare;
-      if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
-          hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
-      }
+        string hashTmp = _keyShare;
+        if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
+            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
+        }
 
-      if (!checkHex(hashTmp)) {
-          throw SGXException(INVALID_HEX, "Invalid ECDSA key share, please use hex");
-      }
+        if (!checkHex(hashTmp)) {
+            throw SGXException(INVALID_HEX, "Invalid ECDSA key share, please use hex");
+        }
 
-      string encryptedKey = encryptECDSAKey(hashTmp);
+        string encryptedKey = encryptECDSAKey(hashTmp);
 
-      writeDataToDB(_keyShareName, encryptedKey);
+        writeDataToDB(_keyShareName, encryptedKey);
 
-      result["encryptedKey"] = encryptedKey;
-      result["publicKey"] = getECDSAPubKey(encryptedKey);
+        result["encryptedKey"] = encryptedKey;
+        result["publicKey"] = getECDSAPubKey(encryptedKey);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);
@@ -580,7 +583,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
     RETURN_SUCCESS(result);
 }
 
-Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n) {
+Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value &publicShares, int t, int n) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -607,14 +610,14 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value& pu
             }
         }
 
-        vector<string> public_shares(n);
+        vector <string> public_shares(n);
         for (int i = 0; i < n; ++i) {
             public_shares[i] = publicShares[i].asString();
         }
 
-        vector<string> public_keys = calculateAllBlsPublicKeys(public_shares);
+        vector <string> public_keys = calculateAllBlsPublicKeys(public_shares);
 
-        if (public_keys.size() != (uint64_t)n) {
+        if (public_keys.size() != (uint64_t) n) {
             throw SGXException(UNKNOWN_ERROR, "");
         }
 
@@ -654,12 +657,12 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
             }
         }
 
-       for (int i = 0; i < _n; i++) {
-           string name = _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteDHDKGKey(name);
-           string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteKey(shareG2_name);
-       }
+        for (int i = 0; i < _n; i++) {
+            string name = _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteDHDKGKey(name);
+            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteKey(shareG2_name);
+        }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
         string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
@@ -762,11 +765,11 @@ Json::Value SGXWalletServer::getBLSPublicKeyShare(const string &blsKeyName) {
     return getBLSPublicKeyShareImpl(blsKeyName);
 }
 
-Json::Value SGXWalletServer::calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n) {
+Json::Value SGXWalletServer::calculateAllBLSPublicKeys(const Json::Value &publicShares, int t, int n) {
     return calculateAllBLSPublicKeysImpl(publicShares, t, n);
 }
 
-Json::Value SGXWalletServer::importECDSAKey(const std::string& keyShare, const std::string& keyShareName) {
+Json::Value SGXWalletServer::importECDSAKey(const std::string &keyShare, const std::string &keyShareName) {
     return importECDSAKeyImpl(keyShare, keyShareName);
 }
 
@@ -787,7 +790,8 @@ SGXWalletServer::importBLSKeyShare(const string &_keyShare, const string &_keySh
     return importBLSKeyShareImpl(_keyShare, _keyShareName);
 }
 
-Json::Value SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n) {
+Json::Value
+SGXWalletServer::blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n) {
     return blsSignMessageHashImpl(_keyShareName, _messageHash, _t, _n);
 }
 
