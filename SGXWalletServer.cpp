@@ -157,6 +157,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
     httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
                                          NUM_THREADS);
+
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -658,10 +659,10 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         }
 
         for (int i = 0; i < _n; i++) {
-            string name = _polyName + "_" + to_string(i) + ":";
-            LevelDB::getLevelDb()->deleteDHDKGKey(name);
-            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-            LevelDB::getLevelDb()->deleteKey(shareG2_name);
+           string name = _polyName + "_" + to_string(i) + ":";
+           LevelDB::getLevelDb()->deleteDHDKGKey(name);
+           string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+           LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
