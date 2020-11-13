@@ -47,7 +47,8 @@ EXTERNC void initSEK();
 
 EXTERNC void setSEK();
 
-EXTERNC void reinitEnclave();
+EXTERNC void safeExit();
+
 
 
 
