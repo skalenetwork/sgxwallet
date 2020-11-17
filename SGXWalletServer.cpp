@@ -545,12 +545,15 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
 
+        CHECK_STATE(encryptedKeyHex_ptr);
+
         bool res = createBLSShare(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
         if (res) {
             spdlog::info("BLS KEY SHARE CREATED ");
         } else {
             throw SGXException(-122, "Error while creating BLS key share");
         }
+
 
         for (int i = 0; i < _n; i++) {
             string name = _polyName + "_" + to_string(i) + ":";
@@ -559,6 +562,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
             LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
         LevelDB::getLevelDb()->deleteKey(_polyName);
+
 
         string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
         LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
@@ -848,9 +852,9 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
 }
 
 void SGXWalletServer::writeDataToDB(const string &name, const string &value) {
+
     if (LevelDB::getLevelDb()->readString(name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, "Name already exists");
     }
-
     LevelDB::getLevelDb()->writeString(name, value);
 }

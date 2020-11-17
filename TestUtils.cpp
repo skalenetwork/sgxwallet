@@ -247,7 +247,7 @@ void TestUtils::sendRPCRequest() {
 
     Json::Value blsPublicKeys;
 
-    for (int i6 = 0; i6 < 2; i6++) {
+    for (int i6 = 0; i6 < 1; i6++) {
         blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
         CHECK_STATE(blsPublicKeys["status"] == 0);
     }
@@ -257,9 +257,14 @@ void TestUtils::sendRPCRequest() {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+
+        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
+                                                  t, n);
         CHECK_STATE(response["status"] == 0);
-        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+
+        for (int i7 = 0; i7 < 10000; i7++) {
+            pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        }
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
         libff::alt_bn128_G2 publicKey(libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
