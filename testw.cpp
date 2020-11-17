@@ -781,7 +781,7 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
 
 TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg bls", "[many-threads-crypto]") {
     vector <thread> threads;
-    int num_threads = 4;
+    int num_threads = 16;
     for (int i = 0; i < num_threads; i++) {
         threads.push_back(thread(TestUtils::sendRPCRequest));
     }

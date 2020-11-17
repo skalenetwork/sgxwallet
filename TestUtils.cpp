@@ -177,6 +177,7 @@ void TestUtils::sendRPCRequest() {
     int schainID = counter.fetch_add(1);
     int dkgID = counter.fetch_add(1);
     for (uint8_t i = 0; i < n; i++) {
+        usleep(100000);
         ethKeys[i] = c.generateECDSAKey();
         CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
@@ -191,6 +192,7 @@ void TestUtils::sendRPCRequest() {
     }
 
     for (uint8_t i = 0; i < n; i++) {
+        usleep(100000);
         secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
@@ -206,6 +208,7 @@ void TestUtils::sendRPCRequest() {
         for (int j = 0; j < n; j++) {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            usleep(100000);
             Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
             CHECK_STATE(verif["status"] == 0);
         }

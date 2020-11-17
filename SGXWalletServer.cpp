@@ -121,6 +121,9 @@ void SGXWalletServer::printDB() {
 
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     spdlog::info("Entering {}", __FUNCTION__);
+
+    spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
+
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
     string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
