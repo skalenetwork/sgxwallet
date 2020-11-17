@@ -179,6 +179,14 @@ void TestUtils::sendRPCRequest() {
     for (uint8_t i = 0; i < n; i++) {
         usleep(100000);
         ethKeys[i] = c.generateECDSAKey();
+
+        for (int i2 = 0; i2 < 10000; i2++) {
+            auto keyName = ethKeys[i]["keyName"].asString();
+            Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
+            CHECK_STATE(sig["status"].asInt() == 0);
+        }
+
+
         CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
