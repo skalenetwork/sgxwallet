@@ -88,11 +88,21 @@ enclave {
                                 [out, count = 3072] uint8_t* decrypted_dkg_secret
                                 );
 
-
-
-
-
         public void trustedGetEncryptedSecretShare(
+                                [out]int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string,
+                                [in, count = 3050] uint8_t* encrypted_poly,
+                                uint64_t enc_len,
+                                [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_skey,
+                                [out] uint64_t* dec_len,
+                                [out, count = 193] char* result_str,
+                                [out, count = 320] char* s_shareG2,
+                                [in, string] char* pub_keyB,
+                                uint8_t _t,
+                                uint8_t _n,
+                                uint8_t ind);
+
+        public void trustedGetEncryptedSecretShareV2(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
                                 [in, count = 3050] uint8_t* encrypted_poly,
@@ -116,6 +126,17 @@ enclave {
                                 unsigned _n);
 
         public void trustedDkgVerify(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char* err_string,
+                                [in, string] const char* public_shares,
+                                [in, string] const char* s_share,
+                                [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
+                                uint64_t key_len,
+                                unsigned _t,
+                                int _ind,
+                                [out] int* result);
+
+        public void trustedDkgVerifyV2(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, string] const char* public_shares,
