@@ -58,6 +58,9 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("getServerStatus", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerStatusI);
           this->bindAndAddMethod(jsonrpc::Procedure("getServerVersion", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,  NULL), &AbstractStubServer::getServerVersionI);
           this->bindAndAddMethod(jsonrpc::Procedure("deleteBlsKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName", jsonrpc::JSON_STRING, NULL), &AbstractStubServer::deleteBlsKeyI);
+
+          this->bindAndAddMethod(jsonrpc::Procedure("getSecretShareV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"publicKeys",jsonrpc::JSON_ARRAY, "n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getSecretShareV2I);
+          this->bindAndAddMethod(jsonrpc::Procedure("dkgVerificationV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::dkgVerificationV2I);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -144,6 +147,15 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->deleteBlsKey(request["blsKeyName"].asString());
         }
 
+        inline virtual void getSecretShareV2I(const Json::Value &request, Json::Value &response)
+        {
+            response = this->getSecretShareV2(request["polyName"].asString(), request["publicKeys"], request["t"].asInt(),request["n"].asInt());
+        }
+        inline virtual void dkgVerificationV2I(const Json::Value &request, Json::Value &response)
+        {
+            response = this->dkgVerificationV2(request["publicShares"].asString(), request["ethKeyName"].asString(), request["secretShare"].asString(), request["t"].asInt(), request["n"].asInt(), request["index"].asInt());
+        }
+
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n ) = 0;
         virtual Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName) = 0;
@@ -165,6 +177,9 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value getServerStatus() = 0;
         virtual Json::Value getServerVersion() = 0;
         virtual Json::Value deleteBlsKey(const std::string& name) = 0;
+
+        virtual Json::Value getSecretShareV2(const std::string& polyName, const Json::Value& publicKeys, int t, int n) = 0;
+        virtual Json::Value dkgVerificationV2( const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_
