@@ -101,7 +101,7 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 extern std::shared_timed_mutex sgxInitMutex;
 extern uint64_t initTime;
 
-#if SGX_MODE == SIM
+#ifdef SGX_HW_SIM
 #define ENCLAVE_RESTART_PERIOD_S 5
 #else
 #define ENCLAVE_RESTART_PERIOD_S 60 * 10

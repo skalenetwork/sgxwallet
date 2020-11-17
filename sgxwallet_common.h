@@ -121,8 +121,8 @@ READ_LOCK(sgxInitMutex);
 } \
 if (status != SGX_SUCCESS || errStatus == 3) { \
 spdlog::error(__FUNCTION__);                   \
-spdlog::error("Restarting sgx on status errStatus... {} {}", status, errStatus);                    \
-reinitEnclave(); \
+spdlog::error("Exiting sgx on status errStatus... {} {}", status, errStatus);                    \
+safeExit(); \
 } \
 } while ((status != SGX_SUCCESS || errStatus == 3) && __ATTEMPTS__ < 2);
 
@@ -133,10 +133,9 @@ reinitEnclave(); \
 if (status != SGX_SUCCESS || *errStatus == 3) { \
 spdlog::error(__FUNCTION__);\
 spdlog::error("Restarting sgx on status errStatus... {} {}", status, *errStatus);                            \
-reinitEnclave(); \
+safeExit(); \
 } \
 } while ((status != SGX_SUCCESS || *errStatus == 3) && __ATTEMPTS__ < 2);
-
 
 
 #endif //SGXWALLET_SGXWALLET_COMMON_H

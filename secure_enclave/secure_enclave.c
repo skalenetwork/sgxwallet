@@ -163,7 +163,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
 #endif
 
-#if SGX_MODE == SIM
+#ifdef SGX_HW_SIM
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
 #endif
 
@@ -847,9 +847,13 @@ void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encryp
     LOG_INFO("SGX call completed");
 }
 
-void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *encrypted_skey, uint64_t *dec_len,
+
+void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
+                                    uint8_t *_encrypted_poly,  uint64_t _enc_len,
+                                    uint8_t *encrypted_skey, uint64_t *dec_len,
                                        char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
                                        uint8_t ind) {
+
 
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
@@ -863,6 +867,11 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString, uint8_t *en
     CHECK_STATE(pub_keyB);
 
     LOG_DEBUG(__FUNCTION__);
+
+    trustedSetEncryptedDkgPoly(&status, errString, _encrypted_poly, _enc_len);
+
+    CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
+
 
     SAFE_CHAR_BUF(skey, BUF_LEN);
 
@@ -1117,8 +1126,6 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
 
     uint8_t type = 0;
     uint8_t exportable = 0;
-
-
 
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
                              &type, &exportable);
