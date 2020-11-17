@@ -507,15 +507,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     point_clear(pKey);
     point_clear(pKey_test);
 
-    static uint64_t counter = 0;
-
-    if (counter % 1000 == 0) {
-        LOG_INFO(__FUNCTION__);
-        LOG_INFO("Thousand SGX calls completed");
-    }
-
-    counter++;
-
 }
 
 static uint64_t sigCounter = 0;
@@ -537,7 +528,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     mpz_init(privateKeyMpz);
     mpz_t msgMpz;
     mpz_init(msgMpz);
-    signature sign = signature_init();
+    signature sign =  NULL;
+    sign = signature_init();
 
     uint8_t type = 0;
     uint8_t exportable = 0;
@@ -603,7 +595,8 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     mpz_clear(privateKeyMpz);
     mpz_clear(msgMpz);
-    signature_free(sign);
+    if (sign)
+        signature_free(sign);
     LOG_DEBUG(__FUNCTION__ );
     LOG_DEBUG("SGX call completed");
 }
@@ -1275,12 +1268,9 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     CHECK_STATUS("could not calculate bls public key");
 
     SET_SUCCESS
-    static uint64_t counter = 0;
-    clean:
-    if (counter % 1000 == 0) {
-        LOG_INFO(__FUNCTION__);
-        LOG_INFO("Thousand SGX calls completed");
-    }
 
-    counter++;
+    clean:
+    ;
+
+
 }
