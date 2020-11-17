@@ -174,11 +174,19 @@ void TestUtils::sendRPCRequest() {
 
     int schainID = counter.fetch_add(1);
     int dkgID = counter.fetch_add(1);
+
+    int testCount = 1;
+
+    if (getenv("NIGHTLY_TESTS")) {
+        testCount = 10;
+
+
+
     for (uint8_t i = 0; i < n; i++) {
         usleep(100000);
         ethKeys[i] = c.generateECDSAKey();
 
-        for (int i2 = 0; i2 < 1; i2++) {
+        for (int i2 = 0; i2 < testCount; i2++) {
             auto keyName = ethKeys[i]["keyName"].asString();
             Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
             CHECK_STATE(sig["status"].asInt() == 0);
@@ -192,7 +200,7 @@ void TestUtils::sendRPCRequest() {
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
 
-        for (int i3 = 0; i3 < 3; i3++) {
+        for (int i3 = 0; i3 <= testCount; i3++) {
             verifVects[i] = c.getVerificationVector(polyName, t, n);
             CHECK_STATE(verifVects[i]["status"] == 0);
         }
@@ -202,7 +210,7 @@ void TestUtils::sendRPCRequest() {
 
     for (uint8_t i = 0; i < n; i++) {
         usleep(100000);
-        for (int i4 = 0; i4 < 1; i4++) {
+        for (int i4 = 0; i4 <= testCount; i4++) {
             secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
         }
         for (uint8_t k = 0; k < t; k++) {
@@ -220,7 +228,7 @@ void TestUtils::sendRPCRequest() {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             usleep(100000);
-            for (int i5 = 0; i5 < 1; i5++) {
+            for (int i5 = 0; i5 <= testCount; i5++) {
                 Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
                                                       j);
                 CHECK_STATE(verif["status"] == 0);
@@ -247,7 +255,7 @@ void TestUtils::sendRPCRequest() {
 
     Json::Value blsPublicKeys;
 
-    for (int i6 = 0; i6 < 1; i6++) {
+    for (int i6 = 0; i6 <= testCount; i6++) {
         blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
         CHECK_STATE(blsPublicKeys["status"] == 0);
     }
@@ -262,7 +270,7 @@ void TestUtils::sendRPCRequest() {
                                                   t, n);
         CHECK_STATE(response["status"] == 0);
 
-        for (int i7 = 0; i7 < 10000; i7++) {
+        for (int i7 = 0; i7 <= testCount; i7++) {
             pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         }
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
