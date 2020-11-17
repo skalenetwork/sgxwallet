@@ -87,4 +87,6 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_k
 
 int xorDecryptDH(char *key, const char *cypher, vector<char>& message);
 
+int xorDecryptDHV2(char *key, const char *cypher, vector<char>& message);
+
 #endif //SGXWALLET_TESTW_H

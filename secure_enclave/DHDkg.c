@@ -161,7 +161,7 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
     point_clear(pub_keyB);
     point_clear(session_key);
 
-    return  ret;
+    return ret;
 }
 
 int xor_encrypt(char *key, char *message, char *cypher) {
@@ -333,5 +333,19 @@ int xor_decrypt_v2(char *key, char *cypher, char *message) {
 }
 
 int hash_key(char* key, char* hashed_key) {
-    return sgx_sha256_msg((uint8_t*)key, ECDSA_SKEY_LEN, (uint8_t*)hashed_key);
+    int ret = -1;
+
+    if (!key) {
+        LOG_ERROR("hash_key: null key");
+        return ret;
+    }
+
+    if (!hashed_key) {
+        LOG_ERROR("hash_key: null hashed_key");
+        return ret;
+    }
+
+    ret = sgx_sha256_msg((uint8_t*)key, ECDSA_SKEY_LEN - 1, (uint8_t*)hashed_key);
+
+    return ret;
 }

@@ -777,3 +777,39 @@ int xorDecryptDH(char *key, const char *cypher, vector<char>& message) {
 
     return ret;
 }
+
+int xorDecryptDHV2(char *key, const char *cypher, vector<char>& message) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        return ret;
+    }
+
+    if (!key) {
+        return ret;
+    }
+
+    if (!message.data()) {
+        return ret;
+    }
+
+    SAFE_CHAR_BUF(msg_bin,33)
+
+    uint64_t cypher_length;
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin, 33)) {
+        return ret;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        msg_bin[i] = cypher_bin[i] ^ (uint8_t)key[i];
+    }
+
+    message = carray2Hex((unsigned char*) msg_bin, 32);
+
+    ret = 0;
+
+    return ret;
+}

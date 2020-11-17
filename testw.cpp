@@ -943,10 +943,17 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     SAFE_CHAR_BUF(common_key, BUF_LEN);
     REQUIRE(sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
 
+    auto hashed_key = cryptlite::sha256::hash_hex(string(common_key, 64));
+
+    SAFE_CHAR_BUF(derived_key, 33)
+
+    uint64_t key_length;
+    REQUIRE(hex2carray(&hashed_key[0], &key_length, (uint8_t*) derived_key, 33));
+
     SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
     strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
 
-    REQUIRE(xorDecryptDH(common_key, encr_sshare_check, message) == 0);
+    REQUIRE(xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
 
     mpz_t hex_share;
     mpz_init(hex_share);
