@@ -179,8 +179,7 @@ void TestUtils::sendRPCRequest() {
 
     if (getenv("NIGHTLY_TESTS")) {
         testCount = 10;
-
-
+    }
 
     for (uint8_t i = 0; i < n; i++) {
         usleep(100000);
