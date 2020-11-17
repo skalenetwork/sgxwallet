@@ -44,13 +44,18 @@ testList = ["[first-run]",
             "[bls-key-encrypt]",
             "[dkg-aes-gen]",
             "[dkg-aes-encr-sshares]",
+            "[dkg-aes-encr-sshares-v2]",
             "[dkg-api]",
+            "[dkg-api-v2]",
             "[dkg-bls]",
+            "[dkg-bls-v2]",
             "[dkg-poly-exists]",
             "[dkg-aes-pub-shares]",
             "[many-threads-crypto]",
+            "[many-threads-crypto-v2]",
             "[aes-encrypt-decrypt]",
-            "[aes-dkg]"
+            "[aes-dkg]",
+            "[aes-dkg-v2]"
             ]
 
 
