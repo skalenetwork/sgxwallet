@@ -247,7 +247,7 @@ void TestUtils::sendRPCRequest() {
 
     Json::Value blsPublicKeys;
 
-    for (int i6 = 0; i6 < 10000; i6++) {
+    for (int i6 = 0; i6 < 2; i6++) {
         Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
         CHECK_STATE(blsPublicKeys["status"] == 0);
     }
