@@ -79,14 +79,12 @@ string TestUtils::convertDecToHex(string dec, int numBytes) {
     mpz_t num;
     mpz_init(num);
     mpz_set_str(num, dec.c_str(), 10);
-
     vector<char> tmp(mpz_sizeinbase(num, 16) + 2, 0);
     char *hex = mpz_get_str(tmp.data(), 16, num);
-
     string result = hex;
     int n_zeroes = numBytes * 2 - result.length();
     result.insert(0, n_zeroes, '0');
-
+    mpz_clear(num);
     return result;
 }
 
@@ -180,7 +178,7 @@ void TestUtils::sendRPCRequest() {
         usleep(100000);
         ethKeys[i] = c.generateECDSAKey();
 
-        for (int i2 = 0; i2 < 10000; i2++) {
+        for (int i2 = 0; i2 < 3; i2++) {
             auto keyName = ethKeys[i]["keyName"].asString();
             Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
             CHECK_STATE(sig["status"].asInt() == 0);
@@ -193,15 +191,20 @@ void TestUtils::sendRPCRequest() {
         auto response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
-        CHECK_STATE(verifVects[i]["status"] == 0);
+
+        for (int i3 = 0; i3 < 3; i3++) {
+            verifVects[i] = c.getVerificationVector(polyName, t, n);
+            CHECK_STATE(verifVects[i]["status"] == 0);
+        }
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
 
     for (uint8_t i = 0; i < n; i++) {
         usleep(100000);
-        secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
+        for (int i4 = 0; i4 < 1; i4++) {
+            secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
+        }
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = verifVects[i]["verificationVector"][k][j].asString();
@@ -217,8 +220,11 @@ void TestUtils::sendRPCRequest() {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             usleep(100000);
-            Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
-            CHECK_STATE(verif["status"] == 0);
+            for (int i5 = 0; i5 < 1; i5++) {
+                Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+                                                      j);
+                CHECK_STATE(verif["status"] == 0);
+            }
         }
 
     BLSSigShareSet sigShareSet(t, n);
@@ -238,8 +244,13 @@ void TestUtils::sendRPCRequest() {
         publicShares["publicShares"][i] = pubShares[i];
     }
 
-    Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
-    CHECK_STATE(blsPublicKeys["status"] == 0);
+
+    Json::Value blsPublicKeys;
+
+    for (int i6 = 0; i6 < 10000; i6++) {
+        Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
+        CHECK_STATE(blsPublicKeys["status"] == 0);
+    }
 
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);

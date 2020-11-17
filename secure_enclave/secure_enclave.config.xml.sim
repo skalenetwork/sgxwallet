@@ -2,7 +2,7 @@
  <ProdID>0</ProdID>
  <ISVSVN>1</ISVSVN>
  <StackMaxSize>0x100000</StackMaxSize>
- <HeapMaxSize>0x20000</HeapMaxSize>
+ <HeapMaxSize>0x100000</HeapMaxSize>
  <TCSNum>16</TCSNum>
  <TCSMaxNum>16</TCSMaxNum>
  <TCSMinPool>16</TCSMinPool>
