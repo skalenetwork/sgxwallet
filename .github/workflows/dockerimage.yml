@@ -36,3 +36,8 @@ jobs:
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh Dockerfile sgxwallet
           bash ./scripts/publish_image.sh sgxwallet
+        env:
+          ACTIONS_ALLOW_INSECURE_COMMANDS: true
+
+
+
