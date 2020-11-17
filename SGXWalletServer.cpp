@@ -737,6 +737,76 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
     RETURN_SUCCESS(result)
 }
 
+Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result);
+    result["secretShare"] = "";
+
+    try {
+        if (_pubKeys.size() != (uint64_t) _n) {
+            throw SGXException(INVALID_DKG_PARAMS, "invalid number of public keys");
+        }
+        if (!checkName(_polyName, "POLY")) {
+            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+        }
+        if (!check_n_t(_t, _n)) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+        }
+
+        shared_ptr <string> encrPoly = readFromDb(_polyName);
+
+        vector <string> pubKeysStrs;
+        for (int i = 0; i < _n; i++) {
+            if (!checkHex(_pubKeys[i].asString(), 64)) {
+                throw SGXException(INVALID_HEX, "Invalid public key");
+            }
+            pubKeysStrs.push_back(_pubKeys[i].asString());
+        }
+
+        string secret_share_name = "encryptedSecretShare:" + _polyName;
+        shared_ptr <string> encryptedSecretShare = checkDataFromDb(secret_share_name);
+
+        if (encryptedSecretShare != nullptr) {
+            result["secretShare"] = *encryptedSecretShare.get();
+        } else {
+            string s = getSecretSharesV2(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
+            result["secretShare"] = s;
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
+Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName,
+                                                 const string &_secretShare, int _t, int _n, int _index) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+    result["result"] = false;
+
+    try {
+        if (!checkECDSAKeyName(_ethKeyName)) {
+            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+        }
+        if (!check_n_t(_t, _n) || _index >= _n || _index < 0) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+        }
+        if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
+            throw SGXException(INVALID_HEX, "Invalid Secret share");
+        }
+        if (_publicShares.length() != (uint64_t) 256 * _t) {
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+        }
+
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+
+        if (verifySharesV2(_publicShares.c_str(), _secretShare.c_str(), encryptedKeyHex_ptr->c_str(), _t, _n, _index)) {
+            result["result"] = true;
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
@@ -818,6 +888,17 @@ Json::Value SGXWalletServer::getServerVersion() {
 
 Json::Value SGXWalletServer::deleteBlsKey(const string &name) {
     return deleteBlsKeyImpl(name);
+}
+
+Json::Value SGXWalletServer::getSecretShareV2(const string &_polyName, const Json::Value &_publicKeys, int t, int n) {
+    return getSecretShareV2Impl(_polyName, _publicKeys, t, n);
+}
+
+Json::Value
+SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
+                                 int t,
+                                 int n, int index) {
+    return dkgVerificationV2Impl(_publicShares, ethKeyName, SecretShare, t, n, index);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

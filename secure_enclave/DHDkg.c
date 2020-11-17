@@ -209,6 +209,44 @@ int xor_encrypt(char *key, char *message, char *cypher) {
     return ret;
 }
 
+int xor_encrypt_v2(char *key, char *message, char *cypher) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        LOG_ERROR("xor_encrypt: null cypher");
+        return ret;
+    }
+
+    if (!key) {
+        LOG_ERROR("xor_encrypt: null key");
+        return ret;
+    }
+
+    if (!message) {
+        LOG_ERROR("xor_encrypt: null message");
+        return ret;
+    }
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+
+    uint64_t msg_length;
+    uint8_t msg_bin[33];
+    if (!hex2carray(message, &msg_length, msg_bin)) {
+        return ret;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        cypher_bin[i] = msg_bin[i] ^ (uint8_t)key[i];
+    }
+
+    carray2Hex((unsigned char*) cypher_bin, 32, cypher);
+
+    ret = 0;
+
+    return ret;
+}
+
 int xor_decrypt(char *key, char *cypher, char *message) {
 
     int ret = -1;
@@ -253,4 +291,47 @@ int xor_decrypt(char *key, char *cypher, char *message) {
     ret = 0;
 
     return ret;
+}
+
+int xor_decrypt_v2(char *key, char *cypher, char *message) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        LOG_ERROR("xor_encrypt: null cypher");
+        return ret;
+    }
+
+    if (!key) {
+        LOG_ERROR("xor_encrypt: null key");
+        return ret;
+    }
+
+    if (!message) {
+        LOG_ERROR("xor_encrypt: null message");
+        return ret;
+    }
+
+    SAFE_CHAR_BUF(msg_bin,33);
+
+    uint64_t cypher_length;
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin)) {
+        return ret;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        msg_bin[i] = cypher_bin[i] ^ (uint8_t)key[i];
+    }
+
+    carray2Hex((unsigned char*) msg_bin, 32, message);
+
+    ret = 0;
+
+    return ret;
+}
+
+int hash_key(char* key, char* hashed_key) {
+    return sgx_sha256_msg((uint8_t*)key, ECDSA_SKEY_LEN, (uint8_t*)hashed_key);
 }
