@@ -67,10 +67,9 @@ string ConvertToString(T field_elem, int base = 10) {
     SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
     mpz_get_str(arr, base, t);
+
     mpz_clear(t);
-
     string output = arr;
-
     return output;
 }
 
@@ -82,8 +81,7 @@ string convertHexToDec(const string &hex_str) {
 
     try {
         if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-            mpz_clear(dec);
-            return ret;
+            goto clean;
         }
 
         SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
@@ -96,6 +94,10 @@ string convertHexToDec(const string &hex_str) {
         mpz_clear(dec);
         throw SGXException(UNKNOWN_ERROR, "");
     }
+
+    clean:
+
+    mpz_clear(dec);
 
     return ret;
 }
