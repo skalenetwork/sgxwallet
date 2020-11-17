@@ -178,7 +178,7 @@ void TestUtils::sendRPCRequest() {
         usleep(100000);
         ethKeys[i] = c.generateECDSAKey();
 
-        for (int i2 = 0; i2 < 3; i2++) {
+        for (int i2 = 0; i2 < 1; i2++) {
             auto keyName = ethKeys[i]["keyName"].asString();
             Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
             CHECK_STATE(sig["status"].asInt() == 0);
@@ -248,7 +248,7 @@ void TestUtils::sendRPCRequest() {
     Json::Value blsPublicKeys;
 
     for (int i6 = 0; i6 < 2; i6++) {
-        Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
+        blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
         CHECK_STATE(blsPublicKeys["status"] == 0);
     }
 
