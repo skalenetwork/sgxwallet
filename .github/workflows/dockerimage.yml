@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     env:
-      ACTIONS_ALLOW_INSECURE_COMMANDS: true
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
@@ -37,7 +37,7 @@ jobs:
           bash ./scripts/build_image.sh Dockerfile sgxwallet
           bash ./scripts/publish_image.sh sgxwallet
         env:
-          ACTIONS_ALLOW_INSECURE_COMMANDS: true
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
 
 
