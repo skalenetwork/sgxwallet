@@ -5,8 +5,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
-    env:
-      ACTIONS_ALLOW_INSECURE_COMMANDS: true
+    env: 
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
@@ -53,4 +53,4 @@ jobs:
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/publish_image.sh sgxwallet_release
         env:
-          ACTIONS_ALLOW_INSECURE_COMMANDS: true
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
