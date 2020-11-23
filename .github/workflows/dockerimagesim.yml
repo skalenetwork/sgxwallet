@@ -37,7 +37,7 @@ jobs:
             echo "Version $VERSION"
             export RELEASE=true
             echo "::set-env name=RELEASE::$RELEASE"
-            bash ./scripts/build_image.sh DockerfileSim sgxwallet_sim
+            bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
             bash ./scripts/publish_image.sh sgxwallet_sim
       env:
             ACTIONS_ALLOW_UNSECURE_COMMANDS: true
