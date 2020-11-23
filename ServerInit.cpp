@@ -86,7 +86,7 @@ uint64_t initEnclave() {
 
     {
 
-        WRITE_LOCK(sgxInitMutex);
+        WRITE_LOCK(sgxInitMute  x);
 
         if (eid != 0) {
             if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
