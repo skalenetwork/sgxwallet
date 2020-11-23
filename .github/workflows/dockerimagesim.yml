@@ -6,7 +6,6 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
@@ -25,21 +24,23 @@ jobs:
       run: python3 scripts/docker_test.py DockerfileSimulation sgxwalletsim
     - name: build and deploy docker image
       if: |
-            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-            contains(github.ref, 'master') || contains(github.ref, 'stable') ||
-            contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+        contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+        contains(github.ref, 'master') || contains(github.ref, 'stable') ||
+        contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
       run : |
-        export BRANCH=${GITHUB_REF##*/}
-        echo "Branch $BRANCH"
-        export VERSION=${{env.VERSION}}
-        echo "::set-env name=VERSION::$VERSION"
-        echo "Version $VERSION"
-        export RELEASE=true
-        echo "::set-env name=RELEASE::$RELEASE"
-        bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
-        bash ./scripts/publish_image.sh sgxwallet_sim
+            export BRANCH=${GITHUB_REF##*/}
+            echo "Branch $BRANCH"
+            export VERSION=$(cat VERSION)
+            echo "Version $VERSION"
+            export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
+            echo "::set-env name=VERSION::$VERSION"
+            echo "Version $VERSION"
+            export RELEASE=true
+            echo "::set-env name=RELEASE::$RELEASE"
+            bash ./scripts/build_image.sh DockerfileSim sgxwallet_sim
+            bash ./scripts/publish_image.sh sgxwallet_sim
       env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+            ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     - name: Create Release
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       id: create_release
