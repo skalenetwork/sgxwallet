@@ -115,7 +115,7 @@ void SGXWalletServer::printDB() {
 #ifdef SGX_HW_SIM
 #define NUM_THREADS 16
 #else
-#define NUM_THREADS 64
+#define NUM_THREADS 200
 #endif
 
 
