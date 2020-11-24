@@ -41,16 +41,6 @@ jobs:
             bash ./scripts/publish_image.sh sgxwallet_sim
       env:
             ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-    - name: Create Release
-      if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
-      id: create_release
-      uses: actions/create-release@latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VERSION }}
-        release_name: ${{ env.VERSION }}
-        draft: false
-        prerelease: true
+
 
 
