@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 CONTAINER_NAME=$1
 
@@ -10,14 +11,8 @@ CONTAINER_NAME=$1
 REPO_NAME=skalenetwork/$CONTAINER_NAME
 IMAGE_NAME=$REPO_NAME:$VERSION
 
-if [ "${BRANCH}" = "stable" ];
-then
-	LATEST_IMAGE_NAME=$REPO_NAME:latest
-	docker tag "${IMAGE_NAME}" "${LATEST_IMAGE_NAME}"
-else
-	LATEST_IMAGE_NAME=$REPO_NAME:$BRANCH-latest
-	docker tag "${IMAGE_NAME}" "${LATEST_IMAGE_NAME}"
-fi
+LATEST_IMAGE_NAME=$REPO_NAME:$BRANCH-latest
+docker tag "${IMAGE_NAME}" "${LATEST_IMAGE_NAME}"
 
 : "${DOCKER_USERNAME?Need to set DOCKER_USERNAME}"
 : "${DOCKER_PASSWORD?Need to set DOCKER_PASSWORD}"

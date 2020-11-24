@@ -65,15 +65,13 @@ void create_test_key() {
     sgx_status_t status =  SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key, &enc_len);
     }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    vector<char> hexEncrKey(2 * enc_len + 1, 0);
-
-    carray2Hex(encrypted_key, enc_len, hexEncrKey.data(), 2 * enc_len + 1);
+    vector<char> hexEncrKey = carray2Hex(encrypted_key, enc_len);
 
     LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
@@ -98,7 +96,7 @@ void validate_SEK() {
     sgx_status_t status = SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedDecryptKey(eid, &err_status, errMsg.data(), encr_test_key.data(), len, decr_key.data());
     }
 
@@ -128,7 +126,7 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
     sgx_status_t status = SGX_SUCCESS;
 
     {
-        READ_LOCK(initMutex);
+        READ_LOCK(sgxInitMutex);
         status = trustedSetSEKBackup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
                              SEK.c_str());
     }
@@ -167,9 +165,7 @@ void gen_SEK() {
         throw SGXException(-1, "strnlen(SEK,33) != 32");
     }
 
-    vector<char> hexEncrKey(2 * enc_len + 1, 0);
-
-    carray2Hex(encrypted_SEK.data(), enc_len, hexEncrKey.data(), 2 * enc_len + 1);
+    vector<char> hexEncrKey = carray2Hex(encrypted_SEK.data(), enc_len);
 
     spdlog::info(string("Encrypted storage encryption key:") + hexEncrKey.data());
 
@@ -209,11 +205,17 @@ void gen_SEK() {
 
 }
 
-void  reinitEnclave() {
-    // unfortunately process needs to be restarted to reinit enclave
-    // exiting with error code 3 (SGX_OUT_OF_MEMORY), so docker container can restart the
-    // wallet
-    exit(3);
+
+static std::atomic<int> isSgxWalletExiting(0);
+
+void  safeExit() {
+
+    // this is to make sure exit is only called once if called from multiple threads
+
+    auto previousValue = isSgxWalletExiting.exchange(1);
+
+    if (previousValue != 1)
+        exit(3);
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
@@ -281,10 +283,7 @@ void enter_SEK() {
 
     auto encrypted_SEK = check_and_set_SEK(sek);
 
-    vector<char> hexEncrKey(BUF_LEN, 0);
-
-    carray2Hex(encrypted_SEK->data(), encrypted_SEK->size(), hexEncrKey.data(),
-               BUF_LEN);
+    vector<char> hexEncrKey = carray2Hex(encrypted_SEK->data(), encrypted_SEK->size());
 
     spdlog::info("Got sealed storage encryption key.");
 

@@ -1,24 +1,26 @@
 name: Build base container
 on:
+  workflow_dispatch:
   push:
     tags:
       - build_base*
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
+      ACTIONS_ALLOW_UNSECURE_COMMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+    - name: Fail, if older Github Actions machine
+      run: cat /proc/cpuinfo | grep avx512
     - name: Login to docker
-      env:
-        GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
-      run: docker login -u skalelabs -p ${GITHUB_TOKEN}
+      run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest
+      run: docker build . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest && docker push skalenetwork/sgxwallet_base:latest
     - name: deploy docker image
       if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
       run : |

@@ -1,23 +1,29 @@
 name: Build, test and push SGX container
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+      - name: Fail, if older Github Actions machine. Click "Re-run jobs"
+        run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
-        env:
-          GITHUB_TOKEN: ${{ secrets.DOCKER_SECRET }}
-        run: docker login -u skalelabs -p ${GITHUB_TOKEN}
+        run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
       - uses: actions/checkout@v1
       - name: submodule update
         run: git submodule update --init --recursive
       - name: build
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
       - name: deploy docker image
-        if: contains(github.ref, 'develop') || contains(github.ref, 'beta') || contains(github.ref, 'master') || contains(github.ref, 'stable')
+        if: |
+          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+          contains(github.ref, 'master') || contains(github.ref, 'stable') ||
+          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
@@ -30,3 +36,8 @@ jobs:
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh Dockerfile sgxwallet
           bash ./scripts/publish_image.sh sgxwallet
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+
+

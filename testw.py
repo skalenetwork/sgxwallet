@@ -30,12 +30,15 @@ topDir = os.getcwd() + "/sgxwallet"
 print("Top directory is:" + topDir)
 testList = ["[first-run]",
             "[second-run]",
+            "[many-threads-crypto]",
+            "[many-threads-crypto-v2]",
             "[backup-restore]",
             "[cert-sign]",
             "[get-server-status]",
             "[get-server-version]",
             "[backup-key]",
             "[delete-bls-key]",
+            "[import-ecdsa-key]",
             "[ecdsa-aes-key-gen]",
             "[ecdsa-aes-key-sig-gen]",
             "[ecdsa-aes-get-pub-key]",
@@ -43,14 +46,16 @@ testList = ["[first-run]",
             "[bls-key-encrypt]",
             "[dkg-aes-gen]",
             "[dkg-aes-encr-sshares]",
-            "[dkg-verify]",
+            "[dkg-aes-encr-sshares-v2]",
             "[dkg-api]",
+            "[dkg-api-v2]",
             "[dkg-bls]",
+            "[dkg-bls-v2]",
             "[dkg-poly-exists]",
             "[dkg-aes-pub-shares]",
-            "[many-threads-crypto]",
             "[aes-encrypt-decrypt]",
-            "[aes-dkg]"
+            "[aes-dkg]",
+            "[aes-dkg-v2]"
             ]
 
 

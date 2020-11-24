@@ -51,6 +51,9 @@ public:
     virtual Json::Value
     blsSignMessageHash(const string &_keyShareName, const string &_messageHash, int _t, int _n);
 
+    virtual Json::Value importECDSAKey(const std::string& keyShare,
+                                       const std::string& keyShareName);
+
     virtual Json::Value generateECDSAKey();
 
     virtual Json::Value
@@ -76,7 +79,7 @@ public:
 
     virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
 
-    virtual Json::Value complaintResponse(const string &polyName, int ind);
+    virtual Json::Value complaintResponse(const string &polyName, int t, int n, int ind);
 
     virtual Json::Value multG2(const string &x);
 
@@ -87,6 +90,10 @@ public:
     virtual Json::Value getServerVersion();
 
     virtual Json::Value deleteBlsKey( const std::string& name );
+
+    virtual Json::Value getSecretShareV2(const string &_polyName, const Json::Value &_publicKeys, int t, int n);
+
+    virtual Json::Value dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare, int t, int n, int index);
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
@@ -101,6 +108,8 @@ public:
 
     static Json::Value
     blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n);
+
+    static Json::Value importECDSAKeyImpl(const string &_keyShare, const string &_keyShareName);
 
     static Json::Value generateECDSAKeyImpl();
 
@@ -126,7 +135,7 @@ public:
 
     static Json::Value calculateAllBLSPublicKeysImpl(const Json::Value& publicShares, int t, int n);
 
-    static Json::Value complaintResponseImpl(const string &_polyName, int _ind);
+    static Json::Value complaintResponseImpl(const string &_polyName, int t, int n, int _ind);
 
     static Json::Value multG2Impl(const string &_x);
 
@@ -137,6 +146,10 @@ public:
     static Json::Value getServerVersionImpl();
 
     static Json::Value deleteBlsKeyImpl(const std::string& name);
+
+    static Json::Value getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
+
+    static Json::Value dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare, int _t, int _n, int _index);
 
     static void printDB();
 
