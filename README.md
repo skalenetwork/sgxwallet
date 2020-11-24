@@ -51,7 +51,7 @@ Then run sgxwallet using docker-compose
 cd run_sgx_sim; sudo docker-compose up
 ```
 
-Note: you need a machine that supports Intel AVX512 instuction set.  Most modern Intel CPUs support it. To verify you machine supports AVX512, run
+Note: you need a machine that supports Intel AVX512 instruction set.  Most modern Intel CPUs support it. To verify you machine supports AVX512, run
 
 
 ```
