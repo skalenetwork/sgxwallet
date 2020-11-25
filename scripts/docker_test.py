@@ -79,4 +79,4 @@ s2.close()
 s3.close()
 
 assert subprocess.call(["docker", "rm", "-f", "sgxwallet"]) == 0
-assert subprocess.call(["rm", "-f", "sgx_data"]) == 0
+assert subprocess.call(["rm", "-rf", "sgx_data"]) == 0
