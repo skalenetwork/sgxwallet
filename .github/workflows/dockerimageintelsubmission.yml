@@ -1,4 +1,4 @@
-name: Build, test and push release SGX container
+name: Build, test and push Intel SGX container
 on:
   workflow_dispatch:
   push:
