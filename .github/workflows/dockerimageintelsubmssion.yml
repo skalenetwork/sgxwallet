@@ -18,9 +18,7 @@ jobs:
         run: git submodule update --init --recursive
       - name: build and deploy docker image
         if: |
-          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-          contains(github.ref, 'master') || contains(github.ref, 'stable') ||
-          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+          contains(github.ref, 'stable')
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
@@ -31,7 +29,7 @@ jobs:
           echo "Version $VERSION"
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
-          bash ./scripts/build_image.sh DockerfileRelease sgxwallet_release
-          bash ./scripts/publish_image.sh sgxwallet_release
+          bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
+          bash ./scripts/publish_image.sh sgxwallet_intelsubmission
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
