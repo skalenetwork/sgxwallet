@@ -77,3 +77,6 @@ s3.connect((address, 1028))
 s1.close()
 s2.close()
 s3.close()
+
+assert subprocess.call(["docker", "rm", "-f", "sgxwallet"]) == 0
+assert subprocess.call(["rm", "-f", "sgx_data"]) == 0
