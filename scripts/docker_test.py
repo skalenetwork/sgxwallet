@@ -50,33 +50,5 @@ print(dockerRun.stdout)
 print(dockerRun.stderr)
 assert dockerRun.returncode == 0;
 
-assert subprocess.call(["docker", "rm", "sgxwallet"]) == 0
-assert subprocess.call(["docker", "run", "-v", topDir + "/sgx_data:/usr/src/sdk/sgx_data","-d",
-                        "--name", "sgxwallet",
-                    "--network=host", "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX, "-y"]) == 0
-
-time.sleep(5);
-
-assert os.path.isdir(topDir + '/sgx_data/sgxwallet.db')
-assert os.path.isdir(topDir + '/sgx_data/cert_data');
-assert os.path.isdir(topDir + '/sgx_data/CSR_DB');
-assert os.path.isdir(topDir + '/sgx_data/CSR_STATUS_DB');
-assert os.path.isfile(topDir + '/sgx_data/cert_data/SGXServerCert.crt')
-assert os.path.isfile(topDir + '/sgx_data/cert_data/SGXServerCert.key')
-assert os.path.isfile(topDir + '/sgx_data/cert_data/rootCA.pem')
-assert os.path.isfile(topDir + '/sgx_data/cert_data/rootCA.key')
-
-s1 = socket.socket()
-s2 = socket.socket()
-s3 = socket.socket()
-address = '127.0.0.1'
-s1.connect((address, 1026))
-s2.connect((address, 1027))
-s3.connect((address, 1028))
-
-s1.close()
-s2.close()
-s3.close()
-
 assert subprocess.call(["docker", "rm", "-f", "sgxwallet"]) == 0
 assert subprocess.call(["rm", "-rf", "sgx_data"]) == 0
