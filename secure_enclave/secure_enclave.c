@@ -210,6 +210,8 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
+volatile uint64_t counter;
+
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     char errString[BUF_LEN];
     int status;
@@ -220,10 +222,11 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     CHECK_STATE(_size <= 32)
     CHECK_STATE(_randBuff);
 
+    counter++;
     sgx_sha_state_handle_t shaStateHandle;
-
     CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
+    CHECK_STATE(sgx_sha256_update(&counter, sizeof(counter), shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)globalRandom) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
 
