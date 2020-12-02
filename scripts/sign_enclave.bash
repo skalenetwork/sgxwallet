@@ -18,7 +18,7 @@ openssl dgst -sha256 -out ../signed_enclaves/skale_sgx_enclave_signature${ENCLAV
 rm -rf ../signed_enclaves/submission${ENCLAVE_VERSION}
 mkdir -p ../signed_enclaves/submission${ENCLAVE_VERSION}
 
-/opt/intel/sgxsdk/bin/x64/sgx_sign dump -enclave ../signed_enclaves/secure_enclave_signed${ENCLAVE_VERSION}.so -dumpfile ../signed_enclaves/skale_sgx_enclave_metadata_info${ENCLAVE_VERSION}.txt -cssfile ../signed_enclaves/submission${ENCLAVE_VERSION}/nodeanstalt_sgxwallet_PUTWHITELISTENTRYIDHERE_sigstruct.bin
+/opt/intel/sgxsdk/bin/x64/sgx_sign dump -enclave ../signed_enclaves/secure_enclave_signed${ENCLAVE_VERSION}.so -dumpfile ../signed_enclaves/skale_sgx_enclave_metadata_info${ENCLAVE_VERSION}.txt -cssfile ../signed_enclaves/submission${ENCLAVE_VERSION}/nodeanstalt_sgxwallet_180_sigstruct.bin
 
 tail -n 6 ../signed_enclaves/skale_sgx_enclave_metadata_info${ENCLAVE_VERSION}.txt > ../signed_enclaves/submission${ENCLAVE_VERSION}/skale_sgx_enclave_mrsigner${ENCLAVE_VERSION}.txt
 
