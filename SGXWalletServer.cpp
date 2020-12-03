@@ -245,7 +245,7 @@ void SGXWalletServer::checkForDuplicate(map <string, string> &_map, recursive_mu
 
     LOCK(_m);
     if (_map.count(_key) && _map.at(_key) == _value) {
-        usleep(100);
+        usleep(100 * 1000);
         spdlog::warn(string("Received an identical request from the client:") + __FUNCTION__);
     }
     _map[_key] =  _value;
