@@ -227,9 +227,32 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     RETURN_SUCCESS(result);
 }
 
+
+map <string, string> SGXWalletServer::blsRequests;
+recursive_mutex SGXWalletServer::blsRequestsLock;
+
+map <string, string> SGXWalletServer::ecdsaRequests;
+recursive_mutex SGXWalletServer::ecdsaRequestsLock;
+
+void SGXWalletServer::checkForDuplicate(map <string, string> &_map, recursive_mutex &_m,
+                                        const string &_key,
+                       const string &_value) {
+
+    LOCK(_m);
+    if (_map.count(_key) && _map.at(_key) == _value) {
+        sleep(100);
+        spdlog::warn(string("Received an identical request from the client:") + __FUNCTION__);
+    }
+    _map[_key] =  _value;
+}
+
+
 Json::Value
 SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n) {
     spdlog::trace("Entering {}", __FUNCTION__);
+
+    COUNT_STATISTICS
+
     INIT_RESULT(result)
 
     result["status"] = -1;
@@ -239,6 +262,10 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     vector<char> signature(BUF_LEN, 0);
 
     shared_ptr <string> value = nullptr;
+
+
+    checkForDuplicate(blsRequests, blsRequestsLock, _keyShareName, _messageHash);
+
 
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
@@ -342,6 +369,9 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
     result["signature_s"] = "";
 
     vector <string> signatureVector(3);
+
+    checkForDuplicate(ecdsaRequests, ecdsaRequestsLock, _keyName, _messageHash);
+
 
     try {
         string hashTmp = _messageHash;
@@ -666,10 +696,10 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         }
 
         for (int i = 0; i < _n; i++) {
-           string name = _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteDHDKGKey(name);
-           string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteKey(shareG2_name);
+            string name = _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteDHDKGKey(name);
+            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
@@ -744,7 +774,8 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
     RETURN_SUCCESS(result)
 }
 
-Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+Json::Value
+SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
     result["secretShare"] = "";
@@ -785,7 +816,7 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const
 }
 
 Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName,
-                                                 const string &_secretShare, int _t, int _n, int _index) {
+                                                   const string &_secretShare, int _t, int _n, int _index) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["result"] = false;
@@ -903,8 +934,8 @@ Json::Value SGXWalletServer::getSecretShareV2(const string &_polyName, const Jso
 
 Json::Value
 SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
-                                 int t,
-                                 int n, int index) {
+                                   int t,
+                                   int n, int index) {
     return dkgVerificationV2Impl(_publicShares, ethKeyName, SecretShare, t, n, index);
 }
 
