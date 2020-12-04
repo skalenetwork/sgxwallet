@@ -58,6 +58,7 @@ std::shared_timed_mutex sgxInitMutex;
 uint64_t initTime;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
 
     CHECK_STATE(_logLevel <= 2)
@@ -79,6 +80,7 @@ void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _en
 }
 
 void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     setFullOptions(_logLevel, _useHTTPS, _autoconfirm, false);
 }
@@ -120,6 +122,7 @@ void SGXWalletServer::printDB() {
 
 
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
 
     spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
@@ -174,6 +177,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 }
 
 int SGXWalletServer::initHttpServer() { //without ssl
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     httpServer = make_shared<HttpServer>(BASE_PORT + 3, "", "", "", false,
                                          NUM_THREADS);
@@ -188,6 +192,7 @@ int SGXWalletServer::initHttpServer() { //without ssl
 
 Json::Value
 SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_keyShareName) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
 
@@ -227,9 +232,32 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
     RETURN_SUCCESS(result);
 }
 
+
+map <string, string> SGXWalletServer::blsRequests;
+recursive_mutex SGXWalletServer::blsRequestsLock;
+
+map <string, string> SGXWalletServer::ecdsaRequests;
+recursive_mutex SGXWalletServer::ecdsaRequestsLock;
+
+void SGXWalletServer::checkForDuplicate(map <string, string> &_map, recursive_mutex &_m,
+                                        const string &_key,
+                       const string &_value) {
+
+    LOCK(_m);
+    if (_map.count(_key) && _map.at(_key) == _value) {
+        usleep(100 * 1000);
+        spdlog::warn(string("Received an identical request from the client:") + __FUNCTION__);
+    }
+    _map[_key] =  _value;
+}
+
+
 Json::Value
 SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const string &_messageHash, int t, int n) {
     spdlog::trace("Entering {}", __FUNCTION__);
+
+    COUNT_STATISTICS
+
     INIT_RESULT(result)
 
     result["status"] = -1;
@@ -239,6 +267,10 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
     vector<char> signature(BUF_LEN, 0);
 
     shared_ptr <string> value = nullptr;
+
+
+    checkForDuplicate(blsRequests, blsRequestsLock, _keyShareName, _messageHash);
+
 
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
@@ -277,6 +309,7 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
                                                 const string &_keyShareName) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["encryptedKey"] = "";
@@ -307,6 +340,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
 }
 
 Json::Value SGXWalletServer::generateECDSAKeyImpl() {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["encryptedKey"] = "";
@@ -334,6 +368,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
 }
 
 Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName, const string &_messageHash) {
+    COUNT_STATISTICS
     spdlog::trace("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -342,6 +377,9 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
     result["signature_s"] = "";
 
     vector <string> signatureVector(3);
+
+    checkForDuplicate(ecdsaRequests, ecdsaRequestsLock, _keyName, _messageHash);
+
 
     try {
         string hashTmp = _messageHash;
@@ -378,6 +416,7 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
 }
 
 Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
+    COUNT_STATISTICS
     spdlog::debug("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -400,6 +439,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
 }
 
 Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -421,6 +461,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
 }
 
 Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -450,6 +491,7 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
 }
 
 Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
     result["secretShare"] = "";
@@ -491,6 +533,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
 Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, const string &_ethKeyName,
                                                  const string &_secretShare, int _t, int _n, int _index) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["result"] = false;
@@ -522,6 +565,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
 Json::Value
 SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
                                          const string &_secretShare, int _t, int _n) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -573,6 +617,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 }
 
 Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -592,6 +637,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
 }
 
 Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value &publicShares, int t, int n) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -638,6 +684,7 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value &pu
 }
 
 Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int _t, int _n, int _ind) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -666,10 +713,10 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
         }
 
         for (int i = 0; i < _n; i++) {
-           string name = _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteDHDKGKey(name);
-           string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-           LevelDB::getLevelDb()->deleteKey(shareG2_name);
+            string name = _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteDHDKGKey(name);
+            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteKey(shareG2_name);
         }
         LevelDB::getLevelDb()->deleteKey(_polyName);
 
@@ -681,6 +728,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 }
 
 Json::Value SGXWalletServer::multG2Impl(const string &_x) {
+    COUNT_STATISTICS
     INIT_RESULT(result)
 
     try {
@@ -694,6 +742,7 @@ Json::Value SGXWalletServer::multG2Impl(const string &_x) {
 }
 
 Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -711,17 +760,20 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
 }
 
 Json::Value SGXWalletServer::getServerStatusImpl() {
+    COUNT_STATISTICS
     INIT_RESULT(result)
     RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::getServerVersionImpl() {
+    COUNT_STATISTICS
     INIT_RESULT(result)
     result["version"] = TOSTRING(SGXWALLET_VERSION);
     RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -744,7 +796,9 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
     RETURN_SUCCESS(result)
 }
 
-Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+Json::Value
+SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result);
     result["secretShare"] = "";
@@ -785,7 +839,8 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const
 }
 
 Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName,
-                                                 const string &_secretShare, int _t, int _n, int _index) {
+                                                   const string &_secretShare, int _t, int _n, int _index) {
+    COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["result"] = false;
@@ -903,8 +958,8 @@ Json::Value SGXWalletServer::getSecretShareV2(const string &_polyName, const Jso
 
 Json::Value
 SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare,
-                                 int t,
-                                 int n, int index) {
+                                   int t,
+                                   int n, int index) {
     return dkgVerificationV2Impl(_publicShares, ethKeyName, SecretShare, t, n, index);
 }
 

@@ -38,6 +38,17 @@ using namespace std;
 class SGXWalletServer : public AbstractStubServer {
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
+
+    static map<string,string> blsRequests;
+    static recursive_mutex blsRequestsLock;
+    static map<string,string> ecdsaRequests;
+    static recursive_mutex ecdsaRequestsLock;
+
+
+
+    static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
+    const string &_value);
+
 public:
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);

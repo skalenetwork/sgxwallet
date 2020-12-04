@@ -74,6 +74,16 @@ public:
     static void handleSGXException(Json::Value &_result, SGXException &_e);
 };
 
+
+#define COUNT_STATISTICS \
+static uint64_t __COUNT__ = 0; \
+__COUNT__++; \
+if (__COUNT__ % 1000 == 0) { \
+spdlog::info(string(__FUNCTION__) +  " processed " + to_string(__COUNT__) + " requests"); \
+}
+
+
+
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; \
               int errStatus = UNKNOWN_ERROR; boost::ignore_unused(errStatus); string errMsg(BUF_LEN, '\0');__RESULT__["status"] = UNKNOWN_ERROR; __RESULT__["errorMessage"] = \
 "Server error. Please see server log.";
