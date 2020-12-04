@@ -137,10 +137,10 @@ string gen_dkg_poly(int _t) {
     sgx_status_t status = SGX_SUCCESS;
 
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedGenDkgSecret(
                 eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -177,10 +177,10 @@ vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, in
     sgx_status_t status = SGX_SUCCESS;
 
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedGetPublicShares(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
                                            pubShares.data(), t, n);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -368,10 +368,10 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
                                      ind, &result);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -404,10 +404,10 @@ verifySharesV2(const char *publicShares, const char *encr_sshare, const char *en
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedDkgVerifyV2(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
                                      ind, &result);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -435,10 +435,10 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedCreateBlsKey(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
                                         &enc_bls_len);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -469,9 +469,9 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedGetBlsPubKey(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
-    RESTART_END
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
@@ -556,9 +556,9 @@ string decryptDHKey(const string &polyName, int ind) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
-    RESTART_END
+    SEMAPHORE_END
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data())
 
     return DHKey;

@@ -110,32 +110,10 @@ extern bool autoconfirm;
 #define TEST_VALUE "1234567890"
 
 
-#define RESTART_BEGIN \
-int __ATTEMPTS__ = 0; \
-do {\
-__ATTEMPTS__++; \
-{\
-READ_LOCK(sgxInitMutex);
+#define SEMAPHORE_BEGIN { semaphore_guard __ENCLAVE__GUARD__(enclaveSemaphore) ;
 
-#define RESTART_END \
-} \
-if (status != SGX_SUCCESS || errStatus == 3) { \
-spdlog::error(__FUNCTION__);                   \
-spdlog::error("Exiting sgx on status errStatus... {} {}", status, errStatus);                    \
-safeExit(); \
-} \
-} while ((status != SGX_SUCCESS || errStatus == 3) && __ATTEMPTS__ < 2);
+#define SEMAPHORE_END }
 
-
-
-#define RESTART_END_POINTER \
-} \
-if (status != SGX_SUCCESS || *errStatus == 3) { \
-spdlog::error(__FUNCTION__);\
-spdlog::error("Restarting sgx on status errStatus... {} {}", status, *errStatus);                            \
-safeExit(); \
-} \
-} while ((status != SGX_SUCCESS || *errStatus == 3) && __ATTEMPTS__ < 2);
 
 
 #endif //SGXWALLET_SGXWALLET_COMMON_H
