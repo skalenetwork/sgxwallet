@@ -214,10 +214,10 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
             status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
                                               sz, xStrArg, yStrArg, signature);
-    RESTART_END
+    SEMAPHORE_END
 
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -256,10 +256,10 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
+    SEMAPHORE_BEGIN
         status = trustedEncryptKey(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
                                       &encryptedLen);
-    RESTART_END_POINTER
+    SEMAPHORE_END
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 

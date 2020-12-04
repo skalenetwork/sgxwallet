@@ -101,15 +101,27 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 extern std::shared_timed_mutex sgxInitMutex;
 extern uint64_t initTime;
 
-#ifdef SGX_HW_SIM
-#define ENCLAVE_RESTART_PERIOD_S 5
-#else
-#define ENCLAVE_RESTART_PERIOD_S 60 * 10
-#endif
-
 #define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
+
+
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
+
+// max of 200 threads can call enclave at a time
+extern boost::interprocess::interprocess_semaphore enclaveSemaphore;
+
+class semaphore_guard {
+    boost::interprocess::interprocess_semaphore &sem;
+public:
+    semaphore_guard(boost::interprocess::interprocess_semaphore &_semaphore) : sem(_semaphore) {
+        sem.wait();
+    }
+
+    ~semaphore_guard() {
+        sem.post();
+    }
+};
 
 
 

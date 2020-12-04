@@ -25,6 +25,8 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
+
+
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include "abstractstubserver.h"
@@ -34,6 +36,9 @@ using namespace std;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
+
+
+
 
 class SGXWalletServer : public AbstractStubServer {
     static shared_ptr<SGXWalletServer> server;

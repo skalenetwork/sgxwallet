@@ -48,6 +48,7 @@
 
 #include <unistd.h>
 
+
 #include "ServerInit.h"
 
 #include "Log.h"
@@ -55,6 +56,11 @@
 using namespace std;
 
 std::shared_timed_mutex sgxInitMutex;
+
+// MAX 200 threads can call enclave
+boost::interprocess::interprocess_semaphore enclaveSemaphore(200);
+
+
 uint64_t initTime;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
@@ -117,7 +123,7 @@ void SGXWalletServer::printDB() {
 #ifdef SGX_HW_SIM
 #define NUM_THREADS 16
 #else
-#define NUM_THREADS 200
+#define NUM_THREADS 1024
 #endif
 
 
@@ -241,14 +247,14 @@ recursive_mutex SGXWalletServer::ecdsaRequestsLock;
 
 void SGXWalletServer::checkForDuplicate(map <string, string> &_map, recursive_mutex &_m,
                                         const string &_key,
-                       const string &_value) {
+                                        const string &_value) {
 
     LOCK(_m);
     if (_map.count(_key) && _map.at(_key) == _value) {
         usleep(100 * 1000);
         spdlog::warn(string("Received an identical request from the client:") + __FUNCTION__);
     }
-    _map[_key] =  _value;
+    _map[_key] = _value;
 }
 
 
@@ -295,9 +301,11 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
         value = readFromDb(_keyShareName);
 
+
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, signature.data())) {
             throw SGXException(-1, "Could not sign data ");
         }
+
     } HANDLE_SGX_EXCEPTION(result)
 
 
