@@ -39,6 +39,8 @@
 #include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
+#include <unistd.h>
+
 
 
 #include "BLSPrivateKeyShareSGX.h"
@@ -59,6 +61,51 @@
 
 uint32_t enclaveLogLevel = 0;
 
+using namespace  std;
+
+
+// Copy from libconsensus
+
+
+
+string exec( const char* cmd ) {
+    CHECK_STATE( cmd );
+    std::array< char, 128 > buffer;
+    std::string result;
+    std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( cmd, "r" ), pclose );
+    if ( !pipe ) {
+        BOOST_THROW_EXCEPTION( std::runtime_error( "popen() failed!" ) );
+    }
+    while ( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+void systemHealthCheck() {
+    string ulimit;
+    try {
+        ulimit = exec( "/bin/bash -c \"ulimit -n\"" );
+    } catch ( ... ) {
+        spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
+        exit(-15);
+    }
+    int noFiles = strtol( ulimit.c_str(), NULL, 10 );
+
+    auto noUlimitCheck = getenv( "NO_ULIMIT_CHECK" ) != nullptr;
+
+    if ( noFiles < 65535 && !noUlimitCheck) {
+        string errStr =
+                "sgxwallet requires setting Linux file descriptor limit to at least 65535 "
+                "You current limit (ulimit -n) is less than 65535. \n Please set it to 65535:"
+                "by editing /etc/systemd/system.conf"
+                "and setting 'DefaultLimitNOFILE=65535'\n"
+                "After that, restart sgxwallet";
+        spdlog::error(errStr);
+        exit(-16);
+    }
+}
+
 void initUserSpace() {
 
     libff::inhibit_profiling_counters = true;
@@ -66,6 +113,12 @@ void initUserSpace() {
     libff::init_alt_bn128_params();
 
     LevelDB::initDataFolderAndDBs();
+
+#ifndef SGX_HW_SIM
+    systemHealthCheck();
+#endif
+
+
 }
 
 uint64_t initEnclave() {
@@ -76,7 +129,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
-        exit(1);
+        exit(-17);
     }
 #endif
 
@@ -107,7 +160,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            exit(1);
+            exit(-17);
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -171,15 +224,15 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
-        exit(-1);
+        exit(-18);
     } catch (exception &_e) {
         spdlog::error(_e.what());
-        exit(-1);
+        exit(-19);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(-1);
+        exit(-20);
     }
 };
