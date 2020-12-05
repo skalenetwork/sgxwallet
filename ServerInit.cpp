@@ -160,7 +160,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            exit(-17);
+            exit(-21);
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -233,6 +233,6 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(-20);
+        exit(0);
     }
 };
