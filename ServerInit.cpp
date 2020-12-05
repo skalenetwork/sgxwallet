@@ -233,6 +233,6 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(0);
+        exit(-22);
     }
 };
