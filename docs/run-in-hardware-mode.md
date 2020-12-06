@@ -2,10 +2,31 @@
 
 # Run in hardware secure mode
 
+-   [Increase max process limit](#increase-max-process-limit)
 -   [Docker Compose configuration](#docker-compose-configuration)
 -   [Run sgxwallet in secure mode](#run-sgxwallet-in-secure-mode)
 -   [Start, stop and upgrade sgxwallet containers](#start-stop-and-upgrade-sgxwallet-containers)
 -   [Logging](#logging)
+
+## Increase max process limit
+
+sgxwallet requires setting Linux ulimit to at least 65535.
+
+To display you current limit, run
+
+```
+ulimit -n
+```
+
+If you current ulimit is less than 65535, please set it to 65535 by editing /etc/systemd/system.conf
+and setting 
+
+```
+DefaultLimitNOFILE=65535
+```  
+
+Then reboot and check ulimit again.
+
 
 ## Docker Compose configuration
 
