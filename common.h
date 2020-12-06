@@ -64,7 +64,7 @@ inline void print_stack() {
     // print out all the frames to stderr
     fprintf(stderr, "Error: signal \n");
     backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
+    exit(-1);
 }
 
 
