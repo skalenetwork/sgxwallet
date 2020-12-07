@@ -69,7 +69,6 @@ os.chdir(LEVELDB_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
 
-
 print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
