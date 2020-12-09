@@ -170,7 +170,7 @@ vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, in
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
     if (!hex2carray(encryptedPolyHexPtr, &encLen, encrDKGPoly.data(), 6100)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, ":Invalid encryptedPolyHex");
     }
 
 
@@ -233,7 +233,7 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
 
 
     if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, ":Invalid encryptedPolyHex");
     }
 
 
@@ -294,7 +294,8 @@ string getSecretSharesV2(const string& _polyName, const char* _encryptedPolyHex,
 
 
     if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
-        throw SGXException(GET_SS_V2_INVALID_HEX, "Invalid encrypted poly Hex");
+        throw SGXException(GET_SS_V2_INVALID_HEX,
+                           string(__FUNCTION__) + ":Invalid encrypted poly Hex");
     }
 
 
@@ -358,7 +359,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 
     SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) +   ":Invalid encryptedPolyHex");
     }
 
     SAFE_CHAR_BUF(pshares, 8193);
@@ -374,7 +375,8 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     if (result == 2) {
-        throw SGXException(INVALID_HEX, "Invalid public shares");
+        throw SGXException(INVALID_HEX,
+                           string(__FUNCTION__) +  + ":Invalid public shares");
     }
 
     return result;
@@ -394,7 +396,7 @@ verifySharesV2(const char *publicShares, const char *encr_sshare, const char *en
 
     SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) +  ":Invalid encryptedPolyHex");
     }
 
     SAFE_CHAR_BUF(pshares, 8193);
@@ -410,7 +412,7 @@ verifySharesV2(const char *publicShares, const char *encr_sshare, const char *en
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     if (result == 2) {
-        throw SGXException(INVALID_HEX, "Invalid public shares");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) + ":Invalid public shares");
     }
 
     return result;
@@ -426,7 +428,7 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }
 
     uint64_t enc_bls_len = 0;
@@ -459,7 +461,7 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
 
     SAFE_UINT8_BUF(encrKey, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encrKey, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }
 
     SAFE_CHAR_BUF(pubKey, 320)
@@ -546,7 +548,7 @@ string decryptDHKey(const string &polyName, int ind) {
     uint64_t dhEncLen = 0;
     SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN)
     if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
+        throw SGXException(INVALID_HEX, string(__FUNCTION__) + ":Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);
 

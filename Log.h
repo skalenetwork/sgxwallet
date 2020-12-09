@@ -94,9 +94,9 @@ string(__FUNCTION__) + ": server error. Please see server log.";
 
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
     catch (const SGXException& _e) { \
-      if (_e.status != 0) {__RESULT__["status"] = _e.status;} else { __RESULT__["status"]  = -1 * (10000 + __LINE__);}; \
-      __RESULT__["errorMessage"] = _e.errString;                                                                                        \
-      if (_e.errString.size() == 0) {__RESULT__["errorMessage"] = string(__FUNCTION__);}; \
+      if (_e.getStatus() != 0) {__RESULT__["status"] = _e.getStatus();} else { __RESULT__["status"]  = -1 * (10000 + __LINE__);}; \
+      __RESULT__["errorMessage"] = _e.getErrString();                                                                                        \
+      if (_e.getErrString().size() == 0) {__RESULT__["errorMessage"] = string(__FUNCTION__);}; \
       spdlog::error("JSON call failed {}", __FUNCTION__);                             \
       return __RESULT__; \
       } catch (const exception& _e) { \
