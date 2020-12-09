@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "leveldb/db.h"
+#include <jsonrpccpp/client.h>
 
 #include "sgxwallet_common.h"
 #include "SGXException.h"
@@ -167,10 +168,32 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
 }
 
 stringstream LevelDB::getAllKeys() {
+    stringstream result;
 
+    leveldb::Iterator *it = db->NewIterator(readOptions);
+    uint64_t counter = 0;
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        ++counter;
+        string key = it->key().ToString();
+        string value;
+        if (it->value().ToString()[0] == '{') {
+            // new style keys
+            Json::Value key_data;
+            Json::Reader reader;
+            reader.parse(it->value().ToString().c_str(), key_data);
+            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + key_data["timestamp"].asString();
+        } else {
+            // old style keys
+            value = " VALUE: " + it->value().ToString();
+        }
+        result << "KEY: " << key << ',' << value << '\n';
+    }
+    result << "TOTAL NUMBER OF KEYS: " << counter << '\n';
+
+    return result;
 }
 
-pair<string, uint64_t> LevelDB::getLastCreatedKey() {
+pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
 
 }
 

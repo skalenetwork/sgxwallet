@@ -93,9 +93,13 @@ int main(int argc, char *argv[]) {
 
   if (argc == 1) {
     std::cout << "You may use following flags:" << std::endl;
-    std::cout << " -p  print all unsigned csr hashes " << std::endl;
+    std::cout << " -p print all unsigned csr hashes " << std::endl;
     std::cout << " -s [hash] sign csr by hash" << std::endl;
     std::cout << " -r [hash] reject csr by hash" << std::endl;
+    std::cout << " -a print all keys" << std::endl;
+    std::cout << " -l print latest created key" << std::endl;
+    std::cout << " -c print server's config" << std::endl;
+    std::cout << " -i [name] check if key with such name presents in database" << std::endl;
     exit(0);
   }
   std::string hash;

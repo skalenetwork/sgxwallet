@@ -72,7 +72,7 @@ public:
 
     stringstream getAllKeys();
 
-    pair<string, uint64_t> getLastCreatedKey();
+    pair<string, uint64_t> getLatestCreatedKey();
 
     void writeString(const string &key1, const string &value1);
 
