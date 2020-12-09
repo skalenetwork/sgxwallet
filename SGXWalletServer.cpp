@@ -217,7 +217,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(INVALID_HEX, "Invalid BLS key share, please use hex");
+            throw SGXException(INVALID_BLS_KEY_SHARE, "Invalid BLS key share, please use hex");
         }
 
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), hashTmp.c_str());
@@ -227,7 +227,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (encryptedKeyShareHex.empty()) {
-            throw SGXException(UNKNOWN_ERROR, "");
+            throw SGXException(EMPTY_ENCRYPTED_KEY_SHARE, "");
         }
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
@@ -296,14 +296,14 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(INVALID_HEX, "Invalid hash");
+            throw SGXException(INVALID_BLS_HEX, "Invalid bls hex");
         }
 
         value = readFromDb(_keyShareName);
 
 
         if (!bls_sign(value->c_str(), _messageHash.c_str(), t, n, signature.data())) {
-            throw SGXException(-1, "Could not sign data ");
+            throw SGXException(COULD_NOT_BLS_SIGN, "Could not bls sign data ");
         }
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -324,7 +324,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
 
     try {
         if (!checkECDSAKeyName(_keyShareName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_ECDSA_IMPORT_KEY_NAME, "Invalid ECDSA import key name");
         }
 
         string hashTmp = _keyShare;
@@ -333,7 +333,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(INVALID_HEX, "Invalid ECDSA key share, please use hex");
+            throw SGXException(INVALID_ECDSA_IMPORT_HEX, "Invalid ECDSA key share, please use hex");
         }
 
         string encryptedKey = encryptECDSAKey(hashTmp);
@@ -359,7 +359,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
         keys = genECDSAKey();
 
         if (keys.size() == 0) {
-            throw SGXException(UNKNOWN_ERROR, "key was not generated");
+            throw SGXException(ECDSA_GEN_EMPTY_KEY, "key was not generated");
         }
 
         string keyName = "NEK:" + keys.at(2);
@@ -388,7 +388,6 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
 
     checkForDuplicate(ecdsaRequests, ecdsaRequestsLock, _keyName, _messageHash);
 
-
     try {
         string hashTmp = _messageHash;
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
@@ -399,20 +398,20 @@ Json::Value SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_
         }
 
         if (!checkECDSAKeyName(_keyName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_ECDSA_SIGN_KEY_NAME, "Invalid ECDSA sign key name");
         }
         if (!checkHex(hashTmp)) {
-            throw SGXException(INVALID_HEX, "Invalid hash");
+            throw SGXException(INVALID_ECDSA_SIGN_HASH, "Invalid ECDSA sign hash");
         }
         if (_base <= 0 || _base > 32) {
-            throw SGXException(-22, "Invalid base");
+            throw SGXException(INVALID_ECDSA_SIGN_BASE, "Invalid ECDSA sign base");
         }
 
         shared_ptr <string> encryptedKey = readFromDb(_keyName, "");
 
         signatureVector = ecdsaSignHash(encryptedKey->c_str(), hashTmp.c_str(), _base);
         if (signatureVector.size() != 3) {
-            throw SGXException(INVALID_ECSDA_SIGNATURE, "Invalid ecdsa signature");
+            throw SGXException(INVALID_ECSDA_SIGN_SIGNATURE, "Invalid ecdsa signature");
         }
 
         result["signature_v"] = signatureVector.at(0);
@@ -435,7 +434,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
 
     try {
         if (!checkECDSAKeyName(_keyName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_ECDSA_GETPKEY_KEY_NAME, "Invalid ECDSA import key name");
         }
         shared_ptr <string> keyStr = readFromDb(_keyName);
         publicKey = getECDSAPubKey(keyStr->c_str());
@@ -455,11 +454,11 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
 
     try {
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME,
-                               "Invalid polynomial name, it should be like POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1");
+            throw SGXException(INVALID_GEN_DKG_POLY_NAME,
+                               "Invalid gen DKG polynomial name.");
         }
         if (_t <= 0 || _t > 32) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid parameter t ");
+            throw SGXException(INVALID_DKG_PARAMS, "Invalid gen dkg param t ");
         }
         encrPolyHex = gen_dkg_poly(_t);
         writeDataToDB(_polyName, encrPolyHex);
@@ -476,10 +475,10 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
     vector <vector<string>> verifVector;
     try {
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+            throw SGXException(INVALID_DKG_GETVV_POLY_NAME, "Invalid polynomial name");
         }
         if (!check_n_t(_t, _n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid parameters: n or t ");
+            throw SGXException(INVALID_DKG_GETVV_PARAMS, "Invalid parameters n or t ");
         }
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
@@ -506,13 +505,13 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
 
     try {
         if (_pubKeys.size() != (uint64_t) _n) {
-            throw SGXException(INVALID_DKG_PARAMS, "invalid number of public keys");
+            throw SGXException(INVALID_DKG_GETSS_PUB_KEY_COUNT, "invalid pubkey count");
         }
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+            throw SGXException(INVALID_DKG_GETSS_POLY_NAME, "Invalid polynomial name");
         }
         if (!check_n_t(_t, _n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_DKG_GETSS_POLY_NAME, "Invalid DKG parameters: n or t ");
         }
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
@@ -520,7 +519,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName, const J
         vector <string> pubKeysStrs;
         for (int i = 0; i < _n; i++) {
             if (!checkHex(_pubKeys[i].asString(), 64)) {
-                throw SGXException(INVALID_HEX, "Invalid public key");
+                throw SGXException(INVALID_DKG_GETSS_KEY_HEX, "Invalid public key");
             }
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
@@ -548,16 +547,16 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares, co
 
     try {
         if (!checkECDSAKeyName(_ethKeyName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_DKG_VERIFY_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
         if (!check_n_t(_t, _n) || _index >= _n || _index < 0) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_DKG_VERIFY_PARAMS, "Invalid DKG parameters: n or t ");
         }
         if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
-            throw SGXException(INVALID_HEX, "Invalid Secret share");
+            throw SGXException(INVALID_DKG_VERIFY_SS_HEX, "Invalid Secret share");
         }
         if (_publicShares.length() != (uint64_t) 256 * _t) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+            throw SGXException(INVALID_DKG_VERIFY_PUBSHARES_LENGTH, "Invalid length of public shares");
         }
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
@@ -579,19 +578,19 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
 
     try {
         if (_secretShare.length() != (uint64_t) _n * 192) {
-            throw SGXException(INVALID_SECRET_SHARES_LENGTH, "Invalid secret share length");
+            throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH, "Invalid secret share length");
         }
         if (!checkECDSAKeyName(_ethKeyName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_CREATE_BLS_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+            throw SGXException(INVALID_CREATE_BLS_POLY_NAME, "Invalid polynomial name");
         }
         if (!checkName(_blsKeyName, "BLS_KEY")) {
-            throw SGXException(INVALID_BLS_NAME, "Invalid BLS key name");
+            throw SGXException(INVALID_CREATE_BLS_KEY_NAME, "Invalid BLS key name");
         }
         if (!check_n_t(_t, _n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_CREATE_BLS_DKG_PARAMS, "Invalid DKG parameters: n or t ");
         }
         vector <string> sshares_vect;
 
@@ -603,7 +602,7 @@ SGXWalletServer::createBLSPrivateKeyImpl(const string &_blsKeyName, const string
         if (res) {
             spdlog::info("BLS KEY SHARE CREATED ");
         } else {
-            throw SGXException(-122, "Error while creating BLS key share");
+            throw SGXException(INVALID_CREATE_BLS_SHARE, "Error while creating BLS key share");
         }
 
 
@@ -631,7 +630,7 @@ Json::Value SGXWalletServer::getBLSPublicKeyShareImpl(const string &_blsKeyName)
 
     try {
         if (!checkName(_blsKeyName, "BLS_KEY")) {
-            throw SGXException(INVALID_BLS_NAME, "Invalid BLSKey name");
+            throw SGXException(INVALID_GET_BLS_PUBKEY_NAME, "Invalid BLSKey name");
         }
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_blsKeyName);
 
@@ -651,24 +650,24 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value &pu
 
     try {
         if (!check_n_t(t, n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_DKG_CALCULATE_ALL_PARAMS, "Invalid DKG parameters: n or t ");
         }
 
         if (!publicShares.isArray()) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid public shares format");
+            throw SGXException(INVALID_DKG_CALCULATE_ALL_PUBSHARES, "Invalid public shares format");
         }
 
         if (publicShares.size() != (uint64_t) n) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+            throw SGXException(INVALID_DKG_CALCULATE_ALL_PUBSHARES_SIZE, "Invalid length of public shares");
         }
 
         for (int i = 0; i < n; ++i) {
             if (!publicShares[i].isString()) {
-                throw SGXException(INVALID_DKG_PARAMS, "Invalid public shares parts format");
+                throw SGXException(INVALID_DKG_CALCULATE_ALL_PUBSHARES_STRING, "Invalid public shares string");
             }
 
             if (publicShares[i].asString().length() != (uint64_t) 256 * t) {
-                throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares parts");
+                throw SGXException(INVALID_DKG_CALCULATE_ALL_STRING_PUBSHARES_SLENGTH, "Invalid length of public shares parts");
             }
         }
 
@@ -680,7 +679,8 @@ Json::Value SGXWalletServer::calculateAllBLSPublicKeysImpl(const Json::Value &pu
         vector <string> public_keys = calculateAllBlsPublicKeys(public_shares);
 
         if (public_keys.size() != (uint64_t) n) {
-            throw SGXException(UNKNOWN_ERROR, "");
+            throw SGXException(INVALID_DKG_CALCULATE_ALL_STRING_PUBKEYS_SIZE,
+                               "Invalid pubkeys array size");
         }
 
         for (int i = 0; i < n; ++i) {
@@ -698,7 +698,7 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName, int 
 
     try {
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+            throw SGXException(INVALID_COMPLAINT_RESPONSE_POLY_NAME, "Invalid polynomial name");
         }
 
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(_ind) + ":";
@@ -813,13 +813,13 @@ SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value
 
     try {
         if (_pubKeys.size() != (uint64_t) _n) {
-            throw SGXException(INVALID_DKG_PARAMS, "invalid number of public keys");
+            throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_COUNT, "invalid number of public keys");
         }
         if (!checkName(_polyName, "POLY")) {
-            throw SGXException(INVALID_POLY_NAME, "Invalid polynomial name");
+            throw SGXException(INVALID_DKG_GETSS_V2_POLY_NAME, "Invalid polynomial name");
         }
         if (!check_n_t(_t, _n)) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_COUNT, "Invalid DKG parameters: n or t ");
         }
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
@@ -827,7 +827,7 @@ SGXWalletServer::getSecretShareV2Impl(const string &_polyName, const Json::Value
         vector <string> pubKeysStrs;
         for (int i = 0; i < _n; i++) {
             if (!checkHex(_pubKeys[i].asString(), 64)) {
-                throw SGXException(INVALID_HEX, "Invalid public key");
+                throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_HEX, "Invalid public key");
             }
             pubKeysStrs.push_back(_pubKeys[i].asString());
         }
@@ -855,16 +855,16 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, 
 
     try {
         if (!checkECDSAKeyName(_ethKeyName)) {
-            throw SGXException(INVALID_ECDSA_KEY_NAME, "Invalid ECDSA key name");
+            throw SGXException(INVALID_DKG_VV_V2_ECDSA_KEY_NAME, "Invalid ECDSA key name");
         }
         if (!check_n_t(_t, _n) || _index >= _n || _index < 0) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid DKG parameters: n or t ");
+            throw SGXException(INVALID_DKG_VV_V2_PARAMS, "Invalid DKG parameters: n or t ");
         }
         if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
-            throw SGXException(INVALID_HEX, "Invalid Secret share");
+            throw SGXException(INVALID_DKG_VV_V2_SS_HEX, "Invalid Secret share");
         }
         if (_publicShares.length() != (uint64_t) 256 * _t) {
-            throw SGXException(INVALID_DKG_PARAMS, "Invalid length of public shares");
+            throw SGXException(INVALID_DKG_VV_V2_SS_COUNT, "Invalid count of public shares");
         }
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);

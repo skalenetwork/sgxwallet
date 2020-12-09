@@ -92,7 +92,7 @@ string convertHexToDec(const string &hex_str) {
         throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
     } catch (...) {
         mpz_clear(dec);
-        throw SGXException(UNKNOWN_ERROR, "");
+        throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC, "Exception in convert hex to dec");
     }
 
     clean:
@@ -117,10 +117,10 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base, const string
         return result;
 
     } catch (exception &e) {
-        throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
+        throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
         return result;
     } catch (...) {
-        throw SGXException(UNKNOWN_ERROR, "");
+        throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING, "Exception in convert G2 to string");
         return result;
     }
 
@@ -236,7 +236,6 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
     }
 
-    sgx_status_t status = SGX_SUCCESS;
 
     READ_LOCK(sgxInitMutex);
 
@@ -295,10 +294,9 @@ string getSecretSharesV2(const string& _polyName, const char* _encryptedPolyHex,
 
 
     if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(GET_SS_V2_INVALID_HEX, "Invalid encrypted poly Hex");
     }
 
-    sgx_status_t status = SGX_SUCCESS;
 
     READ_LOCK(sgxInitMutex);
 
