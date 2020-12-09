@@ -825,7 +825,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     uint64_t binLen;
 
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -991,7 +991,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     uint64_t binLen;
 
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;

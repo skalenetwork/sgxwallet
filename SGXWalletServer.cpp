@@ -208,7 +208,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
 
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
-            throw SGXException(INVALID_BLS_NAME, string(__FUNCTION__) + ":Invalid BLS key name");
+            throw SGXException(BLS_IMPORT_INVALID_KEY_NAME, string(__FUNCTION__) + ":Invalid BLS key name");
         }
 
         string hashTmp = _keyShare;
@@ -217,7 +217,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(INVALID_BLS_KEY_SHARE, string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
+            throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE, string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
         }
 
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), hashTmp.c_str());
@@ -227,7 +227,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (encryptedKeyShareHex.empty()) {
-            throw SGXException(EMPTY_ENCRYPTED_KEY_SHARE,string(__FUNCTION__) +
+            throw SGXException(BLS_IMPORT_EMPTY_ENCRYPTED_KEY_SHARE,string(__FUNCTION__) +
                     ":Empty encrypted key share");
         }
 
@@ -281,11 +281,11 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
     try {
         if (!checkName(_keyShareName, "BLS_KEY")) {
-            throw SGXException(INVALID_POLY_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+            throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
         if (!check_n_t(t, n)) {
-            throw SGXException(INVALID_DKG_PARAMS, string(__FUNCTION__) + ":Invalid t/n parameters");
+            throw SGXException(BLS_SIGN_INVALID_PARAMS, string(__FUNCTION__) + ":Invalid t/n parameters");
         }
 
         string hashTmp = _messageHash;
@@ -461,7 +461,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
                                string(__FUNCTION__) + ":Invalid gen DKG polynomial name.");
         }
         if (_t <= 0 || _t > 32) {
-            throw SGXException(INVALID_DKG_PARAMS, string(__FUNCTION__) + ":Invalid gen dkg param t ");
+            throw SGXException(GENERATE_DKG_POLY_INVALID_PARAMS, string(__FUNCTION__) + ":Invalid gen dkg param t ");
         }
         encrPolyHex = gen_dkg_poly(_t);
         writeDataToDB(_polyName, encrPolyHex);
@@ -807,7 +807,7 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
     result["deleted"] = false;
     try {
         if (!checkName(name, "BLS_KEY")) {
-            throw SGXException(INVALID_BLS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name format");
+            throw SGXException(DELETE_BLS_KEY_INVALID_KEYNAME, string(__FUNCTION__) + ":Invalid BLSKey name format");
         }
         shared_ptr <string> bls_ptr = LevelDB::getLevelDb()->readString(name);
 
@@ -816,7 +816,7 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
             result["deleted"] = true;
         } else {
             auto error_msg = "BLS key not found: " + name;
-            throw SGXException(INVALID_BLS_NAME, string(__FUNCTION__)+ ":" + error_msg.c_str());
+            throw SGXException(DELETE_BLS_KEY_NOT_FOUND, string(__FUNCTION__)+ ":" + error_msg.c_str());
         }
     } HANDLE_SGX_EXCEPTION(result)
 

@@ -96,7 +96,7 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
     if (!hex2carray(_encryptedKeyHex.c_str(), &enc_len, encrPrKey.data(),
                     BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(GET_ECDSA_PUB_KEY_INVALID_KEY_HEX, "Invalid encryptedKeyHex");
     }
 
     sgx_status_t status = SGX_SUCCESS;
@@ -185,7 +185,7 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     if (!hex2carray(encryptedKeyHex.c_str(), &decLen, encryptedKey.data(),
                     BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(ECDSA_SIGN_INVALID_KEY_HEX, "Invalid encryptedKeyHex");
     }
 
     sgx_status_t status = SGX_SUCCESS;
