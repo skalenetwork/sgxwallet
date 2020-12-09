@@ -166,6 +166,14 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
 
 }
 
+stringstream LevelDB::getAllKeys() {
+
+}
+
+pair<string, uint64_t> LevelDB::getLastCreatedKey() {
+
+}
+
 
 LevelDB::LevelDB(string &filename) {
     leveldb::Options options;

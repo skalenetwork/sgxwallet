@@ -26,10 +26,12 @@
 #define SGXWALLET_LEVELDB_H
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <mutex>
 #include <vector>
 #include "common.h"
+
 namespace leveldb {
     class DB;
     class Status;
@@ -66,9 +68,11 @@ public:
 
 public:
 
-
     shared_ptr<string> readString(const string& _key);
 
+    stringstream getAllKeys();
+
+    pair<string, uint64_t> getLastCreatedKey();
 
     void writeString(const string &key1, const string &value1);
 

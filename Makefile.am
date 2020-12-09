@@ -59,16 +59,16 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 ## The build target
 
-bin_PROGRAMS =  sgxwallet testw cert_util
+bin_PROGRAMS =  sgxwallet testw sgx_util
 
 
 ## You can't use $(wildcard ...) with automake so all source files
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-COMMON_SRC = InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
-             ECDSACrypto.cpp \
+COMMON_SRC = InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp SGXInfoServer.cpp \
+             BLSCrypto.cpp ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
              ECDSAImpl.c TestUtils.cpp sgxwallet.c
@@ -111,8 +111,10 @@ nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
-cert_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-                   -LlibBLS/build/libff/libff \
-                   -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+sgx_util_SOURCES= InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
+                  SGXRegistrationServer.cpp CSRManagerServer.cpp SGXInfoServer.cpp
+
+sgx_util_LDADD= -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
+                -LlibBLS/build/libff/libff \
+                -l:libbls.a -l:libleveldb.a \
+                -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl

@@ -52,6 +52,7 @@
 #include "LevelDB.h"
 #include "SGXWalletServer.h"
 #include "SGXRegistrationServer.h"
+#include "SGXInfoServer.h"
 #include "SEKManager.h"
 #include "CSRManagerServer.h"
 #include "BLSCrypto.h"
@@ -199,7 +200,7 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
 
-        uint64_t  counter = 0;
+        uint64_t counter = 0;
 
         uint64_t initResult = 0;
         while ((initResult = initEnclave()) != 0 && counter < 10){
@@ -221,6 +222,8 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         } else {
             SGXWalletServer::initHttpServer();
         }
+        SGXInfoServer::initInfoServer();
+
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
