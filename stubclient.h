@@ -324,11 +324,11 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getLastCreatedKey()
+        Json::Value getLatestCreatedKey()
         {
             Json::Value p;
             p = Json::nullValue;
-            Json::Value result = this->CallMethod("getLastCreatedKey", p);
+            Json::Value result = this->CallMethod("getLatestCreatedKey", p);
             if (result.isObject())
                 return result;
             else

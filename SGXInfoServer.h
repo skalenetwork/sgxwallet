@@ -49,7 +49,7 @@ public:
 
     virtual Json::Value getAllKeysInfo();
 
-    virtual Json::Value getLastCreatedKey();
+    virtual Json::Value getLatestCreatedKey();
 
     virtual Json::Value getServerConfiguration();
 

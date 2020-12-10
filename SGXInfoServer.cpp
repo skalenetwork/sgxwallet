@@ -56,7 +56,7 @@ Json::Value SGXInfoServer::getAllKeysInfo() {
     RETURN_SUCCESS(result)
 }
 
-Json::Value SGXInfoServer::getLastCreatedKey() {
+Json::Value SGXInfoServer::getLatestCreatedKey() {
     Json::Value result;
 
     try {

@@ -181,7 +181,9 @@ stringstream LevelDB::getAllKeys() {
             Json::Value key_data;
             Json::Reader reader;
             reader.parse(it->value().ToString().c_str(), key_data);
-            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + key_data["timestamp"].asString();
+
+            string timestamp_to_date_command = "date -d @" + key_data["timestamp"].asString();
+            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + exec(timestamp_to_date_command.c_str());
         } else {
             // old style keys
             value = " VALUE: " + it->value().ToString();
@@ -194,7 +196,29 @@ stringstream LevelDB::getAllKeys() {
 }
 
 pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
+    leveldb::Iterator *it = db->NewIterator(readOptions);
 
+    uint64_t latest_timestamp = 0;
+    string latest_created_key_name = "";
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        if (it->value().ToString()[0] == '{') {
+            // new style keys
+            Json::Value key_data;
+            Json::Reader reader;
+            reader.parse(it->value().ToString().c_str(), key_data);
+
+            if (key_data["timestamp"].asUInt64() > latest_timestamp) {
+                latest_timestamp = key_data["timestamp"].asUInt64();
+                latest_created_key_name = it->key().ToString();
+            }
+        } else {
+            // old style keys
+            // assuming server has at least one new-style key created
+            continue;
+        }
+    }
+
+    return {latest_created_key_name, latest_timestamp};
 }
 
 
