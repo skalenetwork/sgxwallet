@@ -33,7 +33,7 @@ public:
   AbstractInfoServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractInfoServer>(conn, type)
   {
     this->bindAndAddMethod(jsonrpc::Procedure("getAllKeysInfo", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getAllKeysInfoI);
-    this->bindAndAddMethod(jsonrpc::Procedure("getLastCreatedKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getLastCreatedKeyI);
+    this->bindAndAddMethod(jsonrpc::Procedure("getLatestCreatedKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getLatestCreatedKeyI);
     this->bindAndAddMethod(jsonrpc::Procedure("getServerConfiguration", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getServerConfigurationI);
     this->bindAndAddMethod(jsonrpc::Procedure("isKeyExist", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"key",jsonrpc::JSON_STRING, NULL), &AbstractInfoServer::isKeyExistI);
   }
@@ -43,9 +43,9 @@ public:
       response = this->getAllKeysInfo();
   }
 
-  inline virtual void getLastCreatedKeyI(const Json::Value &request, Json::Value &response)
+  inline virtual void getLatestCreatedKeyI(const Json::Value &request, Json::Value &response)
   {
-      response = this->getLastCreatedKey();
+      response = this->getLatestCreatedKey();
   }
 
   inline virtual void getServerConfigurationI(const Json::Value &request, Json::Value &response)
@@ -60,7 +60,7 @@ public:
 
 
   virtual Json::Value getAllKeysInfo() = 0;
-  virtual Json::Value getLastCreatedKey() = 0;
+  virtual Json::Value getLatestCreatedKey() = 0;
   virtual Json::Value getServerConfiguration() = 0;
   virtual Json::Value isKeyExist(const std::string& key) = 0;
 

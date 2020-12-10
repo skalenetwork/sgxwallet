@@ -57,7 +57,6 @@ class LevelDB {
 
 public:
 
-
     static void initDataFolderAndDBs();
 
     static const shared_ptr<LevelDB> &getLevelDb();
@@ -70,6 +69,8 @@ public:
 
     shared_ptr<string> readString(const string& _key);
 
+    shared_ptr<string> readNewStyleValue(const string& value);
+
     stringstream getAllKeys();
 
     pair<string, uint64_t> getLatestCreatedKey();
@@ -78,13 +79,6 @@ public:
 
     void writeDataUnique(const string & Name, const string &value);
 
-    void writeByteArray(const char *_key, size_t _keyLen, const char *value,
-                        size_t _valueLen);
-
-
-    void writeByteArray(string& _key, const char *value,
-                        size_t _valueLen);
-
     void deleteDHDKGKey (const string &_key);
 
     void deleteTempNEK (const string &_key);
@@ -92,7 +86,6 @@ public:
     void deleteKey(const string &_key);
 
 public:
-
 
     void throwExceptionOnError(leveldb::Status result);
 

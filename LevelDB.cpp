@@ -43,6 +43,14 @@ using namespace leveldb;
 static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
+shared_ptr<string> LevelDB::readNewStyleValue(const string& value) {
+    Json::Value key_data;
+    Json::Reader reader;
+    reader.parse(value.c_str(), key_data);
+
+    return std::make_shared<string>(key_data["value"].asString());
+}
+
 std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     auto result = std::make_shared<string>();
@@ -57,16 +65,25 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
         return nullptr;
     }
 
+    if (result->at(0) == '{') {
+        return readNewStyleValue(*result);
+    }
+
     return result;
 }
 
 void LevelDB::writeString(const string &_key, const string &_value) {
+    Json::Value writerData;
+    writerData["value"] = _value;
+    writerData["timestamp"] = std::to_string(std::time(nullptr));
 
-    auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
+    Json::FastWriter fastWriter;
+    std::string output = fastWriter.write(writerData);
+
+    auto status = db->Put(writeOptions, Slice(_key), Slice(output));
 
     throwExceptionOnError(status);
 }
-
 
 void LevelDB::deleteDHDKGKey(const string &_key) {
 
@@ -93,18 +110,6 @@ void LevelDB::deleteKey(const string &_key) {
 
     throwExceptionOnError(status);
 
-}
-
-
-
-void LevelDB::writeByteArray(string &_key, const char *value,
-                             size_t _valueLen) {
-
-    CHECK_STATE(value);
-
-    auto status = db->Put(writeOptions, Slice(_key), Slice(value, _valueLen));
-
-    throwExceptionOnError(status);
 }
 
 void LevelDB::throwExceptionOnError(Status _status) {
@@ -164,7 +169,6 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
   }
 
   writeString(key, value);
-
 }
 
 stringstream LevelDB::getAllKeys() {
