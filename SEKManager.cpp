@@ -231,7 +231,7 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK,
                     BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
+        throw SGXException(SET_SEK_INVALID_SEK_HEX, "Invalid encrypted SEK Hex");
     }
 
     sgx_status_t status = SGX_SUCCESS;
