@@ -22,7 +22,7 @@ Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as
 described below
 
 ```bash
-sudo apt-get install -y docker-io
+sudo apt-get install -y docker.io
 ```
 
 To verify a correct installation, run `sudo docker run hello-world`
