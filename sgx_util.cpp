@@ -49,7 +49,7 @@ void getAllKeysInfo() {
     jsonrpc::HttpClient client("http://localhost:1030");
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
-    std::cout << c.getAllKeysInfo()["allKeys"] << std::endl;
+    std::cout << c.getAllKeysInfo()["allKeys"].asString().c_str() << std::endl;
     exit(0);
 }
 
@@ -60,7 +60,7 @@ void getLatestCreatedKey() {
     Json::Value lastCreatedKey = c.getLatestCreatedKey();
     std::cout << "Last created key name: " << lastCreatedKey["keyName"] << std::endl;
     std::string timestamp_to_date_command = "date -d @" + lastCreatedKey["creationTime"].asString();
-    std::cout << "Last created key creation time: " << exec(timestamp_to_date_command.c_str()) << std::endl;
+    std::cout << "Last created key creation time: " << exec(timestamp_to_date_command.c_str());
     exit(0);
 }
 

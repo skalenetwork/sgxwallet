@@ -187,14 +187,14 @@ stringstream LevelDB::getAllKeys() {
             reader.parse(it->value().ToString().c_str(), key_data);
 
             string timestamp_to_date_command = "date -d @" + key_data["timestamp"].asString();
-            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + exec(timestamp_to_date_command.c_str());
+            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + exec(timestamp_to_date_command.c_str()) + '\n';
         } else {
             // old style keys
             value = " VALUE: " + it->value().ToString();
         }
-        result << "KEY: " << key << ',' << value << std::endl;
+        result << "KEY: " << key << ',' << value;
     }
-    result << "TOTAL NUMBER OF KEYS: " << counter << '\n';
+    result << "TOTAL NUMBER OF KEYS: " << counter;
 
     return result;
 }
@@ -202,7 +202,7 @@ stringstream LevelDB::getAllKeys() {
 pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
     leveldb::Iterator *it = db->NewIterator(readOptions);
 
-    uint64_t latest_timestamp = 0;
+    int64_t latest_timestamp = 0;
     string latest_created_key_name = "";
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         if (it->value().ToString()[0] == '{') {
