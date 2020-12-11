@@ -25,6 +25,7 @@
 #include <cstring>
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include "stubclient.h"
+#include "common.h"
 
 #include <unistd.h>
 
@@ -58,7 +59,8 @@ void getLatestCreatedKey() {
     std::cout << "Info client inited" << std::endl;
     Json::Value lastCreatedKey = c.getLatestCreatedKey();
     std::cout << "Last created key name: " << lastCreatedKey["keyName"] << std::endl;
-    std::cout << "Last created key creation time: " << std::stoi(lastCreatedKey["creationTime"].asString()) << std::endl;
+    std::string timestamp_to_date_command = "date -d @" + lastCreatedKey["creationTime"].asString();
+    std::cout << "Last created key creation time: " << exec(timestamp_to_date_command.c_str()) << std::endl;
     exit(0);
 }
 
