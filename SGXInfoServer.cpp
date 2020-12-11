@@ -68,7 +68,7 @@ Json::Value SGXInfoServer::getLatestCreatedKey() {
     try {
         pair<string, uint64_t> key = LevelDB::getLevelDb()->getLatestCreatedKey();
         result["keyName"] = key.first;
-        result["creationTime"] = key.second;
+        result["creationTime"] = std::to_string(key.second);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)
