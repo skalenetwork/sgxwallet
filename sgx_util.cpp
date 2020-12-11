@@ -58,7 +58,7 @@ void getLatestCreatedKey() {
     std::cout << "Info client inited" << std::endl;
     Json::Value lastCreatedKey = c.getLatestCreatedKey();
     std::cout << "Last created key name: " << lastCreatedKey["keyName"] << std::endl;
-    std::cout << "Last created key creation time: " << lastCreatedKey["creationTime"] << std::endl;
+    std::cout << "Last created key creation time: " << std::stoi(lastCreatedKey["creationTime"].asString()) << std::endl;
     exit(0);
 }
 
@@ -102,9 +102,9 @@ void isKeyExists(const std::string& key) {
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
     if (c.isKeyExist(key)["IsExist"].asBool()) {
-        std::cout << "Key with name " << key << "presents in server database.\n";
+        std::cout << "Key with name " << key << " presents in server database.\n";
     } else {
-        std::cout << "Key with name " << key << "does not exist in server's database.\n";
+        std::cout << "Key with name " << key << " does not exist in server's database.\n";
     }
     exit(0);
 }

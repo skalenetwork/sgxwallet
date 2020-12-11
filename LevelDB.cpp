@@ -192,7 +192,7 @@ stringstream LevelDB::getAllKeys() {
             // old style keys
             value = " VALUE: " + it->value().ToString();
         }
-        result << "KEY: " << key << ',' << value << '\n';
+        result << "KEY: " << key << ',' << value << std::endl;
     }
     result << "TOTAL NUMBER OF KEYS: " << counter << '\n';
 
@@ -211,8 +211,8 @@ pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
             Json::Reader reader;
             reader.parse(it->value().ToString().c_str(), key_data);
 
-            if (key_data["timestamp"].asUInt64() > latest_timestamp) {
-                latest_timestamp = key_data["timestamp"].asUInt64();
+            if (std::stoi(key_data["timestamp"].asString()) > latest_timestamp) {
+                latest_timestamp = std::stoi(key_data["timestamp"].asString());
                 latest_created_key_name = it->key().ToString();
             }
         } else {

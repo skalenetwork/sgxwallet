@@ -89,11 +89,7 @@ public:
 
     void throwExceptionOnError(leveldb::Status result);
 
-
     LevelDB(string& filename);
-
-
-
 
     class KeyVisitor {
     public:
