@@ -35,7 +35,10 @@ using namespace std;
 class SGXInfoServer : public AbstractInfoServer {
     recursive_mutex m;
 
-    bool autoSign;
+    uint32_t logLevel_;
+    bool autoSign_;
+    bool checkCerts_;
+    bool generateTestKeys_;
 
     static shared_ptr <HttpServer> httpServer;
 
@@ -45,7 +48,8 @@ public:
 
     static shared_ptr <SGXInfoServer> getServer();
 
-    SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type);
+    SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
+                  uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
 
     virtual Json::Value getAllKeysInfo();
 
@@ -55,7 +59,7 @@ public:
 
     virtual Json::Value isKeyExist(const string& key);
 
-    static int initInfoServer();
+    static int initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
 
 };
 

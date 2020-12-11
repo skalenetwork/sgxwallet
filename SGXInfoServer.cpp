@@ -43,8 +43,14 @@
 shared_ptr <SGXInfoServer> SGXInfoServer::server = nullptr;
 shared_ptr <HttpServer> SGXInfoServer::httpServer = nullptr;
 
-SGXInfoServer::SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type)
-        : AbstractInfoServer(connector, type) {}
+SGXInfoServer::SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
+                             uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys)
+        : AbstractInfoServer(connector, type) {
+    logLevel_ = _logLevel;
+    autoSign_ = _autoSign;
+    checkCerts_ = _checkCerts;
+    generateTestKeys_ = _generateTestKeys;
+}
 
 Json::Value SGXInfoServer::getAllKeysInfo() {
     Json::Value result;
@@ -72,13 +78,13 @@ Json::Value SGXInfoServer::getServerConfiguration() {
     Json::Value result;
 
     try {
-        result["autoConfirm"] = false;
-        result["logLevel"] = false;
-        result["enclaveLogLevel"] = false;
-        result["backupOption"] = false;
-        result["HTTPS"] = false;
-        result["autoSign"] = false;
-        result["createTestKeys"] = false;
+        result["autoConfirm"] = autoconfirm;
+        result["logLevel"] = logLevel_;
+        result["enterBackupKey"] = enterBackupKey;
+        result["useHTTPS"] = useHTTPS;
+        result["autoSign"] = autoSign_;
+        result["checkCerts"] = checkCerts_;
+        result["generateTestKeys"] = generateTestKeys_;
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)
@@ -99,9 +105,9 @@ Json::Value SGXInfoServer::isKeyExist(const string& key) {
     RETURN_SUCCESS(result)
 }
 
-int SGXInfoServer::initInfoServer() {
+int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 5);
-    server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
+    server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
 
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 5);

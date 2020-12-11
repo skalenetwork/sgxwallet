@@ -163,7 +163,7 @@ uint64_t initEnclave() {
 
 
 
-void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
+void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys) {
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
@@ -203,7 +203,7 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         } else {
             SGXWalletServer::initHttpServer();
         }
-        SGXInfoServer::initInfoServer();
+        SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
 
         sgxServerInited = true;
     } catch (SGXException &_e) {

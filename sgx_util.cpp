@@ -29,19 +29,19 @@
 #include <unistd.h>
 
 int print_hashes(){
-  jsonrpc::HttpClient client("http://localhost:1028");
-  StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
-  std::cout << "Client inited" << std::endl;
-  std::cout << c.getUnsignedCSRs() << std::endl;
-  exit(0);
+    jsonrpc::HttpClient client("http://localhost:1028");
+    StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
+    std::cout << "Client inited" << std::endl;
+    std::cout << c.getUnsignedCSRs() << std::endl;
+    exit(0);
 }
 
 void sign_by_hash(std::string & hash, int status){
-  jsonrpc::HttpClient client("http://localhost:1028");
-  StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
-  std::cout << "Client inited" << std::endl;
-  std::cout << c.signByHash(hash, status) << std::endl;
-  exit(0);
+    jsonrpc::HttpClient client("http://localhost:1028");
+    StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
+    std::cout << "Client inited" << std::endl;
+    std::cout << c.signByHash(hash, status) << std::endl;
+    exit(0);
 }
 
 void getAllKeysInfo() {
@@ -67,7 +67,13 @@ void getServerConfiguration() {
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
     Json::Value response = c.getServerConfiguration();
-
+    std::cout << "OPTION autoConfitm certificates switched to " << response["autoConfitm"] << '\n';
+    std::cout << "OPTION logLevel switched to " << response["logLevel"] << '\n';
+    std::cout << "OPTION enterBackupKey switched to " << response["enterBackupKey"] << '\n';
+    std::cout << "OPTION useHTTPS switched to " << response["useHTTPS"] << '\n';
+    std::cout << "OPTION autoSign certificates switched to " << response["autoSign"] << '\n';
+    std::cout << "OPTION checkCerts switched to " << response["checkCerts"] << '\n';
+    std::cout << "OPTION generateTestKeys switched to " << response["generateTestKeys"] << '\n';
     exit(0);
 }
 
@@ -103,7 +109,7 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
   std::string hash;
-  while ((opt = getopt(argc, argv, "ps:r:")) != -1) {
+  while ((opt = getopt(argc, argv, "ps:r:alci:")) != -1) {
       switch (opt) {
           case 'p': print_hashes();
                     break;
