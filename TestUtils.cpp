@@ -241,7 +241,7 @@ void TestUtils::sendRPCRequest() {
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -355,7 +355,7 @@ void TestUtils::sendRPCRequestV2() {
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -488,7 +488,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
@@ -629,7 +629,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
@@ -721,7 +721,6 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_k
         mpz_clear(skey);
         point_clear(pub_keyB);
         point_clear(session_key);
-
         return  ret;
     }
 

@@ -140,7 +140,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     uint64_t binLen;
 
     if (!hex2carray(_hashHex, &binLen, hash->data(), hash->size())) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(SIGN_AES_INVALID_HASH, string(__FUNCTION__) +  ":Invalid hash");
     }
 
     shared_ptr <signatures::Bls> obj;
