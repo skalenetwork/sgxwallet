@@ -81,7 +81,7 @@ void isKeyExists(const std::string& key) {
     jsonrpc::HttpClient client("http://localhost:1030");
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
-    if (c.isKeyExist(key)["IsExist"]) {
+    if (c.isKeyExist(key)["IsExist"].asBool()) {
         std::cout << "Key with name " << key << "presents in server database.";
     } else {
         std::cout << "Key with name " << key << "does not exist in server's database.";
