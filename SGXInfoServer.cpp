@@ -106,14 +106,14 @@ Json::Value SGXInfoServer::isKeyExist(const string& key) {
 }
 
 int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
-    httpServer = make_shared<HttpServer>(BASE_PORT + 5);
+    httpServer = make_shared<HttpServer>(BASE_PORT + 4);
     server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
 
     if (!server->StartListening()) {
-        spdlog::error("Info server could not start listening on port {}", BASE_PORT + 5);
+        spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
         exit(-10);
     } else {
-        spdlog::info("Info server started on port {}", BASE_PORT + 5);
+        spdlog::info("Info server started on port {}", BASE_PORT + 4);
     }
 
     return 0;

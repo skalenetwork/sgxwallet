@@ -35,7 +35,7 @@ public:
     this->bindAndAddMethod(jsonrpc::Procedure("getAllKeysInfo", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getAllKeysInfoI);
     this->bindAndAddMethod(jsonrpc::Procedure("getLatestCreatedKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getLatestCreatedKeyI);
     this->bindAndAddMethod(jsonrpc::Procedure("getServerConfiguration", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, NULL), &AbstractInfoServer::getServerConfigurationI);
-    this->bindAndAddMethod(jsonrpc::Procedure("isKeyExist", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"key",jsonrpc::JSON_STRING, NULL), &AbstractInfoServer::isKeyExistI);
+    this->bindAndAddMethod(jsonrpc::Procedure("isKeyExist", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"keyName",jsonrpc::JSON_STRING, NULL), &AbstractInfoServer::isKeyExistI);
   }
 
   inline virtual void getAllKeysInfoI(const Json::Value &request, Json::Value &response)
@@ -55,7 +55,7 @@ public:
 
   inline virtual void isKeyExistI(const Json::Value &request, Json::Value &response)
   {
-    response = this->isKeyExist(request["key"].asString());
+    response = this->isKeyExist(request["keyName"].asString());
   }
 
 

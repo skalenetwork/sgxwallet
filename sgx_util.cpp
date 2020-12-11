@@ -67,8 +67,28 @@ void getServerConfiguration() {
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
     Json::Value response = c.getServerConfiguration();
-    std::cout << "OPTION autoConfitm certificates switched to " << response["autoConfitm"] << '\n';
-    std::cout << "OPTION logLevel switched to " << response["logLevel"] << '\n';
+    std::cout << "OPTION autoConfirm certificates switched to " << response["autoConfirm"] << '\n';
+    uint32_t logLevel = response["logLevel"].asInt();
+    std::string logLevelStr;
+    switch(logLevel) {
+        case 0:
+            logLevelStr = "trace";
+            break;
+        case 1:
+            logLevelStr = "debug";
+            break;
+        case 2:
+            logLevelStr = "info";
+            break;
+        case 3:
+            logLevelStr = "warning";
+            break;
+        case 4:
+            logLevelStr = "error";
+            break;
+    }
+
+    std::cout << "OPTION logLevel switched to " << logLevelStr << '\n';
     std::cout << "OPTION enterBackupKey switched to " << response["enterBackupKey"] << '\n';
     std::cout << "OPTION useHTTPS switched to " << response["useHTTPS"] << '\n';
     std::cout << "OPTION autoSign certificates switched to " << response["autoSign"] << '\n';
@@ -82,9 +102,9 @@ void isKeyExists(const std::string& key) {
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
     if (c.isKeyExist(key)["IsExist"].asBool()) {
-        std::cout << "Key with name " << key << "presents in server database.";
+        std::cout << "Key with name " << key << "presents in server database.\n";
     } else {
-        std::cout << "Key with name " << key << "does not exist in server's database.";
+        std::cout << "Key with name " << key << "does not exist in server's database.\n";
     }
     exit(0);
 }
@@ -108,7 +128,9 @@ int main(int argc, char *argv[]) {
     std::cout << " -i [name] check if key with such name presents in database" << std::endl;
     exit(0);
   }
+
   std::string hash;
+  std::string key;
   while ((opt = getopt(argc, argv, "ps:r:alci:")) != -1) {
       switch (opt) {
           case 'p': print_hashes();
@@ -118,6 +140,18 @@ int main(int argc, char *argv[]) {
                     break;
           case 'r': hash = optarg;
                     sign_by_hash(hash, 2);
+                    break;
+          case 'a':
+                    getAllKeysInfo();
+                    break;
+          case 'l':
+                    getLatestCreatedKey();
+                    break;
+          case 'c':
+                    getServerConfiguration();
+                    break;
+          case 'i': key = optarg;
+                    isKeyExists(key);
                     break;
           case '?': // fprintf(stderr, "unknown flag\n");
                     exit(1);
