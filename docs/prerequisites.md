@@ -55,9 +55,6 @@ curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_lis
  If you need to set advanced options, such as outgoing network proxy, edit "/etc/aesmd.conf" file in
  the sgxwallet docker container.  
 
-
- #endif" 
-
 ### Verify SGX support
 
 Install cpuid and libelf-dev packages:
