@@ -49,7 +49,7 @@ AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWAL
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
+AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -111,7 +111,8 @@ nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
+cert_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp \
+                    ServerTask.cpp ServerWorker.cpp
 cert_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
                    -l:libbls.a -l:libleveldb.a \
