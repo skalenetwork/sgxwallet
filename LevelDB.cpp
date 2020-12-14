@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "leveldb/db.h"
+#include <jsonrpccpp/client.h>
 
 #include "sgxwallet_common.h"
 #include "SGXException.h"
@@ -42,6 +43,14 @@ using namespace leveldb;
 static WriteOptions writeOptions;
 static ReadOptions readOptions;
 
+shared_ptr<string> LevelDB::readNewStyleValue(const string& value) {
+    Json::Value key_data;
+    Json::Reader reader;
+    reader.parse(value.c_str(), key_data);
+
+    return std::make_shared<string>(key_data["value"].asString());
+}
+
 std::shared_ptr<string> LevelDB::readString(const string &_key) {
 
     auto result = std::make_shared<string>();
@@ -56,16 +65,25 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
         return nullptr;
     }
 
+    if (result->at(0) == '{') {
+        return readNewStyleValue(*result);
+    }
+
     return result;
 }
 
 void LevelDB::writeString(const string &_key, const string &_value) {
+    Json::Value writerData;
+    writerData["value"] = _value;
+    writerData["timestamp"] = std::to_string(std::time(nullptr));
 
-    auto status = db->Put(writeOptions, Slice(_key), Slice(_value));
+    Json::FastWriter fastWriter;
+    std::string output = fastWriter.write(writerData);
+
+    auto status = db->Put(writeOptions, Slice(_key), Slice(output));
 
     throwExceptionOnError(status);
 }
-
 
 void LevelDB::deleteDHDKGKey(const string &_key) {
 
@@ -92,18 +110,6 @@ void LevelDB::deleteKey(const string &_key) {
 
     throwExceptionOnError(status);
 
-}
-
-
-
-void LevelDB::writeByteArray(string &_key, const char *value,
-                             size_t _valueLen) {
-
-    CHECK_STATE(value);
-
-    auto status = db->Put(writeOptions, Slice(_key), Slice(value, _valueLen));
-
-    throwExceptionOnError(status);
 }
 
 void LevelDB::throwExceptionOnError(Status _status) {
@@ -163,7 +169,59 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
   }
 
   writeString(key, value);
+}
 
+pair<stringstream, uint64_t> LevelDB::getAllKeys() {
+    stringstream keysInfo;
+
+    leveldb::Iterator *it = db->NewIterator(readOptions);
+    uint64_t counter = 0;
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        ++counter;
+        string key = it->key().ToString();
+        string value;
+        if (it->value().ToString()[0] == '{') {
+            // new style keys
+            Json::Value key_data;
+            Json::Reader reader;
+            reader.parse(it->value().ToString().c_str(), key_data);
+
+            string timestamp_to_date_command = "date -d @" + key_data["timestamp"].asString();
+            value = " VALUE: " + key_data["value"].asString() + ", TIMESTAMP: " + exec(timestamp_to_date_command.c_str()) + '\n';
+        } else {
+            // old style keys
+            value = " VALUE: " + it->value().ToString();
+        }
+        keysInfo << "KEY: " << key << ',' << value;
+    }
+
+    return {std::move(keysInfo), counter};
+}
+
+pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
+    leveldb::Iterator *it = db->NewIterator(readOptions);
+
+    int64_t latest_timestamp = 0;
+    string latest_created_key_name = "";
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        if (it->value().ToString()[0] == '{') {
+            // new style keys
+            Json::Value key_data;
+            Json::Reader reader;
+            reader.parse(it->value().ToString().c_str(), key_data);
+
+            if (std::stoi(key_data["timestamp"].asString()) > latest_timestamp) {
+                latest_timestamp = std::stoi(key_data["timestamp"].asString());
+                latest_created_key_name = it->key().ToString();
+            }
+        } else {
+            // old style keys
+            // assuming server has at least one new-style key created
+            continue;
+        }
+    }
+
+    return {latest_created_key_name, latest_timestamp};
 }
 
 
