@@ -34,13 +34,13 @@ makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
 GMP_DIR = topDir + "/sgx-gmp"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
+ZMQ_DIR = topDir + "/libzmq"
+ZMQ__BUILD_DIR = ZMQ_DIR + "/build"
 LEVELDB_DIR = topDir + "/leveldb"
 LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
-BLS_DIR = topDir +  "/libBLS"
-BLS_BUILD_DIR = BLS_DIR + "/build"
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
 
 print("Cleaning")
@@ -58,8 +58,19 @@ subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
 
+
+
+
+
+
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
+print("Build ZMQ");
+
+os.chdir(ZMQ_DIR)
+assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
+os.chdir(LEVELDB_BUILD_DIR)
+assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
 print("Build LevelDB");
 
@@ -68,16 +79,6 @@ assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
-
-
-print("Build LibBLS");
-os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
-os.chdir(BLS_DIR)
-assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild"]) == 0
-os.chdir(BLS_DIR + "/build")
-assert subprocess.call(["bash", "-c", "make"]) == 0
- 
 print("Build JSON"); 
 
 os.chdir(JSON_LIBS_DIR)
