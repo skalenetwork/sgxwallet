@@ -34,20 +34,22 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+
+
 class ServerTask {
+public:
+    ServerTask();
 
-    class ServerTask {
-    public:
-        ServerTask();
-
-        enum { kMaxThread = 5 };
-
-        void run();
-
-    private:
-        zmq::context_t ctx_;
-        zmq::socket_t frontend_;
-        zmq::socket_t backend_;
+    enum {
+        kMaxThread = 5
     };
+
+    void run();
+
+private:
+    zmq::context_t ctx_;
+    zmq::socket_t frontend_;
+    zmq::socket_t backend_;
+};
 
 #endif //SGXWALLET_SERVERTASK_H

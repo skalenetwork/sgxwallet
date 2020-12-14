@@ -5,7 +5,8 @@
 #include "ServerWorker.h"
 
 
-ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type);
+ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
+                                                                 worker_(ctx_, sock_type){};
 
 void ServerWorker::work() {
     worker_.connect("inproc://backend");
@@ -32,6 +33,4 @@ void ServerWorker::work() {
     catch (std::exception &e) {}
 }
 
-zmq::context_t &ServerWorker::ctx_;
-zmq::socket_t ServerWorker::worker_;
 

@@ -21,9 +21,12 @@
     @date 2019
 */
 
-#include "sgxwallet.h"
+#include "ServerWorker.h"
 #include "ServerTask.h"
 
+#include "sgxwallet_common.h"
+
+using namespace  std;
 
 ServerTask::ServerTask()
         : ctx_(1),
@@ -35,12 +38,12 @@ void ServerTask::run() {
     frontend_.bind("tcp://*:" + to_string(BASE_PORT + 4)) ;
     backend_.bind("inproc://backend");
 
-    std::vector < server_worker * > worker;
+    std::vector < ServerWorker * > worker;
     std::vector < std::thread * > worker_thread;
     for (int i = 0; i < kMaxThread; ++i) {
-        worker.push_back(new server_worker(ctx_, ZMQ_DEALER));
+        worker.push_back(new ServerWorker(ctx_, ZMQ_DEALER));
 
-        worker_thread.push_back(new std::thread(std::bind(&server_worker::work, worker[i])));
+        worker_thread.push_back(new std::thread(std::bind(&ServerWorker::work, worker[i])));
         worker_thread[i]->detach();
     }
 
@@ -58,7 +61,4 @@ void ServerTask::run() {
     }
 }
 
-zmq::context_t ServerTask::ctx_;
-zmq::socket_t ServerTask::frontend_;
-zmq::socket_t ServerTask::backend_;
 

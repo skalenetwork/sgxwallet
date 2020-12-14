@@ -36,6 +36,9 @@ GMP_DIR = topDir + "/sgx-gmp"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
 ZMQ_DIR = topDir + "/libzmq"
 ZMQ_BUILD_DIR = ZMQ_DIR + "/build"
+CZMQ_DIR = topDir + "/cppzmq"
+CZMQ_BUILD_DIR = CZMQ_DIR + "/build"
+
 LEVELDB_DIR = topDir + "/leveldb"
 LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 GMP_BUILD_DIR = topDir + "/gmp-build"
@@ -71,6 +74,7 @@ os.chdir(ZMQ_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(ZMQ_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+
 
 print("Build LevelDB");
 
