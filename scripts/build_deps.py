@@ -69,7 +69,7 @@ print("Build ZMQ");
 
 os.chdir(ZMQ_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
-os.chdir(LEVELDB_BUILD_DIR)
+os.chdir(ZMQ_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
 print("Build LevelDB");
