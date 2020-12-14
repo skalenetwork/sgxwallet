@@ -16,3 +16,6 @@
 [submodule "sgx-software-enable"]
 	path = sgx-software-enable
 	url = https://github.com/intel/sgx-software-enable
+[submodule "libzmq"]
+	path = libzmq
+	url = https://github.com/zeromq/libzmq.git
