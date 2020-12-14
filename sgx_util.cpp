@@ -45,11 +45,20 @@ void sign_by_hash(std::string & hash, int status){
     exit(0);
 }
 
+void getNumberOfKeysCreated() {
+    jsonrpc::HttpClient client("http://localhost:1030");
+    StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
+    std::cout << "Info client inited" << std::endl;
+    std::cout << c.getAllKeysInfo()["keysNumber"].asString() << std::endl;
+    exit(0);
+}
+
 void getAllKeysInfo() {
     jsonrpc::HttpClient client("http://localhost:1030");
     StubClient c(client, jsonrpc::JSONRPC_CLIENT_V2);
     std::cout << "Info client inited" << std::endl;
-    std::cout << c.getAllKeysInfo()["allKeys"].asString().c_str() << std::endl;
+    std::cout << c.getAllKeysInfo()["allKeys"].asString() << std::endl;
+    std::cout << "TOTAL KEYS IN DATABASE: " << c.getAllKeysInfo()["keysNumber"].asString() << std::endl;
     exit(0);
 }
 
@@ -126,6 +135,7 @@ int main(int argc, char *argv[]) {
     std::cout << " -r [hash] reject csr by hash" << std::endl;
     std::cout << " -a print all keys" << std::endl;
     std::cout << " -l print latest created key" << std::endl;
+    std::cout << " -n print number of keys stored in database" << std::endl;
     std::cout << " -c print server's config" << std::endl;
     std::cout << " -i [name] check if key with such name presents in database" << std::endl;
     exit(0);
@@ -133,7 +143,7 @@ int main(int argc, char *argv[]) {
 
   std::string hash;
   std::string key;
-  while ((opt = getopt(argc, argv, "ps:r:alci:")) != -1) {
+  while ((opt = getopt(argc, argv, "ps:r:alci:n")) != -1) {
       switch (opt) {
           case 'p': print_hashes();
                     break;
@@ -154,6 +164,9 @@ int main(int argc, char *argv[]) {
                     break;
           case 'i': key = optarg;
                     isKeyExists(key);
+                    break;
+          case 'n':
+                    getNumberOfKeysCreated();
                     break;
           case '?': // fprintf(stderr, "unknown flag\n");
                     exit(1);

@@ -171,8 +171,8 @@ void LevelDB::writeDataUnique(const string & name, const string &value) {
   writeString(key, value);
 }
 
-stringstream LevelDB::getAllKeys() {
-    stringstream result;
+pair<stringstream, uint64_t> LevelDB::getAllKeys() {
+    stringstream keysInfo;
 
     leveldb::Iterator *it = db->NewIterator(readOptions);
     uint64_t counter = 0;
@@ -192,11 +192,10 @@ stringstream LevelDB::getAllKeys() {
             // old style keys
             value = " VALUE: " + it->value().ToString();
         }
-        result << "KEY: " << key << ',' << value;
+        keysInfo << "KEY: " << key << ',' << value;
     }
-    result << "TOTAL NUMBER OF KEYS: " << counter;
 
-    return result;
+    return {std::move(keysInfo), counter};
 }
 
 pair<string, uint64_t> LevelDB::getLatestCreatedKey() {

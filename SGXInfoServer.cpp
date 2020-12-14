@@ -56,7 +56,9 @@ Json::Value SGXInfoServer::getAllKeysInfo() {
     Json::Value result;
 
     try {
-        result["allKeys"] = LevelDB::getLevelDb()->getAllKeys().str();
+        auto allKeysInfo = LevelDB::getLevelDb()->getAllKeys();
+        result["allKeys"] = allKeysInfo.first.str();
+        result["keysNumber"] = std::to_string(allKeysInfo.second);
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)

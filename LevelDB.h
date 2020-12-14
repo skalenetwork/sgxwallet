@@ -71,7 +71,7 @@ public:
 
     shared_ptr<string> readNewStyleValue(const string& value);
 
-    stringstream getAllKeys();
+    pair<stringstream, uint64_t> getAllKeys();
 
     pair<string, uint64_t> getLatestCreatedKey();
 
