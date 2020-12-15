@@ -57,10 +57,6 @@ using namespace std;
 
 std::shared_timed_mutex sgxInitMutex;
 
-// MAX 200 threads can call enclave
-boost::interprocess::interprocess_semaphore enclaveSemaphore(200);
-
-
 uint64_t initTime;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey) {
@@ -123,7 +119,7 @@ void SGXWalletServer::printDB() {
 #ifdef SGX_HW_SIM
 #define NUM_THREADS 16
 #else
-#define NUM_THREADS 1024
+#define NUM_THREADS 200
 #endif
 
 
