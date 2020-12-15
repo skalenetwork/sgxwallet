@@ -95,22 +95,24 @@ string(__FUNCTION__) + ": server error. Please see server log.";
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
     catch (const SGXException& _e) { \
       if (_e.getStatus() != 0) {__RESULT__["status"] = _e.getStatus();} else { __RESULT__["status"]  = -1 * (10000 + __LINE__);}; \
-      __RESULT__["errorMessage"] = _e.getErrString();                                                                                        \
-      if (_e.getErrString().size() == 0) {__RESULT__["errorMessage"] = string(__FUNCTION__);}; \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                             \
+      auto errStr = __FUNCTION__ + string(" failed:") + _e.getErrString(); \
+      __RESULT__["errorMessage"] = errStr; \
+      spdlog::error(errStr); \
       return __RESULT__; \
       } catch (const exception& _e) { \
-      __RESULT__["status"]  = -1 * (10000 + __LINE__);                                                                  \
+      __RESULT__["status"]  = -1 * (10000 + __LINE__); \
       exception_ptr p = current_exception(); \
-      __RESULT__["errorMessage"] = string(p.__cxa_exception_type()->name()) + ":" + _e.what(); \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
+      auto errStr = __FUNCTION__ + string(" failed:") + p.__cxa_exception_type()->name() + ":" + _e.what(); \
+      __RESULT__["errorMessage"] = errStr; \
+      spdlog::error(errStr); \
       return __RESULT__; \
-      }\
+      } \
       catch (...) { \
       exception_ptr p = current_exception(); \
-      spdlog::error(string("Exception:") + p.__cxa_exception_type()->name()); \
-      __RESULT__["errorMessage"] = string(p.__cxa_exception_type()->name());  \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
+      auto errStr = __FUNCTION__ + string(" failed:") + p.__cxa_exception_type()->name(); \
+      spdlog::error(errStr); \
+      __RESULT__["errorMessage"] = errStr ; \
+      spdlog::error(errStr); \
       return __RESULT__; \
       }
 
