@@ -127,10 +127,13 @@ void initUserSpace() {
 }
 
 void exitZMQServer() {
+
     auto doExit = !exiting.exchange(true);
 
     if (doExit) {
+        spdlog::info("Exiting zmq server ...");
         delete zmqServer;
+        spdlog::info("Exited zmq server ...");
         zmqServer = nullptr;
     }
 

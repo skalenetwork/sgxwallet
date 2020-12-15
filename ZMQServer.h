@@ -35,6 +35,9 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+
+#include "ServerWorker.h"
+
 using namespace std;
 
 
@@ -55,6 +58,10 @@ private:
     zmq::context_t ctx_;
     zmq::socket_t frontend_;
     zmq::socket_t backend_;
+
+    std::vector<ServerWorker *> worker;
+    std::vector<std::thread *> worker_thread;
+
 };
 
 #endif //SGXWALLET_ZMQServer_H

@@ -14,6 +14,7 @@
 #include "zhelpers.hpp"
 
 #include "third_party/spdlog/spdlog.h"
+#include "document.h"
 
 
 class ServerWorker {

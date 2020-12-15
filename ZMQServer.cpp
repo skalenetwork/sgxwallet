@@ -25,9 +25,7 @@
 
 #include "third_party/spdlog/spdlog.h"
 
-#include "ServerWorker.h"
 #include "ZMQServer.h"
-
 #include "sgxwallet_common.h"
 
 using namespace std;
@@ -60,8 +58,6 @@ void ZMQServer::run() {
         exit(-101);
     }
 
-    static std::vector<ServerWorker *> worker;
-    static std::vector<std::thread *> worker_thread;
 
     spdlog::info("Creating {} zmq server workers ...", kMaxThread);
 

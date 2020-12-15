@@ -49,7 +49,10 @@ AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWAL
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide
+AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls\
+    -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  \
+    -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide \
+    -I./rapidjson/include/rapidjson
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -66,7 +69,7 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-COMMON_SRC = ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
+COMMON_SRC = ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
              ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
