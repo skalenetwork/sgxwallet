@@ -16,29 +16,34 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerTask.h
+    @file ZMQServer.h
     @author Stan Kladko
     @date 2020
 */
 
 
-#ifndef SGXWALLET_SERVERTASK_H
-#define SGXWALLET_SERVERTASK_H
+#ifndef SGXWALLET_ZMQServer_H
+#define SGXWALLET_ZMQServer_H
 
 
 #include <vector>
 #include <thread>
 #include <memory>
 #include <functional>
+#include <atomic>
 
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+using namespace std;
 
 
-class ServerTask {
+class ZMQServer {
 public:
-    ServerTask();
+    ZMQServer();
+
+
+    atomic<bool> isExitRequested;
 
     enum {
         kMaxThread = 5
@@ -52,4 +57,4 @@ private:
     zmq::socket_t backend_;
 };
 
-#endif //SGXWALLET_SERVERTASK_H
+#endif //SGXWALLET_ZMQServer_H

@@ -57,6 +57,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "SGXException.h"
+#include "ZMQServer.h"
 #include "SGXWalletServer.hpp"
 
 uint32_t enclaveLogLevel = 0;
@@ -106,6 +107,9 @@ void systemHealthCheck() {
     }
 }
 
+static ZMQServer* zmqServer = nullptr;
+atomic<bool> exiting(false);
+
 void initUserSpace() {
 
     libff::inhibit_profiling_counters = true;
@@ -118,6 +122,17 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
+    zmqServer = new ZMQServer();
+    static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+}
+
+void exitZMQServer() {
+    auto doExit = !exiting.exchange(true);
+
+    if (doExit) {
+        delete zmqServer;
+        zmqServer = nullptr;
+    }
 
 }
 
@@ -177,7 +192,6 @@ uint64_t initEnclave() {
 
     return SGX_SUCCESS;
 }
-
 
 
 

@@ -38,6 +38,8 @@ EXTERNC void initUserSpace();
 
 EXTERNC uint64_t initEnclave();
 
+EXTERNC void exitZMQServer();
+
 
 
 #endif //SGXWALLET_SERVERINIT_H

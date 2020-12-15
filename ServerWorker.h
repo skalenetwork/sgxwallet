@@ -13,6 +13,8 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+#include "third_party/spdlog/spdlog.h"
+
 
 class ServerWorker {
 

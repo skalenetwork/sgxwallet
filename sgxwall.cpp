@@ -34,9 +34,12 @@
 
 #include "TestUtils.h"
 
+#include "ZMQServer.h"
+
 #include "testw.h"
 #include "sgxwall.h"
 #include "sgxwallet.h"
+
 
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";
@@ -200,6 +203,8 @@ int main(int argc, char *argv[]) {
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
     }
+
+
 
     while (true) {
         sleep(10);
