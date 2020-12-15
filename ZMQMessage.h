@@ -39,12 +39,13 @@ protected:
 
 public:
 
-    explicit ZMQMessage(string& _jsonMessage);
+    explicit ZMQMessage(shared_ptr<rapidjson::Document>& _d) : d(_d) {};
 
-    virtual ~ZMQMessage();
 
     string getStringRapid(const char *_name);
 
     uint64_t getUint64Rapid(const char *_name);
+
+    static shared_ptr<ZMQMessage> parse(vector<uint8_t>& _msg);
 
 };

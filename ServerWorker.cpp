@@ -1,7 +1,8 @@
 //
 // Created by kladko on 14.12.20.
 //
-
+#include "common.h"
+#include "ZMQMessage.h"
 #include "ServerWorker.h"
 
 
@@ -15,6 +16,13 @@ void ServerWorker::work() {
             zmq::message_t msg;
             zmq::message_t copied_msg;
             worker_.recv(&msg);
+
+            vector<uint8_t> msgData(msg.size() + 1, 0);
+
+            memcpy(msgData.data(), msg.data(), msg.size());
+
+            auto parseMsg = ZMQMessage::parse(msgData);
+
             copied_msg.copy(&msg);
             worker_.send(copied_msg);
         }

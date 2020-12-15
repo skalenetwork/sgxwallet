@@ -22,6 +22,7 @@
 */
 
 #include "common.h"
+
 #include "ZMQMessage.h"
 
 
@@ -39,3 +40,18 @@ string ZMQMessage::getStringRapid(const char *_name) {
     CHECK_STATE((*d)[_name].IsString());
     return (*d)[_name].GetString();
 };
+
+shared_ptr<ZMQMessage> ZMQMessage::parse(vector<uint8_t>& _msg) {
+
+    CHECK_STATE(_msg.at(_msg.size() - 1) == 0);
+
+    auto d = make_shared<rapidjson::Document>();
+
+    d->Parse((const char*) _msg.data());
+
+    CHECK_STATE(!d->HasParseError());
+    CHECK_STATE(d->IsObject())
+
+    return make_shared<ZMQMessage>(d);
+
+}

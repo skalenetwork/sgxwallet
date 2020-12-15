@@ -31,6 +31,7 @@ using namespace std;
 #include <iostream>
 #include <map>
 #include <memory>
+#include <vector>
 
 #include <boost/throw_exception.hpp>
 
