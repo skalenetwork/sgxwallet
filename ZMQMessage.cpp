@@ -69,6 +69,6 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(vector<uint8_t>& _msg) {
         throw SGXException(-301, "Incorrect zmq message type: " + string(type));
     }
 
-    return make_shared<ZMQMessage>(d);
+    return result;
 
 }

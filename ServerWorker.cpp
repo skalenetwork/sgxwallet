@@ -2,6 +2,7 @@
 // Created by kladko on 14.12.20.
 //
 #include "common.h"
+#include <json/writer.h>
 #include "ZMQMessage.h"
 #include "ServerWorker.h"
 
@@ -21,10 +22,17 @@ void ServerWorker::work() {
 
             memcpy(msgData.data(), msg.data(), msg.size());
 
-            auto parseMsg = ZMQMessage::parse(msgData);
+            auto parsedMsg = ZMQMessage::parse(msgData);
 
-            copied_msg.copy(&msg);
-            worker_.send(copied_msg);
+            CHECK_STATE(parsedMsg);
+
+            auto reply  = parsedMsg->process();
+
+            Json::FastWriter fastWriter;
+            std::string replyStr = fastWriter.write(reply);
+
+            zmq::message_t replyMsg(replyStr.c_str(),replyStr.size() + 1);
+            worker_.send(replyMsg);
         }
     }
     catch (std::exception &e) {

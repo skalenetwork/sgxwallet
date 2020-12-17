@@ -10,6 +10,9 @@
 class BLSSignReqMessage : public ZMQMessage {
 public:
     BLSSignReqMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+
 };
 
 

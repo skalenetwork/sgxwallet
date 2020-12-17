@@ -9,7 +9,11 @@
 
 class ECDSASignReqMessage : public ZMQMessage {
 public:
+
     ECDSASignReqMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+
 };
 
 

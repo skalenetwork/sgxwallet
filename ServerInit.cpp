@@ -122,11 +122,14 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
+#ifdef EXPERIMENTAL_ZMQ_SERVER
     zmqServer = new ZMQServer();
     static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+#endif
 }
 
 void exitZMQServer() {
+#ifdef EXPERIMENTAL_ZMQ_SERVER
 
     auto doExit = !exiting.exchange(true);
 
@@ -137,6 +140,7 @@ void exitZMQServer() {
         zmqServer = nullptr;
     }
 
+#endif
 }
 
 uint64_t initEnclave() {

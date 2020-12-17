@@ -69,7 +69,7 @@ bin_PROGRAMS =  sgxwallet testw cert_util
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-COMMON_SRC = ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
+COMMON_SRC = ECDSASignReqMessage.cpp BLSSignReqMessage.cpp ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
              ECDSACrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
