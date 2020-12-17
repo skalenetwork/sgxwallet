@@ -38,6 +38,7 @@ using namespace std;
 #include <gmp.h>
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
+#include "SGXException.h"
 
 #define SAFE_FREE(__POINTER__) {if (__POINTER__) {free(__POINTER__); __POINTER__ = NULL;}}
 
@@ -73,7 +74,7 @@ inline void print_stack() {
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
         print_stack();                                \
-        throw InvalidStateException(__msg__, __CLASS_NAME__);}
+        BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
 
 #define HANDLE_TRUSTED_FUNCTION_ERROR(__STATUS__, __ERR_STATUS__, __ERR_MSG__) \
@@ -82,7 +83,7 @@ string __ERR_STRING__ = string("SGX enclave call to ") + \
                    __FUNCTION__  +  " failed with status:" \
                    + to_string(__STATUS__) + \
                    " Err message:" + __ERR_MSG__; \
-BOOST_THROW_EXCEPTION(runtime_error(__ERR_MSG__)); \
+BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_MSG__))); \
 }\
 \
 if (__ERR_STATUS__ != 0) {\

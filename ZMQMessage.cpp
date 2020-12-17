@@ -23,7 +23,10 @@
 
 #include "common.h"
 
+#include "BLSSignReqMessage.h"
+#include "ECDSASignReqMessage.h"
 #include "ZMQMessage.h"
+
 
 
 uint64_t ZMQMessage::getUint64Rapid(const char *_name) {
@@ -51,6 +54,20 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(vector<uint8_t>& _msg) {
 
     CHECK_STATE(!d->HasParseError());
     CHECK_STATE(d->IsObject())
+
+    CHECK_STATE(d->HasMember("type"));
+    CHECK_STATE((*d)["type"].IsString());
+    auto type =  (*d)["type"].GetString();
+
+    shared_ptr<ZMQMessage> result;
+
+    if (type == ZMQMessage::BLS_SIGN_REQ) {
+        result = make_shared<BLSSignReqMessage>(d);
+    } else if (type == ZMQMessage::ECDSA_SIGN_REQ) {
+        result = make_shared<ECDSASignReqMessage>(d);
+    } else {
+        throw SGXException(-301, "Incorrect zmq message type: " + string(type));
+    }
 
     return make_shared<ZMQMessage>(d);
 
