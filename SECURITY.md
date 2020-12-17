@@ -12,4 +12,4 @@ If you have suggestions on how this process could be improved, please submit a p
 
 ## Bug Reporting Bounty
 
-Please check out the SKALE Network'sHackerOne program for any bug bounties related to SGX Wallet: <https://hackerone.com/skale_network>
+Please check out the SKALE Network's HackerOne program for any bug bounties related to SGX Wallet: <https://hackerone.com/skale_network>
