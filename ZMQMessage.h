@@ -26,7 +26,7 @@
 
 #include <memory>
 #include <vector>
-#include <json/value.h>
+#include "abstractstubserver.h"
 
 
 #include "document.h"

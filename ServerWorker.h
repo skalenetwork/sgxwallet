@@ -9,7 +9,7 @@
 #include <thread>
 #include <memory>
 #include <functional>
-#include <json/value.h>
+#include "abstractstubserver.h"
 
 #include <zmq.hpp>
 #include "zhelpers.hpp"
