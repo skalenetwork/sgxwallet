@@ -1071,7 +1071,7 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
     vector <thread> threads;
     int num_threads = 4;
     for (int i = 0; i < num_threads; i++) {
-        threads.push_back(thread(TestUtils::sendRPCRequest));
+        threads.push_back(thread(TestUtils::sendRPCRequestV2));
     }
 
     for (auto &thread : threads) {
