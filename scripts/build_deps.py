@@ -44,7 +44,11 @@ LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
 GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
+
 JSON_LIBS_DIR = topDir +  "/jsonrpc"
+
+BLS_DIR = topDir +  "/libBLS"
+BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
 
@@ -67,6 +71,16 @@ subprocess.call(["rm", "-rf", SDK_DIR])
 
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
+
+
+print("Build LibBLS");
+os.chdir(BLS_DIR + "/deps")
+assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+os.chdir(BLS_DIR)
+assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild"]) == 0
+os.chdir(BLS_DIR + "/build")
+assert subprocess.call(["bash", "-c", "make"]) == 0
+
 
 print("Build ZMQ");
 
