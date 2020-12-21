@@ -161,14 +161,12 @@ std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
 }
 
 void LevelDB::writeDataUnique(const string & name, const string &value) {
-  auto key = name;
-
   if (readString(name)) {
     spdlog::debug("Name {} already exists", name);
     throw SGXException(KEY_SHARE_ALREADY_EXISTS, "Data with this name already exists");
   }
 
-  writeString(key, value);
+  writeString(name, value);
 }
 
 pair<stringstream, uint64_t> LevelDB::getAllKeys() {

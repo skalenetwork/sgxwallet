@@ -59,7 +59,7 @@ CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 ## The build target
 
-bin_PROGRAMS =  sgxwallet testw sgx_util
+bin_PROGRAMS = sgxwallet testw sgx_util
 
 
 ## You can't use $(wildcard ...) with automake so all source files
@@ -117,4 +117,4 @@ sgx_util_SOURCES= InvalidStateException.cpp Exception.cpp InvalidArgumentExcepti
 sgx_util_LDADD= -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                 -LlibBLS/build/libff/libff \
                 -l:libbls.a -l:libleveldb.a \
-                -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
