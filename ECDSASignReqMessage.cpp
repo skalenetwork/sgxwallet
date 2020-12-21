@@ -2,7 +2,6 @@
 // Created by kladko on 15.12.20.
 //
 
-#include <json/value.h>
 
 #include "SGXWalletServer.hpp"
 
