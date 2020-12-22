@@ -899,6 +899,66 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, 
     RETURN_SUCCESS(result)
 }
 
+Json::Value
+SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
+                                         const string &_secretShare, int _t, int _n) {
+    COUNT_STATISTICS
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (_secretShare.length() != (uint64_t) _n * 192) {
+            throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
+                               string(__FUNCTION__) + ":Invalid secret share length");
+        }
+        if (!checkECDSAKeyName(_ethKeyName)) {
+            throw SGXException(INVALID_CREATE_BLS_ECDSA_KEY_NAME,
+                               string(__FUNCTION__) + ":Invalid ECDSA key name");
+        }
+        if (!checkName(_polyName, "POLY")) {
+            throw SGXException(INVALID_CREATE_BLS_POLY_NAME, string(__FUNCTION__) +
+                                                             ":Invalid polynomial name");
+        }
+        if (!checkName(_blsKeyName, "BLS_KEY")) {
+            throw SGXException(INVALID_CREATE_BLS_KEY_NAME, string(__FUNCTION__) +
+                                                            ":Invalid BLS key name");
+        }
+        if (!check_n_t(_t, _n)) {
+            throw SGXException(INVALID_CREATE_BLS_DKG_PARAMS,
+                               string(__FUNCTION__) + ":Invalid DKG parameters: n or t ");
+        }
+        vector <string> sshares_vect;
+
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(_ethKeyName);
+
+        CHECK_STATE(encryptedKeyHex_ptr);
+
+        bool res = createBLSShareV2(_blsKeyName, _secretShare.c_str(), encryptedKeyHex_ptr->c_str());
+        if (res) {
+            spdlog::info("BLS KEY SHARE CREATED ");
+        } else {
+            throw SGXException(INVALID_CREATE_BLS_SHARE,
+                               string(__FUNCTION__) + ":Error while creating BLS key share");
+        }
+
+
+        for (int i = 0; i < _n; i++) {
+            string name = _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteDHDKGKey(name);
+            string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+            LevelDB::getLevelDb()->deleteKey(shareG2_name);
+        }
+        LevelDB::getLevelDb()->deleteKey(_polyName);
+
+
+        string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+        LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
+
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result);
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
@@ -991,6 +1051,12 @@ SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &et
                                    int t,
                                    int n, int index) {
     return dkgVerificationV2Impl(_publicShares, ethKeyName, SecretShare, t, n, index);
+}
+
+Json::Value
+SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &ethKeyName, const string &polyName,
+                                     const string &SecretShare, int t, int n) {
+    return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

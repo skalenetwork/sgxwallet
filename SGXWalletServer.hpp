@@ -111,6 +111,8 @@ public:
 
     virtual Json::Value dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare, int t, int n, int index);
 
+    virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
     static shared_ptr <string> checkDataFromDb(const string &name, const string &prefix = "");
@@ -166,6 +168,8 @@ public:
     static Json::Value getSecretShareV2Impl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
 
     static Json::Value dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare, int _t, int _n, int _index);
+
+    virtual Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
     static void printDB();
 
