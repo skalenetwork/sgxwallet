@@ -52,6 +52,7 @@
 #include "LevelDB.h"
 #include "SGXWalletServer.h"
 #include "SGXRegistrationServer.h"
+#include "SGXInfoServer.h"
 #include "SEKManager.h"
 #include "CSRManagerServer.h"
 #include "BLSCrypto.h"
@@ -62,26 +63,7 @@
 
 uint32_t enclaveLogLevel = 0;
 
-using namespace  std;
-
-
-// Copy from libconsensus
-
-
-
-string exec( const char* cmd ) {
-    CHECK_STATE( cmd );
-    std::array< char, 128 > buffer;
-    std::string result;
-    std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( cmd, "r" ), pclose );
-    if ( !pipe ) {
-        BOOST_THROW_EXCEPTION( std::runtime_error( "popen() failed!" ) );
-    }
-    while ( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
-        result += buffer.data();
-    }
-    return result;
-}
+using namespace std;
 
 void systemHealthCheck() {
     string ulimit;
@@ -202,7 +184,8 @@ uint64_t initEnclave() {
 
 
 
-void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
+void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys) {
+
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
@@ -220,7 +203,7 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
 
-        uint64_t  counter = 0;
+        uint64_t counter = 0;
 
         uint64_t initResult = 0;
         while ((initResult = initEnclave()) != 0 && counter < 10){
@@ -242,6 +225,8 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         } else {
             SGXWalletServer::initHttpServer();
         }
+        SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
+
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());

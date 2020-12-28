@@ -72,7 +72,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixture() {
@@ -85,7 +85,7 @@ public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
         setOptions(L_INFO, true, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureHTTPS() {
@@ -98,7 +98,7 @@ class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureNoResetFromBackup() {
@@ -112,7 +112,7 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureNoReset() {
@@ -1002,7 +1002,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
                                               n);
         REQUIRE(response["status"] == 0);
 
@@ -1074,7 +1074,7 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
     vector <thread> threads;
     int num_threads = 4;
     for (int i = 0; i < num_threads; i++) {
-        threads.push_back(thread(TestUtils::sendRPCRequest));
+        threads.push_back(thread(TestUtils::sendRPCRequestV2));
     }
 
     for (auto &thread : threads) {

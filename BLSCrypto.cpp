@@ -129,36 +129,6 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
     return true;
 }
 
-bool sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, size_t _signerIndex,
-          char *_sig) {
-
-
-    CHECK_STATE(_encryptedKeyHex);
-    CHECK_STATE(_hashHex);
-    CHECK_STATE(_sig);
-
-    auto keyStr = make_shared<string>(_encryptedKeyHex);
-
-    auto hash = make_shared < array < uint8_t,
-    32 >> ();
-
-    uint64_t binLen;
-
-    if (!hex2carray(_hashHex, &binLen, hash->data(), hash->size())) {
-        throw SGXException(SIGN_FUNCTION_INVALID_HEX, string(__FUNCTION__) + ":Invalid hash");
-    }
-
-    auto keyShare = make_shared<BLSPrivateKeyShareSGX>(keyStr, _t, _n);
-
-    auto sigShare = keyShare->signWithHelperSGX(hash, _signerIndex);
-
-    auto sigShareStr = sigShare->toString();
-
-    strncpy(_sig, sigShareStr->c_str(), BUF_LEN);
-
-    return true;
-}
-
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
 
     CHECK_STATE(_encryptedKeyHex);
@@ -214,10 +184,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SEMAPHORE_BEGIN
-            status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
-                                              sz, xStrArg, yStrArg, signature);
-    SEMAPHORE_END
+    status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
+                                      sz, xStrArg, yStrArg, signature);
 
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -256,10 +224,8 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SEMAPHORE_BEGIN
-        status = trustedEncryptKey(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
-                                      &encryptedLen);
-    SEMAPHORE_END
+    status = trustedEncryptKey(eid, errStatus, errMsg.data(), keyArray->data(), encryptedKey->data(),
+                               &encryptedLen);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, *errStatus, errMsg.data());
 

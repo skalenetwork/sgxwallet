@@ -26,10 +26,12 @@
 #define SGXWALLET_LEVELDB_H
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <mutex>
 #include <vector>
 #include "common.h"
+
 namespace leveldb {
     class DB;
     class Status;
@@ -55,7 +57,6 @@ class LevelDB {
 
 public:
 
-
     static void initDataFolderAndDBs();
 
     static const shared_ptr<LevelDB> &getLevelDb();
@@ -66,20 +67,17 @@ public:
 
 public:
 
-
     shared_ptr<string> readString(const string& _key);
 
+    shared_ptr<string> readNewStyleValue(const string& value);
+
+    pair<stringstream, uint64_t> getAllKeys();
+
+    pair<string, uint64_t> getLatestCreatedKey();
 
     void writeString(const string &key1, const string &value1);
 
     void writeDataUnique(const string & Name, const string &value);
-
-    void writeByteArray(const char *_key, size_t _keyLen, const char *value,
-                        size_t _valueLen);
-
-
-    void writeByteArray(string& _key, const char *value,
-                        size_t _valueLen);
 
     void deleteDHDKGKey (const string &_key);
 
@@ -89,14 +87,9 @@ public:
 
 public:
 
-
     void throwExceptionOnError(leveldb::Status result);
 
-
     LevelDB(string& filename);
-
-
-
 
     class KeyVisitor {
     public:

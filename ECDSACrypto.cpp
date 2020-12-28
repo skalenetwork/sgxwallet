@@ -59,11 +59,9 @@ vector <string> genECDSAKey() {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SEMAPHORE_BEGIN
-        status = trustedGenerateEcdsaKey(eid, &errStatus,
-                                   errMsg.data(), encr_pr_key.data(), &enc_len,
-                                   pub_key_x.data(), pub_key_y.data());
-    SEMAPHORE_END
+    status = trustedGenerateEcdsaKey(eid, &errStatus,
+                               errMsg.data(), encr_pr_key.data(), &enc_len,
+                               pub_key_x.data(), pub_key_y.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
@@ -101,10 +99,8 @@ string getECDSAPubKey(const std::string& _encryptedKeyHex) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SEMAPHORE_BEGIN
-        status = trustedGetPublicEcdsaKey(eid, &errStatus,
-                                             errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
-    SEMAPHORE_END
+    status = trustedGetPublicEcdsaKey(eid, &errStatus,
+                                      errMsg.data(), encrPrKey.data(), enc_len, pubKeyX.data(), pubKeyY.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data())
 
@@ -190,12 +186,10 @@ vector <string> ecdsaSignHash(const std::string& encryptedKeyHex, const char *ha
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SEMAPHORE_BEGIN
-        status = trustedEcdsaSign(eid, &errStatus,
-                            errMsg.data(), encryptedKey.data(), decLen, hashHex,
-                            signatureR.data(),
-                            signatureS.data(), &signatureV, base);
-    SEMAPHORE_END
+    status = trustedEcdsaSign(eid, &errStatus,
+                        errMsg.data(), encryptedKey.data(), decLen, hashHex,
+                        signatureR.data(),
+                        signatureS.data(), &signatureV, base);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -242,10 +236,9 @@ string encryptECDSAKey(const string& _key) {
     uint64_t enc_len = 0;
 
     sgx_status_t status = SGX_SUCCESS;
-    SEMAPHORE_BEGIN
-        status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
-                                   encryptedKey.data(), &enc_len);
-    SEMAPHORE_END
+
+    status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
+                               encryptedKey.data(), &enc_len);
 
     if (status != 0) {
         throw SGXException(status, string("Could not encrypt ECDSA key: " + string(errString.begin(), errString.end())).c_str());
