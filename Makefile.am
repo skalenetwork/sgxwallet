@@ -49,7 +49,10 @@ AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWAL
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  -I./libBLS/deps/deps_inst/x86_or_x64/include
+AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls\
+    -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS)  -I.  \
+    -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide \
+    -I./rapidjson/include/rapidjson
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
@@ -66,12 +69,12 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-COMMON_SRC = InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp \
-             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp SGXInfoServer.cpp \
-             BLSCrypto.cpp ECDSACrypto.cpp \
+
+COMMON_SRC = ECDSASignReqMessage.cpp BLSSignReqMessage.cpp ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
+             SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
-             ECDSAImpl.c TestUtils.cpp sgxwallet.c
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp 
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
@@ -100,8 +103,10 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 
 sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
    -LlibBLS/build/libff/libff \
+   -Llibzmq/build/lib/ \
    -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
+   -l:libzmq.a \
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
    -lboost_system -lboost_thread -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
@@ -111,10 +116,12 @@ nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-sgx_util_SOURCES= InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
-                  SGXRegistrationServer.cpp CSRManagerServer.cpp SGXInfoServer.cpp
+sgx_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
 
-sgx_util_LDADD= -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-                -LlibBLS/build/libff/libff \
-                -l:libbls.a -l:libleveldb.a \
-                -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
+                   -LlibBLS/build/libff/libff \
+                   -Llibzmq/build/lib/ \
+                   -l:libzmq.a \
+                   -l:libbls.a -l:libleveldb.a \
+                   -l:libff.a -lgmp  -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+

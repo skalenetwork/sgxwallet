@@ -25,8 +25,11 @@
 
 #include "abstractstubserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
-
 #include <stdio.h>
+#include <algorithm>
+#include <stdlib.h>
+#include <unistd.h>
+
 
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
@@ -42,13 +45,6 @@
 #include "SGXWalletServer.hpp"
 
 #include "ServerDataChecker.h"
-
-#include <algorithm>
-#include <stdlib.h>
-
-#include <unistd.h>
-
-
 #include "ServerInit.h"
 
 #include "Log.h"
@@ -306,6 +302,8 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 
     result["signatureShare"] = string(signature.data());
+
+
 
     RETURN_SUCCESS(result);
 

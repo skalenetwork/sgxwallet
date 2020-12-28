@@ -16,30 +16,52 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerInit.h
+    @file ZMQServer.h
     @author Stan Kladko
-    @date 2019
+    @date 2020
 */
 
-#ifndef SGXWALLET_SERVERINIT_H
-#define SGXWALLET_SERVERINIT_H
 
-#include "stdint.h"
-
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys);
-
-EXTERNC void initUserSpace();
-
-EXTERNC uint64_t initEnclave();
-
-EXTERNC void exitZMQServer();
+#ifndef SGXWALLET_ZMQServer_H
+#define SGXWALLET_ZMQServer_H
 
 
+#include <vector>
+#include <thread>
+#include <memory>
+#include <functional>
+#include <atomic>
 
-#endif //SGXWALLET_SERVERINIT_H
+#include <zmq.hpp>
+#include "zhelpers.hpp"
+
+
+#include "ServerWorker.h"
+
+using namespace std;
+
+
+class ZMQServer {
+public:
+    ZMQServer();
+
+
+    atomic<bool> isExitRequested;
+
+    enum {
+        kMaxThread = 5
+    };
+
+    void run();
+
+private:
+    zmq::context_t ctx_;
+    zmq::socket_t frontend_;
+    zmq::socket_t backend_;
+
+    std::vector<ServerWorker *> worker;
+    std::vector<std::thread *> worker_thread;
+
+};
+
+#endif //SGXWALLET_ZMQServer_H

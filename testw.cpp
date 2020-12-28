@@ -89,6 +89,7 @@ public:
     }
 
     ~TestFixtureHTTPS() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -101,6 +102,7 @@ public:
     }
 
     ~TestFixtureNoResetFromBackup() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -114,6 +116,7 @@ public:
     }
 
     ~TestFixtureNoReset() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };

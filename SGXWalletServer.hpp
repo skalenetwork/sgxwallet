@@ -25,7 +25,8 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
-
+#include "mutex"
+#include "memory"
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
