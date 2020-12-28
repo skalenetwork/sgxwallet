@@ -114,7 +114,7 @@ nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD= ${sgxwallet_LDADD}
 
-sgx_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp cert_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
+sgx_util_SOURCES= InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
 
 sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
