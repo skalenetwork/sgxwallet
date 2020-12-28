@@ -72,7 +72,9 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 
 COMMON_SRC = ECDSASignReqMessage.cpp BLSSignReqMessage.cpp ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp  Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
-             ECDSACrypto.cpp 
+             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
+             third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp 
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
