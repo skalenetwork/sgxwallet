@@ -52,8 +52,11 @@ make
 make install
 cd ../..
 
-tar -xzf ./pre_downloaded/jsoncpp.tar.gz
+#tar -xzf ./pre_downloaded/jsoncpp.tar.gz
+git clone https://github.com/open-source-parsers/jsoncpp.git
 cd jsoncpp
+git pull
+git checkout 1.8.4
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \

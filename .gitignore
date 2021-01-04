@@ -49,4 +49,5 @@
 /*.user
 /cert/*.csr
 /cert/*.crt
-/sgx-gmp/
+/jsonrpc/*
+!/jsonrpc/build.sh
