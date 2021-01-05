@@ -108,6 +108,7 @@ Json::Value SGXInfoServer::isKeyExist(const string& key) {
 }
 
 int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
+    spdlog::info("Entering {}", __FUNCTION__);
     httpServer = make_shared<HttpServer>(BASE_PORT + 4);
     server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
 

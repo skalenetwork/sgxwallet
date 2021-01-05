@@ -183,6 +183,8 @@ int SGXWalletServer::initHttpServer() { //without ssl
     if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
         exit(-14);
+    } else {
+        spdlog::info("Http server started on port {}", BASE_PORT + 3);
     }
     return 0;
 }
@@ -781,12 +783,14 @@ Json::Value SGXWalletServer::isPolyExistsImpl(const string &_polyName) {
 
 Json::Value SGXWalletServer::getServerStatusImpl() {
     COUNT_STATISTICS
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     RETURN_SUCCESS(result)
 }
 
 Json::Value SGXWalletServer::getServerVersionImpl() {
     COUNT_STATISTICS
+    spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
     result["version"] = TOSTRING(SGXWALLET_VERSION);
     RETURN_SUCCESS(result)
