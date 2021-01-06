@@ -96,7 +96,7 @@ cd ..
 #tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout develop
+git checkout bug/SKALE-3679-memory-leak-callback
 git pull
 rm -rf build || true
 mkdir -p build
