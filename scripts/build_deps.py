@@ -65,11 +65,6 @@ subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
 
-
-
-
-
-
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 
