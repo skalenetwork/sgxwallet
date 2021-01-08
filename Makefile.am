@@ -45,7 +45,7 @@ secure_enclave.edl: secure_enclave/secure_enclave.edl
 #AM_CPPFLAGS += -g -Og
 
 
-AM_CFLAGS = -DUSER_SPACE -g -Og -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
+AM_CFLAGS = -DUSER_SPACE -O2 -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -lSegFault -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
