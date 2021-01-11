@@ -9,6 +9,7 @@
 
 
 #include <jsonrpccpp/client.h>
+#include "ZMQMessage.h"
 
 class ZMQClient {
 
@@ -17,7 +18,7 @@ class ZMQClient {
     Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n)
     {
         Json::Value p;
-        p["method"] = "blsSignMessageHash";
+        p["type"] = ZMQMessage::BLS_SIGN_REQ;
         p["keyShareName"] = keyShareName;
         p["messageHash"] = messageHash;
         p["n"] = n;
@@ -34,7 +35,7 @@ class ZMQClient {
     Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash)
     {
         Json::Value p;
-        p["method"] = "ecdsaSignMessageHash";
+        p["type"] = ZMQMessage::ECDSA_SIGN_REQ;
         p["base"] = base;
         p["keyName"] = keyName;
         p["messageHash"] = messageHash;

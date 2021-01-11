@@ -38,15 +38,17 @@ class ZMQMessage {
 
     shared_ptr<rapidjson::Document> d;
 
-    static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
-    static constexpr const char *BLS_SIGN_RSP = "BLSSignRsp";
-    static constexpr const char *ECDSA_SIGN_REQ = "ECDSASignReq";
-    static constexpr const char *ECDSA_SIGN_RSP = "ECDSASignRsp";
 
 protected:
 
 
 public:
+
+
+    static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
+    static constexpr const char *BLS_SIGN_RSP = "BLSSignRsp";
+    static constexpr const char *ECDSA_SIGN_REQ = "ECDSASignReq";
+    static constexpr const char *ECDSA_SIGN_RSP = "ECDSASignRsp";
 
     explicit ZMQMessage(shared_ptr<rapidjson::Document> &_d) : d(_d) {
     };

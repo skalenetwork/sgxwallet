@@ -11,5 +11,7 @@ Json::Value BLSSignReqMessage::process() {
     auto hash = getStringRapid("mh");
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
-    return SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
+    auto result =  SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
+    result["type"] = ZMQMessage::BLS_SIGN_RSP;
+    return result;
 }
