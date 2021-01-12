@@ -29,9 +29,11 @@ void ServerWorker::work() {
             auto reply  = parsedMsg->process();
 
             Json::FastWriter fastWriter;
+
             std::string replyStr = fastWriter.write(reply);
 
             zmq::message_t replyMsg(replyStr.c_str(),replyStr.size() + 1);
+
             worker_.send(replyMsg);
         }
     }
