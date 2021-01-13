@@ -1061,7 +1061,7 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
-        throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist");
+        throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist: " + prefix + name);
     }
 
     return dataStr;
