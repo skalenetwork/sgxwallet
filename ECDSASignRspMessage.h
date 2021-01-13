@@ -33,6 +33,9 @@ public:
 
     virtual Json::Value process();
 
+    string getSignature();
+
+
 };
 
 

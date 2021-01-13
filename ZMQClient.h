@@ -46,79 +46,21 @@ private:
     std::unique_ptr <zmq::socket_t> clientSocket;
     string url;
 
-    shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req) {
+    shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req);
 
-        Json::FastWriter fastWriter;
-        string reqStr = fastWriter.write(_req);
-
-        auto resultStr = doZmqRequestReply(reqStr);
-
-        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false);
-
-    }
-
-    string doZmqRequestReply(string &_req) {
-
-        stringstream request;
-        s_send(*clientSocket, _req);
-
-        while (true) {
-            //  Poll socket for a reply, with timeout
-            zmq::pollitem_t items[] = {
-                    {static_cast<void *>(*clientSocket), 0, ZMQ_POLLIN, 0}};
-            zmq::poll(&items[0], 1, REQUEST_TIMEOUT);
-            //  If we got a reply, process it
-            if (items[0].revents & ZMQ_POLLIN) {
-                string reply = s_recv(*clientSocket);
-                return reply;
-            } else {
-                spdlog::error("W: no response from server, retrying...");
-                reconnect();
-                //  Send request again, on new socket
-                s_send(*clientSocket, _req);
-            }
-        }
-    }
+    string doZmqRequestReply(string &_req);
 
 
 public:
 
 
-    ZMQClient(string &ip, uint16_t port) : ctx(1) {
-        url = "tcp://" + ip + ":" + to_string(port);
+    ZMQClient(string &ip, uint16_t port);
 
-    }
+    void reconnect() ;
 
-    void reconnect() {
-        clientSocket = nullptr; // delete previous
-        clientSocket = make_unique<zmq::socket_t>(ctx, ZMQ_REQ);
-        clientSocket->connect(url);
-        //  Configure socket to not wait at close time
-        int linger = 0;
-        clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-    }
+    string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);
 
-
-    string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n) {
-        Json::Value p;
-        p["type"] = ZMQMessage::BLS_SIGN_REQ;
-        p["keyShareName"] = keyShareName;
-        p["messageHash"] = messageHash;
-        p["n"] = n;
-        p["t"] = t;
-        auto result = doRequestReply(p);
-        return "";
-    }
-
-    string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash) {
-        Json::Value p;
-        p["type"] = ZMQMessage::ECDSA_SIGN_REQ;
-        p["base"] = base;
-        p["keyName"] = keyName;
-        p["messageHash"] = messageHash;
-        auto result = doRequestReply(p);
-        return "";
-    }
+    string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
 
 
 };

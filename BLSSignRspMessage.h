@@ -28,9 +28,14 @@
 
 class BLSSignRspMessage : public ZMQMessage {
 public:
+
     BLSSignRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getSigShare() {
+        return getStringRapid("sigShare");
+    }
 
 };
 

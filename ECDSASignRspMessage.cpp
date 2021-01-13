@@ -31,3 +31,14 @@ Json::Value ECDSASignRspMessage::process() {
     // never called
     assert(false);
 }
+
+string ECDSASignRspMessage::getSignature() {
+
+    string r = getStringRapid( "signature_r" );
+    string v = getStringRapid( "signature_v" );
+    string s = getStringRapid("signature_s" );
+
+    auto ret = v + ":" + r.substr( 2 ) + ":" + s.substr( 2 );
+
+    return ret;
+}
