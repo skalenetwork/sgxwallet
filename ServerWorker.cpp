@@ -3,7 +3,13 @@
 //
 #include "common.h"
 #include <json/writer.h>
+
+
+#include <zmq.hpp>
+#include "zhelpers.hpp"
+
 #include "ZMQMessage.h"
+
 #include "ServerWorker.h"
 
 
@@ -22,7 +28,7 @@ void ServerWorker::work() {
 
             memcpy(msgData.data(), msg.data(), msg.size());
 
-            auto parsedMsg = ZMQMessage::parse(msgData);
+            auto parsedMsg = ZMQMessage::parse(msgData, true);
 
             CHECK_STATE(parsedMsg);
 

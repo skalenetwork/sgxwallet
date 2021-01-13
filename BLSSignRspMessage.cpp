@@ -16,23 +16,15 @@
   You should have received a copy of the GNU Affero General Public License
   along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
 
-  @file ECDSASignReqMessage.cpp
+  @file BLSRspSignMessage.h
   @author Stan Kladko
   @date 2020
 */
 
-
+#include "BLSSignRspMessage.h"
 #include "SGXWalletServer.hpp"
 
-#include "ECDSASignReqMessage.h"
 
-
-
-Json::Value ECDSASignReqMessage::process() {
-    auto base = getUint64Rapid("bs");
-    auto keyName = getStringRapid("kn");
-    auto hash = getStringRapid("mh");
-    auto result =  SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
-    result["type"] = ZMQMessage::ECDSA_SIGN_RSP;
-    return result;
+Json::Value BLSSignRspMessage::process() {
+    assert(false);
 }

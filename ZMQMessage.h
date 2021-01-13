@@ -28,7 +28,6 @@
 #include <vector>
 #include "abstractstubserver.h"
 
-
 #include "document.h"
 #include "SGXException.h"
 
@@ -58,9 +57,10 @@ public:
     uint64_t getUint64Rapid(const char *_name);
 
     static shared_ptr<ZMQMessage> parse(vector<uint8_t> &_msg, bool _isRequest);
+    static shared_ptr <ZMQMessage> parse(const char* _msg, size_t _size, bool _isRequest);
 
-    shared_ptr<ZMQMessage> buildRequest(string& type, shared_ptr <rapidjson::Document> _d);
-    shared_ptr<ZMQMessage> buildResponse(string& type, shared_ptr <rapidjson::Document> _d);
+    static shared_ptr<ZMQMessage> buildRequest(string& type, shared_ptr<rapidjson::Document> _d);
+    static shared_ptr<ZMQMessage> buildResponse(string& type, shared_ptr<rapidjson::Document> _d);
 
     virtual Json::Value process() = 0;
 

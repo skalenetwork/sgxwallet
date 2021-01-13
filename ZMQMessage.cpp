@@ -24,7 +24,9 @@
 #include "common.h"
 
 #include "BLSSignReqMessage.h"
+#include "BLSSignRspMessage.h"
 #include "ECDSASignReqMessage.h"
+#include "ECDSASignRspMessage.h"
 #include "ZMQMessage.h"
 
 
@@ -43,52 +45,62 @@ string ZMQMessage::getStringRapid(const char *_name) {
     return (*d)[_name].GetString();
 };
 
+
 shared_ptr <ZMQMessage> ZMQMessage::parse(vector <uint8_t> &_msg, bool _isRequest) {
 
-    CHECK_STATE(_msg.at(_msg.size() - 1) == 0);
+    return parse((const char *) _msg.data(), _msg.size(),  _isRequest);
+
+}
+
+shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
+                                          size_t _size, bool _isRequest) {
+
+    CHECK_STATE(_size > 0);
+    CHECK_STATE(_msg);
+    // CHECK NULL TERMINATED
+    CHECK_STATE(_msg[_size - 1] == 0);
 
     auto d = make_shared<rapidjson::Document>();
 
-    d->Parse((const char *) _msg.data());
+    d->Parse(_msg);
 
     CHECK_STATE(!d->HasParseError());
     CHECK_STATE(d->IsObject())
 
     CHECK_STATE(d->HasMember("type"));
     CHECK_STATE((*d)["type"].IsString());
-    auto type = (*d)["type"].GetString();
+    string type = (*d)["type"].GetString();
 
     shared_ptr <ZMQMessage> result;
 
-    if (isRequest) {
+    if (_isRequest) {
         return buildRequest(type, d);
     } else {
         return buildResponse(type, d);
     }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string type, shared_ptr <rapidjson::Document> _d) {
-    if (type == ZMQMessage::BLS_SIGN_REQ) {
+shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string& _type, shared_ptr<rapidjson::Document> _d) {
+    if (_type == ZMQMessage::BLS_SIGN_REQ) {
+        return make_shared<BLSSignReqMessage>(_d);
+    } else if (_type == ZMQMessage::ECDSA_SIGN_REQ) {
         return
-                make_shared<BLSSignReqMessage>(d);
-    } else if (type == ZMQMessage::ECDSA_SIGN_REQ) {
-        return
-                make_shared<ECDSASignReqMessage>(d);
+                make_shared<ECDSASignReqMessage>(_d);
     } else {
-        BOOST_THROW_EXCEPTION((-301, "Incorrect zmq message type: " +
-                                     string(type)));
+        BOOST_THROW_EXCEPTION(SGXException(-301, "Incorrect zmq message type: " +
+                                     string(_type)));
     }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string& type, shared_ptr <rapidjson::Document> _d) {
-    if (type == ZMQMessage::BLS_SIGN_RSP) {
+shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapidjson::Document> _d) {
+    if (_type == ZMQMessage::BLS_SIGN_RSP) {
         return
-                make_shared<BLSSignRspMessage>(d);
-    } else if (type == ZMQMessage::ECDSA_SIGN_REQ) {
+                make_shared<BLSSignRspMessage>(_d);
+    } else if (_type == ZMQMessage::ECDSA_SIGN_REQ) {
         return
-                make_shared<ECDSASignRspMessage>(d);
+                make_shared<ECDSASignRspMessage>(_d);
     } else {
-        BOOST_THROW_EXCEPTION(InvalidStateException("Incorrect zmq message request type: " + string(type),
+        BOOST_THROW_EXCEPTION(InvalidStateException("Incorrect zmq message request type: " + string(_type),
                                                     __CLASS_NAME__)
         );
     }

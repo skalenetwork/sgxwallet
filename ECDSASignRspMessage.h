@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018-2019 SKALE Labs
+  Copyright (C) 2018- SKALE Labs
 
   This file is part of libBLS.
 
@@ -16,23 +16,24 @@
   You should have received a copy of the GNU Affero General Public License
   along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
 
-  @file ECDSASignReqMessage.cpp
+  @file ECDSARspSignMessage.h
   @author Stan Kladko
   @date 2020
 */
 
+#ifndef SGXWALLET_ECDSASIGNRSPMESSAGE_H
+#define SGXWALLET_ECDSASIGNRSPMESSAGE_H
 
-#include "SGXWalletServer.hpp"
+#include "ZMQMessage.h"
 
-#include "ECDSASignReqMessage.h"
+class ECDSASignRspMessage : public ZMQMessage {
+public:
+
+    ECDSASignRspMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+
+};
 
 
-
-Json::Value ECDSASignReqMessage::process() {
-    auto base = getUint64Rapid("bs");
-    auto keyName = getStringRapid("kn");
-    auto hash = getStringRapid("mh");
-    auto result =  SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
-    result["type"] = ZMQMessage::ECDSA_SIGN_RSP;
-    return result;
-}
+#endif //SGXWALLET_ECDSASIGNRSPMESSAGE_H
