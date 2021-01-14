@@ -43,7 +43,7 @@ void ZMQServer::run() {
     spdlog::info("Starting zmq server ...");
 
     try {
-        frontend_.bind("tcp://*:" + to_string(BASE_PORT + 4));
+        frontend_.bind("tcp://*:" + to_string(BASE_PORT + 5));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
         exit(-100);

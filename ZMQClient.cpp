@@ -42,6 +42,11 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 string ZMQClient::doZmqRequestReply(string &_req) {
 
     stringstream request;
+
+    if (!clientSocket)
+        reconnect();
+    CHECK_STATE(clientSocket);
+
     s_send(*clientSocket, _req);
 
     while (true) {

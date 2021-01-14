@@ -57,6 +57,7 @@
 
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
+#include "ZMQClient.h"
 #include "sgxwallet.h"
 #include "TestUtils.h"
 #include "testw.h"
@@ -1116,6 +1117,39 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
         REQUIRE(sig["status"].asInt() == 0);
         Json::Value getPubKey = c.getPublicECDSAKey(keyName);
         REQUIRE(getPubKey["status"].asInt() == 0);
+    } catch (JsonRpcException &e) {
+        cerr << e.what() << endl;
+        throw;
+    }
+}
+
+
+
+TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
+
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    string ip = ZMQ_IP;
+
+    ZMQClient client(ip, ZMQ_PORT);
+
+    string keyName = "";
+
+    try {
+        PRINT_SRC_LINE
+        keyName = genECDSAKeyAPI(c);
+        PRINT_SRC_LINE
+    } catch (Exception & e)
+    {
+        cerr << e.what() << endl;
+        throw;
+    }
+
+    try {
+        PRINT_SRC_LINE
+        auto sig = client.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
+        REQUIRE(sig.size() > 10);
     } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
         throw;

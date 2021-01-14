@@ -48,6 +48,7 @@ string ZMQMessage::getStringRapid(const char *_name) {
 
 shared_ptr <ZMQMessage> ZMQMessage::parse(vector <uint8_t> &_msg, bool _isRequest) {
 
+
     return parse((const char *) _msg.data(), _msg.size(),  _isRequest);
 
 }
@@ -62,14 +63,20 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
 
     auto d = make_shared<rapidjson::Document>();
 
+
     d->Parse(_msg);
+
+
 
     CHECK_STATE(!d->HasParseError());
     CHECK_STATE(d->IsObject())
 
+
     CHECK_STATE(d->HasMember("type"));
     CHECK_STATE((*d)["type"].IsString());
     string type = (*d)["type"].GetString();
+
+
 
     shared_ptr <ZMQMessage> result;
 
