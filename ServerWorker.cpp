@@ -34,9 +34,17 @@ void ServerWorker::work() {
             zmq::message_t msg;
             worker_.recv(&msg);
 
+
             vector <uint8_t> msgData(msg.size() + 1, 0);
+
+            memcpy(msgData.data(), msg.data(), msg.size());
+
+            if (msg.size() < 5 || msgData.at(0) != '{' || msgData[msg.size()] != '}') {
+                cerr << "haha";
+                continue;
+            }
+
             cerr << "Received:" << msgData.data();
-            sleep(1);
 
             auto parsedMsg = ZMQMessage::parse(
                     (const char*) msgData.data(), msg.size(), true);

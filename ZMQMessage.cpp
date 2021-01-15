@@ -52,7 +52,6 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
                                           size_t _size, bool _isRequest) {
 
 
-    cerr << "Server got:" <<  _msg << endl;
 
     CHECK_STATE(_msg);
     CHECK_STATE(_size > 5);

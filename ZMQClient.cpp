@@ -80,7 +80,7 @@ ZMQClient::ZMQClient(string &ip, uint16_t port) : ctx(1) {
 
 void ZMQClient::reconnect() {
     clientSocket = nullptr; // delete previous
-    clientSocket = make_unique<zmq::socket_t>(ctx, ZMQ_REQ);
+    clientSocket = make_unique<zmq::socket_t>(ctx, ZMQ_DEALER);
     clientSocket->connect(url);
     //  Configure socket to not wait at close time
     int linger = 0;

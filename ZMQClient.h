@@ -35,7 +35,7 @@
 #include "ZMQMessage.h"
 
 
-#define REQUEST_TIMEOUT     2500    //  msecs, (> 1000!)
+#define REQUEST_TIMEOUT     10000    //  msecs, (> 1000!)
 
 class ZMQClient {
 
