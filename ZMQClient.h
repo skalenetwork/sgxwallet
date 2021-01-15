@@ -67,7 +67,6 @@ public:
 
     string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
 
-
 };
 
 

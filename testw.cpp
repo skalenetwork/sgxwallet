@@ -1132,7 +1132,7 @@ TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
 
     string ip = ZMQ_IP;
 
-    ZMQClient client(ip, ZMQ_PORT);
+    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT);
 
     string keyName = "";
 
@@ -1150,10 +1150,15 @@ TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
 
     try {
         PRINT_SRC_LINE
-        auto sig = client.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
+        auto sig = client->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
         REQUIRE(sig.size() > 10);
+
+        cerr << sig << endl;
+
     } catch (...) {
-        sleep(1000);
+
+        client = nullptr;
+        sleep(10000);
     }
 }
 

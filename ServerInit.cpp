@@ -113,7 +113,7 @@ void exitZMQServer() {
 
     if (doExit) {
         spdlog::info("Exiting zmq server ...");
-        delete zmqServer;
+        zmqServer->exitWorkers();
         spdlog::info("Exited zmq server ...");
         zmqServer = nullptr;
     }

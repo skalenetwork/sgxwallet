@@ -63,8 +63,8 @@ void ZMQServer::run() {
 
     try {
         for (int i = 0; i < kMaxThread; ++i) {
-            worker.push_back(new ServerWorker(ctx_, ZMQ_DEALER));
-            worker_thread.push_back(new std::thread(std::bind(&ServerWorker::work, worker[i])));
+            worker.push_back(make_shared<ServerWorker>(ctx_, ZMQ_DEALER));
+            worker_thread.push_back(make_shared<std::thread>(std::bind(&ServerWorker::work, worker[i])));
         }
     } catch (std::exception &e) {
         spdlog::error("Could not create zmq server workers:{} ", e.what());
@@ -75,14 +75,21 @@ void ZMQServer::run() {
     try {
         zmq::proxy(static_cast<void *>(frontend_), static_cast<void *>(backend_), nullptr);
     } catch (exception& _e) {
-        spdlog::info("Exiting zmq server {}", _e.what());
+        spdlog::info("Error, exiting zmq server ... {}", _e.what());
         return;
     } catch (...) {
-        spdlog::info("Exiting zmq server");
+        spdlog::info("Error, exiting zmq server ...");
         return;
     }
 }
 
 
 
+void ZMQServer::exitWorkers() {
+    spdlog::info("Emptying threads ...");
+    worker_thread.empty();
+    spdlog::info("Emptying workers ...");
+    worker.empty();
+    spdlog::info("Emptied workers ...");
+}
 

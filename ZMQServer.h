@@ -45,7 +45,6 @@ class ZMQServer {
 public:
     ZMQServer();
 
-
     atomic<bool> isExitRequested;
 
     enum {
@@ -54,13 +53,15 @@ public:
 
     void run();
 
+    void exitWorkers();
+
 private:
     zmq::context_t ctx_;
     zmq::socket_t frontend_;
     zmq::socket_t backend_;
 
-    std::vector<ServerWorker *> worker;
-    std::vector<std::thread *> worker_thread;
+    std::vector<shared_ptr<ServerWorker> > worker;
+    std::vector<shared_ptr<std::thread>> worker_thread;
 
 };
 
