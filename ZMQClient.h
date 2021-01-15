@@ -35,6 +35,8 @@
 #include "ZMQMessage.h"
 
 
+
+
 #define REQUEST_TIMEOUT     10000    //  msecs, (> 1000!)
 
 class ZMQClient {
@@ -45,6 +47,9 @@ private:
     zmq::context_t ctx;
     std::unique_ptr <zmq::socket_t> clientSocket;
     string url;
+
+    // generate random identity
+    char identity[10] = {};
 
     shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req);
 

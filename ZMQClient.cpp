@@ -20,6 +20,9 @@
     @author Stan Kladko
     @date 2020
 */
+
+#include "sys/random.h"
+
 #include "common.h"
 #include "BLSSignReqMessage.h"
 #include "BLSSignRspMessage.h"
@@ -51,7 +54,6 @@ string ZMQClient::doZmqRequestReply(string &_req) {
     CHECK_STATE(clientSocket);
 
     cerr << "Sending:" << _req;
-    sleep(1);
 
     s_send(*clientSocket, _req);
 
@@ -63,6 +65,11 @@ string ZMQClient::doZmqRequestReply(string &_req) {
         //  If we got a reply, process it
         if (items[0].revents & ZMQ_POLLIN) {
             string reply = s_recv(*clientSocket);
+            cerr << "Received!" + reply;
+
+            sleep(1000);
+
+
             return reply;
         } else {
             spdlog::error("W: no response from server, retrying...");
@@ -79,12 +86,19 @@ ZMQClient::ZMQClient(string &ip, uint16_t port) : ctx(1) {
 }
 
 void ZMQClient::reconnect() {
+
+    getrandom(identity, 10, 0);
+
+
+
     clientSocket = nullptr; // delete previous
     clientSocket = make_unique<zmq::socket_t>(ctx, ZMQ_DEALER);
-    clientSocket->connect(url);
+    clientSocket->setsockopt(ZMQ_IDENTITY, identity, 10);
     //  Configure socket to not wait at close time
     int linger = 0;
     clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+    clientSocket->connect(url);
+
 }
 
 

@@ -49,7 +49,7 @@ public:
     atomic<bool> isExitRequested;
 
     enum {
-        kMaxThread = 5
+        kMaxThread = 1
     };
 
     void run();

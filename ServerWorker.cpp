@@ -30,21 +30,38 @@ void ServerWorker::work() {
         result["status"] =  errStatus;
         result["errorMessage"] = "Server error";
 
+
+        zmq::message_t identity;
+        zmq::message_t identit2;
+        zmq::message_t copied_id;
+
         try {
             zmq::message_t msg;
+            zmq::message_t copied_msg;
+            worker_.recv(&identity);
+
+            cerr << identity.size();
+            copied_id.copy(&identity);
             worker_.recv(&msg);
+
+            int64_t more;
+            size_t more_size = sizeof(more);
+            auto rc = zmq_getsockopt (worker_, ZMQ_RCVMORE, &more, &more_size);
+            CHECK_STATE(rc == 0);
 
 
             vector <uint8_t> msgData(msg.size() + 1, 0);
 
             memcpy(msgData.data(), msg.data(), msg.size());
 
-            if (msg.size() < 5 || msgData.at(0) != '{' || msgData[msg.size()] != '}') {
-                cerr << "haha";
-                continue;
-            }
 
             cerr << "Received:" << msgData.data();
+
+
+            CHECK_STATE(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}');
+
+
+            memcpy(msgData.data(), msg.data(), msg.size());
 
             auto parsedMsg = ZMQMessage::parse(
                     (const char*) msgData.data(), msg.size(), true);
@@ -53,13 +70,7 @@ void ServerWorker::work() {
 
             result  = parsedMsg->process();
 
-
-
-
-        }
-
-
-        catch (SGXException &e) {
+        } catch (SGXException &e) {
             result["status"] = e.getStatus();
             result["errorMessage"] = e.getMessage();
             spdlog::error("Exception in zmq server worker:{}", e.what());
@@ -83,7 +94,13 @@ void ServerWorker::work() {
             CHECK_STATE(replyStr.front() == '{');
             CHECK_STATE(replyStr.back() == '}');
             zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
+
+            cerr << "sending!!!";
+
+            worker_.send(copied_id, ZMQ_SNDMORE);
             worker_.send(replyMsg);
+
+            cerr << "sent!!!";
         } catch (std::exception &e) {
             spdlog::error("Exception in zmq server worker send :{}", e.what());
         } catch (...) {
