@@ -42,7 +42,6 @@
 #include <unistd.h>
 
 
-
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -68,16 +67,16 @@ using namespace std;
 void systemHealthCheck() {
     string ulimit;
     try {
-        ulimit = exec( "/bin/bash -c \"ulimit -n\"" );
-    } catch ( ... ) {
+        ulimit = exec("/bin/bash -c \"ulimit -n\"");
+    } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
         exit(-15);
     }
-    int noFiles = strtol( ulimit.c_str(), NULL, 10 );
+    int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
-    auto noUlimitCheck = getenv( "NO_ULIMIT_CHECK" ) != nullptr;
+    auto noUlimitCheck = getenv("NO_ULIMIT_CHECK") != nullptr;
 
-    if ( noFiles < 65535 && !noUlimitCheck) {
+    if (noFiles < 65535 && !noUlimitCheck) {
         string errStr =
                 "sgxwallet requires setting Linux file descriptor limit to at least 65535 "
                 "You current limit (ulimit -n) is less than 65535. \n Please set it to 65535:"
@@ -89,8 +88,8 @@ void systemHealthCheck() {
     }
 }
 
-static ZMQServer* zmqServer = nullptr;
-atomic<bool> exiting(false);
+static ZMQServer *zmqServer = nullptr;
+
 
 void initUserSpace() {
 
@@ -109,15 +108,10 @@ void initUserSpace() {
 }
 
 void exitZMQServer() {
-    auto doExit = !exiting.exchange(true);
-
-    if (doExit) {
-        spdlog::info("Exiting zmq server ...");
-        zmqServer->exitWorkers();
-        spdlog::info("Exited zmq server ...");
-        zmqServer = nullptr;
-    }
-
+    spdlog::info("Exiting zmq server ...");
+    zmqServer->exitWorkers();
+    spdlog::info("Exited zmq server ...");
+    zmqServer = nullptr;
 }
 
 uint64_t initEnclave() {
@@ -163,7 +157,7 @@ uint64_t initEnclave() {
         }
 
         spdlog::info("Enclave created and started successfully");
-        
+
         status = trustedEnclaveInit(eid, enclaveLogLevel);
     }
 
@@ -176,7 +170,6 @@ uint64_t initEnclave() {
 
     return SGX_SUCCESS;
 }
-
 
 
 void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys) {
@@ -201,9 +194,9 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
         uint64_t counter = 0;
 
         uint64_t initResult = 0;
-        while ((initResult = initEnclave()) != 0 && counter < 10){
+        while ((initResult = initEnclave()) != 0 && counter < 10) {
             sleep(1);
-            counter ++;
+            counter++;
         }
 
         if (initResult != 0) {

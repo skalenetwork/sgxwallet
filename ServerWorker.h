@@ -25,10 +25,13 @@ public:
 
     void work();
 
+    void requestExit();
 
 private:
     zmq::context_t &ctx_;
     zmq::socket_t worker_;
+
+    std::atomic<bool> isExitRequested;
 };
 
 

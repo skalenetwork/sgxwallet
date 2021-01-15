@@ -15,7 +15,8 @@
 
 
 ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
-                                                                 worker_(ctx_, sock_type) {};
+                                                                 worker_(ctx_, sock_type),
+                                                                 isExitRequested(false) {};
 
 void ServerWorker::work() {
     worker_.connect("inproc://backend");
@@ -23,7 +24,7 @@ void ServerWorker::work() {
     std::string replyStr;
 
 
-    while (true) {
+    while (!isExitRequested) {
 
         Json::Value result;
         int errStatus = -1 * (10000 + __LINE__);
@@ -76,9 +77,15 @@ void ServerWorker::work() {
             spdlog::error("Exception in zmq server worker:{}", e.what());
         }
         catch (std::exception &e) {
+            if (isExitRequested) {
+                return;
+            }
             result["errorMessage"] = string(e.what());
             spdlog::error("Exception in zmq server worker:{}", e.what());
         } catch (...) {
+            if (isExitRequested) {
+                return;
+            }
             spdlog::error("Error in zmq server worker");
             result["errorMessage"] = "Error in zmq server worker";
         }
@@ -99,14 +106,22 @@ void ServerWorker::work() {
             worker_.send(replyMsg);
 
         } catch (std::exception &e) {
+            if (isExitRequested) {
+                return;
+            }
             spdlog::error("Exception in zmq server worker send :{}", e.what());
         } catch (...) {
+            if (isExitRequested) {
+                return;
+            }
             spdlog::error("Unklnown exception in zmq server worker send");
         }
+
     }
-
-
-
 }
 
+
+void ServerWorker::requestExit() {
+    isExitRequested.exchange(true);
+}
 
