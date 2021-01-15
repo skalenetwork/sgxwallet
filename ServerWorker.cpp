@@ -18,38 +18,54 @@ ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
 
 void ServerWorker::work() {
     worker_.connect("inproc://backend");
-    try {
-        while (true) {
+    std::string replyStr;
+
+
+    while (true) {
+        try {
             zmq::message_t msg;
-            zmq::message_t copied_msg;
             worker_.recv(&msg);
 
-            vector<uint8_t> msgData(msg.size() + 1, 0);
-
+            vector <uint8_t> msgData(msg.size() + 1, 0);
             memcpy(msgData.data(), msg.data(), msg.size());
+
 
             auto parsedMsg = ZMQMessage::parse(msgData, true);
 
             CHECK_STATE(parsedMsg);
 
-            auto reply  = parsedMsg->process();
+            auto reply = parsedMsg->process();
 
             Json::FastWriter fastWriter;
 
-            std::string replyStr = fastWriter.write(reply);
+            replyStr = fastWriter.write(reply);
 
-            zmq::message_t replyMsg(replyStr.c_str(),replyStr.size() + 1);
+
+        }
+
+
+
+        catch (std::exception &e) {
+            spdlog::error("Exception in zmq server worker:{}", e.what());
+            replyStr = "";
+        } catch (...) {
+            spdlog::error("Error in zmq server worker");
+            replyStr = "";
+        }
+
+        try {
+
+            zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
 
             worker_.send(replyMsg);
+        } catch (std::exception &e) {
+            spdlog::error("Exception in zmq server send :{}", e.what());
+        } catch (...) {
+            spdlog::error("Unklnown exception in zmq server send");
         }
     }
-    catch (std::exception &e) {
-        spdlog::info("Exiting zmq server worker:{}", e.what());
-        return;
-    } catch (...) {
-        spdlog::error("Error in zmq server worker");
-        return;
-    }
+
+
 
 }
 

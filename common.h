@@ -56,7 +56,7 @@ inline std::string className(const std::string &prettyFunction) {
 
 #include <execinfo.h>
 
-inline void print_stack() {
+inline void print_stack(int _line) {
     void *array[10];
     size_t size;
 
@@ -64,16 +64,16 @@ inline void print_stack() {
     size = backtrace(array, 10);
 
     // print out all the frames to stderr
-    fprintf(stderr, "Error: signal \n");
+    fprintf(stderr, "Backtrace on line %d:   \n", _line);
     backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(-1);
 }
 
 
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack();                                \
+        print_stack(__LINE__);            \
+        \
         BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
 

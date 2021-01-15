@@ -16,13 +16,13 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file RPCException.h
+    @file SGXException.h
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXD_RPCEXCEPTION_H
-#define SGXD_RPCEXCEPTION_H
+#ifndef SGXD_SGXEXCEPTION_H
+#define SGXD_SGXEXCEPTION_H
 
 #include <string>
 #include <exception>
@@ -46,11 +46,11 @@ public:
         return errString;
     }
 
+    const char* what() const noexcept override;
+
     const int32_t getStatus() const {
         return status;
     }
-
-
 };
 
-#endif //SGXD_RPCEXCEPTION_H
+#endif //SGXD_SGXEXCEPTION_H
