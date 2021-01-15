@@ -68,5 +68,4 @@ public:
 
     virtual Json::Value process() = 0;
 
-
 };
