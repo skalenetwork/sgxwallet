@@ -44,11 +44,7 @@ using namespace std;
 class ZMQServer {
 public:
 
-    atomic<bool> exiting;
-
     ZMQServer();
-
-
 
     enum {
         kMaxThread = 1
@@ -59,7 +55,7 @@ public:
     void exitWorkers();
 
 private:
-    zmq::context_t ctx_;
+    shared_ptr<zmq::context_t> ctx_;
     zmq::socket_t frontend_;
     zmq::socket_t backend_;
 

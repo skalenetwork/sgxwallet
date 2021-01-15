@@ -31,9 +31,10 @@
 using namespace std;
 
 ZMQServer::ZMQServer()
-        : isExitRequested(false), ctx_(1),
-          frontend_(ctx_, ZMQ_ROUTER),
-          backend_(ctx_, ZMQ_DEALER) {}
+        : isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
+          frontend_(*ctx_, ZMQ_ROUTER),
+          backend_(*ctx_, ZMQ_DEALER) {
+}
 
 
 void ZMQServer::run() {
@@ -63,7 +64,7 @@ void ZMQServer::run() {
 
     try {
         for (int i = 0; i < kMaxThread; ++i) {
-            workers.push_back(make_shared<ServerWorker>(ctx_, ZMQ_DEALER));
+            workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER));
             worker_threads.push_back(make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i])));
         }
     } catch (std::exception &e) {
@@ -75,9 +76,17 @@ void ZMQServer::run() {
     try {
         zmq::proxy(static_cast<void *>(frontend_), static_cast<void *>(backend_), nullptr);
     } catch (exception &_e) {
+        if (isExitRequested) {
+            spdlog::info("Exited ZMQServer main thread");
+            return;
+        }
         spdlog::info("Error, exiting zmq server ... {}", _e.what());
         return;
     } catch (...) {
+        if (isExitRequested) {
+            spdlog::info("Exited ZMQServer main thread");
+            return;
+        }
         spdlog::info("Error, exiting zmq server ...");
         return;
     }
@@ -85,14 +94,22 @@ void ZMQServer::run() {
 
 
 void ZMQServer::exitWorkers() {
-    auto doExit = !exiting.exchange(true);
+    auto doExit = !isExitRequested.exchange(true);
     if (doExit) {
 
-        spdlog::info("Telling workers to exit");
+        spdlog::info("Tell workers to exit");
 
         for (auto &&worker : workers) {
             worker->requestExit();
         }
+
+        spdlog::info("Terminating context ...");
+
+        // terminate context (destructor will be called)
+        ctx_ = nullptr;
+
+        spdlog::info("Terminated context ...");
+
 
         spdlog::info("joining threads ...");
         for (auto &&thread : worker_threads)
