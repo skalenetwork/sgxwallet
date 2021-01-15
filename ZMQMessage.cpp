@@ -46,19 +46,16 @@ string ZMQMessage::getStringRapid(const char *_name) {
 };
 
 
-shared_ptr <ZMQMessage> ZMQMessage::parse(vector <uint8_t> &_msg, bool _isRequest) {
-    CHECK_STATE(_msg.size() > 2);
-    CHECK_STATE(_msg.back() == 0);
-    return parse((const char *) _msg.data(), _msg.size() - 1,  _isRequest);
 
-}
 
 shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
                                           size_t _size, bool _isRequest) {
 
 
-    CHECK_STATE(_size > 2);
+    cerr << "Server got:" <<  _msg << endl;
+
     CHECK_STATE(_msg);
+    CHECK_STATE(_size > 5);
     // CHECK NULL TERMINATED
     CHECK_STATE(_msg[_size] == 0);
     CHECK_STATE(_msg[_size - 1] == '}');

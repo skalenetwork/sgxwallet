@@ -32,6 +32,9 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     Json::FastWriter fastWriter;
     string reqStr = fastWriter.write(_req);
+    reqStr = reqStr.substr(0, reqStr.size() - 1);
+    CHECK_STATE(reqStr.front() == '{');
+    CHECK_STATE(reqStr.at(reqStr.size() - 1) == '}');
 
     auto resultStr = doZmqRequestReply(reqStr);
 
@@ -46,6 +49,9 @@ string ZMQClient::doZmqRequestReply(string &_req) {
     if (!clientSocket)
         reconnect();
     CHECK_STATE(clientSocket);
+
+    cerr << "Sending:" << _req;
+    sleep(1);
 
     s_send(*clientSocket, _req);
 
@@ -70,7 +76,6 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 
 ZMQClient::ZMQClient(string &ip, uint16_t port) : ctx(1) {
     url = "tcp://" + ip + ":" + to_string(port);
-
 }
 
 void ZMQClient::reconnect() {

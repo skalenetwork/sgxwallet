@@ -8,6 +8,7 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+#include "Log.h"
 #include "ZMQMessage.h"
 
 #include "ServerWorker.h"
@@ -18,50 +19,67 @@ ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
 
 void ServerWorker::work() {
     worker_.connect("inproc://backend");
+
     std::string replyStr;
 
 
     while (true) {
+
+        Json::Value result;
+        int errStatus = -1 * (10000 + __LINE__);
+        result["status"] =  errStatus;
+        result["errorMessage"] = "Server error";
+
         try {
             zmq::message_t msg;
             worker_.recv(&msg);
 
             vector <uint8_t> msgData(msg.size() + 1, 0);
-            memcpy(msgData.data(), msg.data(), msg.size());
+            cerr << "Received:" << msgData.data();
+            sleep(1);
 
-
-            auto parsedMsg = ZMQMessage::parse(msgData, true);
+            auto parsedMsg = ZMQMessage::parse(
+                    (const char*) msgData.data(), msg.size(), true);
 
             CHECK_STATE(parsedMsg);
 
-            auto reply = parsedMsg->process();
+            result  = parsedMsg->process();
 
-            Json::FastWriter fastWriter;
 
-            replyStr = fastWriter.write(reply);
 
 
         }
 
 
-
-        catch (std::exception &e) {
+        catch (SGXException &e) {
+            result["status"] = e.getStatus();
+            result["errorMessage"] = e.getMessage();
             spdlog::error("Exception in zmq server worker:{}", e.what());
-            replyStr = "";
+        }
+        catch (std::exception &e) {
+            result["errorMessage"] = string(e.what());
+            spdlog::error("Exception in zmq server worker:{}", e.what());
         } catch (...) {
             spdlog::error("Error in zmq server worker");
-            replyStr = "";
+            result["errorMessage"] = "Error in zmq server worker";
         }
 
         try {
 
-            zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
+            Json::FastWriter fastWriter;
 
+            replyStr = fastWriter.write(result);
+            replyStr = replyStr.substr(0, replyStr.size()  - 1 );
+
+            CHECK_STATE(replyStr.size()  > 2);
+            CHECK_STATE(replyStr.front() == '{');
+            CHECK_STATE(replyStr.back() == '}');
+            zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
             worker_.send(replyMsg);
         } catch (std::exception &e) {
-            spdlog::error("Exception in zmq server send :{}", e.what());
+            spdlog::error("Exception in zmq server worker send :{}", e.what());
         } catch (...) {
-            spdlog::error("Unklnown exception in zmq server send");
+            spdlog::error("Unklnown exception in zmq server worker send");
         }
     }
 
