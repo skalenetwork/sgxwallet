@@ -67,9 +67,6 @@ string ZMQClient::doZmqRequestReply(string &_req) {
             string reply = s_recv(*clientSocket);
             cerr << "Received!" + reply;
 
-            sleep(1000);
-
-
             return reply;
         } else {
             spdlog::error("W: no response from server, retrying...");
@@ -111,6 +108,8 @@ string ZMQClient::blsSignMessageHash(const std::string &keyShareName, const std:
     p["t"] = t;
     auto result = dynamic_pointer_cast<BLSSignRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+
     return result->getSigShare();
 }
 
@@ -122,5 +121,7 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
     p["messageHash"] = messageHash;
     auto result = dynamic_pointer_cast<ECDSASignRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    sleep(5);
     return result->getSignature();
 }

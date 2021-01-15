@@ -1146,6 +1146,8 @@ TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
         throw;
     }
 
+
+
     try {
         PRINT_SRC_LINE
         auto sig = client.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
