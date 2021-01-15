@@ -39,9 +39,34 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
     CHECK_STATE(reqStr.front() == '{');
     CHECK_STATE(reqStr.at(reqStr.size() - 1) == '}');
 
+
+
     auto resultStr = doZmqRequestReply(reqStr);
 
-    return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false);
+
+
+
+    CHECK_STATE(resultStr.size() > 5)
+    CHECK_STATE(resultStr.front() == '{')
+    CHECK_STATE(resultStr.back() == '}')
+
+
+    cerr << resultStr;
+
+
+    try {
+
+        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false);
+    } catch (std::exception & e) {
+
+        cerr << "Error:" << e.what() << endl;
+
+        sleep(10);
+        throw;
+    } catch (...) {
+        cerr << "Error!" << endl;
+        sleep(10);
+    }
 
 }
 
@@ -53,7 +78,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
         reconnect();
     CHECK_STATE(clientSocket);
 
-    cerr << "Sending:" << _req;
+    cerr << "ZMQ client sending:" << _req;
 
     s_send(*clientSocket, _req);
 
@@ -65,8 +90,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
         //  If we got a reply, process it
         if (items[0].revents & ZMQ_POLLIN) {
             string reply = s_recv(*clientSocket);
-            cerr << "Received!" + reply;
-
+            cerr << "ZMQ client received received reply:" <<  reply << endl;
             return reply;
         } else {
             spdlog::error("W: no response from server, retrying...");

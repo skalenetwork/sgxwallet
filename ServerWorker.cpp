@@ -95,12 +95,9 @@ void ServerWorker::work() {
             CHECK_STATE(replyStr.back() == '}');
             zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
 
-            cerr << "sending!!!";
-
             worker_.send(copied_id, ZMQ_SNDMORE);
             worker_.send(replyMsg);
 
-            cerr << "sent!!!";
         } catch (std::exception &e) {
             spdlog::error("Exception in zmq server worker send :{}", e.what());
         } catch (...) {
