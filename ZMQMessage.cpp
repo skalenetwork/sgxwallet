@@ -58,8 +58,6 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     CHECK_STATE(_msg[_size - 1] == '}');
     CHECK_STATE(_msg[0] == '{');
 
-    cerr << _msg << endl;
-
     auto d = make_shared<rapidjson::Document>();
 
     d->Parse(_msg);
@@ -98,7 +96,7 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapi
     if (_type == ZMQMessage::BLS_SIGN_RSP) {
         return
                 make_shared<BLSSignRspMessage>(_d);
-    } else if (_type == ZMQMessage::ECDSA_SIGN_REQ) {
+    } else if (_type == ZMQMessage::ECDSA_SIGN_RSP) {
         return
                 make_shared<ECDSASignRspMessage>(_d);
     } else {
