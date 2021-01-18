@@ -44,23 +44,29 @@ class ZMQClient {
 
 private:
 
+
+
+    recursive_mutex mutex;
+
     zmq::context_t ctx;
-    std::unique_ptr <zmq::socket_t> clientSocket;
+
     string url;
 
     // generate random identity
-    char identity[10] = {};
+
+    map<uint64_t , shared_ptr <zmq::socket_t>> clientSockets;
 
     shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req);
 
     string doZmqRequestReply(string &_req);
+
+    uint64_t getProcessID();
 
 
 public:
 
 
     ZMQClient(string &ip, uint16_t port);
-
     void reconnect() ;
 
     string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);

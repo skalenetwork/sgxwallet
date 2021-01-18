@@ -22,6 +22,9 @@
 */
 
 #include "sys/random.h"
+#include <sys/types.h>
+#include <sys/syscall.h>
+
 
 #include "common.h"
 #include "BLSSignReqMessage.h"
@@ -62,14 +65,25 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
         throw;
     }
 
+
+
 }
+
+
 
 string ZMQClient::doZmqRequestReply(string &_req) {
 
     stringstream request;
 
-    if (!clientSocket)
-        reconnect();
+    shared_ptr <zmq::socket_t>  clientSocket = nullptr;
+
+    {
+        lock_guard <recursive_mutex> m(mutex);
+        if (!clientSockets.count(getProcessID()))
+            reconnect();
+        clientSocket = clientSockets.at(getProcessID());
+        CHECK_STATE(clientSocket);
+    }
     CHECK_STATE(clientSocket);
 
     spdlog::debug("ZMQ client sending: \n {}" , _req);
@@ -108,18 +122,24 @@ ZMQClient::ZMQClient(string &ip, uint16_t port) : ctx(1) {
 
 void ZMQClient::reconnect() {
 
+    lock_guard<recursive_mutex> lock(mutex);
+
+    auto pid = getProcessID();
+
+    if (clientSockets.count(pid) > 0) {
+        clientSockets.erase(pid);
+    }
+
+
+    char identity[10];
     getrandom(identity, 10, 0);
-
-
-
-    clientSocket = nullptr; // delete previous
-    clientSocket = make_unique<zmq::socket_t>(ctx, ZMQ_DEALER);
+    auto clientSocket = make_shared<zmq::socket_t>(ctx, ZMQ_DEALER);
     clientSocket->setsockopt(ZMQ_IDENTITY, identity, 10);
     //  Configure socket to not wait at close time
     int linger = 0;
     clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     clientSocket->connect(url);
-
+    clientSockets.insert({pid, clientSocket});
 }
 
 
@@ -147,4 +167,10 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
     return result->getSignature();
+}
+
+
+
+uint64_t ZMQClient::getProcessID() {
+    return  syscall(__NR_gettid);
 }

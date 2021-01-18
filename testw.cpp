@@ -133,8 +133,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     uint64_t encLen = 0;
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
-                                             pubKeyX.data(),
-                                             pubKeyY.data());
+                                          pubKeyX.data(),
+                                          pubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -147,9 +147,9 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     for (int i = 0; i < 50; i++) {
         PRINT_SRC_LINE
         status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
-                                     hex.data(),
-                                     signatureR.data(),
-                                     signatureS.data(), &signatureV, 16);
+                                  hex.data(),
+                                  signatureR.data(),
+                                  signatureS.data(), &signatureV, 16);
         REQUIRE(status == SGX_SUCCESS);
         REQUIRE(errStatus == SGX_SUCCESS);
     }
@@ -166,8 +166,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     uint64_t encLen = 0;
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
-                                             pubKeyX.data(),
-                                             pubKeyY.data());
+                                          pubKeyX.data(),
+                                          pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -185,7 +185,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
 
     PRINT_SRC_LINE
     auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
-                                             pubKeyY.data());
+                                          pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -195,8 +195,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
 
     PRINT_SRC_LINE
     status = trustedGetPublicEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen,
-                                         receivedPubKeyX.data(),
-                                         receivedPubKeyY.data());
+                                      receivedPubKeyX.data(),
+                                      receivedPubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 }
@@ -306,7 +306,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     vector<char> errMsg1(BUF_LEN, 0);
 
     status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(),
-                                        encLen, (uint8_t *) secret.data());
+                                     encLen, (uint8_t *) secret.data());
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -332,7 +332,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     vector<char> pubShares(10000, 0);
     PRINT_SRC_LINE
     status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
-                                       encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
+                                    encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -347,7 +347,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     vector<char> secret(BUF_LEN, 0);
     PRINT_SRC_LINE
     status = trustedDecryptDkgSecret(eid, &errStatus, errMsg1.data(), encryptedDKGSecret.data(), encLen,
-                                        (uint8_t *) secret.data());
+                                     (uint8_t *) secret.data());
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -381,12 +381,12 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares test", "[dkg-aes-
 
     vector<char> s_shareG2(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedGetEncryptedSecretShare(eid, &errStatus,errMsg.data(),
+    status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg.data(),
                                             encryptedDKGSecret.data(), encLen,
                                             encrPRDHKey.data(), &encLen,
-                                               result.data(),
-                                               s_shareG2.data(),
-                                               (char *) pub_keyB.data(), 2, 2, 1);
+                                            result.data(),
+                                            s_shareG2.data(),
+                                            (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -411,12 +411,12 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test", 
 
     vector<char> s_shareG2(BUF_LEN, 0);
     PRINT_SRC_LINE
-    status = trustedGetEncryptedSecretShareV2(eid, &errStatus,errMsg.data(),
-                                            encryptedDKGSecret.data(), encLen,
-                                            encrPRDHKey.data(), &encLen,
-                                               result.data(),
-                                               s_shareG2.data(),
-                                               (char *) pub_keyB.data(), 2, 2, 1);
+    status = trustedGetEncryptedSecretShareV2(eid, &errStatus, errMsg.data(),
+                                              encryptedDKGSecret.data(), encLen,
+                                              encrPRDHKey.data(), &encLen,
+                                              result.data(),
+                                              s_shareG2.data(),
+                                              (char *) pub_keyB.data(), 2, 2, 1);
 
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
@@ -510,7 +510,8 @@ TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[import-ecdsa-key]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     std::string name = "NEK:abcdef";
-    auto response = c.importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847", name);
+    auto response = c.importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847",
+                                     name);
     REQUIRE(response["status"] != 0);
 
     string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
@@ -781,7 +782,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     string shareG2 = complaintResponse["share*G2"].asString();
     string secretShare = secretShares[1]["secretShare"].asString().substr(0, 192);
 
-    vector<char> message (65, 0);
+    vector<char> message(65, 0);
 
     SAFE_CHAR_BUF(encr_sshare, BUF_LEN)
     strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
@@ -804,7 +805,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
 
     mpz_clear(hex_share);
 
-    REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
+    REQUIRE(convertG2ToString(decrypted_share_G2) == shareG2);
 
     Json::Value verificationVectorMult = complaintResponse["verificationVectorMult"];
 
@@ -819,13 +820,14 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
         verificationValue = verificationValue + value;
     }
     verificationValue.to_affine_coordinates();
-    REQUIRE( verificationValue == decrypted_share_G2 );
+    REQUIRE(verificationValue == decrypted_share_G2);
 
     BLSSigShareSet sigShareSet(t, n);
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t, 32 > >();
+    auto hash_arr = make_shared < array < uint8_t,
+    32 > > ();
 
     uint64_t binLen;
 
@@ -926,7 +928,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
             PRINT_SRC_LINE
-            Json::Value verif = c.dkgVerificationV2(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            Json::Value verif = c.dkgVerificationV2(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+                                                    j);
             REQUIRE(verif["status"] == 0);
             bool res = verif["result"].asBool();
             k++;
@@ -940,7 +943,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     string shareG2 = complaintResponse["share*G2"].asString();
     string secretShare = secretShares[1]["secretShare"].asString().substr(0, 192);
 
-    vector<char> message (65, 0);
+    vector<char> message(65, 0);
 
     SAFE_CHAR_BUF(encr_sshare, BUF_LEN)
     strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
@@ -953,7 +956,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     SAFE_CHAR_BUF(derived_key, 33)
 
     uint64_t key_length;
-    REQUIRE(hex2carray(&hashed_key[0], &key_length, (uint8_t*) derived_key, 33));
+    REQUIRE(hex2carray(&hashed_key[0], &key_length, (uint8_t *) derived_key, 33));
 
     SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
     strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
@@ -970,7 +973,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
 
     mpz_clear(hex_share);
 
-    REQUIRE( convertG2ToString(decrypted_share_G2) == shareG2 );
+    REQUIRE(convertG2ToString(decrypted_share_G2) == shareG2);
 
     Json::Value verificationVectorMult = complaintResponse["verificationVectorMult"];
 
@@ -985,13 +988,14 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
         verificationValue = verificationValue + value;
     }
     verificationValue.to_affine_coordinates();
-    REQUIRE( verificationValue == decrypted_share_G2 );
+    REQUIRE(verificationValue == decrypted_share_G2);
 
     BLSSigShareSet sigShareSet(t, n);
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t, 32 > >();
+    auto hash_arr = make_shared < array < uint8_t,
+    32 > > ();
 
     uint64_t binLen;
 
@@ -1004,8 +1008,9 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
-                                              n);
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
+                                                t,
+                                                n);
         REQUIRE(response["status"] == 0);
 
         PRINT_SRC_LINE
@@ -1095,8 +1100,7 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
         namefile << keyName;
 
         PRINT_SRC_LINE
-    } catch (JsonRpcException & e)
-    {
+    } catch (JsonRpcException &e) {
         cerr << e.what() << endl;
         throw;
     }
@@ -1125,7 +1129,6 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
 
 
-
 TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     HttpClient htp(RPC_ENDPOINT);
@@ -1139,25 +1142,31 @@ TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     PRINT_SRC_LINE
     keyName = genECDSAKeyAPI(c);
-
-
-
-    int end = 100000;
+    int end = 10000000;
     string sh = string(SAMPLE_HASH);
 
 
-
+    std::vector <std::thread> workers;
 
 
     PRINT_SRC_LINE
-    for (int i = 1; i < 10000; i++) {
 
-        auto hash = sh.substr(0, sh.size() - 6) + to_string(end + i);
+    for (int j = 0; j < 10; j++) {
+        workers.push_back(std::thread([client, sh, keyName, end, j]() {
+            CHECK_STATE(client);
+            for (int i = (j * 2000); i < (j * 2000) + 1000; i++) {
 
-        auto sig = client->ecdsaSignMessageHash(16, keyName, hash);
-        REQUIRE(sig.size() > 10);
-    }
+                auto hash = sh.substr(0, sh.size() - 8) + to_string(end + i);
 
+                auto sig = client->ecdsaSignMessageHash(16, keyName, hash);
+                REQUIRE(sig.size() > 10);
+            }
+
+        }));
+    };
+
+    std::for_each(workers.begin(), workers.end(), [](
+            std::thread &t) { t.join(); });
     PRINT_SRC_LINE
 
 }
