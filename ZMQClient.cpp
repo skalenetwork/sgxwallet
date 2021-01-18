@@ -140,7 +140,6 @@ void ZMQClient::reconnect() {
     clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     clientSocket->connect(url);
     clientSockets.insert({pid, clientSocket});
-    cerr << "haha";
 }
 
 
