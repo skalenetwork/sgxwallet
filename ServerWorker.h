@@ -32,6 +32,9 @@ private:
     zmq::socket_t worker_;
 
     std::atomic<bool> isExitRequested;
+
+    static std::atomic<uint64_t> workerCount;
+    uint64_t index;
 };
 
 

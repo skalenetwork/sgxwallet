@@ -13,10 +13,15 @@
 
 #include "ServerWorker.h"
 
+std::atomic<uint64_t>  ServerWorker::workerCount(1);
 
 ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
                                                                  worker_(ctx_, sock_type),
-                                                                 isExitRequested(false) {};
+                                                                 isExitRequested(false) {
+    index = workerCount.fetch_add(1);
+    int linger = 0;
+    zmq_setsockopt (worker_, ZMQ_LINGER, &linger, sizeof (linger));
+};
 
 void ServerWorker::work() {
     worker_.connect("inproc://backend");
@@ -84,7 +89,7 @@ void ServerWorker::work() {
             spdlog::error("Exception in zmq server worker:{}", e.what());
         } catch (...) {
             if (isExitRequested) {
-                return;
+                goto clean;
             }
             spdlog::error("Error in zmq server worker");
             result["errorMessage"] = "Error in zmq server worker";
@@ -107,21 +112,25 @@ void ServerWorker::work() {
 
         } catch (std::exception &e) {
             if (isExitRequested) {
-                return;
+                goto clean;
             }
             spdlog::error("Exception in zmq server worker send :{}", e.what());
         } catch (...) {
             if (isExitRequested) {
-                return;
+                goto clean;
             }
             spdlog::error("Unklnown exception in zmq server worker send");
         }
-
     }
+
+clean:
+    spdlog::info("Exited worker thread {}", index);
 }
 
 
 void ServerWorker::requestExit() {
     isExitRequested.exchange(true);
+    zmq_close(worker_);
+    spdlog::info("Closed worker socket {}", index);
 }
 

@@ -34,6 +34,12 @@ ZMQServer::ZMQServer()
         : isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
           frontend_(*ctx_, ZMQ_ROUTER),
           backend_(*ctx_, ZMQ_DEALER) {
+
+
+    int linger = 0;
+    zmq_setsockopt (frontend_, ZMQ_LINGER, &linger, sizeof (linger));
+    zmq_setsockopt (backend_, ZMQ_LINGER, &linger, sizeof (linger));
+
 }
 
 
@@ -65,7 +71,9 @@ void ZMQServer::run() {
     try {
         for (int i = 0; i < kMaxThread; ++i) {
             workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER));
-            worker_threads.push_back(make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i])));
+            auto th = make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i]));
+            th->detach();
+            worker_threads.push_back(th);
         }
     } catch (std::exception &e) {
         spdlog::error("Could not create zmq server workers:{} ", e.what());
@@ -97,28 +105,36 @@ void ZMQServer::exitWorkers() {
     auto doExit = !isExitRequested.exchange(true);
     if (doExit) {
 
+
+
+
+
+
+
         spdlog::info("Tell workers to exit");
 
         for (auto &&worker : workers) {
             worker->requestExit();
         }
 
+        // close server sockets
+
+        spdlog::info("Closing server sockets  ...");
+
+        zmq_close(frontend_);
+        zmq_close(backend_);
+
+        spdlog::info("Closed server sockets");
+
         spdlog::info("Terminating context ...");
 
         // terminate context (destructor will be called)
         ctx_ = nullptr;
-
         spdlog::info("Terminated context ...");
-
-
-        spdlog::info("joining threads ...");
-        for (auto &&thread : worker_threads)
-            thread->join();
     }
     spdlog::info("Deleting threads ...");
     worker_threads.empty();
     spdlog::info("Deleting workers ...");
-    workers.empty();
     spdlog::info("Deleted workers ...");
 }
 

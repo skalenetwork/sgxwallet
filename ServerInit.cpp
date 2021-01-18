@@ -105,6 +105,7 @@ void initUserSpace() {
 
     zmqServer = new ZMQServer();
     static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+    serverThread.detach();
 }
 
 void exitZMQServer() {

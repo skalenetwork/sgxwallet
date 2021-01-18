@@ -146,6 +146,5 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
     auto result = dynamic_pointer_cast<ECDSASignRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
-    sleep(5);
     return result->getSignature();
 }

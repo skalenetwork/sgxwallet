@@ -1136,30 +1136,16 @@ TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
 
     string keyName = "";
 
-    try {
-        PRINT_SRC_LINE
-        keyName = genECDSAKeyAPI(c);
-        PRINT_SRC_LINE
-    } catch (Exception & e)
-    {
-        cerr << e.what() << endl;
-        throw;
-    }
-
-
-
-    try {
-        PRINT_SRC_LINE
+    PRINT_SRC_LINE
+    keyName = genECDSAKeyAPI(c);
+    PRINT_SRC_LINE
+    for (int i = 1; i < 1000; i++) {
         auto sig = client->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
         REQUIRE(sig.size() > 10);
-
-        cerr << sig << endl;
-
-    } catch (...) {
-
-        client = nullptr;
-        sleep(10000);
     }
+
+    PRINT_SRC_LINE
+
 }
 
 

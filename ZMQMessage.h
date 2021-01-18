@@ -57,7 +57,7 @@ public:
     uint64_t getUint64Rapid(const char *_name);
 
     uint64_t getStatus() {
-        getUint64Rapid("status");
+        return getUint64Rapid("status");
     }
 
     static shared_ptr<ZMQMessage> parse(vector<uint8_t> &_msg, bool _isRequest);
