@@ -45,12 +45,12 @@ ZMQServer::ZMQServer()
 
 void ZMQServer::run() {
 
-    auto port = BASE_PORT + 4;
+    auto port = BASE_PORT + 5;
 
     spdlog::info("Starting zmq server ...");
 
     try {
-        frontend_.bind("tcp://*:" + to_string(BASE_PORT + 5));
+        frontend_.bind("tcp://*:" + to_string(port));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
         exit(-100);
@@ -107,10 +107,6 @@ void ZMQServer::exitWorkers() {
 
 
 
-
-
-
-
         spdlog::info("Tell workers to exit");
 
         for (auto &&worker : workers) {
@@ -126,14 +122,20 @@ void ZMQServer::exitWorkers() {
 
         spdlog::info("Closed server sockets");
 
+
         spdlog::info("Terminating context ...");
+
 
         // terminate context (destructor will be called)
         ctx_ = nullptr;
+
         spdlog::info("Terminated context ...");
+
+        spdlog::info("Deleting threads ...");
+        worker_threads.empty();
+
+
     }
-    spdlog::info("Deleting threads ...");
-    worker_threads.empty();
     spdlog::info("Deleting workers ...");
     spdlog::info("Deleted workers ...");
 }

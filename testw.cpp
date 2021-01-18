@@ -77,6 +77,7 @@ public:
     }
 
     ~TestFixture() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -1125,7 +1126,7 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 
 
 
-TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
+TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);
@@ -1138,9 +1139,22 @@ TEST_CASE_METHOD(TestFixtureNoReset, "ZMQ-ecdsa", "[zmq-ecdsa-run]") {
 
     PRINT_SRC_LINE
     keyName = genECDSAKeyAPI(c);
+
+
+
+    int end = 100000;
+    string sh = string(SAMPLE_HASH);
+
+
+
+
+
     PRINT_SRC_LINE
-    for (int i = 1; i < 1000; i++) {
-        auto sig = client->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
+    for (int i = 1; i < 10000; i++) {
+
+        auto hash = sh.substr(0, sh.size() - 6) + to_string(end + i);
+
+        auto sig = client->ecdsaSignMessageHash(16, keyName, hash);
         REQUIRE(sig.size() > 10);
     }
 

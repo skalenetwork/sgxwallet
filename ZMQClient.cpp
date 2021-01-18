@@ -72,7 +72,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
         reconnect();
     CHECK_STATE(clientSocket);
 
-    spdlog::info("ZMQ client sending: \n {}" , _req);
+    spdlog::debug("ZMQ client sending: \n {}" , _req);
 
     s_send(*clientSocket, _req);
 
@@ -87,7 +87,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 
             CHECK_STATE(reply.size() > 5);
             reply = reply.substr(0, reply.size() - 1);
-            spdlog::info("ZMQ client received reply:{}",  reply);
+            spdlog::debug("ZMQ client received reply:{}",  reply);
             CHECK_STATE(reply.front() == '{');
             CHECK_STATE(reply.back() == '}');
 

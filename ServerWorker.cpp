@@ -13,14 +13,14 @@
 
 #include "ServerWorker.h"
 
-std::atomic<uint64_t>  ServerWorker::workerCount(1);
+std::atomic <uint64_t>  ServerWorker::workerCount(1);
 
 ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
                                                                  worker_(ctx_, sock_type),
                                                                  isExitRequested(false) {
     index = workerCount.fetch_add(1);
     int linger = 0;
-    zmq_setsockopt (worker_, ZMQ_LINGER, &linger, sizeof (linger));
+    zmq_setsockopt(worker_, ZMQ_LINGER, &linger, sizeof(linger));
 };
 
 void ServerWorker::work() {
@@ -33,7 +33,7 @@ void ServerWorker::work() {
 
         Json::Value result;
         int errStatus = -1 * (10000 + __LINE__);
-        result["status"] =  errStatus;
+        result["status"] = errStatus;
         result["errorMessage"] = "Server error";
 
 
@@ -42,17 +42,30 @@ void ServerWorker::work() {
         zmq::message_t copied_id;
 
         try {
+
+            zmq_pollitem_t items[1];
+            items[0].socket = worker_;
+            items[0].events = ZMQ_POLLIN;
+
+            int pollResult = 0;
+
+            do {
+                pollResult = zmq_poll(items, 1, 1000);
+                if (isExitRequested) {
+                    goto clean;
+                }
+            } while (pollResult == 0);
+
+
             zmq::message_t msg;
             zmq::message_t copied_msg;
             worker_.recv(&identity);
-
-            cerr << identity.size();
             copied_id.copy(&identity);
             worker_.recv(&msg);
 
             int64_t more;
             size_t more_size = sizeof(more);
-            auto rc = zmq_getsockopt (worker_, ZMQ_RCVMORE, &more, &more_size);
+            auto rc = zmq_getsockopt(worker_, ZMQ_RCVMORE, &more, &more_size);
             CHECK_STATE(rc == 0);
 
 
@@ -60,21 +73,17 @@ void ServerWorker::work() {
 
             memcpy(msgData.data(), msg.data(), msg.size());
 
-
-            cerr << "Received:" << msgData.data();
-
-
             CHECK_STATE(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}');
 
 
             memcpy(msgData.data(), msg.data(), msg.size());
 
             auto parsedMsg = ZMQMessage::parse(
-                    (const char*) msgData.data(), msg.size(), true);
+                    (const char *) msgData.data(), msg.size(), true);
 
             CHECK_STATE(parsedMsg);
 
-            result  = parsedMsg->process();
+            result = parsedMsg->process();
 
         } catch (SGXException &e) {
             result["status"] = e.getStatus();
@@ -100,9 +109,9 @@ void ServerWorker::work() {
             Json::FastWriter fastWriter;
 
             replyStr = fastWriter.write(result);
-            replyStr = replyStr.substr(0, replyStr.size()  - 1 );
+            replyStr = replyStr.substr(0, replyStr.size() - 1);
 
-            CHECK_STATE(replyStr.size()  > 2);
+            CHECK_STATE(replyStr.size() > 2);
             CHECK_STATE(replyStr.front() == '{');
             CHECK_STATE(replyStr.back() == '}');
             zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
@@ -123,7 +132,7 @@ void ServerWorker::work() {
         }
     }
 
-clean:
+    clean:
     spdlog::info("Exited worker thread {}", index);
 }
 

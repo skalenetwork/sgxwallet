@@ -47,7 +47,7 @@ public:
     ZMQServer();
 
     enum {
-        kMaxThread = 1
+        kMaxThread = 16
     };
 
     void run();
