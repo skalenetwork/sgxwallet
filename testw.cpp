@@ -1151,7 +1151,7 @@ TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     PRINT_SRC_LINE
 
-    for (int j = 0; j < 10; j++) {
+    for (int j = 0; j < 2; j++) {
         workers.push_back(std::thread([client, sh, keyName, end, j]() {
             CHECK_STATE(client);
             for (int i = (j * 2000); i < (j * 2000) + 1000; i++) {
