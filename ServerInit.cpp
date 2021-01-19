@@ -202,17 +202,12 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
 
         if (useHTTPS) {
             SGXWalletServer::initHttpsServer(_checkCert);
+            ZMQServer::initZMQServer(_checkCert);
             SGXRegistrationServer::initRegistrationServer(_autoSign);
             CSRManagerServer::initCSRManagerServer();
-            ZMQServer::zmqServer = new ZMQServer();
-            static std::thread serverThread(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
-            serverThread.detach();
-
         } else {
             SGXWalletServer::initHttpServer();
-            ZMQServer::zmqServer = new ZMQServer();
-            static std::thread serverThread(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
-            serverThread.detach();
+            ZMQServer::initZMQServer(_checkCert);
         }
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
 

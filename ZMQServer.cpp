@@ -149,3 +149,11 @@ void ZMQServer::exitZMQServer() {
     spdlog::info("Exited zmq server ...");
     zmqServer = nullptr;
 }
+
+void ZMQServer::initZMQServer(bool _useClientCert) {
+    spdlog::info("Initing zmq server ...");
+    zmqServer = new ZMQServer();
+    static std::thread serverThread(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
+    serverThread.detach();
+    spdlog::info("Inited zmq server ...");
+}

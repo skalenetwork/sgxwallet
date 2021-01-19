@@ -56,7 +56,10 @@ public:
 
     void exitWorkers();
 
+    static void initZMQServer(bool _useClientCert);
     static void exitZMQServer();
+
+
 
 private:
     shared_ptr<zmq::context_t> ctx_;
