@@ -42,6 +42,7 @@
 #include "SGXWalletServer.hpp"
 
 #include "catch.hpp"
+#include "ZMQClient.h"
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "BLSPublicKeyShare.h"
@@ -402,6 +403,9 @@ void TestUtils::sendRPCRequestV2() {
 void TestUtils::sendRPCRequestZMQ() {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
+
+
+
 
     int n = 16, t = 16;
     Json::Value ethKeys[n];
@@ -775,7 +779,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
 }
 
 
-void TestUtils::doZMQBLS(StubClient &c, int n, int t,
+void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n, int t,
                         vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
                         int schainID, int dkgID) {
     Json::Value ethKeys[n];
@@ -894,10 +898,8 @@ void TestUtils::doZMQBLS(StubClient &c, int n, int t,
     for (int i = 0; i < t; i++) {
 
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
-        CHECK_STATE(blsSigShares[i]["status"] == 0);
-        shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+        auto sigShare =  make_shared<string>(_zmqClient->blsSignMessageHash(blsName, hash, t, n));
+        BLSSigShare sig(sigShare, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
 
         auto pubKey = pubKeyShares[i+1];

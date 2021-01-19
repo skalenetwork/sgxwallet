@@ -60,6 +60,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
 
     auto d = make_shared<rapidjson::Document>();
 
+    cerr << _msg << endl;
     d->Parse(_msg);
 
     CHECK_STATE(!d->HasParseError());

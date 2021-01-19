@@ -7,8 +7,8 @@
 
 
 Json::Value BLSSignReqMessage::process() {
-    auto keyName = getStringRapid("kn");
-    auto hash = getStringRapid("mh");
+    auto keyName = getStringRapid("keyShareName");
+    auto hash = getStringRapid("messageHash");
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
     auto result =  SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
