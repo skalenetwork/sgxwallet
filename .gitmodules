@@ -16,3 +16,12 @@
 [submodule "sgx-software-enable"]
 	path = sgx-software-enable
 	url = https://github.com/intel/sgx-software-enable
+[submodule "libzmq"]
+	path = libzmq
+	url = https://github.com/zeromq/libzmq.git
+[submodule "cppzmq"]
+	path = cppzmq
+	url = https://github.com/zeromq/cppzmq.git
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson.git

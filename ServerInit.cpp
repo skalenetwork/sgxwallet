@@ -39,6 +39,8 @@
 #include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
+#include <unistd.h>
+
 
 
 #include "BLSPrivateKeyShareSGX.h"
@@ -50,14 +52,45 @@
 #include "LevelDB.h"
 #include "SGXWalletServer.h"
 #include "SGXRegistrationServer.h"
+#include "SGXInfoServer.h"
 #include "SEKManager.h"
 #include "CSRManagerServer.h"
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "SGXException.h"
+#include "ZMQServer.h"
 #include "SGXWalletServer.hpp"
 
 uint32_t enclaveLogLevel = 0;
+
+using namespace std;
+
+void systemHealthCheck() {
+    string ulimit;
+    try {
+        ulimit = exec( "/bin/bash -c \"ulimit -n\"" );
+    } catch ( ... ) {
+        spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
+        exit(-15);
+    }
+    int noFiles = strtol( ulimit.c_str(), NULL, 10 );
+
+    auto noUlimitCheck = getenv( "NO_ULIMIT_CHECK" ) != nullptr;
+
+    if ( noFiles < 65535 && !noUlimitCheck) {
+        string errStr =
+                "sgxwallet requires setting Linux file descriptor limit to at least 65535 "
+                "You current limit (ulimit -n) is less than 65535. \n Please set it to 65535:"
+                "by editing /etc/systemd/system.conf"
+                "and setting 'DefaultLimitNOFILE=65535'\n"
+                "After that, restart sgxwallet";
+        spdlog::error(errStr);
+        exit(-16);
+    }
+}
+
+static ZMQServer* zmqServer = nullptr;
+atomic<bool> exiting(false);
 
 void initUserSpace() {
 
@@ -66,6 +99,30 @@ void initUserSpace() {
     libff::init_alt_bn128_params();
 
     LevelDB::initDataFolderAndDBs();
+
+#ifndef SGX_HW_SIM
+    systemHealthCheck();
+#endif
+
+#ifdef EXPERIMENTAL_ZMQ_SERVER
+    zmqServer = new ZMQServer();
+    static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+#endif
+}
+
+void exitZMQServer() {
+#ifdef EXPERIMENTAL_ZMQ_SERVER
+
+    auto doExit = !exiting.exchange(true);
+
+    if (doExit) {
+        spdlog::info("Exiting zmq server ...");
+        delete zmqServer;
+        spdlog::info("Exited zmq server ...");
+        zmqServer = nullptr;
+    }
+
+#endif
 }
 
 uint64_t initEnclave() {
@@ -76,7 +133,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
-        exit(1);
+        exit(-17);
     }
 #endif
 
@@ -107,7 +164,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            exit(1);
+            exit(-21);
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -127,8 +184,8 @@ uint64_t initEnclave() {
 
 
 
+void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys) {
 
-void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
@@ -146,7 +203,7 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         CHECK_STATE(sgxServerInited != 1)
         sgxServerInited = 1;
 
-        uint64_t  counter = 0;
+        uint64_t counter = 0;
 
         uint64_t initResult = 0;
         while ((initResult = initEnclave()) != 0 && counter < 10){
@@ -168,18 +225,20 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign) {
         } else {
             SGXWalletServer::initHttpServer();
         }
+        SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
+
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
-        exit(-1);
+        exit(-18);
     } catch (exception &_e) {
         spdlog::error(_e.what());
-        exit(-1);
+        exit(-19);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(-1);
+        exit(-22);
     }
 };

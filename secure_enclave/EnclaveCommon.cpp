@@ -82,8 +82,8 @@ string *stringFromFq(libff::alt_bn128_Fq *_fq) {
 
     try {
         _fq->as_bigint().to_mpz(t);
-        char *tmp = mpz_get_str(arr, 10, t);
-        ret = new string(tmp);
+        mpz_get_str(arr, 10, t);
+        ret = new string(arr);
     } catch (exception &e) {
         LOG_ERROR(e.what());
         goto clean;
@@ -107,13 +107,13 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     try {
         _g1->to_affine_coordinates();
 
-        auto sX = stringFromFq(&_g1->X);
+        sX = stringFromFq(&_g1->X);
 
         if (!sX) {
             goto clean;
         }
 
-        auto sY = stringFromFq(&_g1->Y);
+        sY = stringFromFq(&_g1->Y);
 
         if (!sY) {
             goto clean;
@@ -131,8 +131,8 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
 
     clean:
 
-    SAFE_FREE(sX);
-    SAFE_FREE(sY);
+    SAFE_DELETE(sX);
+    SAFE_DELETE(sY);
 
     return ret;
 
@@ -226,7 +226,7 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
     }
 
     try {
-        auto key = keyFromString(_keyString);
+        key = keyFromString(_keyString);
 
         if (!key) {
             LOG_ERROR("Null key");
@@ -243,13 +243,13 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
 
         sign.to_affine_coordinates();
 
-        auto r = stringFromG1(&sign);
+        r = stringFromG1(&sign);
 
         memset(sig, 0, BUF_LEN);
 
         strncpy(sig, r->c_str(), BUF_LEN);
 
-        ret =  true;
+        ret = true;
 
     } catch (exception &e) {
         LOG_ERROR(e.what());

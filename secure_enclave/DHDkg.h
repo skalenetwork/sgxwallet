@@ -30,6 +30,12 @@ int session_key_recover(const char *skey_str, const char* sshare, char* common_k
 
 int xor_encrypt(char* key, char* message, char* cypher);
 
+int xor_encrypt_v2(char* key, char* message, char* cypher);
+
 int xor_decrypt(char* key, char* cypher, char* message);
+
+int xor_decrypt_v2(char* key, char* cypher, char* message);
+
+int hash_key(char* key, char* hashed_key);
 
 #endif //SGXD_DRIVE_KEY_DKG_H

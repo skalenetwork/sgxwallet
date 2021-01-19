@@ -70,9 +70,15 @@ public:
 
     static void sendRPCRequest();
 
+    static void sendRPCRequestV2();
+
     static void destroyEnclave();
 
     static void doDKG(StubClient &c, int n, int t,
+                                 vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+                                 int schainID, int dkgID);
+
+    static void doDKGV2(StubClient &c, int n, int t,
                                  vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
                                  int schainID, int dkgID);
 };
@@ -80,5 +86,7 @@ public:
 int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key);
 
 int xorDecryptDH(char *key, const char *cypher, vector<char>& message);
+
+int xorDecryptDHV2(char *key, const char *cypher, vector<char>& message);
 
 #endif //SGXWALLET_TESTW_H

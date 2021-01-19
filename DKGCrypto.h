@@ -41,11 +41,17 @@ vector<string> splitString(const char* coeffs, const char symbol);
 
 string getSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
 
+string getSecretSharesV2(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
+
 bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
+
+bool verifySharesV2(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
 
 string decryptDHKey(const string& polyName, int ind);
 
 bool createBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
+
+bool createBLSShareV2( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 
 vector<string> getBLSPubKey(const char * encryptedKeyHex);
 

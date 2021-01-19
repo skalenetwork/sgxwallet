@@ -149,10 +149,8 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
-        status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
-                                          encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
-    RESTART_END
+    status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey,
+                                      encryptedKeyHex->size() / 2, xStrArg, yStrArg, signature);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

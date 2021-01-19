@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 DOCKERFILE=$1
 CONTAINER_NAME=$2

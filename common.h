@@ -31,12 +31,14 @@ using namespace std;
 #include <iostream>
 #include <map>
 #include <memory>
+#include <vector>
 
 #include <boost/throw_exception.hpp>
 
 #include <gmp.h>
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
+#include "SGXException.h"
 
 #define SAFE_FREE(__POINTER__) {if (__POINTER__) {free(__POINTER__); __POINTER__ = NULL;}}
 
@@ -64,7 +66,7 @@ inline void print_stack() {
     // print out all the frames to stderr
     fprintf(stderr, "Error: signal \n");
     backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
+    exit(-1);
 }
 
 
@@ -72,7 +74,7 @@ inline void print_stack() {
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
         print_stack();                                \
-        throw InvalidStateException(__msg__, __CLASS_NAME__);}
+        BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
 
 #define HANDLE_TRUSTED_FUNCTION_ERROR(__STATUS__, __ERR_STATUS__, __ERR_MSG__) \
@@ -81,7 +83,7 @@ string __ERR_STRING__ = string("SGX enclave call to ") + \
                    __FUNCTION__  +  " failed with status:" \
                    + to_string(__STATUS__) + \
                    " Err message:" + __ERR_MSG__; \
-BOOST_THROW_EXCEPTION(runtime_error(__ERR_MSG__)); \
+BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_MSG__))); \
 }\
 \
 if (__ERR_STATUS__ != 0) {\
@@ -96,19 +98,50 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 #define SAFE_UINT8_BUF(__X__, __Y__)  ;uint8_t __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
+// Copy from libconsensus
+
+
+
+inline string exec( const char* cmd ) {
+    CHECK_STATE( cmd );
+    std::array< char, 128 > buffer;
+    std::string result;
+    std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( cmd, "r" ), pclose );
+    if ( !pipe ) {
+        BOOST_THROW_EXCEPTION( std::runtime_error( "popen() failed!" ) );
+    }
+    while ( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 #include <shared_mutex>
 
 extern std::shared_timed_mutex sgxInitMutex;
 extern uint64_t initTime;
 
-#if SGX_MODE == SIM
-#define ENCLAVE_RESTART_PERIOD_S 5
-#else
-#define ENCLAVE_RESTART_PERIOD_S 60 * 10
-#endif
-
+#define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
+
+
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
+
+// max of 200 threads can call enclave at a time
+extern boost::interprocess::interprocess_semaphore enclaveSemaphore;
+
+class semaphore_guard {
+    boost::interprocess::interprocess_semaphore &sem;
+public:
+    semaphore_guard(boost::interprocess::interprocess_semaphore &_semaphore) : sem(_semaphore) {
+        sem.wait();
+    }
+
+    ~semaphore_guard() {
+        sem.post();
+    }
+};
 
 
 

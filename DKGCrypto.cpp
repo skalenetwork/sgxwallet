@@ -67,10 +67,9 @@ string ConvertToString(T field_elem, int base = 10) {
     SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
     mpz_get_str(arr, base, t);
+
     mpz_clear(t);
-
     string output = arr;
-
     return output;
 }
 
@@ -82,8 +81,7 @@ string convertHexToDec(const string &hex_str) {
 
     try {
         if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-            mpz_clear(dec);
-            return ret;
+            goto clean;
         }
 
         SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
@@ -94,8 +92,12 @@ string convertHexToDec(const string &hex_str) {
         throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
     } catch (...) {
         mpz_clear(dec);
-        throw SGXException(UNKNOWN_ERROR, "");
+        throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC, "Exception in convert hex to dec");
     }
+
+    clean:
+
+    mpz_clear(dec);
 
     return ret;
 }
@@ -115,10 +117,10 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base, const string
         return result;
 
     } catch (exception &e) {
-        throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
+        throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
         return result;
     } catch (...) {
-        throw SGXException(UNKNOWN_ERROR, "");
+        throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING, "Exception in convert G2 to string");
         return result;
     }
 
@@ -134,11 +136,8 @@ string gen_dkg_poly(int _t) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-
-    RESTART_BEGIN
-        status = trustedGenDkgSecret(
-                eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(), &enc_len, _t);
-    RESTART_END
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(), encrypted_dkg_secret.data(),
+                                 &enc_len, _t);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -151,7 +150,7 @@ string gen_dkg_poly(int _t) {
     return result;
 }
 
-vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n) {
+vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, int n) {
 
     auto encryptedPolyHexPtr = encryptedPolyHex.c_str();
 
@@ -168,17 +167,14 @@ vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, in
     vector <uint8_t> encrDKGPoly(2 * BUF_LEN, 0);
 
     if (!hex2carray(encryptedPolyHexPtr, &encLen, encrDKGPoly.data(), 6100)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(GET_VV_INVALID_POLY_HEX, ":Invalid encryptedPolyHex");
     }
 
 
     sgx_status_t status = SGX_SUCCESS;
 
-
-    RESTART_BEGIN
-        status = trustedGetPublicShares(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
-                                           pubShares.data(), t, n);
-    RESTART_END
+    status = trustedGetPublicShares(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
+                                    pubShares.data(), t, n);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -192,12 +188,12 @@ vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, in
     return pubSharesVect;
 }
 
-vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind) {
+vector <vector<string>> getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n, size_t ind) {
     auto verificationVector = get_verif_vect(encryptedPolyHex, t, n);
 
-    vector<vector<string>> result(t);
+    vector <vector<string>> result(t);
 
-    for (size_t i = 0; i < t; ++i) {
+    for (int i = 0; i < t; ++i) {
         libff::alt_bn128_G2 current_coefficient;
         current_coefficient.X.c0 = libff::alt_bn128_Fq(verificationVector[i][0].c_str());
         current_coefficient.X.c1 = libff::alt_bn128_Fq(verificationVector[i][1].c_str());
@@ -205,7 +201,7 @@ vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPo
         current_coefficient.Y.c1 = libff::alt_bn128_Fq(verificationVector[i][3].c_str());
         current_coefficient.Z = libff::alt_bn128_Fq2::one();
 
-        current_coefficient =  libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
+        current_coefficient = libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
         current_coefficient.to_affine_coordinates();
 
         auto g2_str = convertG2ToString(current_coefficient);
@@ -224,23 +220,18 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
     CHECK_STATE(_encryptedPolyHex);
 
     vector<char> hexEncrKey(BUF_LEN, 0);
-    vector<char> errMsg1(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
     vector <uint8_t> encrDKGPoly(BUF_LEN, 0);
     int errStatus = 0;
     uint64_t encLen = 0;
 
 
     if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(GET_SS_INVALID_HEX, string(__FUNCTION__) + ":Invalid encryptedPolyHex");
     }
 
-    sgx_status_t status = SGX_SUCCESS;
 
     READ_LOCK(sgxInitMutex);
-
-    status = trustedSetEncryptedDkgPoly(eid, &errStatus, errMsg1.data(), encrDKGPoly.data(), encLen);
-
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
     string result;
 
@@ -259,26 +250,86 @@ getSecretShares(const string &_polyName, const char *_encryptedPolyHex, const ve
         spdlog::debug("pubKeyB is {}", pub_keyB);
 
         sgx_status_t status = SGX_SUCCESS;
-        status = trustedGetEncryptedSecretShare(eid, &errStatus, errMsg1.data(), encryptedSkey.data(), &decLen,
-                                                   currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
-                                                   i + 1);
+        status = trustedGetEncryptedSecretShare(eid, &errStatus,
+                                                errMsg.data(),
+                                                encrDKGPoly.data(), encLen,
+                                                encryptedSkey.data(), &decLen,
+                                                currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
+                                                i + 1);
 
-        HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
+        HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-        spdlog::debug("cur_share is {}", currentShare.data());
 
         result += string(currentShare.data());
 
-        spdlog::debug("dec len is {}", decLen);
         hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
         string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
-        spdlog::debug("hexEncr DH Key: { }", hexEncrKey.data());
-        spdlog::debug("name to write to db is {}", dhKeyName);
+        string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
+
+        SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
+        SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
+    }
+
+    string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+    SGXWalletServer::writeDataToDB(encryptedSecretShareName, result);
+
+    return result;
+}
+
+string
+getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex, const vector <string> &_publicKeys, int _t,
+                  int _n) {
+    CHECK_STATE(_encryptedPolyHex);
+
+    vector<char> hexEncrKey(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
+    vector <uint8_t> encrDKGPoly(BUF_LEN, 0);
+    int errStatus = 0;
+    uint64_t encLen = 0;
+
+
+    if (!hex2carray(_encryptedPolyHex, &encLen, encrDKGPoly.data(), BUF_LEN)) {
+        throw SGXException(GET_SS_V2_INVALID_HEX,
+                           string(__FUNCTION__) + ":Invalid encrypted poly Hex");
+    }
+
+
+    READ_LOCK(sgxInitMutex);
+
+    string result;
+
+    for (int i = 0; i < _n; i++) {
+        vector <uint8_t> encryptedSkey(BUF_LEN, 0);
+        uint64_t decLen;
+        vector<char> currentShare(193, 0);
+        vector<char> sShareG2(320, 0);
+
+        string pub_keyB = _publicKeys.at(i);
+        vector<char> pubKeyB(129, 0);
+
+        strncpy(pubKeyB.data(), pub_keyB.c_str(), 128);
+        pubKeyB.at(128) = 0;
+
+        spdlog::debug("pubKeyB is {}", pub_keyB);
+
+        sgx_status_t status = SGX_SUCCESS;
+        status = trustedGetEncryptedSecretShareV2(eid, &errStatus,
+                                                  errMsg.data(),
+                                                  encrDKGPoly.data(), encLen,
+                                                  encryptedSkey.data(), &decLen,
+                                                  currentShare.data(), sShareG2.data(), pubKeyB.data(), _t, _n,
+                                                  i + 1);
+
+        HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+
+        result += string(currentShare.data());
+
+        hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
+        string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
 
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-        spdlog::debug("name to write to db is {}", shareG2_name);
-        spdlog::debug("s_shareG2: {}", sShareG2.data());
 
         SGXWalletServer::writeDataToDB(dhKeyName, hexEncrKey.data());
         SGXWalletServer::writeDataToDB(shareG2_name, sShareG2.data());
@@ -304,7 +355,7 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 
     SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedPolyHex");
+        throw SGXException(VERIFY_SHARES_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedPolyHex");
     }
 
     SAFE_CHAR_BUF(pshares, 8193);
@@ -312,15 +363,48 @@ verifyShares(const char *publicShares, const char *encr_sshare, const char *encr
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
-        status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
-                                     ind, &result);
-    RESTART_END
+    status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
+                              ind, &result);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     if (result == 2) {
-        throw SGXException(INVALID_HEX, "Invalid public shares");
+        throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                           string(__FUNCTION__) + +":Invalid public shares");
+    }
+
+    return result;
+}
+
+bool
+verifySharesV2(const char *publicShares, const char *encr_sshare, const char *encryptedKeyHex, int t, int n, int ind) {
+
+    CHECK_STATE(publicShares);
+    CHECK_STATE(encr_sshare);
+    CHECK_STATE(encryptedKeyHex);
+
+    vector<char> errMsg(BUF_LEN, 0);
+    int errStatus = 0;
+    uint64_t decKeyLen = 0;
+    int result = 0;
+
+    SAFE_UINT8_BUF(encr_key, BUF_LEN);
+    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
+        throw SGXException(VERIFY_SHARES_V2_INVALID_POLY_HEX, string(__FUNCTION__) + ":Invalid encryptedPolyHex");
+    }
+
+    SAFE_CHAR_BUF(pshares, 8193);
+    strncpy(pshares, publicShares, strlen(publicShares));
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    status = trustedDkgVerifyV2(eid, &errStatus, errMsg.data(), pshares, encr_sshare, encr_key, decKeyLen, t,
+                                ind, &result);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    if (result == 2) {
+        throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES, string(__FUNCTION__) + ":Invalid public shares");
     }
 
     return result;
@@ -336,17 +420,45 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares, const char *
 
     uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(CREATE_BLS_SHARE_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }
 
     uint64_t enc_bls_len = 0;
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
-        status = trustedCreateBlsKey(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
-                                        &enc_bls_len);
-    RESTART_END
+    status = trustedCreateBlsKey(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
+                                 &enc_bls_len);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    vector<char> hexBLSKey = carray2Hex(encr_bls_key, enc_bls_len);
+
+    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
+
+    return true;
+
+}
+
+bool createBLSShareV2(const string &blsKeyName, const char *s_shares, const char *encryptedKeyHex) {
+
+    CHECK_STATE(s_shares);
+    CHECK_STATE(encryptedKeyHex);
+
+    vector<char> errMsg(BUF_LEN, 0);
+    int errStatus = 0;
+
+    uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
+    if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
+        throw SGXException(CREATE_BLS_SHARE_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
+    }
+
+    uint64_t enc_bls_len = 0;
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    status = trustedCreateBlsKeyV2(eid, &errStatus, errMsg.data(), s_shares, encr_key, decKeyLen, encr_bls_key,
+                                 &enc_bls_len);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -369,7 +481,7 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
 
     SAFE_UINT8_BUF(encrKey, BUF_LEN);
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encrKey, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encryptedKeyHex");
+        throw SGXException(GET_BLS_PUBKEY_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }
 
     SAFE_CHAR_BUF(pubKey, 320)
@@ -377,9 +489,7 @@ vector <string> getBLSPubKey(const char *encryptedKeyHex) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
-        status = trustedGetBlsPubKey(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
-    RESTART_END
+    status = trustedGetBlsPubKey(eid, &errStatus, errMsg1.data(), encrKey, decKeyLen, pubKey);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data());
 
@@ -454,9 +564,9 @@ string decryptDHKey(const string &polyName, int ind) {
     vector<char> hexEncrKey(2 * BUF_LEN, 0);
 
     uint64_t dhEncLen = 0;
-    SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN)
+    SAFE_UINT8_BUF(encryptedDHKey, BUF_LEN);
     if (!hex2carray(hexEncrKeyPtr->c_str(), &dhEncLen, encryptedDHKey, BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid hexEncrKey");
+        throw SGXException(DECRYPT_DH_KEY_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid hexEncrKey");
     }
     spdlog::debug("encr DH key length is {}", dhEncLen);
 
@@ -464,9 +574,8 @@ string decryptDHKey(const string &polyName, int ind) {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    RESTART_BEGIN
-        status = trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
-    RESTART_END
+    status = trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data())
 
     return DHKey;

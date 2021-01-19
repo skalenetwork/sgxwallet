@@ -1,0 +1,35 @@
+name: Build, test and push Intel SGX container
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: Fail, if older Github Actions machine. Click "Re-run jobs"
+        run: cat /proc/cpuinfo | grep avx512
+      - name: Login to docker
+        run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+      - uses: actions/checkout@v1
+      - name: submodule update
+        run: git submodule update --init --recursive
+      - name: build and deploy docker image
+        if: |
+          contains(github.ref, 'stable')
+        run : |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export VERSION=$(cat VERSION)
+          echo "Version $VERSION"
+          export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
+          echo "::set-env name=VERSION::$VERSION"
+          echo "Version $VERSION"
+          export RELEASE=true
+          echo "::set-env name=RELEASE::$RELEASE"
+          bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
+          bash ./scripts/publish_image.sh sgxwallet_intelsubmission
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true

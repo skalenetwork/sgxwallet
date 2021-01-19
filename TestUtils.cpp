@@ -21,10 +21,8 @@
     @date 2020
 */
 
-#include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <dkg/dkg.h>
+
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
@@ -79,14 +77,12 @@ string TestUtils::convertDecToHex(string dec, int numBytes) {
     mpz_t num;
     mpz_init(num);
     mpz_set_str(num, dec.c_str(), 10);
-
     vector<char> tmp(mpz_sizeinbase(num, 16) + 2, 0);
     char *hex = mpz_get_str(tmp.data(), 16, num);
-
     string result = hex;
     int n_zeroes = numBytes * 2 - result.length();
     result.insert(0, n_zeroes, '0');
-
+    mpz_clear(num);
     return result;
 }
 
@@ -176,6 +172,146 @@ void TestUtils::sendRPCRequest() {
 
     int schainID = counter.fetch_add(1);
     int dkgID = counter.fetch_add(1);
+
+    int testCount = 1;
+
+    if (getenv("NIGHTLY_TESTS")) {
+        testCount = 10;
+    }
+
+    for (uint8_t i = 0; i < n; i++) {
+        usleep(100000);
+        ethKeys[i] = c.generateECDSAKey();
+
+        for (int i2 = 0; i2 < testCount; i2++) {
+            auto keyName = ethKeys[i]["keyName"].asString();
+            Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
+            CHECK_STATE(sig["status"].asInt() == 0);
+        }
+
+
+        CHECK_STATE(ethKeys[i]["status"] == 0);
+        string polyName =
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
+        auto response = c.generateDKGPoly(polyName, t);
+        CHECK_STATE(response["status"] == 0);
+        polyNames[i] = polyName;
+
+        for (int i3 = 0; i3 <= testCount; i3++) {
+            verifVects[i] = c.getVerificationVector(polyName, t, n);
+            CHECK_STATE(verifVects[i]["status"] == 0);
+        }
+
+        pubEthKeys.append(ethKeys[i]["publicKey"]);
+    }
+
+    for (uint8_t i = 0; i < n; i++) {
+        usleep(100000);
+        for (int i4 = 0; i4 <= testCount; i4++) {
+            secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
+        }
+        for (uint8_t k = 0; k < t; k++) {
+            for (uint8_t j = 0; j < 4; j++) {
+                string pubShare = verifVects[i]["verificationVector"][k][j].asString();
+                pubShares[i] += convertDecToHex(pubShare);
+            }
+        }
+    }
+
+    vector <string> secShares(n);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
+            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            usleep(100000);
+            for (int i5 = 0; i5 <= testCount; i5++) {
+                Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+                                                      j);
+                CHECK_STATE(verif["status"] == 0);
+            }
+        }
+
+    BLSSigShareSet sigShareSet(t, n);
+
+    string hash = SAMPLE_HASH;
+
+    auto hash_arr = make_shared < array < uint8_t, 32 >> ();
+    uint64_t binLen;
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
+    }
+
+    map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+
+    Json::Value publicShares;
+    for (int i = 0; i < n; ++i) {
+        publicShares["publicShares"][i] = pubShares[i];
+    }
+
+
+    Json::Value blsPublicKeys;
+
+    for (int i6 = 0; i6 <= testCount; i6++) {
+        blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
+        CHECK_STATE(blsPublicKeys["status"] == 0);
+    }
+
+    for (int i = 0; i < t; i++) {
+        string endName = polyNames[i].substr(4);
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        string secretShare = secretShares[i]["secretShare"].asString();
+
+
+        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
+                                                  t, n);
+        CHECK_STATE(response["status"] == 0);
+
+        for (int i7 = 0; i7 <= testCount; i7++) {
+            pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        }
+        CHECK_STATE(pubBLSKeys[i]["status"] == 0);
+
+        libff::alt_bn128_G2 publicKey(libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][1].asCString())),
+                                      libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][2].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i]["blsPublicKeyShare"][3].asCString())),
+                                      libff::alt_bn128_Fq2::one());
+
+        string public_key_str = convertG2ToString(publicKey);
+
+        CHECK_STATE(public_key_str == blsPublicKeys["publicKeys"][i].asString());
+
+        string hash = SAMPLE_HASH;
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
+        CHECK_STATE(blsSigShares[i]["status"] == 0);
+
+        shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
+        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+        sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    }
+
+    sigShareSet.merge();
+}
+
+void TestUtils::sendRPCRequestV2() {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    int n = 16, t = 16;
+    Json::Value ethKeys[n];
+    Json::Value verifVects[n];
+    Json::Value pubEthKeys;
+    Json::Value secretShares[n];
+    Json::Value pubBLSKeys[n];
+    Json::Value blsSigShares[n];
+    vector <string> pubShares(n);
+    vector <string> polyNames(n);
+
+    static atomic<int> counter(1);
+
+    int schainID = counter.fetch_add(1);
+    int dkgID = counter.fetch_add(1);
     for (uint8_t i = 0; i < n; i++) {
         ethKeys[i] = c.generateECDSAKey();
         CHECK_STATE(ethKeys[i]["status"] == 0);
@@ -191,7 +327,7 @@ void TestUtils::sendRPCRequest() {
     }
 
     for (uint8_t i = 0; i < n; i++) {
-        secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
+        secretShares[i] = c.getSecretShareV2(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
                 string pubShare = verifVects[i]["verificationVector"][k][j].asString();
@@ -206,7 +342,7 @@ void TestUtils::sendRPCRequest() {
         for (int j = 0; j < n; j++) {
             string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
             secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value verif = c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
+            Json::Value verif = c.dkgVerificationV2(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
             CHECK_STATE(verif["status"] == 0);
         }
 
@@ -217,7 +353,7 @@ void TestUtils::sendRPCRequest() {
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -235,7 +371,7 @@ void TestUtils::sendRPCRequest() {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
@@ -350,7 +486,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
@@ -362,6 +498,147 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         string secretShare = secretShares[i]["secretShare"].asString();
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
+                                              n);
+        CHECK_STATE(response["status"] == 0);
+        pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
+        CHECK_STATE(pubBLSKeys[i]["status"] == 0);
+    }
+
+    for (int i = 0; i < t; i++) {
+        vector<string> pubKeyVect;
+        for (uint8_t j = 0; j < 4; j++) {
+            pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
+        }
+        BLSPublicKeyShare pubKey(make_shared<vector<string >>(pubKeyVect), t, n);
+
+        pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    }
+
+    // create pub key
+
+    BLSPublicKey blsPublicKey(make_shared<map<size_t, shared_ptr<BLSPublicKeyShare >>>(pubKeyShares), t,
+                              n);
+
+    // sign verify a sample sig
+
+    for (int i = 0; i < t; i++) {
+
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
+        CHECK_STATE(blsSigShares[i]["status"] == 0);
+        shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
+        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+        sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+
+        auto pubKey = pubKeyShares[i+1];
+
+        CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+    }
+
+    shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
+
+    for (auto&& i : _ecdsaKeyNames)
+        cerr << i << endl;
+
+    for (auto&& i : _blsKeyNames)
+        cerr << i << endl;
+}
+
+void TestUtils::doDKGV2(StubClient &c, int n, int t,
+           vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+           int schainID, int dkgID) {
+    Json::Value ethKeys[n];
+    Json::Value verifVects[n];
+    Json::Value pubEthKeys;
+    Json::Value secretShares[n];
+    Json::Value pubBLSKeys[n];
+    Json::Value blsSigShares[n];
+    vector<string> pubShares(n);
+    vector<string> polyNames(n);
+
+    _ecdsaKeyNames.clear();
+    _blsKeyNames.clear();
+
+    for (uint8_t i = 0; i < n; i++) {
+        ethKeys[i] = c.generateECDSAKey();
+
+        CHECK_STATE(ethKeys[i]["status"] == 0);
+
+        auto keyName = ethKeys[i]["keyName"].asString();
+        CHECK_STATE(keyName.size() == ECDSA_KEY_NAME_SIZE);
+
+        _ecdsaKeyNames.push_back(keyName);
+
+        string polyName =
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
+
+        Json::Value response = c.generateDKGPoly(polyName, t);
+        CHECK_STATE(response["status"] == 0);
+        polyNames[i] = polyName;
+        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        CHECK_STATE(verifVects[i]["status"] == 0);
+        pubEthKeys.append(ethKeys[i]["publicKey"]);
+    }
+
+    for (uint8_t i = 0; i < n; i++) {
+        secretShares[i] = c.getSecretShareV2(polyNames[i], pubEthKeys, t, n);
+        CHECK_STATE(secretShares[i]["status"] == 0);
+        for (uint8_t k = 0; k < t; k++) {
+            for (uint8_t j = 0; j < 4; j++) {
+                string pubShare = verifVects[i]["verificationVector"][k][j].asString();
+                CHECK_STATE(pubShare.length() > 60);
+                pubShares[i] += TestUtils::convertDecToHex(pubShare);
+            }
+        }
+    }
+
+    int k = 0;
+
+    vector<string> secShares(n);
+
+    vector<string> pSharesBad(pubShares);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
+            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
+            Json::Value response = c.dkgVerificationV2(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+                                                     j);
+            CHECK_STATE(response["status"] == 0);
+
+            bool res = response["result"].asBool();
+            CHECK_STATE(res);
+
+            k++;
+
+            pSharesBad[i][0] = 'q';
+            Json::Value wrongVerif = c.dkgVerificationV2(pSharesBad[i], ethKeys[j]["keyName"].asString(), secretShare, t,
+                                                       n, j);
+            res = wrongVerif["result"].asBool();
+            CHECK_STATE(!res);
+        }
+
+    BLSSigShareSet sigShareSet(t, n);
+
+    string hash = SAMPLE_HASH;
+
+    auto hash_arr = make_shared<array<uint8_t, 32 >>();
+    uint64_t binLen;
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
+    }
+
+    map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
+
+    for (int i = 0; i < n; i++) {
+        string endName = polyNames[i].substr(4);
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        _blsKeyNames.push_back(blsName);
+        string secretShare = secretShares[i]["secretShare"].asString();
+
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
                                               n);
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
@@ -442,7 +719,6 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_k
         mpz_clear(skey);
         point_clear(pub_keyB);
         point_clear(session_key);
-
         return  ret;
     }
 
@@ -524,6 +800,42 @@ int xorDecryptDH(char *key, const char *cypher, vector<char>& message) {
 
     for (int i = 0; i < 32; i++) {
         msg_bin[i] = cypher_bin[i] ^ key_bin[i];
+    }
+
+    message = carray2Hex((unsigned char*) msg_bin, 32);
+
+    ret = 0;
+
+    return ret;
+}
+
+int xorDecryptDHV2(char *key, const char *cypher, vector<char>& message) {
+
+    int ret = -1;
+
+    if (!cypher) {
+        return ret;
+    }
+
+    if (!key) {
+        return ret;
+    }
+
+    if (!message.data()) {
+        return ret;
+    }
+
+    SAFE_CHAR_BUF(msg_bin,33)
+
+    uint64_t cypher_length;
+
+    SAFE_CHAR_BUF(cypher_bin, 33);
+    if (!hex2carray(cypher, &cypher_length, (uint8_t *) cypher_bin, 33)) {
+        return ret;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        msg_bin[i] = cypher_bin[i] ^ (uint8_t)key[i];
     }
 
     message = carray2Hex((unsigned char*) msg_bin, 32);
