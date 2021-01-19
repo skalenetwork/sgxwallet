@@ -34,7 +34,7 @@ public:
     virtual Json::Value process();
 
     string getSigShare() {
-        return getStringRapid("sigShare");
+        return getStringRapid("signatureShare");
     }
 
 };
