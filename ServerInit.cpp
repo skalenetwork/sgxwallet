@@ -103,9 +103,8 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
-    zmqServer = new ZMQServer();
-    static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
-    serverThread.detach();
+
+
 }
 
 void exitZMQServer() {
@@ -211,8 +210,15 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
             SGXWalletServer::initHttpsServer(_checkCert);
             SGXRegistrationServer::initRegistrationServer(_autoSign);
             CSRManagerServer::initCSRManagerServer();
+            zmqServer = new ZMQServer();
+            static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+            serverThread.detach();
+
         } else {
             SGXWalletServer::initHttpServer();
+            zmqServer = new ZMQServer();
+            static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
+            serverThread.detach();
         }
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
 
