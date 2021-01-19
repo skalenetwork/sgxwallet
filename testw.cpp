@@ -485,6 +485,29 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[dkg-bls-v2]") {
     TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 }
 
+
+TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[dkg-bls-zmq]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    vector <string> ecdsaKeyNames;
+    vector <string> blsKeyNames;
+
+    int schainID = TestUtils::randGen();
+    int dkgID = TestUtils::randGen();
+
+    PRINT_SRC_LINE
+    TestUtils::doDKGV2(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+
+    REQUIRE(blsKeyNames.size() == 4);
+
+    schainID = TestUtils::randGen();
+    dkgID = TestUtils::randGen();
+
+    TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+}
+
+
 TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
@@ -1088,6 +1111,20 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
         thread.join();
     }
 }
+
+
+TEST_CASE_METHOD(TestFixture, "Many threads zmq bls", "[zmq-bls]") {
+    vector <thread> threads;
+    int num_threads = 4;
+    for (int i = 0; i < num_threads; i++) {
+        threads.push_back(thread(TestUtils::sendRPCRequestZMQ));
+    }
+
+    for (auto &thread : threads) {
+        thread.join();
+    }
+}
+
 
 TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 

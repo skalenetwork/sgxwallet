@@ -81,6 +81,13 @@ public:
     static void doDKGV2(StubClient &c, int n, int t,
                                  vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
                                  int schainID, int dkgID);
+
+    static void doZMQBLS(StubClient &c, int n, int t,
+                        vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+                        int schainID, int dkgID);
+
+    static void sendRPCRequestZMQ();
+
 };
 
 int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key);
