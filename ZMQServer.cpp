@@ -30,6 +30,8 @@
 
 using namespace std;
 
+ZMQServer *ZMQServer::zmqServer = nullptr;
+
 ZMQServer::ZMQServer()
         : isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
           frontend_(*ctx_, ZMQ_ROUTER),
@@ -141,3 +143,9 @@ void ZMQServer::exitWorkers() {
 }
 
 
+void ZMQServer::exitZMQServer() {
+    spdlog::info("Exiting zmq server ...");
+    zmqServer->exitWorkers();
+    spdlog::info("Exited zmq server ...");
+    zmqServer = nullptr;
+}

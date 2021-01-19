@@ -44,6 +44,8 @@ using namespace std;
 class ZMQServer {
 public:
 
+    static ZMQServer *zmqServer;
+
     ZMQServer();
 
     enum {
@@ -53,6 +55,8 @@ public:
     void run();
 
     void exitWorkers();
+
+    static void exitZMQServer();
 
 private:
     shared_ptr<zmq::context_t> ctx_;

@@ -58,6 +58,7 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "ZMQClient.h"
+#include "ZMQServer.h"
 #include "sgxwallet.h"
 #include "TestUtils.h"
 #include "testw.h"
@@ -77,7 +78,7 @@ public:
     }
 
     ~TestFixture() {
-        exitZMQServer();
+        ZMQServer::exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -91,7 +92,7 @@ public:
     }
 
     ~TestFixtureHTTPS() {
-        exitZMQServer();
+        ZMQServer::exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -104,7 +105,7 @@ public:
     }
 
     ~TestFixtureNoResetFromBackup() {
-        exitZMQServer();
+        ZMQServer::exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -118,7 +119,7 @@ public:
     }
 
     ~TestFixtureNoReset() {
-        exitZMQServer();
+        ZMQServer::exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
