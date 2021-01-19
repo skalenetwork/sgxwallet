@@ -205,9 +205,10 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
             ZMQServer::initZMQServer(_checkCert);
             SGXRegistrationServer::initRegistrationServer(_autoSign);
             CSRManagerServer::initCSRManagerServer();
+            ZMQServer::initZMQServer(_checkCert);
         } else {
             SGXWalletServer::initHttpServer();
-            ZMQServer::initZMQServer(_checkCert);
+            ZMQServer::initZMQServer(false);
         }
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
 

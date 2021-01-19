@@ -25,6 +25,8 @@
 
 #include "third_party/spdlog/spdlog.h"
 
+#include "common.h"
+
 #include "ZMQServer.h"
 #include "sgxwallet_common.h"
 
@@ -155,5 +157,11 @@ void ZMQServer::initZMQServer(bool _useClientCert) {
     zmqServer = new ZMQServer();
     static std::thread serverThread(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
     serverThread.detach();
+
+    if (_useClientCert) {
+        string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+        CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
+    };
+
     spdlog::info("Inited zmq server ...");
 }
