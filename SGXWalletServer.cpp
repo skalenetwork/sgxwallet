@@ -118,6 +118,12 @@ void SGXWalletServer::printDB() {
 #define NUM_THREADS 200
 #endif
 
+bool SGXWalletServer::verifyCert(string &_certFileName) {
+    string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+    string verifyCert = "cert/verify_client_cert " + rootCAPath + " " + _certFileName;
+    return system(verifyCert.c_str()) == 0;
+}
+
 
 int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     COUNT_STATISTICS
@@ -157,6 +163,16 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
             exit(-12);
         }
     }
+
+    spdlog::info("Verifying  server cert");
+
+    if (verifyCert(certPath)) {
+        spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY VERIFIED");
+    } else {
+        spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
+        exit(-12);
+    }
+
 
     httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
                                          NUM_THREADS);
@@ -213,18 +229,19 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE, string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
+            throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE,
+                               string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
         }
 
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), hashTmp.c_str());
 
         if (errStatus != 0) {
-            throw SGXException(errStatus, string(__FUNCTION__) + ":" +errMsg.data());
+            throw SGXException(errStatus, string(__FUNCTION__) + ":" + errMsg.data());
         }
 
         if (encryptedKeyShareHex.empty()) {
-            throw SGXException(BLS_IMPORT_EMPTY_ENCRYPTED_KEY_SHARE,string(__FUNCTION__) +
-                    ":Empty encrypted key share");
+            throw SGXException(BLS_IMPORT_EMPTY_ENCRYPTED_KEY_SHARE, string(__FUNCTION__) +
+                                                                     ":Empty encrypted key share");
         }
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
@@ -307,7 +324,6 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 
     result["signatureShare"] = string(signature.data());
-
 
 
     RETURN_SUCCESS(result);
@@ -435,7 +451,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
     try {
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_GETPKEY_KEY_NAME, string(__FUNCTION__) +
-            ":Invalid ECDSA import key name");
+                                                               ":Invalid ECDSA import key name");
         }
         shared_ptr <string> keyStr = readFromDb(_keyName);
         publicKey = getECDSAPubKey(keyStr->c_str());
@@ -814,7 +830,7 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
             result["deleted"] = true;
         } else {
             auto error_msg = "BLS key not found: " + name;
-            throw SGXException(DELETE_BLS_KEY_NOT_FOUND, string(__FUNCTION__)+ ":" + error_msg.c_str());
+            throw SGXException(DELETE_BLS_KEY_NOT_FOUND, string(__FUNCTION__) + ":" + error_msg.c_str());
         }
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -903,8 +919,9 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, 
 }
 
 Json::Value
-SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
-                                         const string &_secretShare, int _t, int _n) {
+SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const string &_ethKeyName,
+                                           const string &_polyName,
+                                           const string &_secretShare, int _t, int _n) {
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -1058,7 +1075,7 @@ SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &et
 
 Json::Value
 SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &ethKeyName, const string &polyName,
-                                     const string &SecretShare, int t, int n) {
+                                       const string &SecretShare, int t, int n) {
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
@@ -1066,7 +1083,7 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
-        throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist");
+        throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) + ":Data with this name does not exist");
     }
 
     return dataStr;
