@@ -46,6 +46,8 @@ public:
 
     static ZMQServer *zmqServer;
 
+    static shared_ptr<std::thread> serverThread;
+
     ZMQServer();
 
     enum {
@@ -73,5 +75,7 @@ private:
     std::atomic<bool> isExitRequested;
 
 };
+
+
 
 #endif //SGXWALLET_ZMQServer_H

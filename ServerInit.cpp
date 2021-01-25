@@ -202,7 +202,6 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
 
         if (useHTTPS) {
             SGXWalletServer::initHttpsServer(_checkCert);
-            ZMQServer::initZMQServer(_checkCert);
             SGXRegistrationServer::initRegistrationServer(_autoSign);
             CSRManagerServer::initCSRManagerServer();
             ZMQServer::initZMQServer(_checkCert);

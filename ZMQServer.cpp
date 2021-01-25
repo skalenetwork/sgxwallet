@@ -51,7 +51,7 @@ void ZMQServer::run() {
 
     auto port = BASE_PORT + 5;
 
-    spdlog::info("Starting zmq server ...");
+    spdlog::info("Starting zmq server  on port {} ...", port);
 
     try {
         frontend_.bind("tcp://*:" + to_string(port));
@@ -138,7 +138,6 @@ void ZMQServer::exitWorkers() {
         spdlog::info("Deleting threads ...");
         worker_threads.empty();
 
-
     }
     spdlog::info("Deleting workers ...");
     spdlog::info("Deleted workers ...");
@@ -153,10 +152,16 @@ void ZMQServer::exitZMQServer() {
 }
 
 void ZMQServer::initZMQServer(bool _useClientCert) {
+    static bool initedServer = false;
+    CHECK_STATE(!initedServer)
+    initedServer = true;
+
     spdlog::info("Initing zmq server ...");
     zmqServer = new ZMQServer();
-    static std::thread serverThread(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
-    serverThread.detach();
+    serverThread =make_shared<thread> (std::bind(&ZMQServer::run, ZMQServer::zmqServer));
+
+
+    serverThread->detach();
 
     if (_useClientCert) {
         string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
@@ -165,3 +170,5 @@ void ZMQServer::initZMQServer(bool _useClientCert) {
 
     spdlog::info("Inited zmq server ...");
 }
+
+shared_ptr<std::thread> ZMQServer::serverThread = nullptr;

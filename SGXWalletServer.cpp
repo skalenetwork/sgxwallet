@@ -164,6 +164,8 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
+    spdlog::info("Starting sgx server on port {} ...", BASE_PORT);
+
     if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
         exit(-13);
@@ -176,6 +178,9 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 int SGXWalletServer::initHttpServer() { //without ssl
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
+
+    spdlog::info("Starting sgx http server on port {} ...", BASE_PORT + 3);
+
     httpServer = make_shared<HttpServer>(BASE_PORT + 3, "", "", "", false,
                                          NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
