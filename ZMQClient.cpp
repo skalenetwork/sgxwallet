@@ -47,35 +47,29 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     try {
 
-    CHECK_STATE(resultStr.size() > 5)
-    CHECK_STATE(resultStr.front() == '{')
-    CHECK_STATE(resultStr.back() == '}')
-
+        CHECK_STATE(resultStr.size() > 5)
+        CHECK_STATE(resultStr.front() == '{')
+        CHECK_STATE(resultStr.back() == '}')
 
 
         return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false);
-    } catch (std::exception & e) {
-
-        cerr << "Error:" << e.what() << endl;
-        sleep(10);
+    } catch (std::exception &e) {
+        spdlog::error(string("Error in doRequestReply:") + e.what());
         throw;
     } catch (...) {
-        cerr << "Error!" << endl;
-        sleep(10);
+        spdlog::error("Error in doRequestReply");
         throw;
     }
 
 
-
 }
-
 
 
 string ZMQClient::doZmqRequestReply(string &_req) {
 
     stringstream request;
 
-    shared_ptr <zmq::socket_t>  clientSocket = nullptr;
+    shared_ptr <zmq::socket_t> clientSocket = nullptr;
 
     {
         lock_guard <recursive_mutex> m(mutex);
@@ -86,7 +80,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
     }
     CHECK_STATE(clientSocket);
 
-    spdlog::debug("ZMQ client sending: \n {}" , _req);
+    spdlog::debug("ZMQ client sending: \n {}", _req);
 
     s_send(*clientSocket, _req);
 
@@ -101,7 +95,7 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 
             CHECK_STATE(reply.size() > 5);
             reply = reply.substr(0, reply.size() - 1);
-            spdlog::debug("ZMQ client received reply:{}",  reply);
+            spdlog::debug("ZMQ client received reply:{}", reply);
             CHECK_STATE(reply.front() == '{');
             CHECK_STATE(reply.back() == '}');
 
@@ -116,8 +110,8 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 }
 
 
-ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string& _certFileName,
-                     const string& _certKeyName) : ctx(1) {
+ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
+                     const string &_certKeyName) : ctx(1) {
 
     if (_sign) {
         CHECK_STATE(!_certFileName.empty());
@@ -136,7 +130,7 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string& 
 
 void ZMQClient::reconnect() {
 
-    lock_guard<recursive_mutex> lock(mutex);
+    lock_guard <recursive_mutex> lock(mutex);
 
     auto pid = getProcessID();
 
@@ -184,7 +178,6 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
 }
 
 
-
 uint64_t ZMQClient::getProcessID() {
-    return  syscall(__NR_gettid);
+    return syscall(__NR_gettid);
 }
