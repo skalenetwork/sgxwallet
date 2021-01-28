@@ -46,8 +46,9 @@ private:
 
 
     bool sign;
-    string certFileName;
-    string certKeyName;
+    string certFileName = "";
+    string certificate = "";
+    string certKeyName = "";
 
     recursive_mutex mutex;
 

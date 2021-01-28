@@ -19,8 +19,11 @@
 
 class ServerWorker {
 
+    bool checkSignature = true;
+    string caCert = "";
+
 public:
-    ServerWorker(zmq::context_t &ctx, int sock_type );
+    ServerWorker(zmq::context_t &ctx, int sock_type, bool _checkSignature, const string& _caCert );
 
 
     void work();

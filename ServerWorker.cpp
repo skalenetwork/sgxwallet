@@ -15,9 +15,17 @@
 
 std::atomic <uint64_t>  ServerWorker::workerCount(1);
 
-ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type) : ctx_(ctx),
+ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type, bool _checkSignature,
+                           const string& _caCert ) :            checkSignature(_checkSignature),
+                           caCert(_caCert),
+                                                                ctx_(ctx),
                                                                  worker_(ctx_, sock_type),
                                                                  isExitRequested(false) {
+
+    if (checkSignature) {
+        CHECK_STATE(!caCert.empty())
+    }
+
     index = workerCount.fetch_add(1);
     int linger = 0;
     zmq_setsockopt(worker_, ZMQ_LINGER, &linger, sizeof(linger));

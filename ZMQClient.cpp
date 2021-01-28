@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
+#include <fstream>
+#include <streambuf>
+
 
 #include "common.h"
 #include "BLSSignReqMessage.h"
@@ -38,6 +41,10 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     Json::FastWriter fastWriter;
     string reqStr = fastWriter.write(_req);
+
+    //if (sign) {
+        _req["cert"] = certificate;
+    //}
     reqStr = reqStr.substr(0, reqStr.size() - 1);
     CHECK_STATE(reqStr.front() == '{');
     CHECK_STATE(reqStr.at(reqStr.size() - 1) == '}');
@@ -116,6 +123,13 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
     if (_sign) {
         CHECK_STATE(!_certFileName.empty());
         CHECK_STATE(!_certKeyName.empty());
+
+        ifstream t(_certFileName);
+        string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
+        certificate = str;
+
+        CHECK_STATE(!certificate.empty());
+
     } else {
         CHECK_STATE(_certFileName.empty());
         CHECK_STATE(_certKeyName.empty());

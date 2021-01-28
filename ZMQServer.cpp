@@ -21,6 +21,9 @@
     @date 2019
 */
 
+#include <fstream>
+#include <streambuf>
+
 
 
 #include "third_party/spdlog/spdlog.h"
@@ -42,6 +45,10 @@ ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
 
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
+        ifstream t(_caCertFile);
+        string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
+        caCert = str;
+        CHECK_STATE(!caCert.empty())
     }
 
     int linger = 0;
@@ -78,7 +85,8 @@ void ZMQServer::run() {
 
     try {
         for (int i = 0; i < kMaxThread; ++i) {
-            workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER));
+            workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER,
+                                                        this->checkSignature, this->caCert));
             auto th = make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i]));
             th->detach();
             worker_threads.push_back(th);

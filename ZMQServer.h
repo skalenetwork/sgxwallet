@@ -46,6 +46,7 @@ public:
 
     bool checkSignature = false;
     string caCertFile = "";
+    string caCert = "";
 
     static ZMQServer *zmqServer;
 
