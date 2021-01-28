@@ -492,7 +492,9 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[dkgblszmq]") {
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     string ip = ZMQ_IP;
-    auto zmqClient = make_shared<ZMQClient>(ip, ZMQ_PORT);
+
+    string empty = "";
+    auto zmqClient = make_shared<ZMQClient>(ip, ZMQ_PORT, false, empty, empty);
 
     vector <string> ecdsaKeyNames;
     vector <string> blsKeyNames;
@@ -935,7 +937,7 @@ TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     string ip = ZMQ_IP;
 
-    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT);
+    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT, false, "", "");
 
     string keyName = "";
 

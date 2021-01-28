@@ -45,6 +45,9 @@ class ZMQClient {
 private:
 
 
+    bool sign;
+    string certFileName;
+    string certKeyName;
 
     recursive_mutex mutex;
 
@@ -66,7 +69,9 @@ private:
 public:
 
 
-    ZMQClient(string &ip, uint16_t port);
+    ZMQClient(const string &ip, uint16_t port, bool _sign, const string&  _certPathName,
+              const string& _certKeyName);
+
     void reconnect() ;
 
     string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);

@@ -116,7 +116,21 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 }
 
 
-ZMQClient::ZMQClient(string &ip, uint16_t port) : ctx(1) {
+ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string& _certFileName,
+                     const string& _certKeyName) : ctx(1) {
+
+    if (_sign) {
+        CHECK_STATE(!_certFileName.empty());
+        CHECK_STATE(!_certKeyName.empty());
+    } else {
+        CHECK_STATE(_certFileName.empty());
+        CHECK_STATE(_certKeyName.empty());
+    }
+
+    certFileName = _certFileName;
+    certKeyName = _certKeyName;
+
+
     url = "tcp://" + ip + ":" + to_string(port);
 }
 

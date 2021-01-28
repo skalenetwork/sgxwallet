@@ -173,7 +173,6 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
         exit(-12);
     }
 
-
     httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
                                          NUM_THREADS);
 

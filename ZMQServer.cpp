@@ -34,11 +34,15 @@ using namespace std;
 
 ZMQServer *ZMQServer::zmqServer = nullptr;
 
-ZMQServer::ZMQServer()
-        : isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
+ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
+        : checkSignature(_checkSignature),
+          caCertFile(_caCertFile), isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
           frontend_(*ctx_, ZMQ_ROUTER),
           backend_(*ctx_, ZMQ_DEALER) {
 
+    if (_checkSignature) {
+        CHECK_STATE(!_caCertFile.empty());
+    }
 
     int linger = 0;
     zmq_setsockopt (frontend_, ZMQ_LINGER, &linger, sizeof (linger));
@@ -151,22 +155,25 @@ void ZMQServer::exitZMQServer() {
     zmqServer = nullptr;
 }
 
-void ZMQServer::initZMQServer(bool _useClientCert) {
+void ZMQServer::initZMQServer(bool _checkSignature) {
     static bool initedServer = false;
     CHECK_STATE(!initedServer)
     initedServer = true;
 
     spdlog::info("Initing zmq server ...");
-    zmqServer = new ZMQServer();
+
+    string rootCAPath = "";
+
+    if (_checkSignature) {
+        string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+        CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
+    };
+
+    zmqServer = new ZMQServer(_checkSignature, rootCAPath);
     serverThread =make_shared<thread> (std::bind(&ZMQServer::run, ZMQServer::zmqServer));
 
 
     serverThread->detach();
-
-    if (_useClientCert) {
-        string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
-        CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
-    };
 
     spdlog::info("Inited zmq server ...");
 }

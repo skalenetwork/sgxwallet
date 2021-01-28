@@ -44,11 +44,14 @@ using namespace std;
 class ZMQServer {
 public:
 
+    bool checkSignature = false;
+    string caCertFile = "";
+
     static ZMQServer *zmqServer;
 
     static shared_ptr<std::thread> serverThread;
 
-    ZMQServer();
+    ZMQServer(bool _checkSignature, const string& _caCertFile);
 
     enum {
         kMaxThread = 1
@@ -58,7 +61,7 @@ public:
 
     void exitWorkers();
 
-    static void initZMQServer(bool _useClientCert);
+    static void initZMQServer(bool _checkSignature);
     static void exitZMQServer();
 
 
