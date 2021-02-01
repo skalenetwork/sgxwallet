@@ -89,7 +89,15 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
 
         outFile.close();
 
-        CHECK_STATE(SGXWalletServer::verifyCert(filepath));
+
+        if (!verifiedCerts.exists(*cert)) {
+            CHECK_STATE(SGXWalletServer::verifyCert(filepath));
+            verifiedCerts.put(*cert, true);
+            remove(cert->c_str());
+        }
+
+
+
     }
 
     if (d->HasMember("msgSig")) {
@@ -132,3 +140,5 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapi
         );
     }
 }
+
+cache::lru_cache<string, bool> ZMQMessage::verifiedCerts(256);

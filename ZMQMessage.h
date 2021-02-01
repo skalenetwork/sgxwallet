@@ -26,6 +26,9 @@
 
 #include <memory>
 #include <vector>
+
+#include "third_party/lrucache.hpp"
+
 #include "abstractstubserver.h"
 
 #include "document.h"
@@ -37,6 +40,8 @@ class ZMQMessage {
 
     shared_ptr<rapidjson::Document> d;
 
+
+    static cache::lru_cache<string, bool> verifiedCerts;
 
 protected:
 
