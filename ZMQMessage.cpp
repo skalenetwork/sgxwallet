@@ -70,6 +70,18 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     CHECK_STATE((*d)["type"].IsString());
     string type = (*d)["type"].GetString();
 
+    if (d->HasMember("cert")) {
+        CHECK_STATE((*d)["cert"].IsString());
+        auto cert = make_shared<string>((*d)["cert"].GetString());
+        cerr << "Got cert:" << cert << endl;
+    }
+
+    if (d->HasMember("msgSig")) {
+        CHECK_STATE((*d)["msgSig"].IsString());
+        auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
+        cerr << "Got msgSig:" << msgSig << endl;
+    }
+
     shared_ptr <ZMQMessage> result;
 
 

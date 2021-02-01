@@ -43,6 +43,7 @@ protected:
 
 public:
 
+    void verifySig();
 
     static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
     static constexpr const char *BLS_SIGN_RSP = "BLSSignRsp";
