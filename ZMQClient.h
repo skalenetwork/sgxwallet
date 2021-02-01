@@ -51,6 +51,9 @@ class ZMQClient {
 private:
 
     EVP_PKEY* pkey = 0;
+    EVP_PKEY* pubkey = 0;
+    X509* x509Cert = 0;
+
 
     bool sign = true;
     string certFileName = "";

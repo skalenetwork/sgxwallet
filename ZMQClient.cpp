@@ -205,6 +205,26 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
 
         signString("sample");
 
+
+
+        auto pubKeyStr = readFileIntoString(_certFileName);
+        CHECK_STATE(!pubKeyStr.empty());
+
+        BIO *bo2 = BIO_new(BIO_s_mem());
+        CHECK_STATE(bo2);
+        BIO_write(bo2, pubKeyStr.c_str(), pubKeyStr.size());
+
+        cerr << pubKeyStr;
+
+        sleep(5);
+
+        PEM_read_bio_X509(bo2, &x509Cert, 0, 0);
+        CHECK_STATE(x509Cert);
+        pubkey = X509_get_pubkey(x509Cert);
+        CHECK_STATE(pubkey);
+
+        BIO_free(bo2);
+
     } else {
         CHECK_STATE(_certFileName.empty());
         CHECK_STATE(_certKeyName.empty());
