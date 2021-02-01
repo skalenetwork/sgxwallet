@@ -78,6 +78,7 @@ int char2int(char _input) {
 vector<char> carray2Hex(const unsigned char *d, uint64_t _len) {
 
     CHECK_STATE(d);
+
     vector<char> _hexArray( 2 * _len + 1);
 
     char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7',

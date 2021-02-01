@@ -27,6 +27,12 @@
 #ifndef SGXWALLET_ZMQCLIENT_H
 #define SGXWALLET_ZMQCLIENT_H
 
+#include <openssl/pem.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
+
 #include "third_party/spdlog/spdlog.h"
 
 #include <zmq.hpp>
@@ -44,6 +50,7 @@ class ZMQClient {
 
 private:
 
+    EVP_PKEY* pkey = 0;
 
     bool sign = true;
     string certFileName = "";
@@ -77,6 +84,8 @@ public:
               const string& _certKeyName);
 
     void reconnect() ;
+
+    string signString(const string& _str);
 
     string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);
 

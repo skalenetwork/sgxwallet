@@ -25,11 +25,14 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
+
 #include <fstream>
 #include <streambuf>
+#include <regex>
 
 
 #include "common.h"
+#include "BLSCrypto.h"
 #include "BLSSignReqMessage.h"
 #include "BLSSignRspMessage.h"
 #include "ECDSASignReqMessage.h"
@@ -45,8 +48,16 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
         CHECK_STATE(!certificate.empty());
         CHECK_STATE(!key.empty());
 
+
         _req["cert"] = certificate;
-        _req["msgSig"] = "haha";
+
+        string msgToSign = fastWriter.write(_req);
+
+        std::regex r("\\s+");
+
+        msgToSign = std::regex_replace(msgToSign, r, "");
+
+        _req["msgSig"] = signString(msgToSign);
     }
 
     string reqStr = fastWriter.write(_req);
@@ -124,15 +135,52 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 }
 
 
-string ZMQClient::readFileIntoString(const string& _fileName) {
+string ZMQClient::readFileIntoString(const string &_fileName) {
     ifstream t(_fileName);
     string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
     return str;
 }
 
+
+string ZMQClient::signString(const string& _str) {
+
+    EVP_MD_CTX *mdctx = NULL;
+    int ret = 0;
+    unsigned char *signature = NULL;
+    auto sig = &signature;
+    size_t slen = 0;
+
+    CHECK_STATE(mdctx = EVP_MD_CTX_create());
+
+
+    CHECK_STATE((EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, pkey) == 1));
+
+
+    CHECK_STATE(EVP_DigestSignUpdate(mdctx, _str.c_str(), _str.size()) == 1);
+
+/* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
+ * signature. Length is returned in slen */
+
+    CHECK_STATE(EVP_DigestSignFinal(mdctx, NULL, &slen) == 1);
+    signature = (unsigned char *) OPENSSL_malloc(sizeof(unsigned char) * slen);
+    CHECK_STATE(signature);
+    CHECK_STATE(EVP_DigestSignFinal(mdctx, signature, &slen) == 1);
+
+    auto hexSig = carray2Hex(signature, slen);
+
+    string hexStringSig(hexSig.begin(), hexSig.end());
+
+    /* Clean up */
+    if (signature) OPENSSL_free(signature);
+    if (mdctx) EVP_MD_CTX_destroy(mdctx);
+
+    return hexStringSig;
+}
+
+
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
                      const string &_certKeyName) : ctx(1), sign(_sign),
-                     certKeyName(_certKeyName), certFileName(_certFileName) {
+                                                   certKeyName(_certKeyName), certFileName(_certFileName) {
 
     spdlog::info("Initing ZMQClient. Sign:{} ", _sign);
 
@@ -146,6 +194,16 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
 
         key = readFileIntoString(_certKeyName);
         CHECK_STATE(!key.empty());
+
+        BIO *bo = BIO_new(BIO_s_mem());
+        CHECK_STATE(bo);
+        BIO_write(bo, key.c_str(), key.size());
+
+        PEM_read_bio_PrivateKey(bo, &pkey, 0, 0);
+        CHECK_STATE(pkey);
+        BIO_free(bo);
+
+        signString("sample");
 
     } else {
         CHECK_STATE(_certFileName.empty());
