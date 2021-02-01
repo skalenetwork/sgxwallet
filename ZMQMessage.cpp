@@ -22,7 +22,11 @@
 */
 
 #include "common.h"
+#include <third_party/cryptlite/sha256.h>
+#include <iostream>
+#include <fstream>
 
+#include "SGXWalletServer.hpp"
 #include "BLSSignReqMessage.h"
 #include "BLSSignRspMessage.h"
 #include "ECDSASignReqMessage.h"
@@ -61,6 +65,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     auto d = make_shared<rapidjson::Document>();
 
     cerr << _msg << endl;
+
     d->Parse(_msg);
 
     CHECK_STATE(!d->HasParseError());
@@ -73,7 +78,18 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     if (d->HasMember("cert")) {
         CHECK_STATE((*d)["cert"].IsString());
         auto cert = make_shared<string>((*d)["cert"].GetString());
-        cerr << "Got cert:" << cert << endl;
+
+        string hash = cryptlite::sha256::hash_hex(*cert);
+
+        auto filepath  = "/tmp/sgx_wallet_cert_hash_" + hash;
+
+        std::ofstream outFile(filepath);
+
+        outFile << *cert;
+
+        outFile.close();
+
+        CHECK_STATE(SGXWalletServer::verifyCert(filepath));
     }
 
     if (d->HasMember("msgSig")) {
@@ -83,8 +99,6 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     }
 
     shared_ptr <ZMQMessage> result;
-
-
 
     if (_isRequest) {
         return buildRequest(type, d);

@@ -45,10 +45,10 @@ class ZMQClient {
 private:
 
 
-    bool sign;
+    bool sign = true;
     string certFileName = "";
-    string certificate = "";
     string certKeyName = "";
+    string certificate = "";
 
     recursive_mutex mutex;
 

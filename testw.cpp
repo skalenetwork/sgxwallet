@@ -953,7 +953,8 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     string ip = ZMQ_IP;
 
-    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT, false, "", "");
+    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
 
     string keyName = "";
 

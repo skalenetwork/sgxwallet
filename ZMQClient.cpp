@@ -40,11 +40,16 @@
 shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     Json::FastWriter fastWriter;
+
+    if (sign) {
+        CHECK_STATE(!certificate.empty());
+        _req["cert"] = certificate;
+        _req["msgSig"] = "haha";
+    }
+
     string reqStr = fastWriter.write(_req);
 
-    //if (sign) {
-        _req["cert"] = certificate;
-    //}
+
     reqStr = reqStr.substr(0, reqStr.size() - 1);
     CHECK_STATE(reqStr.front() == '{');
     CHECK_STATE(reqStr.at(reqStr.size() - 1) == '}');
@@ -118,16 +123,18 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
-                     const string &_certKeyName) : ctx(1) {
+                     const string &_certKeyName) : ctx(1), sign(_sign),
+                     certKeyName(_certKeyName), certFileName(_certFileName) {
 
-    if (_sign) {
+    spdlog::info("Initing ZMQClient. Sign:{} ", _sign);
+
+    if (sign) {
         CHECK_STATE(!_certFileName.empty());
         CHECK_STATE(!_certKeyName.empty());
 
         ifstream t(_certFileName);
         string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
         certificate = str;
-
         CHECK_STATE(!certificate.empty());
 
     } else {
