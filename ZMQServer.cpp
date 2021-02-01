@@ -168,12 +168,14 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     CHECK_STATE(!initedServer)
     initedServer = true;
 
-    spdlog::info("Initing zmq server ...");
+    spdlog::info("Initing zmq server. checkSignature is set to {}", _checkSignature);
 
     string rootCAPath = "";
 
     if (_checkSignature) {
-        string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+
+        rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+        spdlog::info("Reading root CA from {}", rootCAPath);
         CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
     };
 

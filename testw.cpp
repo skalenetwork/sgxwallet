@@ -74,7 +74,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true, false);
+        initAll(L_INFO, false, false, true, false);
     }
 
     ~TestFixture() {
@@ -88,7 +88,7 @@ public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
         setOptions(L_INFO, true, true);
-        initAll(L_INFO, false, true, false);
+        initAll(L_INFO, false, true, true, false);
     }
 
     ~TestFixtureHTTPS() {
@@ -97,11 +97,27 @@ public:
     }
 };
 
+
+class TestFixtureZMQSign {
+public:
+    TestFixtureZMQSign() {
+        TestUtils::resetDB();
+        setOptions(L_INFO, false, true);
+        initAll(L_INFO, false, true, true, false);
+    }
+
+    ~TestFixtureZMQSign() {
+        ZMQServer::exitZMQServer();
+        TestUtils::destroyEnclave();
+    }
+};
+
+
 class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, true, false);
+        initAll(L_INFO, false, false, true, false);
     }
 
     ~TestFixtureNoResetFromBackup() {
@@ -115,7 +131,7 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true, false);
+        initAll(L_INFO, false, false, true, false);
     }
 
     ~TestFixtureNoReset() {
@@ -930,7 +946,7 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
 }
 
 
-TEST_CASE_METHOD(TestFixture, "ZMQ-ecdsa", "[zmq-ecdsa]") {
+TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);

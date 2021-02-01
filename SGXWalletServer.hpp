@@ -181,6 +181,8 @@ public:
     static int initHttpServer();
 
     static int initHttpsServer(bool _checkCerts);
+
+    static void createCertsIfNeeded();
 };
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

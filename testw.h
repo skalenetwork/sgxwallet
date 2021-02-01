@@ -33,6 +33,7 @@
 
 #define SAMPLE_POLY_NAME "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1"
 #define RPC_ENDPOINT  "http://localhost:1029"
+#define RPC_ENDPOINT_HTTPS  "https://localhost:1026"
 #define ZMQ_IP "127.0.0.1"
 #define ZMQ_PORT 1031
 

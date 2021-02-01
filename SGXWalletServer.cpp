@@ -125,11 +125,7 @@ bool SGXWalletServer::verifyCert(string &_certFileName) {
 }
 
 
-int SGXWalletServer::initHttpsServer(bool _checkCerts) {
-    COUNT_STATISTICS
-    spdlog::info("Entering {}", __FUNCTION__);
-
-    spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
+void SGXWalletServer::createCertsIfNeeded() {
 
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
     string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
@@ -172,6 +168,22 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
         spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
         exit(-12);
     }
+}
+
+
+int SGXWalletServer::initHttpsServer(bool _checkCerts) {
+    COUNT_STATISTICS
+    spdlog::info("Entering {}", __FUNCTION__);
+    spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
+
+
+
+
+
+    string certPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
+    string keyPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
+    string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+    string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
     httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
                                          NUM_THREADS);
