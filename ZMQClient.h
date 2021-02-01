@@ -49,6 +49,8 @@ private:
     string certFileName = "";
     string certKeyName = "";
     string certificate = "";
+    string key = "";
+
 
     recursive_mutex mutex;
 
@@ -66,6 +68,7 @@ private:
 
     uint64_t getProcessID();
 
+    static string readFileIntoString(const string& _fileName);
 
 public:
 

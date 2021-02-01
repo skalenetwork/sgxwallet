@@ -43,6 +43,8 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     if (sign) {
         CHECK_STATE(!certificate.empty());
+        CHECK_STATE(!key.empty());
+
         _req["cert"] = certificate;
         _req["msgSig"] = "haha";
     }
@@ -122,6 +124,12 @@ string ZMQClient::doZmqRequestReply(string &_req) {
 }
 
 
+string ZMQClient::readFileIntoString(const string& _fileName) {
+    ifstream t(_fileName);
+    string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
+    return str;
+}
+
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
                      const string &_certKeyName) : ctx(1), sign(_sign),
                      certKeyName(_certKeyName), certFileName(_certFileName) {
@@ -132,10 +140,12 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
         CHECK_STATE(!_certFileName.empty());
         CHECK_STATE(!_certKeyName.empty());
 
-        ifstream t(_certFileName);
-        string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());
-        certificate = str;
+
+        certificate = readFileIntoString(_certFileName);
         CHECK_STATE(!certificate.empty());
+
+        key = readFileIntoString(_certKeyName);
+        CHECK_STATE(!key.empty());
 
     } else {
         CHECK_STATE(_certFileName.empty());
