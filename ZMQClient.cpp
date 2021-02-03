@@ -48,7 +48,6 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
         CHECK_STATE(!certificate.empty());
         CHECK_STATE(!key.empty());
 
-
         _req["cert"] = certificate;
 
         string msgToSign = fastWriter.write(_req);
@@ -57,7 +56,7 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
         msgToSign = std::regex_replace(msgToSign, r, "");
 
-        _req["msgSig"] = signString(msgToSign);
+        _req["msgSig"] = signString(pkey, msgToSign);
     }
 
     string reqStr = fastWriter.write(_req);
@@ -142,7 +141,46 @@ string ZMQClient::readFileIntoString(const string &_fileName) {
 }
 
 
-string ZMQClient::signString(const string& _str) {
+void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string _sig) {
+
+     CHECK_STATE(_pubkey);
+
+
+    vector<uint8_t> binSig(256,0);
+
+    uint64_t binLen = 0;
+
+    CHECK_STATE(hex2carray(_sig.c_str(), &binLen, binSig.data(), binSig.size()));
+
+    CHECK_STATE(binLen > 0);
+
+    EVP_MD_CTX *mdctx = NULL;
+    int ret = 0;
+
+    size_t slen = 0;
+
+    CHECK_STATE(mdctx = EVP_MD_CTX_create());
+
+    CHECK_STATE((EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, _pubkey) == 1));
+
+    CHECK_STATE(EVP_DigestVerifyUpdate(mdctx, _str.c_str(), _str.size()) == 1);
+
+/* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
+ * signature. Length is returned in slen */
+
+
+
+    CHECK_STATE(EVP_DigestVerifyFinal(mdctx, binSig.data(), binLen) == 1);
+
+    if (mdctx) EVP_MD_CTX_destroy(mdctx);
+
+    return;
+}
+
+
+string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
+
+    CHECK_STATE(_pkey);
 
     EVP_MD_CTX *mdctx = NULL;
     int ret = 0;
@@ -153,7 +191,7 @@ string ZMQClient::signString(const string& _str) {
     CHECK_STATE(mdctx = EVP_MD_CTX_create());
 
 
-    CHECK_STATE((EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, pkey) == 1));
+    CHECK_STATE((EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, _pkey) == 1));
 
 
     CHECK_STATE(EVP_DigestSignUpdate(mdctx, _str.c_str(), _str.size()) == 1);
@@ -203,7 +241,8 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
         CHECK_STATE(pkey);
         BIO_free(bo);
 
-        signString("sample");
+
+
 
 
 
@@ -214,9 +253,6 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
         CHECK_STATE(bo2);
         BIO_write(bo2, pubKeyStr.c_str(), pubKeyStr.size());
 
-        cerr << pubKeyStr;
-
-        sleep(5);
 
         PEM_read_bio_X509(bo2, &x509Cert, 0, 0);
         CHECK_STATE(x509Cert);
@@ -224,6 +260,9 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
         CHECK_STATE(pubkey);
 
         BIO_free(bo2);
+
+        auto sig = signString(pkey, "sample");
+        verifySig(pubkey, "sample", sig);
 
     } else {
         CHECK_STATE(_certFileName.empty());
