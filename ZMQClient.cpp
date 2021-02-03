@@ -215,6 +215,22 @@ string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
     return hexStringSig;
 }
 
+pair<EVP_PKEY*, X509*> ZMQClient::readPublicKeyFromCertStr(const string& _certStr) {
+
+    CHECK_STATE(!_certStr.empty())
+
+    BIO *bo = BIO_new(BIO_s_mem());
+    CHECK_STATE(bo);
+    BIO_write(bo, _certStr.c_str(), _certStr.size());
+
+    X509* cert = nullptr;
+    PEM_read_bio_X509(bo, &cert, 0, 0);
+    CHECK_STATE(cert);
+    auto key = X509_get_pubkey(cert);
+    BIO_free(bo);
+    CHECK_STATE(key);
+    return {key, cert};
+};
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
                      const string &_certKeyName) : ctx(1), sign(_sign),
@@ -225,7 +241,6 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
     if (sign) {
         CHECK_STATE(!_certFileName.empty());
         CHECK_STATE(!_certKeyName.empty());
-
 
         certificate = readFileIntoString(_certFileName);
         CHECK_STATE(!certificate.empty());
@@ -241,25 +256,10 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
         CHECK_STATE(pkey);
         BIO_free(bo);
 
-
-
-
-
-
         auto pubKeyStr = readFileIntoString(_certFileName);
         CHECK_STATE(!pubKeyStr.empty());
 
-        BIO *bo2 = BIO_new(BIO_s_mem());
-        CHECK_STATE(bo2);
-        BIO_write(bo2, pubKeyStr.c_str(), pubKeyStr.size());
-
-
-        PEM_read_bio_X509(bo2, &x509Cert, 0, 0);
-        CHECK_STATE(x509Cert);
-        pubkey = X509_get_pubkey(x509Cert);
-        CHECK_STATE(pubkey);
-
-        BIO_free(bo2);
+        tie(pubkey, x509Cert) = readPublicKeyFromCertStr(pubKeyStr);
 
         auto sig = signString(pkey, "sample");
         verifySig(pubkey, "sample", sig);

@@ -27,6 +27,12 @@
 #include <memory>
 #include <vector>
 
+#include <openssl/pem.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
+
 #include "third_party/lrucache.hpp"
 
 #include "abstractstubserver.h"
@@ -41,7 +47,7 @@ class ZMQMessage {
     shared_ptr<rapidjson::Document> d;
 
 
-    static cache::lru_cache<string, bool> verifiedCerts;
+    static cache::lru_cache<string, pair<EVP_PKEY*, X509*>> verifiedCerts;
 
 protected:
 

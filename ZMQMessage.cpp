@@ -26,6 +26,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "ZMQClient.h"
 #include "SGXWalletServer.hpp"
 #include "BLSSignReqMessage.h"
 #include "BLSSignRspMessage.h"
@@ -92,11 +93,14 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
 
         if (!verifiedCerts.exists(*cert)) {
             CHECK_STATE(SGXWalletServer::verifyCert(filepath));
-            verifiedCerts.put(*cert, true);
+
+            auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
+            CHECK_STATE(handles.first);
+            CHECK_STATE(handles.second);
+
+            verifiedCerts.put(*cert, handles);
             remove(cert->c_str());
         }
-
-
 
     }
 
@@ -141,4 +145,4 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapi
     }
 }
 
-cache::lru_cache<string, bool> ZMQMessage::verifiedCerts(256);
+cache::lru_cache<string, pair<EVP_PKEY*, X509*>> ZMQMessage::verifiedCerts(256);
