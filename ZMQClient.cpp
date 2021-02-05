@@ -52,10 +52,6 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
         string msgToSign = fastWriter.write(_req);
 
-        std::regex r("\\s+");
-
-        msgToSign = std::regex_replace(msgToSign, r, "");
-
         _req["msgSig"] = signString(pkey, msgToSign);
     }
 
@@ -76,7 +72,7 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
         CHECK_STATE(resultStr.back() == '}')
 
 
-        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false);
+        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false, false);
     } catch (std::exception &e) {
         spdlog::error(string("Error in doRequestReply:") + e.what());
         throw;
@@ -141,9 +137,13 @@ string ZMQClient::readFileIntoString(const string &_fileName) {
 }
 
 
-void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string _sig) {
+void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig) {
 
-     CHECK_STATE(_pubkey);
+    CHECK_STATE(_pubkey);
+    CHECK_STATE(!_str.empty());
+
+    static std::regex r("\\s+");
+    auto msgToSign = std::regex_replace(_str, r, "");
 
 
     vector<uint8_t> binSig(256,0);
@@ -163,7 +163,7 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string _s
 
     CHECK_STATE((EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, _pubkey) == 1));
 
-    CHECK_STATE(EVP_DigestVerifyUpdate(mdctx, _str.c_str(), _str.size()) == 1);
+    CHECK_STATE(EVP_DigestVerifyUpdate(mdctx, msgToSign.c_str(), msgToSign.size()) == 1);
 
 /* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
  * signature. Length is returned in slen */
@@ -181,6 +181,12 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string _s
 string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
 
     CHECK_STATE(_pkey);
+    CHECK_STATE(!_str.empty());
+
+    static std::regex r("\\s+");
+    auto msgToSign = std::regex_replace(_str, r, "");
+
+
 
     EVP_MD_CTX *mdctx = NULL;
     int ret = 0;
@@ -194,7 +200,7 @@ string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
     CHECK_STATE((EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, _pkey) == 1));
 
 
-    CHECK_STATE(EVP_DigestSignUpdate(mdctx, _str.c_str(), _str.size()) == 1);
+    CHECK_STATE(EVP_DigestSignUpdate(mdctx, msgToSign.c_str(), msgToSign.size()) == 1);
 
 /* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
  * signature. Length is returned in slen */

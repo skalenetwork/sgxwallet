@@ -51,10 +51,9 @@ string ZMQMessage::getStringRapid(const char *_name) {
 };
 
 
-
-
-shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
-                                          size_t _size, bool _isRequest) {
+shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
+                                          size_t _size, bool _isRequest,
+                                          bool _verifySig) {
 
     CHECK_STATE(_msg);
     CHECK_STATE(_size > 5);
@@ -76,13 +75,15 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     CHECK_STATE((*d)["type"].IsString());
     string type = (*d)["type"].GetString();
 
-    if (d->HasMember("cert")) {
+    if (_verifySig) {
+        CHECK_STATE(d->HasMember("cert"));
+        CHECK_STATE(d->HasMember("msgSig"));
         CHECK_STATE((*d)["cert"].IsString());
         auto cert = make_shared<string>((*d)["cert"].GetString());
 
         string hash = cryptlite::sha256::hash_hex(*cert);
 
-        auto filepath  = "/tmp/sgx_wallet_cert_hash_" + hash;
+        auto filepath = "/tmp/sgx_wallet_cert_hash_" + hash;
 
         std::ofstream outFile(filepath);
 
@@ -90,25 +91,46 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
 
         outFile.close();
 
+        static recursive_mutex m;
 
-        if (!verifiedCerts.exists(*cert)) {
-            CHECK_STATE(SGXWalletServer::verifyCert(filepath));
+        EVP_PKEY *publicKey = nullptr;
 
-            auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
-            CHECK_STATE(handles.first);
-            CHECK_STATE(handles.second);
+        {
+            lock_guard <recursive_mutex> lock(m);
 
-            verifiedCerts.put(*cert, handles);
-            remove(cert->c_str());
+            if (!verifiedCerts.exists(*cert)) {
+                CHECK_STATE(SGXWalletServer::verifyCert(filepath));
+                auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
+                CHECK_STATE(handles.first);
+                CHECK_STATE(handles.second);
+
+                verifiedCerts.put(*cert, handles);
+                remove(cert->c_str());
+            }
+
+            publicKey = verifiedCerts.get(*cert).first;
+
+            CHECK_STATE(publicKey);
+
+            CHECK_STATE((*d)["msgSig"].IsString());
+            auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
+            cerr << "Got msgSig:" << msgSig << endl;
+
+            d->RemoveMember("msgSig");
+
+            rapidjson::StringBuffer buffer;
+
+            rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
+
+            d->Accept(w);
+
+            auto msgToVerify = buffer.GetString();
+
+            ZMQClient::verifySig(publicKey,msgToVerify, *msgSig );
+
         }
-
     }
 
-    if (d->HasMember("msgSig")) {
-        CHECK_STATE((*d)["msgSig"].IsString());
-        auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
-        cerr << "Got msgSig:" << msgSig << endl;
-    }
 
     shared_ptr <ZMQMessage> result;
 
@@ -119,7 +141,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char* _msg,
     }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string& _type, shared_ptr<rapidjson::Document> _d) {
+shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapidjson::Document> _d) {
     if (_type == ZMQMessage::BLS_SIGN_REQ) {
         return make_shared<BLSSignReqMessage>(_d);
     } else if (_type == ZMQMessage::ECDSA_SIGN_REQ) {
@@ -127,11 +149,11 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string& _type, shared_ptr<rapid
                 make_shared<ECDSASignReqMessage>(_d);
     } else {
         BOOST_THROW_EXCEPTION(SGXException(-301, "Incorrect zmq message type: " +
-                                     string(_type)));
+                                                 string(_type)));
     }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapidjson::Document> _d) {
+shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rapidjson::Document> _d) {
     if (_type == ZMQMessage::BLS_SIGN_RSP) {
         return
                 make_shared<BLSSignRspMessage>(_d);
@@ -145,4 +167,5 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string& _type, shared_ptr<rapi
     }
 }
 
-cache::lru_cache<string, pair<EVP_PKEY*, X509*>> ZMQMessage::verifiedCerts(256);
+cache::lru_cache<string, pair < EVP_PKEY * , X509 *>>
+ZMQMessage::verifiedCerts(256);

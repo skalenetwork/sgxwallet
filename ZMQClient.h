@@ -92,7 +92,7 @@ public:
 
     static string signString(EVP_PKEY* _pkey, const string& _str);
 
-    static void   verifySig(EVP_PKEY* _pubkey, const string& _str, const string _sig);
+    static void   verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig);
 
     string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);
 

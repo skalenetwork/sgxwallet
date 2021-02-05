@@ -104,12 +104,10 @@ void ServerWorker::work() {
 
             CHECK_STATE(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}');
 
-
             memcpy(msgData.data(), msg.data(), msg.size());
 
             auto parsedMsg = ZMQMessage::parse(
-                    (const char *) msgData.data(), msg.size(), true);
-
+                    (const char *) msgData.data(), msg.size(), true, checkSignature);
             CHECK_STATE(parsedMsg);
 
             result = parsedMsg->process();

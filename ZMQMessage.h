@@ -38,6 +38,9 @@
 #include "abstractstubserver.h"
 
 #include "document.h"
+#include "stringbuffer.h"
+#include "writer.h"
+
 #include "SGXException.h"
 
 using namespace std;
@@ -54,7 +57,6 @@ protected:
 
 public:
 
-    void verifySig();
 
     static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
     static constexpr const char *BLS_SIGN_RSP = "BLSSignRsp";
@@ -72,8 +74,8 @@ public:
         return getUint64Rapid("status");
     }
 
-    static shared_ptr<ZMQMessage> parse(vector<uint8_t> &_msg, bool _isRequest);
-    static shared_ptr <ZMQMessage> parse(const char* _msg, size_t _size, bool _isRequest);
+    static shared_ptr <ZMQMessage> parse(const char* _msg, size_t _size, bool _isRequest,
+                                         bool _verifySig);
 
     static shared_ptr<ZMQMessage> buildRequest(string& type, shared_ptr<rapidjson::Document> _d);
     static shared_ptr<ZMQMessage> buildResponse(string& type, shared_ptr<rapidjson::Document> _d);
