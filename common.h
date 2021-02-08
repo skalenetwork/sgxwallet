@@ -76,6 +76,13 @@ inline void print_stack(int _line) {
         \
         BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
+#define CHECK_STATE2(_EXPRESSION_, __STATUS__) \
+    if (!(_EXPRESSION_)) { \
+        auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
+        print_stack(__LINE__);            \
+        \
+        BOOST_THROW_EXCEPTION(SGXException(__STATUS__, string(__CLASS_NAME__) +  ":" + __msg__));}
+
 
 #define HANDLE_TRUSTED_FUNCTION_ERROR(__STATUS__, __ERR_STATUS__, __ERR_MSG__) \
 if (__STATUS__ != SGX_SUCCESS) { \
