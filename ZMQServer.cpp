@@ -43,6 +43,13 @@ ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
           frontend_(*ctx_, ZMQ_ROUTER),
           backend_(*ctx_, ZMQ_DEALER) {
 
+
+    workerThreads = 2 * thread::hardware_concurrency();
+
+    if (workerThreads == 0) {
+        workerThreads = 8;
+    }
+
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
         ifstream t(_caCertFile);
@@ -81,10 +88,10 @@ void ZMQServer::run() {
     }
 
 
-    spdlog::info("Creating {} zmq server workers ...", kMaxThread);
+    spdlog::info("Creating {} zmq server workers ...", workerThreads);
 
     try {
-        for (int i = 0; i < kMaxThread; ++i) {
+        for (int i = 0; i < workerThreads; ++i) {
             workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER,
                                                         this->checkSignature, this->caCert));
             auto th = make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i]));

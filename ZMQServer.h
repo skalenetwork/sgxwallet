@@ -42,6 +42,9 @@ using namespace std;
 
 
 class ZMQServer {
+
+    uint64_t workerThreads;
+
 public:
 
     bool checkSignature = false;
@@ -54,9 +57,6 @@ public:
 
     ZMQServer(bool _checkSignature, const string& _caCertFile);
 
-    enum {
-        kMaxThread = 1
-    };
 
     void run();
 
