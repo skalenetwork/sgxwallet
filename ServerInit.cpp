@@ -216,8 +216,9 @@ void initAll(uint32_t _logLevel, bool _checkCert,
 
         SGXRegistrationServer::initRegistrationServer(_autoSign);
         CSRManagerServer::initCSRManagerServer();
-        ZMQServer::initZMQServer(_checkZMQSig);
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
+        ZMQServer::initZMQServer(_checkZMQSig);
+
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());

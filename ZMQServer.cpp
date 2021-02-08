@@ -68,7 +68,7 @@ ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
 void ZMQServer::run() {
 
     auto port = BASE_PORT + 5;
-
+`
     spdlog::info("Starting zmq server  on port {} ...", port);
 
     try {
