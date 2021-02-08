@@ -23,6 +23,7 @@
 
 
 #include "common.h"
+#include "sgxwallet_common.h"
 #include <json/writer.h>
 
 
@@ -52,114 +53,123 @@ ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type, bool _checkSignat
     zmq_setsockopt(worker_, ZMQ_LINGER, &linger, sizeof(linger));
 };
 
-void ServerWorker::work() {
-    worker_.connect("inproc://backend");
-
-    std::string replyStr;
 
 
-    while (!isExitRequested) {
+void ServerWorker::doOneServerLoop() noexcept {
+    string replyStr;
 
-        Json::Value result;
-        int errStatus = -1 * (10000 + __LINE__);
-        result["status"] = errStatus;
-        result["errorMessage"] = "Server error";
+    Json::Value result;
+    result["status"] = ZMQ_SERVER_ERROR;
+    result["errorMessage"] = "";
 
+    zmq::message_t identity;
+    zmq::message_t identit2;
+    zmq::message_t copied_id;
 
-        zmq::message_t identity;
-        zmq::message_t identit2;
-        zmq::message_t copied_id;
-
-        try {
-
-            zmq_pollitem_t items[1];
-            items[0].socket = worker_;
-            items[0].events = ZMQ_POLLIN;
-
-            int pollResult = 0;
-
-            do {
-                pollResult = zmq_poll(items, 1, 1000);
-                if (isExitRequested) {
-                    goto clean;
-                }
-            } while (pollResult == 0);
+    try {
 
 
-            zmq::message_t msg;
-            zmq::message_t copied_msg;
-            worker_.recv(&identity);
-            copied_id.copy(&identity);
-            worker_.recv(&msg);
+        zmq_pollitem_t items[1];
+        items[0].socket = worker_;
+        items[0].events = ZMQ_POLLIN;
 
-            int64_t more;
-            size_t more_size = sizeof(more);
-            auto rc = zmq_getsockopt(worker_, ZMQ_RCVMORE, &more, &more_size);
-            CHECK_STATE(rc == 0);
+        int pollResult = 0;
 
-
-            vector <uint8_t> msgData(msg.size() + 1, 0);
-
-            memcpy(msgData.data(), msg.data(), msg.size());
-
-            CHECK_STATE(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}');
-
-            memcpy(msgData.data(), msg.data(), msg.size());
-
-            auto parsedMsg = ZMQMessage::parse(
-                    (const char *) msgData.data(), msg.size(), true, checkSignature);
-            CHECK_STATE(parsedMsg);
-
-            result = parsedMsg->process();
-
-        } catch (SGXException &e) {
-            result["status"] = e.getStatus();
-            result["errorMessage"] = e.getMessage();
-            spdlog::error("Exception in zmq server worker:{}", e.what());
-        }
-        catch (std::exception &e) {
+        do {
+            pollResult = zmq_poll(items, 1, 1000);
             if (isExitRequested) {
                 return;
             }
-            result["errorMessage"] = string(e.what());
-            spdlog::error("Exception in zmq server worker:{}", e.what());
-        } catch (...) {
-            if (isExitRequested) {
-                goto clean;
-            }
-            spdlog::error("Error in zmq server worker");
-            result["errorMessage"] = "Error in zmq server worker";
+        } while (pollResult == 0);
+
+
+        zmq::message_t msg;
+        zmq::message_t copied_msg;
+        worker_.recv(&identity);
+        copied_id.copy(&identity);
+        worker_.recv(&msg);
+
+        int64_t more;
+        size_t more_size = sizeof(more);
+        auto rc = zmq_getsockopt(worker_, ZMQ_RCVMORE, &more, &more_size);
+
+        CHECK_STATE2(rc == 0, ZMQ_COULD_NOT_GET_SOCKOPT);
+
+        vector <uint8_t> msgData(msg.size() + 1, 0);
+
+        memcpy(msgData.data(), msg.data(), msg.size());
+
+        CHECK_STATE2(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}',
+        ZMQ_INVALID_MESSAGE);
+
+        memcpy(msgData.data(), msg.data(), msg.size());
+
+        auto parsedMsg = ZMQMessage::parse(
+                (const char *) msgData.data(), msg.size(), true, checkSignature);
+
+        CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
+
+        result = parsedMsg->process();
+
+    } catch (SGXException &e) {
+        result["status"] = e.getStatus();
+        result["errorMessage"] = e.getMessage();
+        spdlog::error("Exception in zmq server worker:{}", e.what());
+    }
+    catch (std::exception &e) {
+        if (isExitRequested) {
+            return;
         }
+        result["errorMessage"] = string(e.what());
+        spdlog::error("Exception in zmq server worker:{}", e.what());
+    } catch (...) {
+        if (isExitRequested) {
+            return;
+        }
+        spdlog::error("Error in zmq server worker");
+        result["errorMessage"] = "Error in zmq server worker";
+    }
 
+    try {
+
+        Json::FastWriter fastWriter;
+
+        replyStr = fastWriter.write(result);
+        replyStr = replyStr.substr(0, replyStr.size() - 1);
+
+        CHECK_STATE(replyStr.size() > 2);
+        CHECK_STATE(replyStr.front() == '{');
+        CHECK_STATE(replyStr.back() == '}');
+        zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
+
+        worker_.send(copied_id, ZMQ_SNDMORE);
+        worker_.send(replyMsg);
+
+    } catch (std::exception &e) {
+        if (isExitRequested) {
+            return;
+        }
+        spdlog::error("Exception in zmq server worker send :{}", e.what());
+    } catch (...) {
+        if (isExitRequested) {
+            return;
+        }
+        spdlog::error("Unklnown exception in zmq server worker send");
+    }
+}
+
+void ServerWorker::work() {
+    worker_.connect("inproc://backend");
+
+
+    while (!isExitRequested) {
         try {
-
-            Json::FastWriter fastWriter;
-
-            replyStr = fastWriter.write(result);
-            replyStr = replyStr.substr(0, replyStr.size() - 1);
-
-            CHECK_STATE(replyStr.size() > 2);
-            CHECK_STATE(replyStr.front() == '{');
-            CHECK_STATE(replyStr.back() == '}');
-            zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
-
-            worker_.send(copied_id, ZMQ_SNDMORE);
-            worker_.send(replyMsg);
-
-        } catch (std::exception &e) {
-            if (isExitRequested) {
-                goto clean;
-            }
-            spdlog::error("Exception in zmq server worker send :{}", e.what());
+            doOneServerLoop();
         } catch (...) {
-            if (isExitRequested) {
-                goto clean;
-            }
-            spdlog::error("Unklnown exception in zmq server worker send");
+            spdlog::error("doOneServerLoop threw exception. This should never happen!");
         }
     }
 
-    clean:
     spdlog::info("Exited worker thread {}", index);
 }
 

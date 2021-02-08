@@ -22,6 +22,7 @@
 */
 
 #include "common.h"
+#include "sgxwallet_common.h"
 #include <third_party/cryptlite/sha256.h>
 #include <iostream>
 #include <fstream>
@@ -51,36 +52,37 @@ string ZMQMessage::getStringRapid(const char *_name) {
 };
 
 
+
+
 shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
                                           size_t _size, bool _isRequest,
                                           bool _verifySig) {
 
     CHECK_STATE(_msg);
-    CHECK_STATE(_size > 5);
+    CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
     // CHECK NULL TERMINATED
     CHECK_STATE(_msg[_size] == 0);
-    CHECK_STATE(_msg[_size - 1] == '}');
-    CHECK_STATE(_msg[0] == '{');
+    CHECK_STATE2(_msg[_size - 1] == '}', ZMQ_INVALID_MESSAGE);
+    CHECK_STATE2(_msg[0] == '{', ZMQ_INVALID_MESSAGE);
 
     auto d = make_shared<rapidjson::Document>();
 
-    cerr << _msg << endl;
-
     d->Parse(_msg);
 
-    CHECK_STATE(!d->HasParseError());
-    CHECK_STATE(d->IsObject())
+    CHECK_STATE2(!d->HasParseError(), ZMQ_COULD_NOT_PARSE);
+    CHECK_STATE2(d->IsObject(), ZMQ_COULD_NOT_PARSE);
 
-    CHECK_STATE(d->HasMember("type"));
-    CHECK_STATE((*d)["type"].IsString());
+    CHECK_STATE2(d->HasMember("type"), ZMQ_NO_TYPE_IN_MESSAGE);
+    CHECK_STATE2((*d)["type"].IsString(), ZMQ_NO_TYPE_IN_MESSAGE);
     string type = (*d)["type"].GetString();
 
     if (_verifySig) {
-        CHECK_STATE(d->HasMember("cert"));
-        CHECK_STATE(d->HasMember("msgSig"));
-        CHECK_STATE((*d)["cert"].IsString());
-        auto cert = make_shared<string>((*d)["cert"].GetString());
+        CHECK_STATE2(d->HasMember("cert"),ZMQ_NO_CERT_IN_MESSAGE);
+        CHECK_STATE2(d->HasMember("msgSig"), ZMQ_NO_SIG_IN_MESSAGE);
+        CHECK_STATE2((*d)["cert"].IsString(), ZMQ_NO_CERT_IN_MESSAGE);
+        CHECK_STATE2((*d)["msgSig"].IsString(), ZMQ_NO_SIG_IN_MESSAGE);
 
+        auto cert = make_shared<string>((*d)["cert"].GetString());
         string hash = cryptlite::sha256::hash_hex(*cert);
 
         auto filepath = "/tmp/sgx_wallet_cert_hash_" + hash;
@@ -103,7 +105,6 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
                 auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
                 CHECK_STATE(handles.first);
                 CHECK_STATE(handles.second);
-
                 verifiedCerts.put(*cert, handles);
                 remove(cert->c_str());
             }
@@ -112,9 +113,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
 
             CHECK_STATE(publicKey);
 
-            CHECK_STATE((*d)["msgSig"].IsString());
             auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
-            cerr << "Got msgSig:" << msgSig << endl;
 
             d->RemoveMember("msgSig");
 

@@ -30,7 +30,7 @@
 #include <streambuf>
 #include <regex>
 
-
+#include "sgxwallet_common.h"
 #include "common.h"
 #include "BLSCrypto.h"
 #include "BLSSignReqMessage.h"
@@ -137,6 +137,7 @@ string ZMQClient::readFileIntoString(const string &_fileName) {
 }
 
 
+
 void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig) {
 
     CHECK_STATE(_pubkey);
@@ -145,12 +146,12 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
     static std::regex r("\\s+");
     auto msgToSign = std::regex_replace(_str, r, "");
 
-
     vector<uint8_t> binSig(256,0);
 
     uint64_t binLen = 0;
 
-    CHECK_STATE(hex2carray(_sig.c_str(), &binLen, binSig.data(), binSig.size()));
+    CHECK_STATE2(hex2carray(_sig.c_str(), &binLen, binSig.data(), binSig.size()),
+                 ZMQ_COULD_NOT_PARSE);
 
     CHECK_STATE(binLen > 0);
 
@@ -170,7 +171,8 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
 
 
 
-    CHECK_STATE(EVP_DigestVerifyFinal(mdctx, binSig.data(), binLen) == 1);
+    CHECK_STATE2(EVP_DigestVerifyFinal(mdctx, binSig.data(), binLen) == 1,
+                 ZMQ_COULD_NOT_VERIFY_SIG);
 
     if (mdctx) EVP_MD_CTX_destroy(mdctx);
 

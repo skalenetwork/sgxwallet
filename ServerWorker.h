@@ -54,6 +54,8 @@ private:
 
     std::atomic<bool> isExitRequested;
 
+    void doOneServerLoop() noexcept;
+
     static std::atomic<uint64_t> workerCount;
     uint64_t index;
 };
