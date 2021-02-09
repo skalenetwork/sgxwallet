@@ -109,6 +109,7 @@ void ZMQServer::run() {
 
     try {
         zmq::proxy(static_cast<void *>(*frontend), static_cast<void *>(*backend), nullptr);
+        spdlog::info("Exited zmq proxy");
     } catch (exception &_e) {
         if (isExitRequested) {
             spdlog::info("Exited ZMQServer main thread");
