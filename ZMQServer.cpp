@@ -95,7 +95,6 @@ void ZMQServer::run() {
             workers.push_back(make_shared<ServerWorker>(*ctx_, ZMQ_DEALER,
                                                         this->checkSignature, this->caCert));
             auto th = make_shared<std::thread>(std::bind(&ServerWorker::work, workers[i]));
-            th->detach();
             worker_threads.push_back(th);
         }
     } catch (std::exception &e) {
@@ -134,6 +133,12 @@ void ZMQServer::exitWorkers() {
         for (auto &&worker : workers) {
             worker->requestExit();
         }
+
+        for (auto &&workerThread : worker_threads) {
+            workerThread->join();
+        }
+
+        spdlog::info("Workers exited");
 
         // close server sockets
 
@@ -187,15 +192,16 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     zmqServer = make_shared<ZMQServer>(_checkSignature, rootCAPath);
     serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
 
-
-    serverThread->detach();
-
     spdlog::info("Inited zmq server ...");
 }
 
 shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
 ZMQServer::~ZMQServer() {
+
+    spdlog::info("Joining server thread");
+    serverThread->join();
+    spdlog::info("Joined server thread");
 
     spdlog::info("Deleting server thread");
     ZMQServer::serverThread = nullptr;
