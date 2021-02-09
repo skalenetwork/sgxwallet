@@ -928,6 +928,8 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
         throw;
     }
 
+    sleep(3);
+
 
 }
 
