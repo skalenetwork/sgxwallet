@@ -121,6 +121,7 @@ public:
     }
 
     ~TestFixtureNoResetFromBackup() {
+        sleep(3);
         ZMQServer::exitZMQServer();
         TestUtils::destroyEnclave();
     }
@@ -303,7 +304,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
 TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {
     auto key = TestUtils::encryptTestKey();
-    REQUIRE(key != nullptr);
+    REQUIRE(key);
+    sleep(3);
 }
 
 
@@ -573,18 +575,21 @@ TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     sek_file >> sek;
 
     REQUIRE(sek.size() == 32);
+    sleep(3);
 }
 
 TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerStatus()["status"] == 0);
+    sleep(3);
 }
 
 TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
+    sleep(3);
 }
 
 
@@ -888,6 +893,7 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     REQUIRE(status == 0);
     REQUIRE(key.compare(decr_key.data()) == 0);
     REQUIRE(errStatus == 0);
+    sleep(3);
 }
 
 

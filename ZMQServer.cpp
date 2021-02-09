@@ -59,6 +59,8 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
     }
 
     int linger = 0;
+
+
     zmq_setsockopt(*frontend, ZMQ_LINGER, &linger, sizeof(linger));
     zmq_setsockopt(*backend, ZMQ_LINGER, &linger, sizeof(linger));
 
@@ -72,6 +74,7 @@ void ZMQServer::run() {
     spdlog::info("Starting zmq server  on port {} ...", port);
 
     try {
+        CHECK_STATE(frontend);
         frontend->bind("tcp://*:" + to_string(port));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
@@ -81,6 +84,7 @@ void ZMQServer::run() {
     spdlog::info("Bound port ...");
 
     try {
+        CHECK_STATE(backend);
         backend->bind("inproc://backend");
     } catch (exception &e) {
         spdlog::error("Could not bind to zmq backend: {}", e.what());
@@ -146,6 +150,7 @@ void ZMQServer::exitWorkers() {
         worker_threads.empty();
 
         spdlog::info("Deleting workers ...");
+
         workers.clear();
         spdlog::info("Deleted workers ...");
 
@@ -169,11 +174,7 @@ void ZMQServer::exitZMQServer() {
 
     spdlog::info("Exiting zmq server workers ...");
     zmqServer->exitWorkers();
-    spdlog::info("Exited zmq server ...");
-
-    spdlog::info("Joining server thread");
-    ZMQServer::serverThread->join();
-    spdlog::info("Joined server thread");
+    spdlog::info("Exited zmq server workers ...");
 
     spdlog::info("deleting zmq server");
     zmqServer = nullptr;
@@ -198,6 +199,7 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
 
     zmqServer = make_shared<ZMQServer>(_checkSignature, rootCAPath);
     serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
+    serverThread->detach();
 
     spdlog::info("Inited zmq server ...");
 }
