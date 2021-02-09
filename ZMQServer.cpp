@@ -25,7 +25,6 @@
 #include <streambuf>
 
 
-
 #include "third_party/spdlog/spdlog.h"
 
 #include "common.h"
@@ -35,14 +34,15 @@
 
 using namespace std;
 
-ZMQServer *ZMQServer::zmqServer = nullptr;
+shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
-ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
+ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         : checkSignature(_checkSignature),
-          caCertFile(_caCertFile), isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)),
-          frontend_(*ctx_, ZMQ_ROUTER),
-          backend_(*ctx_, ZMQ_DEALER) {
+          caCertFile(_caCertFile), isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)) {
 
+
+    frontend = make_shared<zmq::socket_t>(*ctx_, ZMQ_ROUTER);
+    backend = make_shared<zmq::socket_t>(*ctx_, ZMQ_DEALER);
 
     workerThreads = 2 * thread::hardware_concurrency();
 
@@ -59,8 +59,8 @@ ZMQServer::ZMQServer(bool _checkSignature, const string& _caCertFile)
     }
 
     int linger = 0;
-    zmq_setsockopt (frontend_, ZMQ_LINGER, &linger, sizeof (linger));
-    zmq_setsockopt (backend_, ZMQ_LINGER, &linger, sizeof (linger));
+    zmq_setsockopt(*frontend, ZMQ_LINGER, &linger, sizeof(linger));
+    zmq_setsockopt(*backend, ZMQ_LINGER, &linger, sizeof(linger));
 
 }
 
@@ -72,7 +72,7 @@ void ZMQServer::run() {
     spdlog::info("Starting zmq server  on port {} ...", port);
 
     try {
-        frontend_.bind("tcp://*:" + to_string(port));
+        frontend->bind("tcp://*:" + to_string(port));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
         exit(-100);
@@ -81,7 +81,7 @@ void ZMQServer::run() {
     spdlog::info("Bound port ...");
 
     try {
-        backend_.bind("inproc://backend");
+        backend->bind("inproc://backend");
     } catch (exception &e) {
         spdlog::error("Could not bind to zmq backend: {}", e.what());
         exit(-101);
@@ -105,7 +105,7 @@ void ZMQServer::run() {
 
 
     try {
-        zmq::proxy(static_cast<void *>(frontend_), static_cast<void *>(backend_), nullptr);
+        zmq::proxy(static_cast<void *>(*frontend), static_cast<void *>(*backend), nullptr);
     } catch (exception &_e) {
         if (isExitRequested) {
             spdlog::info("Exited ZMQServer main thread");
@@ -129,7 +129,6 @@ void ZMQServer::exitWorkers() {
     if (doExit) {
 
 
-
         spdlog::info("Tell workers to exit");
 
         for (auto &&worker : workers) {
@@ -138,36 +137,35 @@ void ZMQServer::exitWorkers() {
 
         // close server sockets
 
-        spdlog::info("Closing server sockets  ...");
-
-        zmq_close(frontend_);
-        zmq_close(backend_);
-
-        spdlog::info("Closed server sockets");
-
-
-        spdlog::info("Terminating context ...");
-
-
-        // terminate context (destructor will be called)
-        ctx_ = nullptr;
-
-        spdlog::info("Terminated context ...");
-
         spdlog::info("Deleting threads ...");
         worker_threads.empty();
 
+        spdlog::info("Deleting workers ...");
+        workers.clear();
+        spdlog::info("Deleted workers ...");
+
+        spdlog::info("Deleting front end and back end");
+
+        frontend = nullptr;
+        backend = nullptr;
+
+        spdlog::info("Deleted front end and back end");
+
+
+        spdlog::info("Terminating context ...");
+        // terminate context (destructor will be called)
+        ctx_ = nullptr;
+        spdlog::info("Terminated context ...");
     }
-    spdlog::info("Deleting workers ...");
-    spdlog::info("Deleted workers ...");
 }
 
-
 void ZMQServer::exitZMQServer() {
-    spdlog::info("Exiting zmq server ...");
+    spdlog::info("Exiting zmq server workers ...");
     zmqServer->exitWorkers();
     spdlog::info("Exited zmq server ...");
+    spdlog::info("deleting zmq server");
     zmqServer = nullptr;
+    spdlog::info("deleted zmq server ");
 }
 
 void ZMQServer::initZMQServer(bool _checkSignature) {
@@ -186,8 +184,8 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
         CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
     };
 
-    zmqServer = new ZMQServer(_checkSignature, rootCAPath);
-    serverThread =make_shared<thread> (std::bind(&ZMQServer::run, ZMQServer::zmqServer));
+    zmqServer = make_shared<ZMQServer>(_checkSignature, rootCAPath);
+    serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
 
 
     serverThread->detach();
@@ -195,4 +193,22 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     spdlog::info("Inited zmq server ...");
 }
 
-shared_ptr<std::thread> ZMQServer::serverThread = nullptr;
+shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
+
+ZMQServer::~ZMQServer() {
+
+    spdlog::info("Deleting server thread");
+    ZMQServer::serverThread = nullptr;
+    spdlog::info("Deleted server thread");
+
+    spdlog::info("Deleting worker threads");
+    worker_threads.clear();
+    spdlog::info("Deleted worker threads");
+
+    spdlog::info("Deleting workers");
+    workers.clear();
+    spdlog::info("Deleted workers");
+    spdlog::info("Deleting server context");
+    ctx_ = nullptr;
+    spdlog::info("Deleted server context");
+}

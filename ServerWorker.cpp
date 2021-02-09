@@ -37,12 +37,12 @@
 
 std::atomic <uint64_t>  ServerWorker::workerCount(1);
 
-ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type, bool _checkSignature,
+ServerWorker::ServerWorker(zmq::context_t &_ctx, int sock_type, bool _checkSignature,
                            const string& _caCert ) :            checkSignature(_checkSignature),
                            caCert(_caCert),
-                                                                ctx_(ctx),
-                                                                 worker_(ctx_, sock_type),
                                                                  isExitRequested(false) {
+
+    worker = make_shared<zmq::socket_t>(_ctx, sock_type);
 
     if (checkSignature) {
         CHECK_STATE(!caCert.empty())
@@ -50,7 +50,7 @@ ServerWorker::ServerWorker(zmq::context_t &ctx, int sock_type, bool _checkSignat
 
     index = workerCount.fetch_add(1);
     int linger = 0;
-    zmq_setsockopt(worker_, ZMQ_LINGER, &linger, sizeof(linger));
+    zmq_setsockopt(*worker, ZMQ_LINGER, &linger, sizeof(linger));
 };
 
 
@@ -70,7 +70,7 @@ void ServerWorker::doOneServerLoop() noexcept {
 
 
         zmq_pollitem_t items[1];
-        items[0].socket = worker_;
+        items[0].socket = *worker;
         items[0].events = ZMQ_POLLIN;
 
         int pollResult = 0;
@@ -85,13 +85,13 @@ void ServerWorker::doOneServerLoop() noexcept {
 
         zmq::message_t msg;
         zmq::message_t copied_msg;
-        worker_.recv(&identity);
+        worker->recv(&identity);
         copied_id.copy(&identity);
-        worker_.recv(&msg);
+        worker->recv(&msg);
 
         int64_t more;
         size_t more_size = sizeof(more);
-        auto rc = zmq_getsockopt(worker_, ZMQ_RCVMORE, &more, &more_size);
+        auto rc = zmq_getsockopt(*worker, ZMQ_RCVMORE, &more, &more_size);
 
         CHECK_STATE2(rc == 0, ZMQ_COULD_NOT_GET_SOCKOPT);
 
@@ -142,8 +142,8 @@ void ServerWorker::doOneServerLoop() noexcept {
         CHECK_STATE(replyStr.back() == '}');
         zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
 
-        worker_.send(copied_id, ZMQ_SNDMORE);
-        worker_.send(replyMsg);
+        worker->send(copied_id, ZMQ_SNDMORE);
+        worker->send(replyMsg);
 
     } catch (std::exception &e) {
         if (isExitRequested) {
@@ -159,7 +159,7 @@ void ServerWorker::doOneServerLoop() noexcept {
 }
 
 void ServerWorker::work() {
-    worker_.connect("inproc://backend");
+    worker->connect("inproc://backend");
 
 
     while (!isExitRequested) {
@@ -176,7 +176,6 @@ void ServerWorker::work() {
 
 void ServerWorker::requestExit() {
     isExitRequested.exchange(true);
-    zmq_close(worker_);
     spdlog::info("Closed worker socket {}", index);
 }
 

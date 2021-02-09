@@ -51,12 +51,13 @@ public:
     string caCertFile = "";
     string caCert = "";
 
-    static ZMQServer *zmqServer;
+    static shared_ptr<ZMQServer> zmqServer;
 
     static shared_ptr<std::thread> serverThread;
 
     ZMQServer(bool _checkSignature, const string& _caCertFile);
 
+    ~ZMQServer();
 
     void run();
 
@@ -69,12 +70,11 @@ public:
 
 private:
     shared_ptr<zmq::context_t> ctx_;
-    zmq::socket_t frontend_;
-    zmq::socket_t backend_;
+    shared_ptr<zmq::socket_t> frontend;
+    shared_ptr<zmq::socket_t> backend;
 
     std::vector<shared_ptr<ServerWorker> > workers;
     std::vector<shared_ptr<std::thread>> worker_threads;
-
 
     std::atomic<bool> isExitRequested;
 

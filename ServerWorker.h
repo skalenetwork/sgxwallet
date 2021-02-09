@@ -49,8 +49,7 @@ public:
     void requestExit();
 
 private:
-    zmq::context_t &ctx_;
-    zmq::socket_t worker_;
+    shared_ptr<zmq::socket_t> worker;
 
     std::atomic<bool> isExitRequested;
 
