@@ -38,7 +38,7 @@ shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
 ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         : checkSignature(_checkSignature),
-          caCertFile(_caCertFile), isExitRequested(false), ctx_(make_shared<zmq::context_t>(1)) {
+          caCertFile(_caCertFile), ctx_(make_shared<zmq::context_t>(1)) {
 
 
     frontend = make_shared<zmq::socket_t>(*ctx_, ZMQ_ROUTER);
@@ -127,58 +127,35 @@ void ZMQServer::run() {
 }
 
 
-void ZMQServer::exitWorkers() {
+void ZMQServer::exitAll() {
+
+    spdlog::info("Exiting zmq server workers ...");
+
+    for (auto &&worker : workers) {
+        worker->requestExit();
+    }
+
+    for (auto &&workerThread : worker_threads) {
+        workerThread->join();
+    }
+
+    spdlog::info("Exited zmq server workers ...");
+
+}
+
+std::atomic<bool> ZMQServer::isExitRequested(false);
+
+void ZMQServer::exitZMQServer() {
     auto doExit = !isExitRequested.exchange(true);
     if (doExit) {
 
-
-        spdlog::info("Tell workers to exit");
-
-        for (auto &&worker : workers) {
-            worker->requestExit();
-        }
-
-        for (auto &&workerThread : worker_threads) {
-            workerThread->join();
-        }
-
-        spdlog::info("Workers exited");
-
-        // close server sockets
-
-        spdlog::info("Deleting threads ...");
-        worker_threads.empty();
-
-        spdlog::info("Deleting workers ...");
-
-        workers.clear();
-        spdlog::info("Deleted workers ...");
-
-        spdlog::info("Deleting front end and back end");
-
-        frontend = nullptr;
-        backend = nullptr;
-
-        spdlog::info("Deleted front end and back end");
+        zmqServer->exitAll();
 
 
-        spdlog::info("Terminating context ...");
-        // terminate context (destructor will be called)
-        ctx_ = nullptr;
-        spdlog::info("Terminated context ...");
+        spdlog::info("deleting zmq server");
+        zmqServer = nullptr;
+        spdlog::info("deleted zmq server ");
     }
-}
-
-void ZMQServer::exitZMQServer() {
-
-
-    spdlog::info("Exiting zmq server workers ...");
-    zmqServer->exitWorkers();
-    spdlog::info("Exited zmq server workers ...");
-
-    spdlog::info("deleting zmq server");
-    zmqServer = nullptr;
-    spdlog::info("deleted zmq server ");
 }
 
 void ZMQServer::initZMQServer(bool _checkSignature) {
@@ -208,19 +185,25 @@ shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
 ZMQServer::~ZMQServer() {
 
+    spdlog::info("Deleting worker threads");
+    worker_threads.clear();
+    spdlog::info("Deleted worker threads");
+
+    spdlog::info("Deleting workers ...");
+    workers.clear();
+    spdlog::info("Deleted workers ...");
+
+    spdlog::info("Deleting front end and back end");
+    frontend = nullptr;
+    backend = nullptr;
+    spdlog::info("Deleted front end and back end");
 
     spdlog::info("Deleting server thread");
     ZMQServer::serverThread = nullptr;
     spdlog::info("Deleted server thread");
 
-    spdlog::info("Deleting worker threads");
-    worker_threads.clear();
-    spdlog::info("Deleted worker threads");
 
-    spdlog::info("Deleting workers");
-    workers.clear();
-    spdlog::info("Deleted workers");
-    spdlog::info("Deleting server context");
+    spdlog::info("Deleting ZMQ context");
     ctx_ = nullptr;
-    spdlog::info("Deleted server context");
+    spdlog::info("Deleted ZMQ context");
 }

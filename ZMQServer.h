@@ -61,7 +61,7 @@ public:
 
     void run();
 
-    void exitWorkers();
+    void exitAll();
 
     static void initZMQServer(bool _checkSignature);
     static void exitZMQServer();
@@ -76,7 +76,7 @@ private:
     std::vector<shared_ptr<ServerWorker> > workers;
     std::vector<shared_ptr<std::thread>> worker_threads;
 
-    std::atomic<bool> isExitRequested;
+    static std::atomic<bool> isExitRequested;
 
 };
 
