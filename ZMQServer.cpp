@@ -165,9 +165,16 @@ void ZMQServer::exitWorkers() {
 }
 
 void ZMQServer::exitZMQServer() {
+
+
     spdlog::info("Exiting zmq server workers ...");
     zmqServer->exitWorkers();
     spdlog::info("Exited zmq server ...");
+
+    spdlog::info("Joining server thread");
+    ZMQServer::serverThread->join();
+    spdlog::info("Joined server thread");
+
     spdlog::info("deleting zmq server");
     zmqServer = nullptr;
     spdlog::info("deleted zmq server ");
@@ -199,9 +206,6 @@ shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
 ZMQServer::~ZMQServer() {
 
-    spdlog::info("Joining server thread");
-    serverThread->join();
-    spdlog::info("Joined server thread");
 
     spdlog::info("Deleting server thread");
     ZMQServer::serverThread = nullptr;
