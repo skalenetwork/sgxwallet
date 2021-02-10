@@ -1,0 +1,3 @@
+#!/bin/bash
+
+openssl verify -CAfile $1 $2

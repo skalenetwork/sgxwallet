@@ -82,4 +82,4 @@ add_executable(sgxwallet
         SGXWalletServer.hpp
         stubclient.cpp
         stubclient.h
-        testw.cpp)
+        testw.cpp ZMQClient.cpp ZMQClient.h)

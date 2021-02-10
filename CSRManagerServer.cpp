@@ -115,6 +115,8 @@ int CSRManagerServer::initCSRManagerServer() {
     hs3->BindLocalhost();
     cs = make_shared<CSRManagerServer>(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)
 
+    spdlog::info("Starting csr manager server on port {} ...", BASE_PORT + 2);
+
     if (!cs->StartListening()) {
         spdlog::info("CSR manager server could not start listening");
         exit(-1);

@@ -16,25 +16,31 @@
   You should have received a copy of the GNU Affero General Public License
   along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
 
-  @file ECDSAReqSignMessage.h
+  @file ECDSARspSignMessage.cpp
   @author Stan Kladko
   @date 2020
 */
 
-#ifndef SGXWALLET_ECDSASIGNREQMESSAGE_H
-#define SGXWALLET_ECDSASIGNREQMESSAGE_H
+#include "SGXWalletServer.hpp"
 
-#include "ZMQMessage.h"
-
-class ECDSASignReqMessage : public ZMQMessage {
-public:
-
-    ECDSASignReqMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
-
-    virtual Json::Value process();
+#include "ECDSASignRspMessage.h"
 
 
-};
+
+Json::Value ECDSASignRspMessage::process() {
+    // never called
+    assert(false);
+}
+
+string ECDSASignRspMessage::getSignature() {
 
 
-#endif //SGXWALLET_ECDSASIGNREQMESSAGE_H
+
+    string r = getStringRapid( "signature_r" );
+    string v = getStringRapid( "signature_v" );
+    string s = getStringRapid("signature_s" );
+
+    auto ret = v + ":" + r.substr( 2 ) + ":" + s.substr( 2 );
+
+    return ret;
+}

@@ -16,25 +16,27 @@
   You should have received a copy of the GNU Affero General Public License
   along with libBLS.  If not, see <https://www.gnu.org/licenses/>.
 
-  @file ECDSAReqSignMessage.h
+  @file ECDSARspSignMessage.h
   @author Stan Kladko
   @date 2020
 */
 
-#ifndef SGXWALLET_ECDSASIGNREQMESSAGE_H
-#define SGXWALLET_ECDSASIGNREQMESSAGE_H
+#ifndef SGXWALLET_ECDSASIGNRSPMESSAGE_H
+#define SGXWALLET_ECDSASIGNRSPMESSAGE_H
 
 #include "ZMQMessage.h"
 
-class ECDSASignReqMessage : public ZMQMessage {
+class ECDSASignRspMessage : public ZMQMessage {
 public:
 
-    ECDSASignReqMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
+    ECDSASignRspMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getSignature();
 
 
 };
 
 
-#endif //SGXWALLET_ECDSASIGNREQMESSAGE_H
+#endif //SGXWALLET_ECDSASIGNRSPMESSAGE_H

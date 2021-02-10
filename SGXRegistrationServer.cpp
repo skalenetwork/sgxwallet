@@ -168,6 +168,8 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
                                                 JSONRPC_SERVER_V2,
                                                 _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
 
+    spdlog::info("Starting registration server on port {} ...", BASE_PORT + 1);
+
     if (!server->StartListening()) {
         spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
         exit(-10);

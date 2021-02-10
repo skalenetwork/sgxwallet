@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
         enclaveLogLevel = L_TRACE;
     }
 
-    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
+    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
 
     ifstream is("sgx_data/4node.json");
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2019-Present SKALE Labs
+    Copyright (C) 2021-Present SKALE Labs
 
     This file is part of sgxwallet.
 
@@ -16,30 +16,15 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file ServerInit.h
+    @file SGXException.cpp
     @author Stan Kladko
-    @date 2019
+    @date 2021
 */
 
-#ifndef SGXWALLET_SERVERINIT_H
-#define SGXWALLET_SERVERINIT_H
+#include "SGXException.h"
 
-#include "stdint.h"
-
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _checkZMQSig, bool _autoSign, bool _generateTestKeys);
-
-EXTERNC void initUserSpace();
-
-EXTERNC uint64_t initEnclave();
-
-EXTERNC void exitZMQServer();
+const char* SGXException::what()  const noexcept {
+    return errString.c_str();
+}
 
 
-
-#endif //SGXWALLET_SERVERINIT_H

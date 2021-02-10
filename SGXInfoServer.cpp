@@ -111,6 +111,8 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
     httpServer = make_shared<HttpServer>(BASE_PORT + 4);
     server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
 
+    spdlog::info("Starting info server on port {} ...", BASE_PORT + 4);
+
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
         exit(-10);

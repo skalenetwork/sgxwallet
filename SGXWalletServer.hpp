@@ -55,7 +55,11 @@ class SGXWalletServer : public AbstractStubServer {
     static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
     const string &_value);
 
+
 public:
+
+    static bool verifyCert(string& _certFileName);
+
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);
     }
@@ -177,6 +181,8 @@ public:
     static int initHttpServer();
 
     static int initHttpsServer(bool _checkCerts);
+
+    static void createCertsIfNeeded();
 };
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP
