@@ -946,7 +946,11 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     SAFE_CHAR_BUF(common_key, BUF_LEN);
     REQUIRE(sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
 
-    auto hashed_key = cryptlite::sha256::hash_hex(string(common_key, 64));
+    uint8_t key_to_hash[33];
+    uint64_t len;
+    REQUIRE( hex2carray(common_key, &len, key_to_hash, 64) );
+
+    auto hashed_key = cryptlite::sha256::hash_hex(string((char*)key_to_hash, 32));
 
     SAFE_CHAR_BUF(derived_key, 33)
 
