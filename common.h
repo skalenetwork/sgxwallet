@@ -31,6 +31,11 @@ using namespace std;
 #include <iostream>
 #include <map>
 #include <memory>
+
+#include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <string.h>
+
 #include <vector>
 
 #include <boost/throw_exception.hpp>
@@ -68,6 +73,32 @@ inline void print_stack() {
     backtrace_symbols_fd(array, size, STDERR_FILENO);
     exit(-1);
 }
+
+inline int parseLine(char* line) {
+    // This assumes that a digit will be found and the line ends in " Kb".
+    int i = strlen(line);
+    const char* p = line;
+    while (*p <'0' || *p > '9') p++;
+    line[i-3] = '\0';
+    i = atoi(p);
+    return i;
+}
+
+inline int getValue() { //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
+
 
 
 #define CHECK_STATE(_EXPRESSION_) \
@@ -124,24 +155,6 @@ extern uint64_t initTime;
 #define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
-
-
-#include <boost/interprocess/sync/interprocess_semaphore.hpp>
-
-// max of 200 threads can call enclave at a time
-extern boost::interprocess::interprocess_semaphore enclaveSemaphore;
-
-class semaphore_guard {
-    boost::interprocess::interprocess_semaphore &sem;
-public:
-    semaphore_guard(boost::interprocess::interprocess_semaphore &_semaphore) : sem(_semaphore) {
-        sem.wait();
-    }
-
-    ~semaphore_guard() {
-        sem.post();
-    }
-};
 
 
 
