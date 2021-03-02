@@ -81,7 +81,17 @@ static uint64_t __COUNT__ = 0; \
 __COUNT__++; \
 if (__COUNT__ % 1000 == 0) { \
 spdlog::info(string(__FUNCTION__) +  " processed " + to_string(__COUNT__) + " requests"); \
+struct sysinfo memInfo; \
+sysinfo (&memInfo); \
+long long totalPhysMem = memInfo.totalram; \
+/*Multiply in next statement to avoid int overflow on right hand side...*/ \
+totalPhysMem *= memInfo.mem_unit; \
+int usedByCurrentProcess = getValue(); \
+if ( 0.9 * totalPhysMem < usedByCurrentProcess ) { \
+  exit(-103); \
+} \
 }
+
 
 
 // if uknown error, the error is 10000 + line number
