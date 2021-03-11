@@ -87,7 +87,7 @@ long long totalPhysMem = memInfo.totalram; \
 /*Multiply in next statement to avoid int overflow on right hand side...*/ \
 totalPhysMem *= memInfo.mem_unit; \
 int usedByCurrentProcess = getValue(); \
-if ( 0.8 * totalPhysMem < usedByCurrentProcess ) { \
+if ( 0.5 * totalPhysMem < usedByCurrentProcess ) { \
   exit(-103); \
 } \
 }
