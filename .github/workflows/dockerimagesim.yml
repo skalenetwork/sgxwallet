@@ -28,6 +28,7 @@ jobs:
         contains(github.ref, 'master') || contains(github.ref, 'stable') ||
         contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
       run : |
+            sudo rm -rf /home/runner/work/sgxwallet/sgxwallet/sgx_data
             export BRANCH=${GITHUB_REF##*/}
             echo "Branch $BRANCH"
             export VERSION=$(cat VERSION)
