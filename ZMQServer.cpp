@@ -50,6 +50,8 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         workerThreads = 8;
     }
 
+    workerThreads = 1; // do single threaded for now
+
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
         ifstream t(_caCertFile);
