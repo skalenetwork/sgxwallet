@@ -44,13 +44,11 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
     frontend = make_shared<zmq::socket_t>(*ctx_, ZMQ_ROUTER);
     backend = make_shared<zmq::socket_t>(*ctx_, ZMQ_DEALER);
 
-    workerThreads = 2 * thread::hardware_concurrency();
+    //workerThreads = 2 * thread::hardware_concurrency();
 
-    if (workerThreads == 0) {
-        workerThreads = 8;
-    }
 
-    workerThreads = 1; // do single threaded for now
+
+    workerThreads = 4; // do four threads for now
 
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
