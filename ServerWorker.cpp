@@ -113,7 +113,7 @@ void ServerWorker::doOneServerLoop() noexcept {
 
     } catch (SGXException &e) {
         result["status"] = e.getStatus();
-        result["errorMessage"] = e.getMessage();
+        result["errorMessage"] = e.what();
         spdlog::error("Exception in zmq server worker:{}", e.what());
     }
     catch (std::exception &e) {
