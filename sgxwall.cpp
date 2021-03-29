@@ -54,10 +54,10 @@ void SGXWallet::printUsage() {
     cerr << "\nBackup, restore, update flags:\n\n";
     cerr << "   -b  filename Restore from back up or software update. You will need to put backup key into a file in sgx_data dir. \n";
     cerr << "   -y  Do not ask user to acknowledge receipt of the backup key \n";
-    cerr << "\nHTTPS flags:\n\n";
-    cerr << "   -n  Launch sgxwallet using http. Default is to use https with a selg-signed server cert.  \n";
-    cerr << "   -c  Do not verify SSL client certs\n";
-    cerr << "   -s  Sign SSL client certs without human confirmation \n";
+    cerr << "\nSecurity flags flags:\n\n";
+    cerr << "   -n  Use http instead of https. Default is to use https with a selg-signed server cert.  Insecure! \n";
+    cerr << "   -c  Disable client authentication using certificates. Insecure!\n";
+    cerr << "   -s  Sign client certificates without human confirmation. Insecure! \n";
 }
 
 

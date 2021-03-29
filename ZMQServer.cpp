@@ -78,7 +78,7 @@ void ZMQServer::run() {
         frontend->bind("tcp://*:" + to_string(port));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
-        exit(-100);
+        exit(ZMQ_COULD_NOT_BIND_FRONT_END);
     }
 
     spdlog::info("Bound port ...");
@@ -88,7 +88,7 @@ void ZMQServer::run() {
         backend->bind("inproc://backend");
     } catch (exception &e) {
         spdlog::error("Could not bind to zmq backend: {}", e.what());
-        exit(-101);
+        exit(ZMQ_COULD_NOT_BIND_BACK_END);
     }
 
 
@@ -103,7 +103,7 @@ void ZMQServer::run() {
         }
     } catch (std::exception &e) {
         spdlog::error("Could not create zmq server workers:{} ", e.what());
-        exit(-102);
+        exit(ZMQ_COULD_NOT_CREATE_WORKERS);
     };
 
 
@@ -123,7 +123,7 @@ void ZMQServer::run() {
             return;
         }
         spdlog::info("Error, exiting zmq server ...");
-        return;
+        exit(ZMQ_COULD_NOT_CREATE_PROXY);
     }
 }
 
@@ -151,7 +151,6 @@ void ZMQServer::exitZMQServer() {
     if (doExit) {
 
         zmqServer->exitAll();
-
 
         spdlog::info("deleting zmq server");
         zmqServer = nullptr;
