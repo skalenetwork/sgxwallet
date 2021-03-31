@@ -33,6 +33,7 @@
 #include "common.h"
 #include "sgxwallet.h"
 
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "BLSCrypto.h"
 #include "LevelDB.h"
@@ -90,6 +91,7 @@ void validate_SEK() {
     if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data(),
                     BUF_LEN)) {
         spdlog::error("Corrupt test key is LevelDB");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-4);
     }
 
@@ -108,6 +110,7 @@ void validate_SEK() {
         spdlog::error("Invalid storage key. You need to recover using backup key");
         spdlog::error("Set the correct backup key into sgx_datasgxwallet_backup_key.txt");
         spdlog::error("Then run sgxwallet using backup flag");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-5);
     }
 }
@@ -206,17 +209,17 @@ void gen_SEK() {
 }
 
 
-static std::atomic<int> isSgxWalletExiting(0);
+//static std::atomic<int> isSgxWalletExiting(0);
 
-void  safeExit() {
+//void safeExit() {
 
-    // this is to make sure exit is only called once if called from multiple threads
+//    // this is to make sure exit is only called once if called from multiple threads
 
-    auto previousValue = isSgxWalletExiting.exchange(1);
+//    auto previousValue = isSgxWalletExiting.exchange(1);
 
-    if (previousValue != 1)
-        exit(-6);
-}
+//    if (previousValue != 1)
+//        exit(-6);
+//}
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
@@ -256,12 +259,14 @@ void enter_SEK() {
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     if (test_key_ptr == nullptr) {
         spdlog::error("Error: corrupt or empty LevelDB database");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-7);
     }
 
 
     if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
         spdlog::error("File does not exist: "  BACKUP_PATH);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-8);
     }
 
@@ -278,6 +283,7 @@ void enter_SEK() {
 
     while (!checkHex(sek, 16)) {
         spdlog::error("Invalid hex in key");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-9);
     }
 

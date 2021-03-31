@@ -31,6 +31,7 @@
 
 #include "sgxwallet_common.h"
 
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "LevelDB.h"
 
@@ -115,12 +116,26 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
 
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-10);
     } else {
         spdlog::info("Info server started on port {}", BASE_PORT + 4);
     }
 
     return 0;
+}
+
+int SGXInfoServer::exitServer() {
+  spdlog::info("Stoping SGXInfo server");
+
+  if (!server->StopListening()) {
+      spdlog::error("SGXInfo server could not be stopped");
+      exit(-105);
+  } else {
+      spdlog::info("SGXInfo server stopped");
+  }
+
+  return 0;
 }
 
 shared_ptr<SGXInfoServer> SGXInfoServer::getServer() {

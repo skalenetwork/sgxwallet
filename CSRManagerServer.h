@@ -50,6 +50,8 @@ class CSRManagerServer : public abstractCSRManagerServer {
   virtual Json::Value signByHash(const string& hash, int status);
 
   static int initCSRManagerServer();
+
+  static int exitServer();
 };
 
 

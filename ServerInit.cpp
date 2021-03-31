@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 
+#include "ExitHandler.h"
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -70,6 +71,7 @@ void systemHealthCheck() {
         ulimit = exec("/bin/bash -c \"ulimit -n\"");
     } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-15);
     }
     int noFiles = strtol(ulimit.c_str(), NULL, 10);
@@ -84,6 +86,7 @@ void systemHealthCheck() {
                 "and setting 'DefaultLimitNOFILE=65535'\n"
                 "After that, restart sgxwallet";
         spdlog::error(errStr);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-16);
     }
 }
@@ -116,6 +119,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-17);
     }
 #endif
@@ -147,6 +151,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
+            ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
             exit(-21);
         }
 
@@ -222,15 +227,27 @@ void initAll(uint32_t _logLevel, bool _checkCert,
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-18);
     } catch (exception &_e) {
         spdlog::error(_e.what());
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-19);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-22);
     }
 };
+
+void exitAll() {
+    SGXWalletServer::exitServer();
+    SGXRegistrationServer::exitServer();
+    CSRManagerServer::exitServer();
+    SGXInfoServer::exitServer();
+    ZMQServer::exitZMQServer();
+
+}

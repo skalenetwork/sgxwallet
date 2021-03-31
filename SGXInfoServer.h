@@ -61,6 +61,8 @@ public:
 
     static int initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
 
+    static int exitServer();
+
 };
 
 #endif // SGXINFOSERVER_H

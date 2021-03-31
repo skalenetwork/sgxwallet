@@ -47,7 +47,7 @@ EXTERNC void initSEK();
 
 EXTERNC void setSEK();
 
-EXTERNC void safeExit();
+//EXTERNC void safeExit();
 
 
 

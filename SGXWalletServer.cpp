@@ -21,7 +21,9 @@
     @date 2019
 */
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "abstractstubserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -35,6 +37,7 @@
 #include "sgxwallet.h"
 
 
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
@@ -139,6 +142,7 @@ void SGXWalletServer::createCertsIfNeeded() {
             spdlog::info("ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::error("ROOT CA CERTIFICATE GENERATION FAILED");
+            ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
             exit(-11);
         }
     }
@@ -156,6 +160,7 @@ void SGXWalletServer::createCertsIfNeeded() {
             spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::info("SERVER CERTIFICATE GENERATION FAILED");
+            ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
             exit(-12);
         }
     }
@@ -166,6 +171,7 @@ void SGXWalletServer::createCertsIfNeeded() {
         spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY VERIFIED");
     } else {
         spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-12);
     }
 }
@@ -195,6 +201,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
     if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-13);
     } else {
         spdlog::info("SGX Server started on port {}", BASE_PORT);
@@ -214,9 +221,23 @@ int SGXWalletServer::initHttpServer() { //without ssl
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-14);
     }
     return 0;
+}
+
+int SGXWalletServer::exitServer() {
+  spdlog::info("Stoping sgx server");
+
+  if (!server->StopListening()) {
+      spdlog::error("Sgx server could not be stopped");
+      exit(-103);
+  } else {
+      spdlog::info("Sgx server stopped");
+  }
+
+  return 0;
 }
 
 Json::Value

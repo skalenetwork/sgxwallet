@@ -23,12 +23,13 @@
 
 #include <stdbool.h>
 
+#include "ExitHandler.h"
+
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
-
 
 #include <fstream>
 
@@ -43,6 +44,7 @@
 
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";
+    ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
     exit(-21);
 }
 
@@ -103,6 +105,7 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-22);
     }
 
@@ -110,6 +113,7 @@ int main(int argc, char *argv[]) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
+                ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
                 exit(-24);
             case 'c':
                 checkClientCertOption = false;
@@ -147,6 +151,7 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 SGXWallet::printUsage();
+                ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
                 exit(-23);
                 break;
         }
@@ -208,6 +213,13 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         sleep(10);
+        if ( ExitHandler::shouldExit() ) {
+            ExitHandler::exit_code_t exitCode = ExitHandler::requestedExitCode();
+            spdlog::info("Will exit with exit code {}", exitCode);
+            exitAll();
+            spdlog::info("Exiting with exit code {}", exitCode);
+            return exitCode;
+        }
     }
 
     return 0;

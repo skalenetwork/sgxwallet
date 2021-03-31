@@ -27,6 +27,7 @@
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include "CSRManagerServer.h"
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "sgxwallet_common.h"
 
@@ -119,9 +120,23 @@ int CSRManagerServer::initCSRManagerServer() {
 
     if (!cs->StartListening()) {
         spdlog::info("CSR manager server could not start listening");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-1);
     } else {
         spdlog::info("CSR manager server started on port {}", BASE_PORT + 2);
     }
     return 0;
 };
+
+int CSRManagerServer::exitServer() {
+  spdlog::info("Stoping CSRManager server");
+
+  if (!cs->StopListening()) {
+      spdlog::error("CSRManager server could not be stopped");
+      exit(-104);
+  } else {
+      spdlog::info("CSRManager server stopped");
+  }
+
+  return 0;
+}

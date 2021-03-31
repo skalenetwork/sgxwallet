@@ -30,6 +30,7 @@
 #include <jsonrpccpp/client.h>
 
 #include "sgxwallet_common.h"
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "LevelDB.h"
 
@@ -275,6 +276,7 @@ void LevelDB::initDataFolderAndDBs() {
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
         spdlog::error("could not get current workin directory");
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-2);
     }
 
@@ -289,6 +291,7 @@ void LevelDB::initDataFolderAndDBs() {
         }
         else{
             spdlog::error("Couldnt create creating sgx_data folder");
+            ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
             exit(-3);
         }
     }
