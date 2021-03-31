@@ -62,6 +62,7 @@ public:
 
     static int initRegistrationServer(bool _autoSign = false);
 
+    static int exitServer();
 };
 
 

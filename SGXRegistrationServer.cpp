@@ -32,6 +32,7 @@
 
 #include "sgxwallet_common.h"
 
+#include "ExitHandler.h"
 #include "SGXException.h"
 #include "LevelDB.h"
 
@@ -172,12 +173,26 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 
     if (!server->StartListening()) {
         spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
         exit(-10);
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
     }
 
     return 0;
+}
+
+int SGXRegistrationServer::exitServer() {
+  spdlog::info("Stoping registration server");
+
+  if (!server->StopListening()) {
+      spdlog::error("Registration server could not be stopped");
+      exit(-102);
+  } else {
+      spdlog::info("Registration server stopped");
+  }
+
+  return 0;
 }
 
 
