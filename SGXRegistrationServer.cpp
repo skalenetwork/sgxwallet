@@ -174,6 +174,7 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     if (!server->StartListening()) {
         spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
+        return 1;
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
     }
@@ -184,7 +185,7 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
 int SGXRegistrationServer::exitServer() {
   spdlog::info("Stoping registration server");
 
-  if (!server->StopListening()) {
+  if (server && !server->StopListening()) {
       spdlog::error("Registration server could not be stopped");
       exit(-102);
   } else {

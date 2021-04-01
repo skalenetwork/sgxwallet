@@ -117,6 +117,7 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
+        return 1;
     } else {
         spdlog::info("Info server started on port {}", BASE_PORT + 4);
     }
@@ -127,7 +128,7 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
 int SGXInfoServer::exitServer() {
   spdlog::info("Stoping SGXInfo server");
 
-  if (!server->StopListening()) {
+  if (server && !server->StopListening()) {
       spdlog::error("SGXInfo server could not be stopped");
       exit(-105);
   } else {

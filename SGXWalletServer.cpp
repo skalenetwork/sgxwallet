@@ -222,7 +222,7 @@ int SGXWalletServer::initHttpServer() { //without ssl
 int SGXWalletServer::exitServer() {
   spdlog::info("Stoping sgx server");
 
-  if (!server->StopListening()) {
+  if (server && !server->StopListening()) {
       spdlog::error("Sgx server could not be stopped");
       exit(-103);
   } else {

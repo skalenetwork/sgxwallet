@@ -72,7 +72,7 @@ void ZMQServer::run() {
 
     auto port = BASE_PORT + 5;
 
-    spdlog::info("Starting zmq server  on port {} ...", port);
+    spdlog::info("Starting zmq server on port {} ...", port);
 
     try {
         CHECK_STATE(frontend);
