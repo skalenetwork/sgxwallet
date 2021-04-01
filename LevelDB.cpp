@@ -277,7 +277,6 @@ void LevelDB::initDataFolderAndDBs() {
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
         spdlog::error("could not get current workin directory");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_creating_database);
-        exit(-2);
     }
 
     sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
@@ -292,7 +291,6 @@ void LevelDB::initDataFolderAndDBs() {
         else{
             spdlog::error("Couldnt create creating sgx_data folder");
             ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_creating_database);
-            exit(-3);
         }
     }
 

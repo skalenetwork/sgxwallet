@@ -100,7 +100,6 @@ int main(int argc, char *argv[]) {
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
-        exit(-22);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
@@ -108,7 +107,6 @@ int main(int argc, char *argv[]) {
             case 'h':
                 SGXWallet::printUsage();
                 ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
-                exit(-24);
             case 'c':
                 checkClientCertOption = false;
                 break;
@@ -146,7 +144,6 @@ int main(int argc, char *argv[]) {
             default:
                 SGXWallet::printUsage();
                 ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
-                exit(-23);
                 break;
         }
     }

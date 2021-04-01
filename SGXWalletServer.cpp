@@ -143,7 +143,6 @@ void SGXWalletServer::createCertsIfNeeded() {
         } else {
             spdlog::error("ROOT CA CERTIFICATE GENERATION FAILED");
             ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_creating_certificate);
-            exit(-11);
         }
     }
 
@@ -161,7 +160,6 @@ void SGXWalletServer::createCertsIfNeeded() {
         } else {
             spdlog::info("SERVER CERTIFICATE GENERATION FAILED");
             ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_creating_certificate);
-            exit(-12);
         }
     }
 
@@ -172,7 +170,6 @@ void SGXWalletServer::createCertsIfNeeded() {
     } else {
         spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_creating_certificate);
-        exit(-12);
     }
 }
 
@@ -198,7 +195,6 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
-        exit(-13);
     } else {
         spdlog::info("SGX Server started on port {}", BASE_PORT);
     }
@@ -218,8 +214,8 @@ int SGXWalletServer::initHttpServer() { //without ssl
     if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
-        exit(-14);
     }
+
     return 0;
 }
 

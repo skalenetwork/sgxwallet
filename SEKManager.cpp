@@ -92,7 +92,6 @@ void validate_SEK() {
                     BUF_LEN)) {
         spdlog::error("Corrupt test key is LevelDB");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_initing_sek);
-        exit(-4);
     }
 
     sgx_status_t status = SGX_SUCCESS;
@@ -111,7 +110,6 @@ void validate_SEK() {
         spdlog::error("Set the correct backup key into sgx_datasgxwallet_backup_key.txt");
         spdlog::error("Then run sgxwallet using backup flag");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_initing_sek);
-        exit(-5);
     }
 }
 
@@ -208,19 +206,6 @@ void gen_SEK() {
 
 }
 
-
-//static std::atomic<int> isSgxWalletExiting(0);
-
-//void safeExit() {
-
-//    // this is to make sure exit is only called once if called from multiple threads
-
-//    auto previousValue = isSgxWalletExiting.exchange(1);
-
-//    if (previousValue != 1)
-//        exit(-6);
-//}
-
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     CHECK_STATE(hex_encrypted_SEK);
@@ -260,14 +245,12 @@ void enter_SEK() {
     if (test_key_ptr == nullptr) {
         spdlog::error("Error: corrupt or empty LevelDB database");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_initing_sek);
-        exit(-7);
     }
 
 
     if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
         spdlog::error("File does not exist: "  BACKUP_PATH);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_initing_sek);
-        exit(-8);
     }
 
     ifstream sek_file(BACKUP_PATH);
@@ -284,7 +267,6 @@ void enter_SEK() {
     while (!checkHex(sek, 16)) {
         spdlog::error("Invalid hex in key");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_initing_sek);
-        exit(-9);
     }
 
     auto encrypted_SEK = check_and_set_SEK(sek);

@@ -72,7 +72,6 @@ void systemHealthCheck() {
     } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-        exit(-15);
     }
     int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
@@ -87,12 +86,8 @@ void systemHealthCheck() {
                 "After that, restart sgxwallet";
         spdlog::error(errStr);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-        exit(-16);
     }
 }
-
-
-
 
 void initUserSpace() {
 
@@ -120,7 +115,6 @@ uint64_t initEnclave() {
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_enclave);
-        exit(-17);
     }
 #endif
 
@@ -152,7 +146,6 @@ uint64_t initEnclave() {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
             ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_enclave);
-            exit(-21);
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -228,18 +221,15 @@ void initAll(uint32_t _logLevel, bool _checkCert,
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-        exit(-18);
     } catch (exception &_e) {
         spdlog::error(_e.what());
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-        exit(-19);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-        exit(-22);
     }
 };
 

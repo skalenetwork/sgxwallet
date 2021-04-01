@@ -174,7 +174,6 @@ int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     if (!server->StartListening()) {
         spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
         ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
-        exit(-10);
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
     }

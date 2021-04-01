@@ -18,6 +18,7 @@ public:
         ec_creating_certificate = 200,  // error creating SSL certificate to initialize server
         ec_initing_enclave = 201,  // error starting secure enclave
         ec_initing_user_space = 202,  // error or exception while initializing user space
+        ec_cannot_start_zeromq = 203,  // error starting ZMQ server
     };
 
 private:
