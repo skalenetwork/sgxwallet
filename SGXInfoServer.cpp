@@ -116,7 +116,7 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
 
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
         exit(-10);
     } else {
         spdlog::info("Info server started on port {}", BASE_PORT + 4);

@@ -26,7 +26,6 @@ class SGXWallet {
 
 public:
 
-    static void usage();
     static void printUsage();
 
     static void serializeKeys( const vector<string>& _ecdsaKeyNames,

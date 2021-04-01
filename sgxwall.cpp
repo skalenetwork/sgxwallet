@@ -42,12 +42,6 @@
 #include "sgxwallet.h"
 
 
-void SGXWallet::usage() {
-    cerr << "usage: sgxwallet\n";
-    ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
-    exit(-21);
-}
-
 void SGXWallet::printUsage() {
     cerr << "\nAvailable flags:\n";
     cerr << "\nDebug flags:\n\n";
@@ -211,16 +205,14 @@ int main(int argc, char *argv[]) {
 
 
 
-    while (true) {
+    while ( !ExitHandler::shouldExit() ) {
         sleep(10);
-        if ( ExitHandler::shouldExit() ) {
-            ExitHandler::exit_code_t exitCode = ExitHandler::requestedExitCode();
-            spdlog::info("Will exit with exit code {}", exitCode);
-            exitAll();
-            spdlog::info("Exiting with exit code {}", exitCode);
-            return exitCode;
-        }
     }
 
-    return 0;
+    ExitHandler::exit_code_t exitCode = ExitHandler::requestedExitCode();
+    int signal = ExitHandler::getSignal();
+    spdlog::info("Will exit with exit code {}", exitCode);
+    exitAll();
+    spdlog::info("Exiting with exit code {} and signal", exitCode, signal);
+    return exitCode;
 }

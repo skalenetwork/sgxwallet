@@ -11,11 +11,13 @@ public:
         ec_success = 0,
         ec_failure = 1,  // same as EXIT_FAILURE in stdlib.h, generic failure in main()
         ec_termninated_by_signal = 196,
-        ec_compute_snapshot_error = 197,  // snapshot computation error
+        ec_error_starting_server = 197, // error starting one of the http(s) servers
         ec_rotation_complete = 0,         // must be zero, exit requested after rotation complete
-        ec_consensus_terminate_request = 198,  // exit requested by consensus
-        ec_web3_request = 199,                 // programmatic shutdown via Web3 call, when enabled
-        ec_state_root_mismatch = 200,  // current state root is not equal to arrived from consensus
+        ec_error_creating_database = 198,  // error initing LevelDB
+        ec_error_initing_sek = 199,                 // error while initing or validating SEK
+        ec_creating_certificate = 200,  // error creating SSL certificate to initialize server
+        ec_initing_enclave = 201,  // error starting secure enclave
+        ec_initing_user_space = 202,  // error or exception while initializing user space
     };
 
 private:

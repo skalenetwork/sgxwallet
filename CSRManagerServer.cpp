@@ -120,7 +120,7 @@ int CSRManagerServer::initCSRManagerServer() {
 
     if (!cs->StartListening()) {
         spdlog::info("CSR manager server could not start listening");
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_error_starting_server);
         exit(-1);
     } else {
         spdlog::info("CSR manager server started on port {}", BASE_PORT + 2);
