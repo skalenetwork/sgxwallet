@@ -176,9 +176,9 @@ public:
 
     static void printDB();
 
-    static int initHttpServer();
+    static void initHttpServer();
 
-    static int initHttpsServer(bool _checkCerts);
+    static void initHttpsServer(bool _checkCerts);
 
     static int exitServer();
 

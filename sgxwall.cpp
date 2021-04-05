@@ -21,6 +21,7 @@
     @date 2020
 */
 
+#include <csignal>
 #include <stdbool.h>
 
 #include "ExitHandler.h"
@@ -84,6 +85,11 @@ void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector
     fs.close();
 }
 
+void SGXWallet::signalHandler( int signalNo ) {
+    spdlog::info("Received exit signal {}.", signalNo);
+    ExitHandler::exitHandler( signalNo );
+}
+
 
 int main(int argc, char *argv[]) {
     bool enterBackupKeyOption  = false;
@@ -95,18 +101,20 @@ int main(int argc, char *argv[]) {
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
 
+    std::signal(SIGABRT, SGXWallet::signalHandler);
+
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
-        exit(-22);
+        exit(-21);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
-                ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
+                exit(-22);
             case 'c':
                 checkClientCertOption = false;
                 break;

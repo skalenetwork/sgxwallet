@@ -59,7 +59,7 @@ public:
 
     virtual Json::Value isKeyExist(const string& key);
 
-    static int initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
+    static void initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
 
     static int exitServer();
 

@@ -49,7 +49,7 @@ class CSRManagerServer : public abstractCSRManagerServer {
   virtual Json::Value getUnsignedCSRs();
   virtual Json::Value signByHash(const string& hash, int status);
 
-  static int initCSRManagerServer();
+  static void initCSRManagerServer();
 
   static int exitServer();
 };

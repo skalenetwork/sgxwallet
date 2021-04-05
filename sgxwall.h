@@ -26,6 +26,8 @@ class SGXWallet {
 
 public:
 
+    static void signalHandler( int signalNo );
+
     static void printUsage();
 
     static void serializeKeys( const vector<string>& _ecdsaKeyNames,

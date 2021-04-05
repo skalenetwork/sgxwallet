@@ -71,7 +71,7 @@ void systemHealthCheck() {
         ulimit = exec("/bin/bash -c \"ulimit -n\"");
     } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+        throw SGXException(EXECUTION_ULIMIT_FAILED, "Execution of '/bin/bash -c ulimit -n' failed.");
     }
     int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
@@ -85,7 +85,7 @@ void systemHealthCheck() {
                 "and setting 'DefaultLimitNOFILE=65535'\n"
                 "After that, restart sgxwallet";
         spdlog::error(errStr);
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+        throw SGXException(WRONG_ULIMIT, errStr);
     }
 }
 
@@ -101,8 +101,6 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
-
-
 }
 
 
@@ -114,7 +112,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_enclave);
+        throw SGXException(COULD_NOT_INIT_ENCLAVE, "SGX is not supported or not enabled");
     }
 #endif
 
@@ -145,7 +143,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_enclave);
+            throw SGXException(COULD_NOT_INIT_ENCLAVE, "Error initing enclave. Please re-check your enviroment.");
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -212,15 +210,9 @@ void initAll(uint32_t _logLevel, bool _checkCert,
             spdlog::info("Inited JSON-RPC server over HTTP");
         }
 
-        if (SGXRegistrationServer::initRegistrationServer(_autoSign)) {
-            return;
-        }
-        if (CSRManagerServer::initCSRManagerServer()) {
-            return;
-        }
-        if (SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys)) {
-            return;
-        }
+        SGXRegistrationServer::initRegistrationServer(_autoSign);
+        CSRManagerServer::initCSRManagerServer();
+        SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
         ZMQServer::initZMQServer(_checkZMQSig);
 
         sgxServerInited = true;
