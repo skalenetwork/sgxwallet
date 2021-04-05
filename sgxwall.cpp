@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
+        exit(-22);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 SGXWallet::printUsage();
-                ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_failure);
+                exit(-23);
                 break;
         }
     }
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
 
     ifstream is("sgx_data/4node.json");
 
-    if (generateTestKeys && !is.good()) {
+    if (generateTestKeys && !is.good() && !!ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
