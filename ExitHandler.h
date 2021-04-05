@@ -5,8 +5,6 @@
 
 class ExitHandler {
 public:
-    enum { KILL_TIMEOUT = 57 };
-
     enum exit_code_t {
         ec_success = 0,
         ec_initing_user_space = 202,  // error or exception while initializing user space
