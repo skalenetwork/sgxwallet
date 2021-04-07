@@ -178,12 +178,12 @@ extern bool autoconfirm;
 #define COULD_NOT_GET_WORKING_DIRECTORY -105
 #define ERROR_CREATING_SGX_DATA_FOLDER -106
 #define EXECUTION_ULIMIT_FAILED -107
-#define WRONG_ULIMIT -107
-#define COULD_NOT_INIT_ENCLAVE -108
-#define FAIL_TO_VERIFY_CERTIFICATE -109
-#define SGX_SERVER_FAILED_TO_START -110
-#define CORRUPT_DATABASE -111
-#define INVALID_SEK -112
+#define WRONG_ULIMIT -108
+#define COULD_NOT_INIT_ENCLAVE -109
+#define FAIL_TO_VERIFY_CERTIFICATE -110
+#define SGX_SERVER_FAILED_TO_START -111
+#define CORRUPT_DATABASE -112
+#define INVALID_SEK -113
 
 #define SGX_ENCLAVE_ERROR -666
 
@@ -191,7 +191,7 @@ extern bool autoconfirm;
 
 #define BASE_PORT 1026
 
-#define WALLETDB_NAME  "sgxwallet.db"
+#define WALLETDB_NAME "sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
 
