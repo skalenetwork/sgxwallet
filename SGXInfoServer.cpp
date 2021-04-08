@@ -107,7 +107,7 @@ Json::Value SGXInfoServer::isKeyExist(const string& key) {
     RETURN_SUCCESS(result)
 }
 
-int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
+void SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 4);
     server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
 
@@ -115,12 +115,22 @@ int SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _chec
 
     if (!server->StartListening()) {
         spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
-        exit(-10);
+        throw SGXException(SGX_INFO_SERVER_FAILED_TO_START, "Info server could not start listening.");
     } else {
         spdlog::info("Info server started on port {}", BASE_PORT + 4);
     }
+}
 
-    return 0;
+int SGXInfoServer::exitServer() {
+  spdlog::info("Stoping SGXInfo server");
+
+  if (server && !server->StopListening()) {
+      spdlog::error("SGXInfo server could not be stopped. Will forcefully terminate the app");
+  } else {
+      spdlog::info("SGXInfo server stopped");
+  }
+
+  return 0;
 }
 
 shared_ptr<SGXInfoServer> SGXInfoServer::getServer() {

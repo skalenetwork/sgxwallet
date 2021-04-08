@@ -21,14 +21,16 @@
     @date 2020
 */
 
+#include <csignal>
 #include <stdbool.h>
+
+#include "ExitHandler.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
-
 
 #include <fstream>
 
@@ -40,11 +42,6 @@
 #include "sgxwall.h"
 #include "sgxwallet.h"
 
-
-void SGXWallet::usage() {
-    cerr << "usage: sgxwallet\n";
-    exit(-21);
-}
 
 void SGXWallet::printUsage() {
     cerr << "\nAvailable flags:\n";
@@ -88,6 +85,11 @@ void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector
     fs.close();
 }
 
+void SGXWallet::signalHandler( int signalNo ) {
+    spdlog::info("Received exit signal {}.", signalNo);
+    ExitHandler::exitHandler( signalNo );
+}
+
 
 int main(int argc, char *argv[]) {
     bool enterBackupKeyOption  = false;
@@ -99,18 +101,20 @@ int main(int argc, char *argv[]) {
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
 
+    std::signal(SIGABRT, SGXWallet::signalHandler);
+
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
-        exit(-22);
+        exit(-21);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
-                exit(-24);
+                exit(-22);
             case 'c':
                 checkClientCertOption = false;
                 break;
@@ -178,7 +182,7 @@ int main(int argc, char *argv[]) {
 
     ifstream is("sgx_data/4node.json");
 
-    if (generateTestKeys && !is.good()) {
+    if (generateTestKeys && !is.good() && !!ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
@@ -206,9 +210,14 @@ int main(int argc, char *argv[]) {
 
 
 
-    while (true) {
+    while ( !ExitHandler::shouldExit() ) {
         sleep(10);
     }
 
-    return 0;
+    ExitHandler::exit_code_t exitCode = ExitHandler::requestedExitCode();
+    int signal = ExitHandler::getSignal();
+    spdlog::info("Will exit with exit code {}", exitCode);
+    exitAll();
+    spdlog::info("Exiting with exit code {} and signal", exitCode, signal);
+    return exitCode;
 }

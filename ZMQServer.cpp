@@ -29,6 +29,7 @@
 
 #include "common.h"
 
+#include "SGXException.h"
 #include "ZMQServer.h"
 #include "sgxwallet_common.h"
 
@@ -71,14 +72,14 @@ void ZMQServer::run() {
 
     auto port = BASE_PORT + 5;
 
-    spdlog::info("Starting zmq server  on port {} ...", port);
+    spdlog::info("Starting zmq server on port {} ...", port);
 
     try {
         CHECK_STATE(frontend);
         frontend->bind("tcp://*:" + to_string(port));
     } catch (...) {
         spdlog::error("Server task could not bind to port:{}", port);
-        exit(ZMQ_COULD_NOT_BIND_FRONT_END);
+        throw SGXException(ZMQ_COULD_NOT_BIND_FRONT_END, "Server task could not bind.");
     }
 
     spdlog::info("Bound port ...");
@@ -88,7 +89,7 @@ void ZMQServer::run() {
         backend->bind("inproc://backend");
     } catch (exception &e) {
         spdlog::error("Could not bind to zmq backend: {}", e.what());
-        exit(ZMQ_COULD_NOT_BIND_BACK_END);
+        throw SGXException(ZMQ_COULD_NOT_BIND_BACK_END, "Could not bind to zmq backend.");
     }
 
 
@@ -103,7 +104,7 @@ void ZMQServer::run() {
         }
     } catch (std::exception &e) {
         spdlog::error("Could not create zmq server workers:{} ", e.what());
-        exit(ZMQ_COULD_NOT_CREATE_WORKERS);
+        throw SGXException(ZMQ_COULD_NOT_CREATE_WORKERS, "Could not create zmq server workers.");
     };
 
 
@@ -123,7 +124,7 @@ void ZMQServer::run() {
             return;
         }
         spdlog::info("Error, exiting zmq server ...");
-        exit(ZMQ_COULD_NOT_CREATE_PROXY);
+        throw SGXException(ZMQ_COULD_NOT_CREATE_PROXY, "Error, exiting zmq server.");
     }
 }
 

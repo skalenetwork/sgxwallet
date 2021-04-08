@@ -21,7 +21,9 @@
     @date 2019
 */
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "abstractstubserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -30,10 +32,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
-
 
 #include "SGXException.h"
 #include "LevelDB.h"
@@ -139,7 +139,7 @@ void SGXWalletServer::createCertsIfNeeded() {
             spdlog::info("ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::error("ROOT CA CERTIFICATE GENERATION FAILED");
-            exit(-11);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "ROOT CA CERTIFICATE GENERATION FAILED");
         }
     }
 
@@ -156,7 +156,7 @@ void SGXWalletServer::createCertsIfNeeded() {
             spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::info("SERVER CERTIFICATE GENERATION FAILED");
-            exit(-12);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "SERVER CERTIFICATE GENERATION FAILED");
         }
     }
 
@@ -166,19 +166,15 @@ void SGXWalletServer::createCertsIfNeeded() {
         spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY VERIFIED");
     } else {
         spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
-        exit(-12);
+        throw SGXException(FAIL_TO_VERIFY_CERTIFICATE, "SERVER CERTIFICATE VERIFICATION FAILED");
     }
 }
 
 
-int SGXWalletServer::initHttpsServer(bool _checkCerts) {
+void SGXWalletServer::initHttpsServer(bool _checkCerts) {
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
-
-
-
-
 
     string certPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
     string keyPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
@@ -195,14 +191,13 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
 
     if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
-        exit(-13);
+        throw SGXException(SGX_SERVER_FAILED_TO_START, "Https server could not start listening.");
     } else {
         spdlog::info("SGX Server started on port {}", BASE_PORT);
     }
-    return 0;
 }
 
-int SGXWalletServer::initHttpServer() { //without ssl
+void SGXWalletServer::initHttpServer() { //without ssl
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
 
@@ -214,9 +209,20 @@ int SGXWalletServer::initHttpServer() { //without ssl
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
-        exit(-14);
+        throw SGXException(SGX_SERVER_FAILED_TO_START, "Http server could not start listening.");
     }
-    return 0;
+}
+
+int SGXWalletServer::exitServer() {
+  spdlog::info("Stoping sgx server");
+
+  if (server && !server->StopListening()) {
+      spdlog::error("Sgx server could not be stopped. Will forcefully terminate the app");
+  } else {
+      spdlog::info("Sgx server stopped");
+  }
+
+  return 0;
 }
 
 Json::Value

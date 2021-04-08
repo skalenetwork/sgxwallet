@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 
+#include "ExitHandler.h"
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -70,7 +71,7 @@ void systemHealthCheck() {
         ulimit = exec("/bin/bash -c \"ulimit -n\"");
     } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
-        exit(-15);
+        throw SGXException(EXECUTION_ULIMIT_FAILED, "Execution of '/bin/bash -c ulimit -n' failed.");
     }
     int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
@@ -84,12 +85,9 @@ void systemHealthCheck() {
                 "and setting 'DefaultLimitNOFILE=65535'\n"
                 "After that, restart sgxwallet";
         spdlog::error(errStr);
-        exit(-16);
+        throw SGXException(WRONG_ULIMIT, errStr);
     }
 }
-
-
-
 
 void initUserSpace() {
 
@@ -103,8 +101,6 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
-
-
 }
 
 
@@ -116,7 +112,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
-        exit(-17);
+        throw SGXException(COULD_NOT_INIT_ENCLAVE, "SGX is not supported or not enabled");
     }
 #endif
 
@@ -147,7 +143,7 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            exit(-21);
+            throw SGXException(COULD_NOT_INIT_ENCLAVE, "Error initing enclave. Please re-check your enviroment.");
         }
 
         spdlog::info("Enclave created and started successfully");
@@ -222,15 +218,24 @@ void initAll(uint32_t _logLevel, bool _checkCert,
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
-        exit(-18);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     } catch (exception &_e) {
         spdlog::error(_e.what());
-        exit(-19);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(-22);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     }
 };
+
+void exitAll() {
+    SGXWalletServer::exitServer();
+    SGXRegistrationServer::exitServer();
+    CSRManagerServer::exitServer();
+    SGXInfoServer::exitServer();
+    ZMQServer::exitZMQServer();
+
+}

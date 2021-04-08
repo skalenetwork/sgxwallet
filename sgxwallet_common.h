@@ -172,8 +172,18 @@ extern bool autoconfirm;
 #define ZMQ_COULD_NOT_BIND_BACK_END -99
 #define ZMQ_COULD_NOT_CREATE_WORKERS -100
 #define ZMQ_COULD_NOT_CREATE_PROXY -101
-
-
+#define REGISTRATION_SERVER_FAILED_TO_START -102
+#define CSR_MANAGER_SERVER_FAILED_TO_START -103
+#define SGX_INFO_SERVER_FAILED_TO_START -104
+#define COULD_NOT_GET_WORKING_DIRECTORY -105
+#define ERROR_CREATING_SGX_DATA_FOLDER -106
+#define EXECUTION_ULIMIT_FAILED -107
+#define WRONG_ULIMIT -108
+#define COULD_NOT_INIT_ENCLAVE -109
+#define FAIL_TO_VERIFY_CERTIFICATE -110
+#define SGX_SERVER_FAILED_TO_START -111
+#define CORRUPT_DATABASE -112
+#define INVALID_SEK -113
 
 #define SGX_ENCLAVE_ERROR -666
 
@@ -181,7 +191,7 @@ extern bool autoconfirm;
 
 #define BASE_PORT 1026
 
-#define WALLETDB_NAME  "sgxwallet.db"//"test_sgxwallet.db"
+#define WALLETDB_NAME "sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
 

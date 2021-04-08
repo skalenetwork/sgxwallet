@@ -39,8 +39,6 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 
-
-
 class SGXWalletServer : public AbstractStubServer {
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
@@ -178,9 +176,11 @@ public:
 
     static void printDB();
 
-    static int initHttpServer();
+    static void initHttpServer();
 
-    static int initHttpsServer(bool _checkCerts);
+    static void initHttpsServer(bool _checkCerts);
+
+    static int exitServer();
 
     static void createCertsIfNeeded();
 };
