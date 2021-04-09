@@ -52,9 +52,9 @@ Ensure you have your backup key.
 docker-compose down
 ```
 
-2. Copy the entire `sgx_data` directory.
+2.  Copy the entire `sgx_data` directory.
 
-3. Edit the `docker-compose.yml` and add the `-b` flag to recover from backup and change image name.
+3.  Edit the `docker-compose.yml` and add the `-b` flag to recover from backup and change image name.
 
 ```yaml
 image: skalenetwork/<NEW_IMAGE>
