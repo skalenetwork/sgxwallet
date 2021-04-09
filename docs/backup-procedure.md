@@ -39,3 +39,35 @@ docker-compose up -d
 ```
 
 5.  Edit the `docker-compose.yml` file, remove the `-b` flag.
+
+## Upgrade SGXWallet
+
+To upgrade SGXWallet to the version with different enclave code you need to backup your data first and then start SGXWallet in backup mode. To do this please follow the instructions:
+
+Ensure you have your backup key.
+
+1.  Stop the container:
+
+```bash
+docker-compose down
+```
+
+2. Copy the entire `sgx_data` directory.
+
+3. Edit the `docker-compose.yml` and add the `-b` flag to recover from backup and change image name.
+
+```yaml
+image: skalenetwork/<NEW_IMAGE>
+
+command: -s -y -d -b
+```
+
+4.  Copy the backed up `sgx_data` directory to the recovery `sgx_data` directory.
+5.  Create file `sgx_data/sgxwallet_backup_key.txt` in the recovery directory and write the backup key into it.
+6.  Execute:
+
+```bash
+docker-compose up -d
+```
+
+7.  Edit the `docker-compose.yml` file, remove the `-b` flag.
