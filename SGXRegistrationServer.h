@@ -60,8 +60,9 @@ public:
 
     virtual Json::Value GetCertificate(const string &hash);
 
-    static int initRegistrationServer(bool _autoSign = false);
+    static void initRegistrationServer(bool _autoSign = false);
 
+    static int exitServer();
 };
 
 

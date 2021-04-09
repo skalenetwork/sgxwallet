@@ -22,7 +22,7 @@ Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as
 described below
 
 ```bash
-sudo apt-get install -y docker-io
+sudo apt-get install -y docker.io
 ```
 
 To verify a correct installation, run `sudo docker run hello-world`
@@ -54,9 +54,6 @@ curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_lis
 
  If you need to set advanced options, such as outgoing network proxy, edit "/etc/aesmd.conf" file in
  the sgxwallet docker container.  
-
-
- #endif" 
 
 ### Verify SGX support
 

@@ -50,3 +50,5 @@
 /*.user
 /cert/*.csr
 /cert/*.crt
+/jsonrpc/
+/sgx-gmp/

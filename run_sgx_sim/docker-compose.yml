@@ -2,12 +2,13 @@ version: '3'
 services:
   sgxwallet:
     image: skalenetwork/sgxwallet_sim:develop-latest
-    restart: always
+    restart: unless-stopped
     ports:
       - "1026:1026"
       - "1027:1027"
       - "1028:1028"
       - "1029:1029"
+      - "1030:1030"
     volumes:
       - ./sgx_data:/usr/src/sdk/sgx_data
       -  /dev/urandom:/dev/random
@@ -16,5 +17,4 @@ services:
       options:
         max-size: "10m"
         max-file: "4"
-    restart: unless-stopped
     command: -s -y

@@ -41,6 +41,7 @@
 #include <sgx_tcrypto.h>
 #include "stubclient.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include "ZMQClient.h"
 #include "abstractstubserver.h"
 
 using namespace std;
@@ -81,6 +82,13 @@ public:
     static void doDKGV2(StubClient &c, int n, int t,
                                  vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
                                  int schainID, int dkgID);
+
+    static void doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n, int t,
+                        vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
+                        int schainID, int dkgID);
+
+    static void sendRPCRequestZMQ();
+
 };
 
 int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key);

@@ -32,11 +32,15 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _autoSign);
+EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _checkZMQSig, bool _autoSign, bool _generateTestKeys);
+
+void exitAll();
 
 EXTERNC void initUserSpace();
 
 EXTERNC uint64_t initEnclave();
+
+EXTERNC void exitZMQServer();
 
 
 

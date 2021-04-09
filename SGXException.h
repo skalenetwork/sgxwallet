@@ -16,30 +16,41 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file RPCException.h
+    @file SGXException.h
     @author Stan Kladko
     @date 2019
 */
 
-#ifndef SGXD_RPCEXCEPTION_H
-#define SGXD_RPCEXCEPTION_H
+#ifndef SGXD_SGXEXCEPTION_H
+#define SGXD_SGXEXCEPTION_H
 
 #include <string>
 #include <exception>
 
-class SGXException : public std::exception {
+using namespace std;
+
+class SGXException : public exception {
+
+    const int32_t status;
+    const string errString;
 
 public:
 
-    int32_t status;
-    std::string errString;
+    SGXException(int32_t _status, const string& _errString) : status(_status), errString(_errString) {}
 
-    SGXException(int32_t _status, const char* _errString) : status(_status), errString(_errString) {}
-
-    std::string getMessage() {
-        return "SGXException:status:" + std::to_string(status) + ":" + errString;
+    const string getMessage() const {
+        return "SGXException:status:" + to_string(status) + ":" + errString;
     }
 
+    const string& getErrString() const  {
+        return errString;
+    }
+
+    const char* what() const noexcept override;
+
+    const int32_t getStatus() const {
+        return status;
+    }
 };
 
-#endif //SGXD_RPCEXCEPTION_H
+#endif //SGXD_SGXEXCEPTION_H

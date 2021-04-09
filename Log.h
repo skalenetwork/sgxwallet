@@ -1,4 +1,5 @@
 /*
+ *
     Copyright (C) 2019-Present SKALE Labs
 
     This file is part of sgxwallet.
@@ -74,26 +75,44 @@ public:
     static void handleSGXException(Json::Value &_result, SGXException &_e);
 };
 
+
+#define COUNT_STATISTICS \
+static uint64_t __COUNT__ = 0; \
+__COUNT__++; \
+if (__COUNT__ % 1000 == 0) { \
+spdlog::info(string(__FUNCTION__) +  " processed " + to_string(__COUNT__) + " requests"); \
+}
+
+
+// if uknown error, the error is 10000 + line number
+
+
 #define INIT_RESULT(__RESULT__)     Json::Value __RESULT__; \
-              int errStatus = UNKNOWN_ERROR; boost::ignore_unused(errStatus); string errMsg(BUF_LEN, '\0');__RESULT__["status"] = UNKNOWN_ERROR; __RESULT__["errorMessage"] = \
-"Server error. Please see server log.";
+              int errStatus = -1 * (10000 + __LINE__); boost::ignore_unused(errStatus); string errMsg(BUF_LEN, '\0');__RESULT__["status"] =  -1 * (10000 + __LINE__); __RESULT__["errorMessage"] = \
+              string(__FUNCTION__); \
+string(__FUNCTION__) + ": server error. Please see server log.";
 
 #define HANDLE_SGX_EXCEPTION(__RESULT__) \
-    catch (SGXException& _e) { \
-      if (_e.status != 0) {__RESULT__["status"] = _e.status;} else { __RESULT__["status"]  = UNKNOWN_ERROR;}; \
-      __RESULT__["errorMessage"] = _e.errString;                                                              \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                             \
+    catch (const SGXException& _e) { \
+      if (_e.getStatus() != 0) {__RESULT__["status"] = _e.getStatus();} else { __RESULT__["status"]  = -1 * (10000 + __LINE__);}; \
+      auto errStr = __FUNCTION__ + string(" failed:") + _e.getErrString(); \
+      __RESULT__["errorMessage"] = errStr; \
+      spdlog::error(errStr); \
       return __RESULT__; \
-      } catch (exception& _e) { \
-      __RESULT__["errorMessage"] = _e.what(); \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
+      } catch (const exception& _e) { \
+      __RESULT__["status"]  = -1 * (10000 + __LINE__); \
+      exception_ptr p = current_exception(); \
+      auto errStr = __FUNCTION__ + string(" failed:") + p.__cxa_exception_type()->name() + ":" + _e.what(); \
+      __RESULT__["errorMessage"] = errStr; \
+      spdlog::error(errStr); \
       return __RESULT__; \
-      }\
+      } \
       catch (...) { \
       exception_ptr p = current_exception(); \
-      printf("Exception %s \n", p.__cxa_exception_type()->name()); \
-      __RESULT__["errorMessage"] = "Unknown exception";                                                       \
-      spdlog::error("JSON call failed {}", __FUNCTION__);                                   \
+      auto errStr = __FUNCTION__ + string(" failed:") + p.__cxa_exception_type()->name(); \
+      spdlog::error(errStr); \
+      __RESULT__["errorMessage"] = errStr ; \
+      spdlog::error(errStr); \
       return __RESULT__; \
       }
 

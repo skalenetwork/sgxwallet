@@ -51,6 +51,8 @@ string decryptDHKey(const string& polyName, int ind);
 
 bool createBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
 
+bool createBLSShareV2( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
+
 vector<string> getBLSPubKey(const char * encryptedKeyHex);
 
 vector<string> mult_G2(const string& x);

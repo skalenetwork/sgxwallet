@@ -345,7 +345,13 @@ int hash_key(char* key, char* hashed_key) {
         return ret;
     }
 
-    ret = sgx_sha256_msg((uint8_t*)key, ECDSA_SKEY_LEN - 1, (uint8_t*)hashed_key);
+    uint8_t key_to_hash[33];
+    uint64_t len;
+    if (!hex2carray(key, &len, key_to_hash)) {
+        return ret;
+    }
+
+    ret = sgx_sha256_msg(key_to_hash, ECDSA_BIN_LEN - 1, (uint8_t*)hashed_key);
 
     return ret;
 }

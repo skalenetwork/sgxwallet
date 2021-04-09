@@ -25,6 +25,9 @@
 #define SGXWALLET_SGXWALLETSERVER_HPP
 
 
+#include "mutex"
+#include "memory"
+
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include "abstractstubserver.h"
@@ -35,10 +38,26 @@ using namespace std;
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+
 class SGXWalletServer : public AbstractStubServer {
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
+
+    static map<string,string> blsRequests;
+    static recursive_mutex blsRequestsLock;
+    static map<string,string> ecdsaRequests;
+    static recursive_mutex ecdsaRequestsLock;
+
+
+
+    static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
+    const string &_value);
+
+
 public:
+
+    static bool verifyCert(string& _certFileName);
+
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);
     }
@@ -94,6 +113,8 @@ public:
     virtual Json::Value getSecretShareV2(const string &_polyName, const Json::Value &_publicKeys, int t, int n);
 
     virtual Json::Value dkgVerificationV2(const string &_publicShares, const string &ethKeyName, const string &SecretShare, int t, int n, int index);
+
+    virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
@@ -151,11 +172,17 @@ public:
 
     static Json::Value dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare, int _t, int _n, int _index);
 
+    virtual Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+
     static void printDB();
 
-    static int initHttpServer();
+    static void initHttpServer();
 
-    static int initHttpsServer(bool _checkCerts);
+    static void initHttpsServer(bool _checkCerts);
+
+    static int exitServer();
+
+    static void createCertsIfNeeded();
 };
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP
