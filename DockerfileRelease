@@ -19,5 +19,5 @@ RUN rm  /opt/intel/sgxsdk/lib64/*_sim.so
 RUN rm  /usr/src/sdk/secure_enclave/secure_enclave*.so
 RUN cd /usr/src/sdk/secure_enclave && \
      curl --output secure_enclave.signed.so  \
-     https://raw.githubusercontent.com/skalenetwork/signed_sgx_enclaves/master/secure_enclave_signed.so.1
+     https://raw.githubusercontent.com/skalenetwork/signed_sgx_enclaves/master/secure_enclave_signed.so.3
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
