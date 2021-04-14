@@ -90,7 +90,7 @@ void validate_SEK() {
     if (!hex2carray(test_key_ptr->c_str(), &len, encr_test_key.data(),
                     BUF_LEN)) {
         spdlog::error("Corrupt test key is LevelDB");
-        exit(-1);
+        exit(-4);
     }
 
     sgx_status_t status = SGX_SUCCESS;
@@ -108,7 +108,7 @@ void validate_SEK() {
         spdlog::error("Invalid storage key. You need to recover using backup key");
         spdlog::error("Set the correct backup key into sgx_datasgxwallet_backup_key.txt");
         spdlog::error("Then run sgxwallet using backup flag");
-        exit(-1);
+        exit(-5);
     }
 }
 
@@ -215,7 +215,7 @@ void  safeExit() {
     auto previousValue = isSgxWalletExiting.exchange(1);
 
     if (previousValue != 1)
-        exit(3);
+        exit(-6);
 }
 
 void setSEK(shared_ptr <string> hex_encrypted_SEK) {
@@ -231,7 +231,7 @@ void setSEK(shared_ptr <string> hex_encrypted_SEK) {
 
     if (!hex2carray(hex_encrypted_SEK->c_str(), &len, encrypted_SEK,
                     BUF_LEN)) {
-        throw SGXException(INVALID_HEX, "Invalid encrypted SEK Hex");
+        throw SGXException(SET_SEK_INVALID_SEK_HEX, "Invalid encrypted SEK Hex");
     }
 
     sgx_status_t status = SGX_SUCCESS;
@@ -256,13 +256,13 @@ void enter_SEK() {
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
     if (test_key_ptr == nullptr) {
         spdlog::error("Error: corrupt or empty LevelDB database");
-        exit(-1);
+        exit(-7);
     }
 
 
     if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
         spdlog::error("File does not exist: "  BACKUP_PATH);
-        exit(-1);
+        exit(-8);
     }
 
     ifstream sek_file(BACKUP_PATH);
@@ -278,7 +278,7 @@ void enter_SEK() {
 
     while (!checkHex(sek, 16)) {
         spdlog::error("Invalid hex in key");
-        exit(-1);
+        exit(-9);
     }
 
     auto encrypted_SEK = check_and_set_SEK(sek);

@@ -16,41 +16,52 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file RPCException.h
+    @file ZMQServer.h
     @author Stan Kladko
-    @date 2019
+    @date 2020
 */
 
-#ifndef SGXD_RPCEXCEPTION_H
-#define SGXD_RPCEXCEPTION_H
 
-#include <string>
-#include <exception>
+#ifndef SGXWALLET_ZMQServer_H
+#define SGXWALLET_ZMQServer_H
+
+
+#include <vector>
+#include <thread>
+#include <memory>
+#include <functional>
+#include <atomic>
+
+#include <zmq.hpp>
+#include "zhelpers.hpp"
+
+
+#include "ServerWorker.h"
 
 using namespace std;
 
-class SGXException : public exception {
 
-    const int32_t status;
-    const string errString;
-
+class ZMQServer {
 public:
+    ZMQServer();
 
-    SGXException(int32_t _status, const string& _errString) : status(_status), errString(_errString) {}
 
-    const string getMessage() const {
-        return "SGXException:status:" + to_string(status) + ":" + errString;
-    }
+    atomic<bool> isExitRequested;
 
-    const string& getErrString() const  {
-        return errString;
-    }
+    enum {
+        kMaxThread = 5
+    };
 
-    const int32_t getStatus() const {
-        return status;
-    }
+    void run();
 
+private:
+    zmq::context_t ctx_;
+    zmq::socket_t frontend_;
+    zmq::socket_t backend_;
+
+    std::vector<ServerWorker *> worker;
+    std::vector<std::thread *> worker_thread;
 
 };
 
-#endif //SGXD_RPCEXCEPTION_H
+#endif //SGXWALLET_ZMQServer_H

@@ -72,7 +72,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixture() {
@@ -85,10 +85,11 @@ public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
         setOptions(L_INFO, true, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureHTTPS() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -97,10 +98,11 @@ class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureNoResetFromBackup() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -110,10 +112,11 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true);
+        initAll(L_INFO, false, true, false);
     }
 
     ~TestFixtureNoReset() {
+        exitZMQServer();
         TestUtils::destroyEnclave();
     }
 };
@@ -825,7 +828,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG test", "[aes-dkg]") {
     uint64_t binLen;
 
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -943,7 +946,11 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     SAFE_CHAR_BUF(common_key, BUF_LEN);
     REQUIRE(sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
 
-    auto hashed_key = cryptlite::sha256::hash_hex(string(common_key, 64));
+    uint8_t key_to_hash[33];
+    uint64_t len;
+    REQUIRE( hex2carray(common_key, &len, key_to_hash, 64) );
+
+    auto hashed_key = cryptlite::sha256::hash_hex(string((char*)key_to_hash, 32));
 
     SAFE_CHAR_BUF(derived_key, 33)
 
@@ -991,7 +998,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     uint64_t binLen;
 
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -999,7 +1006,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     for (int i = 0; i < t; i++) {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
                                               n);
         REQUIRE(response["status"] == 0);
 
@@ -1071,7 +1078,7 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
     vector <thread> threads;
     int num_threads = 4;
     for (int i = 0; i < num_threads; i++) {
-        threads.push_back(thread(TestUtils::sendRPCRequest));
+        threads.push_back(thread(TestUtils::sendRPCRequestV2));
     }
 
     for (auto &thread : threads) {

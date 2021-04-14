@@ -21,10 +21,8 @@
     @date 2020
 */
 
-#include <dkg/dkg.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <dkg/dkg.h>
+
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
 #include "secure_enclave_u.h"
@@ -241,7 +239,7 @@ void TestUtils::sendRPCRequest() {
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -355,7 +353,7 @@ void TestUtils::sendRPCRequestV2() {
     auto hash_arr = make_shared < array < uint8_t, 32 >> ();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
@@ -373,7 +371,7 @@ void TestUtils::sendRPCRequestV2() {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t, n);
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
         CHECK_STATE(pubBLSKeys[i]["status"] == 0);
@@ -488,7 +486,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
@@ -629,7 +627,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     auto hash_arr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
     if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-        throw SGXException(INVALID_HEX, "Invalid hash");
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
     map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
@@ -640,7 +638,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
         _blsKeyNames.push_back(blsName);
         string secretShare = secretShares[i]["secretShare"].asString();
 
-        auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
+        auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i], t,
                                               n);
         CHECK_STATE(response["status"] == 0);
         pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
@@ -721,7 +719,6 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_k
         mpz_clear(skey);
         point_clear(pub_keyB);
         point_clear(session_key);
-
         return  ret;
     }
 

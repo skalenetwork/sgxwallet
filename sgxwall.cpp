@@ -34,13 +34,16 @@
 
 #include "TestUtils.h"
 
+#include "ZMQServer.h"
+
 #include "testw.h"
 #include "sgxwall.h"
 #include "sgxwallet.h"
 
+
 void SGXWallet::usage() {
     cerr << "usage: sgxwallet\n";
-    exit(1);
+    exit(-21);
 }
 
 void SGXWallet::printUsage() {
@@ -100,14 +103,14 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
-        exit(1);
+        exit(-22);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
-                exit(0);
+                exit(-24);
             case 'c':
                 checkClientCertOption = false;
                 break;
@@ -144,7 +147,7 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 SGXWallet::printUsage();
-                exit(1);
+                exit(-23);
                 break;
         }
     }
@@ -171,7 +174,7 @@ int main(int argc, char *argv[]) {
         enclaveLogLevel = L_TRACE;
     }
 
-    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption);
+    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
 
     ifstream is("sgx_data/4node.json");
 
@@ -200,6 +203,8 @@ int main(int argc, char *argv[]) {
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
     }
+
+
 
     while (true) {
         sleep(10);
