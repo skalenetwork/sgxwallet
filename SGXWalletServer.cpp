@@ -21,7 +21,9 @@
     @date 2019
 */
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "abstractstubserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -30,10 +32,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
 #include "sgxwallet_common.h"
 #include "sgxwallet.h"
-
 
 #include "SGXException.h"
 #include "LevelDB.h"
@@ -118,12 +118,14 @@ void SGXWalletServer::printDB() {
 #define NUM_THREADS 200
 #endif
 
+bool SGXWalletServer::verifyCert(string &_certFileName) {
+    string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+    string verifyCert = "cert/verify_client_cert " + rootCAPath + " " + _certFileName;
+    return system(verifyCert.c_str()) == 0;
+}
 
-int SGXWalletServer::initHttpsServer(bool _checkCerts) {
-    COUNT_STATISTICS
-    spdlog::info("Entering {}", __FUNCTION__);
 
-    spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
+void SGXWalletServer::createCertsIfNeeded() {
 
     string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
     string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
@@ -137,7 +139,7 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
             spdlog::info("ROOT CA CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::error("ROOT CA CERTIFICATE GENERATION FAILED");
-            exit(-11);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "ROOT CA CERTIFICATE GENERATION FAILED");
         }
     }
 
@@ -154,9 +156,30 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
             spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY GENERATED");
         } else {
             spdlog::info("SERVER CERTIFICATE GENERATION FAILED");
-            exit(-12);
+            throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "SERVER CERTIFICATE GENERATION FAILED");
         }
     }
+
+    spdlog::info("Verifying  server cert");
+
+    if (verifyCert(certPath)) {
+        spdlog::info("SERVER CERTIFICATE IS SUCCESSFULLY VERIFIED");
+    } else {
+        spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
+        throw SGXException(FAIL_TO_VERIFY_CERTIFICATE, "SERVER CERTIFICATE VERIFICATION FAILED");
+    }
+}
+
+
+void SGXWalletServer::initHttpsServer(bool _checkCerts) {
+    COUNT_STATISTICS
+    spdlog::info("Entering {}", __FUNCTION__);
+    spdlog::info("Initing server, number of threads: {}", NUM_THREADS);
+
+    string certPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.crt";
+    string keyPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
+    string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+    string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
 
     httpServer = make_shared<HttpServer>(BASE_PORT, certPath, keyPath, rootCAPath, _checkCerts,
                                          NUM_THREADS);
@@ -164,27 +187,42 @@ int SGXWalletServer::initHttpsServer(bool _checkCerts) {
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
 
+    spdlog::info("Starting sgx server on port {} ...", BASE_PORT);
+
     if (!server->StartListening()) {
         spdlog::error("SGX Server could not start listening");
-        exit(-13);
+        throw SGXException(SGX_SERVER_FAILED_TO_START, "Https server could not start listening.");
     } else {
         spdlog::info("SGX Server started on port {}", BASE_PORT);
     }
-    return 0;
 }
 
-int SGXWalletServer::initHttpServer() { //without ssl
+void SGXWalletServer::initHttpServer() { //without ssl
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
+
+    spdlog::info("Starting sgx http server on port {} ...", BASE_PORT + 3);
+
     httpServer = make_shared<HttpServer>(BASE_PORT + 3, "", "", "", false,
                                          NUM_THREADS);
     server = make_shared<SGXWalletServer>(*httpServer,
                                           JSONRPC_SERVER_V2); // hybrid server (json-rpc 1.0 & 2.0)
     if (!server->StartListening()) {
         spdlog::error("Server could not start listening");
-        exit(-14);
+        throw SGXException(SGX_SERVER_FAILED_TO_START, "Http server could not start listening.");
     }
-    return 0;
+}
+
+int SGXWalletServer::exitServer() {
+  spdlog::info("Stoping sgx server");
+
+  if (server && !server->StopListening()) {
+      spdlog::error("Sgx server could not be stopped. Will forcefully terminate the app");
+  } else {
+      spdlog::info("Sgx server stopped");
+  }
+
+  return 0;
 }
 
 Json::Value
@@ -208,18 +246,19 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare, const string &_k
         }
 
         if (!checkHex(hashTmp)) {
-            throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE, string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
+            throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE,
+                               string(__FUNCTION__) + ":Invalid BLS key share, please use hex");
         }
 
         encryptedKeyShareHex = encryptBLSKeyShare2Hex(&errStatus, (char *) errMsg.data(), hashTmp.c_str());
 
         if (errStatus != 0) {
-            throw SGXException(errStatus, string(__FUNCTION__) + ":" +errMsg.data());
+            throw SGXException(errStatus, string(__FUNCTION__) + ":" + errMsg.data());
         }
 
         if (encryptedKeyShareHex.empty()) {
-            throw SGXException(BLS_IMPORT_EMPTY_ENCRYPTED_KEY_SHARE,string(__FUNCTION__) +
-                    ":Empty encrypted key share");
+            throw SGXException(BLS_IMPORT_EMPTY_ENCRYPTED_KEY_SHARE, string(__FUNCTION__) +
+                                                                     ":Empty encrypted key share");
         }
 
         result["encryptedKeyShare"] = encryptedKeyShareHex;
@@ -302,7 +341,6 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
 
 
     result["signatureShare"] = string(signature.data());
-
 
 
     RETURN_SUCCESS(result);
@@ -430,7 +468,7 @@ Json::Value SGXWalletServer::getPublicECDSAKeyImpl(const string &_keyName) {
     try {
         if (!checkECDSAKeyName(_keyName)) {
             throw SGXException(INVALID_ECDSA_GETPKEY_KEY_NAME, string(__FUNCTION__) +
-            ":Invalid ECDSA import key name");
+                                                               ":Invalid ECDSA import key name");
         }
         shared_ptr <string> keyStr = readFromDb(_keyName);
         publicKey = getECDSAPubKey(keyStr->c_str());
@@ -809,7 +847,7 @@ Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
             result["deleted"] = true;
         } else {
             auto error_msg = "BLS key not found: " + name;
-            throw SGXException(DELETE_BLS_KEY_NOT_FOUND, string(__FUNCTION__)+ ":" + error_msg.c_str());
+            throw SGXException(DELETE_BLS_KEY_NOT_FOUND, string(__FUNCTION__) + ":" + error_msg.c_str());
         }
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -898,8 +936,9 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares, 
 }
 
 Json::Value
-SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const string &_ethKeyName, const string &_polyName,
-                                         const string &_secretShare, int _t, int _n) {
+SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const string &_ethKeyName,
+                                           const string &_polyName,
+                                           const string &_secretShare, int _t, int _n) {
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -1053,7 +1092,7 @@ SGXWalletServer::dkgVerificationV2(const string &_publicShares, const string &et
 
 Json::Value
 SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &ethKeyName, const string &polyName,
-                                     const string &SecretShare, int t, int n) {
+                                       const string &SecretShare, int t, int n) {
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
@@ -1061,6 +1100,7 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
+
         throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist: "
                                                                                                     + prefix + name);
     }

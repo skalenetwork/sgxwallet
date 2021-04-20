@@ -10,6 +10,7 @@
     -   [Run sgxwallet in secure mode](run-in-hardware-mode.md#run-sgxwallet-in-secure-mode)
     -   [Start, stop and upgrade sgxwallet containers](run-in-hardware-mode.md#start-stop-and-upgrade-sgxwallet-containers)
     -   [Logging](run-in-hardware-mode.md#logging)
+-   [Check that your SGXWallet is working correctly](healthchecks.md)
 -   [Backup and recover sgxwallet](backup-procedure.md)
 
 ## Community

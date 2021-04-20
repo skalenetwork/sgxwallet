@@ -42,26 +42,44 @@ using namespace std;
 
 
 class ZMQServer {
+
+    uint64_t workerThreads;
+
 public:
-    ZMQServer();
 
+    bool checkSignature = false;
+    string caCertFile = "";
+    string caCert = "";
 
-    atomic<bool> isExitRequested;
+    static shared_ptr<ZMQServer> zmqServer;
 
-    enum {
-        kMaxThread = 5
-    };
+    static shared_ptr<std::thread> serverThread;
+
+    ZMQServer(bool _checkSignature, const string& _caCertFile);
+
+    ~ZMQServer();
 
     void run();
 
-private:
-    zmq::context_t ctx_;
-    zmq::socket_t frontend_;
-    zmq::socket_t backend_;
+    void exitAll();
 
-    std::vector<ServerWorker *> worker;
-    std::vector<std::thread *> worker_thread;
+    static void initZMQServer(bool _checkSignature);
+    static void exitZMQServer();
+
+
+
+private:
+    shared_ptr<zmq::context_t> ctx_;
+    shared_ptr<zmq::socket_t> frontend;
+    shared_ptr<zmq::socket_t> backend;
+
+    std::vector<shared_ptr<ServerWorker> > workers;
+    std::vector<shared_ptr<std::thread>> worker_threads;
+
+    static std::atomic<bool> isExitRequested;
 
 };
+
+
 
 #endif //SGXWALLET_ZMQServer_H

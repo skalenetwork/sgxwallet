@@ -274,8 +274,8 @@ void LevelDB::initDataFolderAndDBs() {
     char cwd[PATH_MAX];
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        spdlog::error("could not get current workin directory");
-        exit(-2);
+        spdlog::error("Could not get current working directory.");
+        throw SGXException(COULD_NOT_GET_WORKING_DIRECTORY, "Could not get current working directory.");
     }
 
     sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
@@ -288,8 +288,8 @@ void LevelDB::initDataFolderAndDBs() {
             spdlog::info("Successfully created sgx_data folder");
         }
         else{
-            spdlog::error("Couldnt create creating sgx_data folder");
-            exit(-3);
+            spdlog::error("Could not create sgx_data folder.");
+            throw SGXException(ERROR_CREATING_SGX_DATA_FOLDER, "Could not create sgx_data folder.");
         }
     }
 

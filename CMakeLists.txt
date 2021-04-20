@@ -8,6 +8,7 @@ include_directories(secure_enclave)
 include_directories(sgx-software-enable)
 include_directories(tgmp-build)
 include_directories(tgmp-build/include)
+include_directories(sgxwallet)
 
 add_executable(sgxwallet
         secure_enclave/AESUtils.c
@@ -82,4 +83,4 @@ add_executable(sgxwallet
         SGXWalletServer.hpp
         stubclient.cpp
         stubclient.h
-        testw.cpp)
+        testw.cpp ZMQClient.cpp ZMQClient.h)

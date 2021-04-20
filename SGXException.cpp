@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2019-Present SKALE Labs
+    Copyright (C) 2021-Present SKALE Labs
 
     This file is part of sgxwallet.
 
@@ -16,39 +16,15 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file SEKManager.h
+    @file SGXException.cpp
     @author Stan Kladko
-    @date 2020
+    @date 2021
 */
 
-#ifndef SGXD_SEKMANAGER_H
-#define SGXD_SEKMANAGER_H
+#include "SGXException.h"
 
-#ifdef __cplusplus
-#include <string>
-#include <memory>
-#endif
-
-void gen_SEK();
-
-#ifdef __cplusplus
-void setSEK(std::shared_ptr<std::string> hex_encr_SEK);
-#endif
-
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC void enter_SEK();
-
-EXTERNC void initSEK();
-
-EXTERNC void setSEK();
+const char* SGXException::what()  const noexcept {
+    return errString.c_str();
+}
 
 
-
-
-
-#endif //SGXD_SEKMANAGER_H

@@ -39,8 +39,6 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 
-
-
 class SGXWalletServer : public AbstractStubServer {
     static shared_ptr<SGXWalletServer> server;
     static shared_ptr<HttpServer> httpServer;
@@ -55,7 +53,11 @@ class SGXWalletServer : public AbstractStubServer {
     static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
     const string &_value);
 
+
 public:
+
+    static bool verifyCert(string& _certFileName);
+
     static const char* getVersion() {
         return TOSTRING(SGXWALLET_VERSION);
     }
@@ -174,9 +176,13 @@ public:
 
     static void printDB();
 
-    static int initHttpServer();
+    static void initHttpServer();
 
-    static int initHttpsServer(bool _checkCerts);
+    static void initHttpsServer(bool _checkCerts);
+
+    static int exitServer();
+
+    static void createCertsIfNeeded();
 };
 
 #endif //SGXWALLET_SGXWALLETSERVER_HPP

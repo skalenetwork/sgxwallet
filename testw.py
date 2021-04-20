@@ -28,7 +28,9 @@ username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Top directory is:" + topDir)
-testList = ["[first-run]",
+testList = [ "[zmq-ecdsa]",
+            "[dkgzmqbls]",
+             "[first-run]",
             "[second-run]",
             "[many-threads-crypto]",
             "[many-threads-crypto-v2]",

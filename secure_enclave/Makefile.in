@@ -320,7 +320,7 @@ SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
-AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -Wall \
+AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -O2 -Wall \
 	-Wno-implicit-function-declaration $(TGMP_CPPFLAGS) \
 	-I./third_party/SCIPR -I../third_party/SCIPR \
 	-I../sgx-sdk-build/sgxsdk/include/libcxx

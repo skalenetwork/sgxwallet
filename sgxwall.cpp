@@ -21,14 +21,16 @@
     @date 2020
 */
 
+#include <csignal>
 #include <stdbool.h>
+
+#include "ExitHandler.h"
 
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
-
 
 #include <fstream>
 
@@ -41,11 +43,6 @@
 #include "sgxwallet.h"
 
 
-void SGXWallet::usage() {
-    cerr << "usage: sgxwallet\n";
-    exit(-21);
-}
-
 void SGXWallet::printUsage() {
     cerr << "\nAvailable flags:\n";
     cerr << "\nDebug flags:\n\n";
@@ -54,10 +51,10 @@ void SGXWallet::printUsage() {
     cerr << "\nBackup, restore, update flags:\n\n";
     cerr << "   -b  filename Restore from back up or software update. You will need to put backup key into a file in sgx_data dir. \n";
     cerr << "   -y  Do not ask user to acknowledge receipt of the backup key \n";
-    cerr << "\nHTTPS flags:\n\n";
-    cerr << "   -n  Launch sgxwallet using http. Default is to use https with a selg-signed server cert.  \n";
-    cerr << "   -c  Do not verify SSL client certs\n";
-    cerr << "   -s  Sign SSL client certs without human confirmation \n";
+    cerr << "\nSecurity flags flags:\n\n";
+    cerr << "   -n  Use http instead of https. Default is to use https with a selg-signed server cert.  Insecure! \n";
+    cerr << "   -c  Disable client authentication using certificates. Insecure!\n";
+    cerr << "   -s  Sign client certificates without human confirmation. Insecure! \n";
 }
 
 
@@ -88,6 +85,11 @@ void SGXWallet::serializeKeys(const vector<string>& _ecdsaKeyNames, const vector
     fs.close();
 }
 
+void SGXWallet::signalHandler( int signalNo ) {
+    spdlog::info("Received exit signal {}.", signalNo);
+    ExitHandler::exitHandler( signalNo );
+}
+
 
 int main(int argc, char *argv[]) {
     bool enterBackupKeyOption  = false;
@@ -99,18 +101,20 @@ int main(int argc, char *argv[]) {
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
 
+    std::signal(SIGABRT, SGXWallet::signalHandler);
+
     int opt;
 
     if (argc > 1 && strlen(argv[1]) == 1) {
         SGXWallet::printUsage();
-        exit(-22);
+        exit(-21);
     }
 
     while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
-                exit(-24);
+                exit(-22);
             case 'c':
                 checkClientCertOption = false;
                 break;
@@ -174,11 +178,11 @@ int main(int argc, char *argv[]) {
         enclaveLogLevel = L_TRACE;
     }
 
-    initAll(enclaveLogLevel, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
+    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
 
     ifstream is("sgx_data/4node.json");
 
-    if (generateTestKeys && !is.good()) {
+    if (generateTestKeys && !is.good() && !!ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
@@ -206,9 +210,14 @@ int main(int argc, char *argv[]) {
 
 
 
-    while (true) {
+    while ( !ExitHandler::shouldExit() ) {
         sleep(10);
     }
 
-    return 0;
+    ExitHandler::exit_code_t exitCode = ExitHandler::requestedExitCode();
+    int signal = ExitHandler::getSignal();
+    spdlog::info("Will exit with exit code {}", exitCode);
+    exitAll();
+    spdlog::info("Exiting with exit code {} and signal", exitCode, signal);
+    return exitCode;
 }
