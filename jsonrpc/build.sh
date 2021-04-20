@@ -90,12 +90,11 @@ make
 make install
 cd ..
 
-#tar -xzf ./pre_downloaded/libjson-rpc-cpp.tar.gz
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout hotfix/comment-ssl-certificates
+git checkout develop
 git pull
-rn -rf build || true
+rm -rf build || true
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
