@@ -155,7 +155,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     }
 
     LOG_INFO("Successfully inited enclave. Signed enclave version:" SIGNED_ENCLAVE_VERSION );
-#ifndef SGX_DEBUG
+#ifdef SGX_DEBUG
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
 #endif
 
