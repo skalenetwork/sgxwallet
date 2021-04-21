@@ -11,11 +11,11 @@ RUN    apt update && \
        apt install -yq apt-utils && \
        apt install -yq --no-install-recommends python-yaml vim unzip \
            telnet git ca-certificates build-essential ocaml ocamlbuild \
-           automake autoconf libtool wget python libssl-dev libssl-dev \
-           libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev  libboost-all-dev \
-           alien cmake debhelper uuid-dev libxml2-dev ccache vim libprotobuf10 \
-           yasm cmake flex bison  libprocps-dev ccache autoconf texinfo libssl-dev \
-           libboost-all-dev libjsonrpccpp-dev curl libjsonrpccpp-tools && \
+           automake autoconf libtool wget python libssl-dev cmake perl \
+           libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev debhelper reprepro \
+           libboost-all-dev alien debhelper uuid-dev libxml2-dev ccache libprotobuf10 \
+           yasm flex bison libprocps-dev ccache autoconf texinfo \
+           libjsonrpccpp-dev curl libjsonrpccpp-tools && \
        ln -s /usr/bin/ccache /usr/local/bin/clang && \
        ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
        ln -s /usr/bin/ccache /usr/local/bin/gcc && \
