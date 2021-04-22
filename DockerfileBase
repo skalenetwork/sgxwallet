@@ -4,6 +4,7 @@ FROM ubuntu:bionic
 COPY . /usr/src/sdk
 RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
+RUN mkdir /opt/intel
 RUN mkdir /opt/intel/sgxsdk
 RUN mkdir /opt/intel/sgxsdk/include
 
