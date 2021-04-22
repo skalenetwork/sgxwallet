@@ -13,7 +13,7 @@ COPY docker/install-psw.patch ./
 RUN    apt update && \
        apt install -yq apt-utils && \
        apt install -yq --no-install-recommends python-yaml vim unzip \
-           telnet git ca-certificates build-essential ocaml ocamlbuild \
+           telnet git ca-certificates build-essential lsb-release ocaml ocamlbuild \
            automake autoconf libtool wget python libssl-dev cmake perl \
            libcurl4-openssl-dev protobuf-compiler git libprotobuf-dev debhelper reprepro \
            libboost-all-dev alien debhelper uuid-dev libxml2-dev ccache libprotobuf10 \
