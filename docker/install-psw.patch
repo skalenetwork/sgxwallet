@@ -36,3 +36,15 @@ index 7d19987..7386ce7 100755
  
  PKG_ARCH=@arch@
  ARCH=$(uname -m)
+diff --git a/linux/installer/common/psw/install.sh b/linux/installer/common/psw/install.sh
+index 042f83c..3043ad1 100755
+--- a/linux/installer/common/psw/install.sh
++++ b/linux/installer/common/psw/install.sh
+@@ -106,7 +106,7 @@ else
+         echo "Warning: No systemctl/initctl to start AESM. You may start AESM manually, e.g., /opt/intel/sgxpsw/aesm/aesm_service --no-daemon"
+     else
+         echo "Error: Unsupported platform - neither systemctl nor initctl is found."
+-        exit 5
++        retval=0
+     fi
+ fi
