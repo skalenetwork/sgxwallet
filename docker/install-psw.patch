@@ -48,6 +48,7 @@ index 042f83c..3043ad1 100755
 +        retval=0
      fi
  fi
+ 
 diff --git a/linux/installer/common/sgx-aesm-service/Makefile b/linux/installer/common/sgx-aesm-service/Makefile
 index 89c5b21..2b4eb8f 100644
 --- a/linux/installer/common/sgx-aesm-service/Makefile
@@ -61,3 +62,4 @@ index 89c5b21..2b4eb8f 100644
 +exit 0
  endif
  endif
+ 
