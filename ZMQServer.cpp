@@ -49,7 +49,7 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
 
 
 
-    workerThreads = 4; // do four threads for now
+    workerThreads = 1; // do one  thread for now
 
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
