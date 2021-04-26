@@ -107,6 +107,9 @@ void ZMQServer::run() {
         throw SGXException(ZMQ_COULD_NOT_CREATE_WORKERS, "Could not create zmq server workers.");
     };
 
+    spdlog::info("Created {} zmq server workers ...", workerThreads);
+
+    spdlog::info("Creating zmq proxy.");
 
     try {
         zmq::proxy(static_cast<void *>(*frontend), static_cast<void *>(*backend), nullptr);

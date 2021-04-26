@@ -178,11 +178,24 @@ int main(int argc, char *argv[]) {
         enclaveLogLevel = L_TRACE;
     }
 
+    cerr << "Calling initAll ..." << endl;
     initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
+    cerr << "Completed initAll." << endl;
 
-    ifstream is("sgx_data/4node.json");
 
-    if (generateTestKeys && !is.good() && !!ExitHandler::shouldExit()) {
+    //check if test keys already exist
+
+    string TEST_KEYS_4_NODE = "sgx_data/4node.json";
+
+    ifstream is(TEST_KEYS_4_NODE);
+    auto keysExist = is.good();
+
+    if (keysExist) {
+        cerr << "Found test keys." << endl;
+    }
+
+
+    if (generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
