@@ -50,7 +50,7 @@ index 042f83c..3043ad1 100755
  fi
  
 diff --git a/linux/installer/common/sgx-aesm-service/Makefile b/linux/installer/common/sgx-aesm-service/Makefile
-index 89c5b21..21b1627 100644
+index 89c5b21..c8a2036 100644
 --- a/linux/installer/common/sgx-aesm-service/Makefile
 +++ b/linux/installer/common/sgx-aesm-service/Makefile
 @@ -48,7 +48,7 @@ AESMD_CONF_DEL=aesmd.conf
@@ -58,7 +58,6 @@ index 89c5b21..21b1627 100644
  $(warning "You may need to start aesmd manually after it's installed!")
  else
 -$(error "Unsupported platform - neither systemctl nor initctl is found!")
-+exit 0
++@exit 0
  endif
  endif
-
