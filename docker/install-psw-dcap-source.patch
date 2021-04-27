@@ -7,7 +7,6 @@ index 1f3efdb..07ede24 100644
  RAD_CONF_PATH=/lib/systemd/system
  else
 -$(error "Unsupported platform - neither systemctl nor initctl is found!")
-+# $(error "Unsupported platform - neither systemctl nor initctl is found!")
 +exit 0
  endif
  endif

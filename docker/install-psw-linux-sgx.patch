@@ -58,7 +58,6 @@ index 89c5b21..2b4eb8f 100644
  $(warning "You may need to start aesmd manually after it's installed!")
  else
 -$(error "Unsupported platform - neither systemctl nor initctl is found!")
-+# $(error "Unsupported platform - neither systemctl nor initctl is found!")
 +exit 0
  endif
  endif
