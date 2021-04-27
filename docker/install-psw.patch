@@ -63,7 +63,7 @@ index 89c5b21..2b4eb8f 100644
  endif
  endif
  
- diff --git a/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile b/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
+ diff --git a/external/dcap_source/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile b/external/dcap_source/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
 index 1f3efdb..07ede24 100644
 --- a/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
 +++ b/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
@@ -76,4 +76,3 @@ index 1f3efdb..07ede24 100644
 +exit 0
  endif
  endif
- 
