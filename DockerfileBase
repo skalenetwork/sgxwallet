@@ -8,7 +8,7 @@ RUN mkdir /opt/intel
 RUN mkdir /opt/intel/sgxsdk
 RUN mkdir /opt/intel/sgxsdk/include
 
-COPY docker/install-psw-lunix-sgx.patch ./
+COPY docker/install-psw-linux-sgx.patch ./
 COPY docker/install-psw-dcap-source.patch ./
 
 RUN    apt update && \
