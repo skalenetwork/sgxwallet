@@ -82,30 +82,12 @@ void ServerWorker::doOneServerLoop() noexcept {
             }
         } while (pollResult == 0);
 
-
-        zmq::message_t msg;
-        zmq::message_t copied_msg;
         worker->recv(&identity);
         copied_id.copy(&identity);
-        worker->recv(&msg);
-
-        int64_t more;
-        size_t more_size = sizeof(more);
-        auto rc = zmq_getsockopt(*worker, ZMQ_RCVMORE, &more, &more_size);
-
-        CHECK_STATE2(rc == 0, ZMQ_COULD_NOT_GET_SOCKOPT);
-
-        vector <uint8_t> msgData(msg.size() + 1, 0);
-
-        memcpy(msgData.data(), msg.data(), msg.size());
-
-        CHECK_STATE2(msg.size() > 5 || msgData.at(0) == '{' || msgData[msg.size()] == '}',
-        ZMQ_INVALID_MESSAGE);
-
-        memcpy(msgData.data(), msg.data(), msg.size());
+        string stringToParse = s_recv(*worker);
 
         auto parsedMsg = ZMQMessage::parse(
-                (const char *) msgData.data(), msg.size(), true, checkSignature);
+                stringToParse.c_str(), stringToParse.size(), true, checkSignature);
 
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 
@@ -133,17 +115,16 @@ void ServerWorker::doOneServerLoop() noexcept {
     try {
 
         Json::FastWriter fastWriter;
+        fastWriter.omitEndingLineFeed();
 
         replyStr = fastWriter.write(result);
-        replyStr = replyStr.substr(0, replyStr.size() - 1);
 
         CHECK_STATE(replyStr.size() > 2);
         CHECK_STATE(replyStr.front() == '{');
         CHECK_STATE(replyStr.back() == '}');
-        zmq::message_t replyMsg(replyStr.c_str(), replyStr.size() + 1);
 
         worker->send(copied_id, ZMQ_SNDMORE);
-        worker->send(replyMsg);
+        s_send(*worker, replyStr);
 
     } catch (std::exception &e) {
         if (isExitRequested) {

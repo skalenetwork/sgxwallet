@@ -103,14 +103,12 @@ inline int getValue() { //Note: this value is in KB!
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack(__LINE__);            \
         \
         BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
 #define CHECK_STATE2(_EXPRESSION_, __STATUS__) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack(__LINE__);            \
         \
         BOOST_THROW_EXCEPTION(SGXException(__STATUS__, string(__CLASS_NAME__) +  ":" + __msg__));}
 
