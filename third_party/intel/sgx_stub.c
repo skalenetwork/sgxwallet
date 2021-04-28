@@ -178,7 +178,7 @@ static void *_load_libsgx_urts()
 #ifdef _WIN32
 		h_libsgx_urts= LoadLibrary("libsgx_urts.dll");
 #else
-		h_libsgx_urts= dlopen("libsgx_urts.so", RTLD_GLOBAL|RTLD_NOW);
+		h_libsgx_urts= dlopen("libsgx_urts_sim.so", RTLD_GLOBAL|RTLD_NOW);
 #endif
 		l_libsgx_urts= ( h_libsgx_urts == NULL ) ? -1 : 1;
 	}
