@@ -108,7 +108,7 @@ int file_in_searchpath (const char *file, char *search, char *fullpath,
 	if ( search == NULL ) return 0;
 	if ( strlen(search) == 0 ) return 0;
 
-	str= strdup(search);
+	str = strdup(search);
 	if ( str == NULL ) return 0;
 
 	p= strtok(str, ":");
