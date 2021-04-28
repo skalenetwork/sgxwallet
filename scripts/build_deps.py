@@ -77,7 +77,7 @@ print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 os.chdir(BLS_DIR)
-assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild"]) == 0
+assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) == 0
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0
 
