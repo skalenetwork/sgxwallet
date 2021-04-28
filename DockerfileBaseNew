@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install  -y \
     libssl1.1 \
     make \
     module-init-tools \
-    unzip \
+    unzip
 
 RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
 
@@ -51,7 +51,7 @@ WORKDIR /usr/src/sdk
 RUN    apt update && \
        apt install -yq apt-utils && \
        apt install -yq --no-install-recommends python-yaml vim \
-           telnet git ca-certificates python libssl-dev cmake perl \
+           telnet git ca-certificates perl \
            reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
            yasm flex bison libprocps-dev ccache texinfo \
            libjsonrpccpp-dev curl libjsonrpccpp-tools && \
