@@ -65,14 +65,14 @@ index 89c5b21..aa70c4b 100644
 -else
 -$(error "Unsupported platform - neither systemctl nor initctl is found!")
 -endif
-+       ifneq ($(shell awk -F/ '$$2 == "docker"' /proc/self/cgroup),)
-+               AESMD_CONF_NAME=aesmd.service
-+               AESMD_CONF_DEL=aesmd.conf
-+               AESMD_CONF_PATH=/lib/systemd/system
-+               $(warning "You may need to start aesmd manually after it's installed!")
-+       else
-+               @exit 0
-+       endif
++	ifneq ($(shell awk -F/ '$$2 == "docker"' /proc/self/cgroup),)
++		AESMD_CONF_NAME=aesmd.service
++		AESMD_CONF_DEL=aesmd.conf
++		AESMD_CONF_PATH=/lib/systemd/system
++		$(warning "You may need to start aesmd manually after it's installed!")
++	else
++		@exit 0
++	endif
  endif
  
  default:
