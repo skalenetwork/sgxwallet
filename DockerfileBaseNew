@@ -22,7 +22,8 @@ RUN apt-get update && apt-get install  -y \
     libprotobuf10 \
     libssl1.1 \
     make \
-    module-init-tools
+    module-init-tools \
+    unzip
 
 RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
 
