@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "third_party/intel/sgx_stub.h"
 #include <limits.h>
 #include <stdio.h>
+#include <sgx_uae_quote_ex.h>
 #include <sgx_urts.h>
 #include <sys/stat.h>
 #include <stdlib.h>
