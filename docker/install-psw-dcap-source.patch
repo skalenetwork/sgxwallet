@@ -1,25 +1,12 @@
 diff --git a/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile b/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
-index 1f3efdb..cd8df2e 100644
+index 1f3efdb..42d7ed6 100644
 --- a/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
 +++ b/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
-@@ -42,13 +42,13 @@ RAD_CONF_DEL=$(if $(wildcard /run/systemd/system/.*),mpa_registration_tool.conf,
- RAD_CONF_PATH=$(if $(wildcard /run/systemd/system/.*),$(if $(wildcard /lib/systemd/system/.*),/lib/systemd/system,/usr/lib/systemd/system),$(if $(wildcard /etc/init/.*),/etc/init/))
- 
- ifeq ($(RAD_CONF_NAME),)
--ifneq ($(shell awk -F/ '$$2 == "docker"' /proc/self/cgroup),)
--RAD_CONF_NAME=mpa_registration_tool.service
--RAD_CONF_DEL=mpa_registration.conf
--RAD_CONF_PATH=/lib/systemd/system
--else
+@@ -47,7 +47,7 @@ RAD_CONF_NAME=mpa_registration_tool.service
+ RAD_CONF_DEL=mpa_registration.conf
+ RAD_CONF_PATH=/lib/systemd/system
+ else
 -$(error "Unsupported platform - neither systemctl nor initctl is found!")
--endif
-+	ifneq ($(shell awk -F/ '$$2 == "docker"' /proc/self/cgroup),)
-+		RAD_CONF_NAME=mpa_registration_tool.service
-+		RAD_CONF_DEL=mpa_registration.conf
-+		RAD_CONF_PATH=/lib/systemd/system
-+	else
-+		@exit 0
-+	endif
++@exit 0
  endif
- 
-        #install -d $(shell readlink -m $(DESTDIR)/$(SGX_RA_SERVICE_PACKAGE_NAME)/$(RAD_CONF_PATH))
+ endif
