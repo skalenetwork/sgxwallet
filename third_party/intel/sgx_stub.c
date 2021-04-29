@@ -164,7 +164,7 @@ static void *_load_libsgx_uae_service()
 #ifdef _WIN32
 		h_libsgx_uae_service= LoadLibrary("libsgx_uae_service.dll");
 #else
-		h_libsgx_uae_service= dlopen("libsgx_uae_service.so", RTLD_GLOBAL|RTLD_NOW);
+		h_libsgx_uae_service= dlopen("libsgx_uae_service_sim.so", RTLD_GLOBAL|RTLD_NOW);
 #endif
 		l_libsgx_uae_service= ( h_libsgx_uae_service == NULL ) ? -1 : 1;
 	}
