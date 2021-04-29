@@ -161,10 +161,10 @@ static void *_load_symbol(void *handle, const char *symbol, int *status)
 static void *_load_libsgx_uae_service()
 {
 	if ( l_libsgx_uae_service == 0 ) {
-#ifdef _WIN32
-		h_libsgx_uae_service= LoadLibrary("libsgx_uae_service.dll");
-#else
+#ifdef SGX_HW_SIM
 		h_libsgx_uae_service= dlopen("libsgx_uae_service_sim.so", RTLD_GLOBAL|RTLD_NOW);
+#else
+		h_libsgx_uae_service= dlopen("libsgx_uae_service.so", RTLD_GLOBAL|RTLD_NOW);
 #endif
 		l_libsgx_uae_service= ( h_libsgx_uae_service == NULL ) ? -1 : 1;
 	}
@@ -175,10 +175,10 @@ static void *_load_libsgx_uae_service()
 static void *_load_libsgx_urts()
 {
 	if ( l_libsgx_urts == 0 ) {
-#ifdef _WIN32
-		h_libsgx_urts= LoadLibrary("libsgx_urts.dll");
-#else
+#ifdef SGX_HW_SIM
 		h_libsgx_urts= dlopen("libsgx_urts_sim.so", RTLD_GLOBAL|RTLD_NOW);
+#else
+		h_libsgx_urts= dlopen("libsgx_urts.so", RTLD_GLOBAL|RTLD_NOW);
 #endif
 		l_libsgx_urts= ( h_libsgx_urts == NULL ) ? -1 : 1;
 	}
