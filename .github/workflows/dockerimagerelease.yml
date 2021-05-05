@@ -8,15 +8,29 @@ jobs:
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      SECRET_KEY: ${{ secrets.V2 }}
     steps:
       - name: Fail, if older Github Actions machine. Click "Re-run jobs"
         run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
       - uses: actions/checkout@v1
-      - name: submodule update
+      - name: Submodule update
         run: git submodule update --init --recursive
-      - name: build and deploy docker image
+      - name: Create dir for signing enclave
+        run: mkdir signed_enclaves
+      - name: Write secret to file
+        run: 'echo "$SECRET_KEY" > signed_enclaves/skale_sgx_private_key0.pem'
+        shell: bash
+      - name: Generate public key
+        run: openssl rsa -in signed_enclaves/skale_sgx_private_key0.pem -pubout -out signed_enclaves/skale_sgx_public_key0.pem
+      - name: Build enclave
+        run: ./autoconf.bash && ./configure --with-sgx-build=release && bash -c "make -j$(nproc)"
+      - name: Sign enclave
+        run: cd scripts && ./sign_enclave.bash
+      - name: Delete secrets
+        run: rm signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
+      - name: Build and deploy docker image
         if: |
           contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
           contains(github.ref, 'master') || contains(github.ref, 'stable') ||
@@ -35,3 +49,22 @@ jobs:
           bash ./scripts/publish_image.sh sgxwallet_release
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+      - name: Upload signed enclave to Release
+        uses: actions/upload-release-asset@latest
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: signed_enclaves/signed_encalve.so
+          asset_name: signed_enclave.so
+          asset_content_type: application/octet-stream

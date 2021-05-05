@@ -4,20 +4,13 @@ COPY . /usr/src/sdk
 WORKDIR /usr/src/sdk
 RUN cp -f secure_enclave/secure_enclave.config.xml.release secure_enclave/secure_enclave.config.xml
 RUN apt update && apt install -y curl secure-delete
-#Test signing key generation
-RUN cd scripts && ./generate_signing_key.bash
 RUN touch /var/hwmode
-RUN ./autoconf.bash
-RUN ./configure --with-sgx-build=release
-RUN bash -c "make -j$(nproc)"
-RUN cd scripts && ./sign_enclave.bash
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
-RUN rm  /opt/intel/sgxsdk/lib64/*_sim.so
-RUN rm  /usr/src/sdk/secure_enclave/secure_enclave*.so
+RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+RUN rm /usr/src/sdk/secure_enclave/secure_enclave*.so
 RUN cd /usr/src/sdk/secure_enclave && \
-     curl --output secure_enclave.signed.so  \
-     https://raw.githubusercontent.com/skalenetwork/signed_sgx_enclaves/master/secure_enclave_signed.so.3
+    cp secure_enclave.signed.so signed_enclaves/secure_enclave_signed0.so
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
