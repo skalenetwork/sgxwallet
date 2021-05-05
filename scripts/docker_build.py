@@ -39,3 +39,5 @@ assert subprocess.call(["pwd"]) == 0
 
 assert subprocess.call(["docker", "build", topDir, "--file", topDir + "/" + DOCKER_FILE_NAME, "--tag",
                         FULL_IMAGE_TAG]) == 0
+
+assert subprocess.call(["docker", "push", FULL_IMAGE_TAG]) == 0
