@@ -29,9 +29,8 @@ topDir = os.getcwd() + "/sgxwallet"
 DOCKER_FILE_NAME = sys.argv[1]
 IMAGE_NAME = sys.argv[2]
 COMMIT_HASH = sys.argv[3]
-TAG_POSTFIX = "latest_commit"
 
-FULL_IMAGE_TAG = "skalenetwork/" + IMAGE_NAME + ":" + TAG_POSTFIX
+FULL_IMAGE_TAG = "skalenetwork/" + IMAGE_NAME + ":" + COMMIT_HASH
 
 print("Starting build", flush=True)
 
