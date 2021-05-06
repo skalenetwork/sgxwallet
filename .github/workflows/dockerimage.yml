@@ -1,4 +1,4 @@
-name: Build, test and push SGX container
+name: Build and push SGX container
 on:
   workflow_dispatch:
   push:
