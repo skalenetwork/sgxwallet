@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "third_party/intel/sgx_stub.h"
 #include <limits.h>
 #include <stdio.h>
+#include <sgx_uae_quote_ex.h>
 #include <sgx_urts.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -108,7 +109,7 @@ int file_in_searchpath (const char *file, char *search, char *fullpath,
 	if ( search == NULL ) return 0;
 	if ( strlen(search) == 0 ) return 0;
 
-	str= strdup(search);
+	str = strdup(search);
 	if ( str == NULL ) return 0;
 
 	p= strtok(str, ":");

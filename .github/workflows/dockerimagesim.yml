@@ -18,11 +18,15 @@ jobs:
     - uses: actions/checkout@v1
     - name: submodule update
       run: git submodule update --init --recursive
-    - name: build container for testing
+    - name: Build and publish container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: test
       run: python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim
     - name: build and deploy docker image
+      if: |
+            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+            contains(github.ref, 'master') ||
+            contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
       run : |
             sudo rm -rf /home/runner/work/sgxwallet/sgxwallet/sgx_data
             export BRANCH=${GITHUB_REF##*/}
