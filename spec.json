@@ -3,9 +3,6 @@
     "name": "importBLSKeyShare",
     "params": {
       "keyShareName": "key1",
-      "n": 2,
-      "t": 2,
-      "index" : 2,
       "keyShare": "1122334455"
     },
     "returns": {
@@ -21,8 +18,7 @@
       "keyShareName": "key1",
       "messageHash": "1122334455",
       "n": 2,
-      "t": 2,
-      "signerIndex": 1
+      "t": 2
     },
     "returns": {
       "status": 0,
@@ -34,7 +30,7 @@
   {
     "name": "importECDSAKey",
     "params": {
-      "keyName": "key1",
+      "keyName": "NEK:abcdef1234",
       "key": "1122334455"
     },
     "returns": {
@@ -52,18 +48,6 @@
       "encryptedKey": "12345",
       "keyName": "tmp:123",
       "publicKey": "12345"
-    }
-  },
-
-  {
-    "name": "renameECDSAKey",
-    "params": {
-      "tempKeyName": "key1",
-      "keyName": "key2"
-    },
-    "returns": {
-      "status": 0,
-      "errorMessage": "12345"
     }
   },
 
@@ -121,6 +105,7 @@
 
     }
   },
+  
   {
     "name": "getSecretShare",
     "params": {
@@ -135,6 +120,22 @@
       "secretShare": "123"
     }
   },
+
+  {
+    "name": "getSecretShareV2",
+    "params": {
+      "polyName": "key1",
+      "publicKeys": ["122","1222"],
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "secretShare": "123"
+    }
+  },
+
   {
     "name": "dkgVerification",
     "params": {
@@ -151,8 +152,43 @@
       "result": true
     }
   },
+
+  {
+    "name": "dkgVerificationV2",
+    "params": {
+      "publicShares": "123",
+      "ethKeyName":"NEK:hex",
+      "secretShare": "f_ij",
+      "n": 3,
+      "t": 3,
+      "index" : 2
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "result": true
+    }
+  },
+
   {
     "name": "createBLSPrivateKey",
+    "params": {
+      "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID: ",
+      "ethKeyName":"NEK:hex",
+      "polyName":"POLY:SCHAIN_ID :NODE_ID :DKG_ID: ",
+      "secretShare": "122",
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "blsKeyName": "key"
+    }
+  },
+
+  {
+    "name": "createBLSPrivateKeyV2",
     "params": {
       "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID: ",
       "ethKeyName":"NEK:hex",
@@ -183,7 +219,7 @@
   {
     "name": "complaintResponse",
     "params": {
-      "polyName": "p1",
+      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID: ",
       "n": 3,
       "t": 3,
       "ind": 1
@@ -196,7 +232,41 @@
     }
   },
 
+  {
+    "name": "multG2",
+    "params": {
+      "x": "12345"
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "x*G2": "123"
+    }
+  },
 
+  {
+    "name": "isPolyExists",
+    "params": {
+      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID: "
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "IsExist": "True"
+    }
+  },
 
-
+  {
+    "name": "calculateAllBLSPublicKeys",
+    "params": {
+      "publicShares": "123",
+      "n": 3,
+      "t": 2
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "publicKeys": []
+    }
+  },
 ]
