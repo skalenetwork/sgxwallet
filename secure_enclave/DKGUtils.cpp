@@ -174,6 +174,11 @@ vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symb
     return result;
 }
 
+bool isG2( const libff::alt_bn128_G2& point ) {
+  return point.is_well_formed() &&
+         libff::alt_bn128_G2::order() * point == libff::alt_bn128_G2::zero();
+}
+
 int gen_dkg_poly(char *secret, unsigned _t) {
 
     int status = 1;
@@ -456,6 +461,10 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
             pub_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
             pub_share.Z = libff::alt_bn128_Fq2::one();
 
+            if ( !isG2( pub_share ) ) {
+                ret = 3;
+                return ret;
+            }
             pub_shares.push_back(pub_share);
         }
 
