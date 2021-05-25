@@ -392,7 +392,7 @@ int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
         ret = 1;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        ret = 1;
+        ret = 2;
     }
 
     clean:

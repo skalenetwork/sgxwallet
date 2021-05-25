@@ -316,9 +316,11 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
             (uint8_t *)aes_key_hex, &dec_len);
 
     if (status == 0x3001) {
-        LOG_ERROR("Could not decrypt LevelDB storage! \n"
+        const char errorMessage [] = "Could not decrypt LevelDB storage! \n"
                   "If you upgraded sgxwallet software or if you are restoring from backup, please run sgxwallet with -b flag  and "
-                  "pass your backup key.");
+                  "pass your backup key.";
+        snprintf(errString, BUF_LEN, errorMessage);
+        LOG_ERROR(errorMessage);
     }
 
     CHECK_STATUS2("sgx unseal SEK failed with status %d");
@@ -359,8 +361,6 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
-
-
 
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                                 uint8_t *encryptedPrivateKey, uint64_t *enc_len, char *pub_key_x, char *pub_key_y) {
@@ -1006,7 +1006,7 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
 
     CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d");
 
-    status = calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0;
+    status = calc_public_shares(decrypted_dkg_secret, public_shares, _t);
     CHECK_STATUS("t does not match polynomial in db");
 
     SET_SUCCESS
