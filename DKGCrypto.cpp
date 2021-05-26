@@ -532,7 +532,6 @@ vector <string> calculateAllBlsPublicKeys(const vector <string> &public_shares) 
             public_share.Z = libff::alt_bn128_Fq2::one();
 
             public_values[j] = public_values[j] + public_share;
-
         }
     }
 

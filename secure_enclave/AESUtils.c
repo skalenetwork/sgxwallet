@@ -114,8 +114,6 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
       return -1;
   }
 
-
-
   uint64_t len = length - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE;
 
   if (msgLen < len) {
