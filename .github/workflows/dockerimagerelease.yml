@@ -33,10 +33,6 @@ jobs:
       - name: Delete secrets
         run: rm signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
       - name: Build and deploy docker image
-        if: |
-          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-          contains(github.ref, 'master') || contains(github.ref, 'stable') ||
-          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
