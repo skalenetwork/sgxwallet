@@ -1,8 +1,7 @@
 name: Build and push release SGX container
 on:
   workflow_dispatch:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - stable
 jobs:
