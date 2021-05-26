@@ -11,6 +11,5 @@ COPY docker/start.sh ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
 RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
 RUN rm /usr/src/sdk/secure_enclave/secure_enclave*.so
-RUN cd /usr/src/sdk/secure_enclave && \
-    cp secure_enclave.signed.so signed_enclaves/secure_enclave_signed0.so
+RUN cp signed_enclaves/secure_enclave_signed0.so secure_enclabve/secure_enclave.signed.so 
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
