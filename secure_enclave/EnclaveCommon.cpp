@@ -103,7 +103,6 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     string *sY = nullptr;
     string *ret = nullptr;
 
-
     try {
         _g1->to_affine_coordinates();
 
@@ -135,7 +134,6 @@ string *stringFromG1(libff::alt_bn128_G1 *_g1) {
     SAFE_DELETE(sY);
 
     return ret;
-
 }
 
 libff::alt_bn128_Fr *keyFromString(const char *_keyStringHex) {
@@ -264,7 +262,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString, const char *
     SAFE_DELETE(key);
     SAFE_DELETE(r);
     return ret;
-
 }
 
 void carray2Hex(const unsigned char *d, int _len, char *_hexArray) {
