@@ -74,7 +74,7 @@ private:
 
     shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req);
 
-    string doZmqRequestReply(string &_req);
+    string doZmqRequestReply(string &_req, bool exceptionOnTimeOut = false);
 
     uint64_t getProcessID();
 
