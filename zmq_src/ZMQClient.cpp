@@ -121,7 +121,6 @@ string ZMQClient::doZmqRequestReply(string &_req) {
     }
 }
 
-
 string ZMQClient::readFileIntoString(const string &_fileName) {
     ifstream t(_fileName);
     string str((istreambuf_iterator<char>(t)), istreambuf_iterator<char>());

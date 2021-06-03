@@ -21,9 +21,6 @@
     @date 2021
 */
 
-
-
-
 #ifndef SGXWALLET_ZMQCLIENT_H
 #define SGXWALLET_ZMQCLIENT_H
 
@@ -40,27 +37,20 @@
 #include <jsonrpccpp/client.h>
 #include "ZMQMessage.h"
 
-
-
-
 #define REQUEST_TIMEOUT     10000    //  msecs, (> 1000!)
 
 class ZMQClient {
-
-
 private:
 
     EVP_PKEY* pkey = 0;
     EVP_PKEY* pubkey = 0;
     X509* x509Cert = 0;
 
-
     bool sign = true;
     string certFileName = "";
     string certKeyName = "";
     string certificate = "";
     string key = "";
-
 
     recursive_mutex mutex;
 
@@ -81,7 +71,6 @@ private:
     static string readFileIntoString(const string& _fileName);
 
 public:
-
 
     ZMQClient(const string &ip, uint16_t port, bool _sign, const string&  _certPathName,
               const string& _certKeyName);

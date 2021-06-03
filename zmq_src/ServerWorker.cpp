@@ -53,8 +53,6 @@ ServerWorker::ServerWorker(zmq::context_t &_ctx, int sock_type, bool _checkSigna
     zmq_setsockopt(*worker, ZMQ_LINGER, &linger, sizeof(linger));
 };
 
-
-
 void ServerWorker::doOneServerLoop() noexcept {
     string replyStr;
 
@@ -67,7 +65,6 @@ void ServerWorker::doOneServerLoop() noexcept {
     zmq::message_t copied_id;
 
     try {
-
 
         zmq_pollitem_t items[1];
         items[0].socket = *worker;
@@ -154,9 +151,7 @@ void ServerWorker::work() {
     spdlog::info("Exited worker thread {}", index);
 }
 
-
 void ServerWorker::requestExit() {
     isExitRequested.exchange(true);
     spdlog::info("Closed worker socket {}", index);
 }
-

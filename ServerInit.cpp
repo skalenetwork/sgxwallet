@@ -103,9 +103,7 @@ void initUserSpace() {
 
 }
 
-
 uint64_t initEnclave() {
-
 
 #ifndef SGX_HW_SIM
     unsigned long support;
@@ -160,7 +158,6 @@ uint64_t initEnclave() {
 
     return SGX_SUCCESS;
 }
-
 
 void initAll(uint32_t _logLevel, bool _checkCert,
              bool _checkZMQSig, bool _autoSign, bool _generateTestKeys) {
@@ -237,5 +234,4 @@ void exitAll() {
     CSRManagerServer::exitServer();
     SGXInfoServer::exitServer();
     ZMQServer::exitZMQServer();
-
 }
