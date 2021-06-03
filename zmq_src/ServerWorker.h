@@ -20,6 +20,7 @@
     @author Stan Kladko
     @date 2021
 */
+
 #ifndef SGXWALLET_SERVERWORKER_H
 #define SGXWALLET_SERVERWORKER_H
 
