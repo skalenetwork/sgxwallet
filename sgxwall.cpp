@@ -36,7 +36,7 @@
 
 #include "TestUtils.h"
 
-#include "ZMQServer.h"
+#include "zmq_src/ZMQServer.h"
 
 #include "testw.h"
 #include "sgxwall.h"

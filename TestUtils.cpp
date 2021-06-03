@@ -42,7 +42,7 @@
 #include "SGXWalletServer.hpp"
 
 #include "catch.hpp"
-#include "ZMQClient.h"
+#include "zmq_src/ZMQClient.h"
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "BLSPublicKeyShare.h"

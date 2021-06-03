@@ -70,7 +70,10 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 ## have to be explicitly listed
 
 
-COMMON_SRC = SGXException.cpp ExitHandler.cpp ZMQClient.cpp BLSSignRspMessage.cpp ECDSASignRspMessage.cpp ECDSASignReqMessage.cpp BLSSignReqMessage.cpp ZMQMessage.cpp ZMQServer.cpp ServerWorker.cpp InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp  \
+COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/BLSSignRspMessage.cpp \
+             zmq_src/ECDSASignRspMessage.cpp zmq_src/ECDSASignReqMessage.cpp zmq_src/BLSSignReqMessage.cpp \
+             zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/ServerWorker.cpp \
+             InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
              third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c third_party/intel/oc_alloc.c \
@@ -110,18 +113,20 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
    -lboost_system -lboost_thread -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
-
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
-testw_LDADD= ${sgxwallet_LDADD}
+testw_LDADD=${sgxwallet_LDADD}
 
-sgx_util_SOURCES= SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp
+sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exception.cpp \
+                InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
+                SGXRegistrationServer.cpp CSRManagerServer.cpp
 
 sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
                    -LlibBLS/build/libff/libff \
                    -Llibzmq/build/lib/ \
                    -l:libzmq.a \
                    -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                   -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
+                   -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
 

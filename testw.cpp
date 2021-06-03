@@ -57,8 +57,8 @@
 
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
-#include "ZMQClient.h"
-#include "ZMQServer.h"
+#include "zmq_src/ZMQClient.h"
+#include "zmq_src/ZMQServer.h"
 #include "sgxwallet.h"
 #include "TestUtils.h"
 #include "testw.h"

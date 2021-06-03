@@ -58,7 +58,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "SGXException.h"
-#include "ZMQServer.h"
+#include "zmq_src/ZMQServer.h"
 #include "SGXWalletServer.hpp"
 
 uint32_t enclaveLogLevel = 0;
