@@ -65,7 +65,6 @@
 
 #define PRINT_SRC_LINE cerr << "Executing line " <<  to_string(__LINE__) << endl;
 
-
 using namespace jsonrpc;
 using namespace std;
 
@@ -97,7 +96,6 @@ public:
     }
 };
 
-
 class TestFixtureZMQSign {
 public:
     TestFixtureZMQSign() {
@@ -112,7 +110,6 @@ public:
     }
 };
 
-
 class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
@@ -126,7 +123,6 @@ public:
         TestUtils::destroyEnclave();
     }
 };
-
 
 class TestFixtureNoReset {
 public:
@@ -161,7 +157,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     vector<char> signatureS(BUF_LEN, 0);
     uint8_t signatureV = 0;
 
-
     for (int i = 0; i < 50; i++) {
         PRINT_SRC_LINE
         status = trustedEcdsaSign(eid, &errStatus, errMsg.data(), encrPrivKey.data(), encLen,
@@ -173,7 +168,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     }
 
 }
-
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     vector<char> errMsg(BUF_LEN, 0);
@@ -190,7 +184,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 }
-
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-key]") {
     int errStatus = 0;
@@ -218,7 +211,6 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 }
-
 
 /* Do later
 TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
@@ -251,7 +243,6 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
 
 */
 
-
 string genECDSAKeyAPI(StubClient &_c) {
     Json::Value genKey = _c.generateECDSAKey();
     CHECK_STATE(genKey["status"].asInt() == 0);
@@ -281,9 +272,7 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[ecdsa-key-gen-api]") {
 
     auto keyName = genECDSAKeyAPI(c);
 
-
     Json::Value sig = c.ecdsaSignMessageHash(10, keyName, SAMPLE_HASH);
-
 
     for (int i = 0; i <= 20; i++) {
         try {
@@ -308,7 +297,6 @@ TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[bls-key-encrypt]") {
     sleep(3);
 }
 
-
 TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
     vector<char> errMsg(BUF_LEN, 0);
@@ -332,7 +320,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[dkg-aes-gen]") {
 
     sleep(3);
 }
-
 
 TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares]") {
     vector <uint8_t> encryptedDKGSecret(BUF_LEN, 0);
@@ -443,7 +430,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test", 
     REQUIRE(errStatus == SGX_SUCCESS);
 }
 
-
 /*
  * ( "verification test", "[verify]" ) {
 
@@ -458,11 +444,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test", 
 
 
 }*/
-
-
-
-
-
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
     HttpClient client(RPC_ENDPOINT);
@@ -505,7 +486,6 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[dkg-bls-v2]") {
 
     TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 }
-
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[dkgblszmq]") {
     HttpClient client(RPC_ENDPOINT);
@@ -594,7 +574,6 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     sleep(3);
 }
 
-
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
 
     PRINT_SRC_LINE
@@ -617,14 +596,11 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[cert-sign]") {
 
     REQUIRE(result["status"] == 0);
 
-
     PRINT_SRC_LINE
     result = SGXRegistrationServer::getServer()->SignCertificate("Haha");
 
     REQUIRE(result["status"] != 0);
 }
-
-
 
 TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
     HttpClient client(RPC_ENDPOINT);
@@ -704,8 +680,6 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
     Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
     REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 }
-
-
 
 TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     HttpClient client(RPC_ENDPOINT);
@@ -831,8 +805,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared < array < uint8_t,
-    32 > > ();
+    auto hash_arr = make_shared < array < uint8_t, 32 > > ();
 
     uint64_t binLen;
 
@@ -846,8 +819,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         auto response = c.createBLSPrivateKeyV2(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
-                                                t,
-                                                n);
+                                                t, n);
         REQUIRE(response["status"] == 0);
 
         PRINT_SRC_LINE
@@ -902,8 +874,6 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     sleep(3);
 }
 
-
-
 TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-crypto-v2]") {
     vector <thread> threads;
     int num_threads = 4;
@@ -915,8 +885,6 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
         thread.join();
     }
 }
-
-
 
 TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 
@@ -935,8 +903,6 @@ TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
     }
 
     sleep(3);
-
-
 }
 
 TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
@@ -959,7 +925,6 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
     }
 }
 
-
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     HttpClient htp(RPC_ENDPOINT);
@@ -977,9 +942,7 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
     int end = 10000000;
     string sh = string(SAMPLE_HASH);
 
-
     std::vector <std::thread> workers;
-
 
     PRINT_SRC_LINE
 
@@ -1003,6 +966,4 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
 }
 
-
-TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore", "[backup-restore]") {
-}
+TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore", "[backup-restore]") {}

@@ -73,7 +73,6 @@ string TestUtils::stringFromFr(libff::alt_bn128_Fr &el) {
     return string(arr);
 }
 
-
 string TestUtils::convertDecToHex(string dec, int numBytes) {
     mpz_t num;
     mpz_init(num);
@@ -190,7 +189,6 @@ void TestUtils::sendRPCRequest() {
             CHECK_STATE(sig["status"].asInt() == 0);
         }
 
-
         CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
@@ -250,7 +248,6 @@ void TestUtils::sendRPCRequest() {
         publicShares["publicShares"][i] = pubShares[i];
     }
 
-
     Json::Value blsPublicKeys;
 
     for (int i6 = 0; i6 <= testCount; i6++) {
@@ -262,7 +259,6 @@ void TestUtils::sendRPCRequest() {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
-
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
                                                   t, n);
@@ -399,13 +395,9 @@ void TestUtils::sendRPCRequestV2() {
     sigShareSet.merge();
 }
 
-
 void TestUtils::sendRPCRequestZMQ() {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
-
-
-
 
     int n = 16, t = 16;
     Json::Value ethKeys[n];
