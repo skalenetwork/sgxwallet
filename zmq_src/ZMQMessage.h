@@ -49,7 +49,6 @@ class ZMQMessage {
 
     shared_ptr<rapidjson::Document> d;
 
-
     static cache::lru_cache<string, pair<EVP_PKEY*, X509*>> verifiedCerts;
 
 public:
@@ -110,6 +109,8 @@ public:
     string getStringRapid(const char *_name);
 
     uint64_t getUint64Rapid(const char *_name);
+
+    Json::Value getJsonArray(const char *_name);
 
     uint64_t getStatus() {
         return getUint64Rapid("status");

@@ -33,9 +33,8 @@
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "BLSCrypto.h"
-#include "BLSSignReqMessage.h"
+#include "ReqMessage.h"
 #include "BLSSignRspMessage.h"
-#include "ECDSASignReqMessage.h"
 #include "ECDSASignRspMessage.h"
 #include "ZMQClient.h"
 

@@ -29,9 +29,8 @@
 
 #include "ZMQClient.h"
 #include "SGXWalletServer.hpp"
-#include "BLSSignReqMessage.h"
+#include "ReqMessage.h"
 #include "BLSSignRspMessage.h"
-#include "ECDSASignReqMessage.h"
 #include "ECDSASignRspMessage.h"
 #include "ZMQMessage.h"
 
@@ -43,6 +42,14 @@ uint64_t ZMQMessage::getUint64Rapid(const char *_name) {
     CHECK_STATE(a.IsUint64());
     return a.GetUint64();
 };
+
+Json::Value ZMQMessage::getJsonArray(const char *_name) {
+    CHECK_STATE(_name);
+    CHECK_STATE(d->HasMember(_name));
+    const rapidjson::Value &a = (*d)[_name];
+    CHECK_STATE(a.IsArray());
+    return a.GetUint64();
+}
 
 string ZMQMessage::getStringRapid(const char *_name) {
     CHECK_STATE(_name);
@@ -155,55 +162,55 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
             ret = make_shared<ECDSASignReqMessage>(_d);
             break;
         case ENUM_IMPORT_BLS_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<importBLSReqMessage>(_d);
             break;
         case ENUM_IMPORT_ECDSA_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<importECDSAReqMessage>(_d);
             break;
         case ENUM_GENERATE_ECDSA_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<generateECDSAReqMessage>(_d);
             break;
         case ENUM_GET_PUBLIC_ECDSA_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getPublicECDSAReqMessage>(_d);
             break;
         case ENUM_GENERATE_DKG_POLY_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<generateDKGPolyReqMessage>(_d);
             break;
         case ENUM_GET_VV_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getVerificationVectorReqMessage>(_d);
             break;
         case ENUM_GET_SECRET_SHARE_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getSecretShareReqMessage>(_d);
             break;
         case ENUM_DKG_VERIFY_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<dkgVerificationReqMessage>(_d);
             break;
         case ENUM_CREATE_BLS_PRIVATE_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<createBLSPrivateKeyReqMessage>(_d);
             break;
         case ENUM_GET_BLS_PUBLIC_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getBLSPublicReqMessage>(_d);
             break;
         case ENUM_GET_ALL_BLS_PUBLIC_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getAllBLSPublicKeysReqMessage>(_d);
             break;
         case ENUM_COMPLAINT_RESPONSE_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<complaintResponseReqMessage>(_d);
             break;
         case ENUM_MULT_G2_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<multG2ReqMessage>(_d);
             break;
         case ENUM_IS_POLY_EXISTS_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<isPolyExistsReqMessage>(_d);
             break;
         case ENUM_GET_SERVER_STATUS_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getServerStatusReqMessage>(_d);
             break;
         case ENUM_GET_SERVER_VERSION_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<getServerVersionReqMessage>(_d);
             break;
         case ENUM_DELETE_BLS_KEY_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
+            ret = make_shared<deleteBLSKeyReqMessage>(_d);
             break;
         default:
             break;
