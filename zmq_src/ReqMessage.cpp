@@ -96,7 +96,7 @@ Json::Value getSecretShareReqMessage::process() {
     auto polyName = getStringRapid("polyName");
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
-    auto pubKeys = getJsonArray("publicKeys");
+    auto pubKeys = getJsonValueRapid("publicKeys");
     auto result = SGXWalletServer::getSecretShareImpl(polyName, pubKeys, t, n);
     result["type"] = ZMQMessage::GET_SECRET_SHARE_RSP;
     return result;
@@ -136,7 +136,7 @@ Json::Value getBLSPublicReqMessage::process() {
 Json::Value getAllBLSPublicKeysReqMessage::process() {
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
-    auto pubShares = getJsonArray("publicShares");
+    auto pubShares = getJsonValueRapid("publicShares");
     auto result = SGXWalletServer::calculateAllBLSPublicKeysImpl(pubShares, t, n);
     result["type"] = ZMQMessage::GET_ALL_BLS_PUBLIC_RSP;
     return result;

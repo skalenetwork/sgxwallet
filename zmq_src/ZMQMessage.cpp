@@ -43,7 +43,7 @@ uint64_t ZMQMessage::getUint64Rapid(const char *_name) {
     return a.GetUint64();
 };
 
-Json::Value ZMQMessage::getJsonArray(const char *_name) {
+Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {
     CHECK_STATE(_name);
     CHECK_STATE(d->HasMember(_name));
     const rapidjson::Value &a = (*d)[_name];

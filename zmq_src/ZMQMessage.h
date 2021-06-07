@@ -110,7 +110,7 @@ public:
 
     uint64_t getUint64Rapid(const char *_name);
 
-    Json::Value getJsonArray(const char *_name);
+    Json::Value getJsonValueRapid(const char *_name);
 
     uint64_t getStatus() {
         return getUint64Rapid("status");
