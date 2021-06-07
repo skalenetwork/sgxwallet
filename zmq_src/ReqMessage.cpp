@@ -97,7 +97,7 @@ Json::Value getSecretShareReqMessage::process() {
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
     auto pubKeys = getJsonValueRapid("publicKeys");
-    auto result = SGXWalletServer::getSecretShareImpl(polyName, pubKeys, t, n);
+    auto result = SGXWalletServer::getSecretShareV2Impl(polyName, pubKeys, t, n);
     result["type"] = ZMQMessage::GET_SECRET_SHARE_RSP;
     return result;
 }
@@ -109,7 +109,7 @@ Json::Value dkgVerificationReqMessage::process() {
     auto idx = getUint64Rapid("index");
     auto pubShares = getStringRapid("publicShares");
     auto secretShare = getStringRapid("secretShare");
-    auto result = SGXWalletServer::dkgVerificationImpl(pubShares, ethKeyName, secretShare, t, n, idx);
+    auto result = SGXWalletServer::dkgVerificationV2Impl(pubShares, ethKeyName, secretShare, t, n, idx);
     result["type"] = ZMQMessage::DKG_VERIFY_RSP;
     return result;
 }
@@ -121,7 +121,7 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     auto secretShare = getStringRapid("secretShare");
     auto t = getUint64Rapid("t");
     auto n = getUint64Rapid("n");
-    auto result = SGXWalletServer::createBLSPrivateKeyImpl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
+    auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
     result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
     return result;
 }

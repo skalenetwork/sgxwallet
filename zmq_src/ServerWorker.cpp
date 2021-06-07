@@ -139,7 +139,6 @@ void ServerWorker::doOneServerLoop() noexcept {
 void ServerWorker::work() {
     worker->connect("inproc://backend");
 
-
     while (!isExitRequested) {
         try {
             doOneServerLoop();
