@@ -71,7 +71,7 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 
 
 COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/BLSSignRspMessage.cpp \
-             zmq_src/ECDSASignRspMessage.cpp zmq_src/ECDSASignReqMessage.cpp zmq_src/BLSSignReqMessage.cpp \
+             zmq_src/ECDSASignRspMessage.cpp zmq_src/ReqMessage.cpp \
              zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/ServerWorker.cpp \
              InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp  \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp \
