@@ -236,11 +236,7 @@ TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     printf("Decrypted key len %d\n", (int) strlen(plaintextKey));
     printf("Decrypted key: %s\n", plaintextKey);
     free(plaintextKey);
-
-
-
 }
-
 */
 
 string genECDSAKeyAPI(StubClient &_c) {
@@ -432,8 +428,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test", 
 
 /*
  * ( "verification test", "[verify]" ) {
-
-
     char*  pubshares = "0d72c21fc5a43452ad5f36699822309149ce6ce2cdce50dafa896e873f1b8ddd12f65a2e9c39c617a1f695f076b33b236b47ed773901fc2762f8b6f63277f5e30d7080be8e98c97f913d1920357f345dc0916c1fcb002b7beb060aa8b6b473a011bfafe9f8a5d8ea4c643ca4101e5119adbef5ae64f8dfb39cd10f1e69e31c591858d7eaca25b4c412fe909ca87ca7aadbf6d97d32d9b984e93d436f13d43ec31f40432cc750a64ac239cad6b8f78c1f1dd37427e4ff8c1cc4fe1c950fcbcec10ebfd79e0c19d0587adafe6db4f3c63ea9a329724a8804b63a9422e6898c0923209e828facf3a073254ec31af4231d999ba04eb5b7d1e0056d742a65b766f2f3";
     char *sec_share = "11592366544581417165283270001305852351194685098958224535357729125789505948557";
     mpz_t sshare;
@@ -441,8 +435,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test", 
     mpz_set_str(sshare, "11592366544581417165283270001305852351194685098958224535357729125789505948557", 10);
     int result = Verification(pubshares, sshare, 2, 0);
     REQUIRE(result == 1);
-
-
 }*/
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
@@ -567,10 +559,24 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     sleep(3);
 }
 
+TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+    REQUIRE_NOTHROW(client->getServerStatus());
+    sleep(3);
+}
+
 TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
     REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
+    sleep(3);
+}
+
+TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+    REQUIRE(client->getServerVersion() == SGXWalletServer::getVersion());
     sleep(3);
 }
 
