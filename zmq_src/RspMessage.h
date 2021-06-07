@@ -61,6 +61,10 @@ public:
     importECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getECDSAPublicKey() {
+        return getStringRapid("publicKey");
+    }
 };
 
 
@@ -69,6 +73,14 @@ public:
     generateECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getECDSAPublicKey() {
+        return getStringRapid("publicKey");
+    }
+
+    string getKeyName() {
+        return getStringRapid("keyName");
+    }
 };
 
 
@@ -77,6 +89,10 @@ public:
     getPublicECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getECDSAPublicKey() {
+        return getStringRapid("publicKey");
+    }
 };
 
 
@@ -93,6 +109,10 @@ public:
     getVerificationVectorRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    Json::Value getVerificationVector() {
+        return getJsonValueRapid("verificationVector");
+    }
 };
 
 
@@ -101,6 +121,10 @@ public:
     getSecretShareRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getSecretShare() {
+        return getStringRapid("secretShare");
+    }
 };
 
 
@@ -109,6 +133,10 @@ public:
     dkgVerificationRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    bool isCorrect() {
+        return getBoolRapid("result");
+    }
 };
 
 
@@ -125,6 +153,10 @@ public:
     getBLSPublicRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    Json::Value getBLSPublicKey() {
+        return getJsonValueRapid("blsPublicKeyShare");
+    }
 };
 
 
@@ -133,6 +165,10 @@ public:
     getAllBLSPublicKeysRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    Json::Value getPublicKeys() {
+        return getJsonValueRapid("publicKeys");
+    }
 };
 
 
@@ -141,6 +177,14 @@ public:
     complaintResponseRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getDHKey() {
+        return getStringRapid("dhKey");
+    }
+
+    string getShare() {
+        return getStringRapid("share*G2");
+    }
 };
 
 
@@ -149,6 +193,10 @@ public:
     multG2RspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    Json::Value getResult() {
+        return getJsonValueRapid("x*G2");
+    }
 };
 
 
@@ -157,6 +205,10 @@ public:
     isPolyExistsRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    bool isExists() {
+        return getBoolRapid("IsExist");
+    }
 };
 
 
@@ -173,6 +225,10 @@ public:
     getServerVersionRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    string getVesion() {
+        return getStringRapid("version");
+    }
 };
 
 
@@ -181,6 +237,10 @@ public:
     deleteBLSKeyRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    bool isSuccessful() {
+        return getBoolRapid("deleted");
+    }
 };
 
 

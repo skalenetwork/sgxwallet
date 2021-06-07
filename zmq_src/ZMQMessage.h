@@ -112,6 +112,8 @@ public:
 
     Json::Value getJsonValueRapid(const char *_name);
 
+    bool getBoolRapid(const char *_name);
+
     uint64_t getStatus() {
         return getUint64Rapid("status");
     }
