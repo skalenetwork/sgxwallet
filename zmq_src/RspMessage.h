@@ -226,7 +226,7 @@ public:
 
     virtual Json::Value process();
 
-    string getVesion() {
+    string getVersion() {
         return getStringRapid("version");
     }
 };

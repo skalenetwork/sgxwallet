@@ -87,6 +87,41 @@ public:
 
     string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
 
+    void importBLSKeyShare(const std::string& keyShare, const std::string& keyName);
+
+    string importECDSAKey(const std::string& keyShare, const std::string& keyName);
+
+    pair<string, string> generateECDSAKey();
+
+    string getECDSAPublicKey(const string& keyName);
+
+    void generateDKGPoly(const string& polyName);
+
+    Json::Value getVerificationVector(const string& polyName, int t);
+
+    string getSecretShare(const string& polyName, const Json::Value& pubKeys, int t, int n);
+
+    bool dkgVerification(const string& publicShares, const string& ethKeyName,
+                        const string& secretShare, int t, int n, int idx);
+
+    void createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
+                            const string& secretShare, int t, int n);
+    
+    Json::Value getBLSPublicKey(const string& blsKeyName);
+
+    Json::Value getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t);
+
+    pair<string, string> complaintResponse(const string& polyName, int t, int n, int idx);
+
+    Json::Value multG2(const string& x);
+
+    bool isPolyExists(const string& polyName);
+
+    void getServerStatus();
+
+    string getServerVersion();
+
+    bool deleteBLSKey(const string& blsKeyName);
 };
 
 

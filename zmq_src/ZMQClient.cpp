@@ -34,8 +34,7 @@
 #include "common.h"
 #include "BLSCrypto.h"
 #include "ReqMessage.h"
-#include "BLSSignRspMessage.h"
-#include "ECDSASignRspMessage.h"
+#include "RspMessage.h"
 #include "ZMQClient.h"
 
 
@@ -312,6 +311,191 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
     return result->getSignature();
+}
+
+void ZMQClient::importBLSKeyShare(const std::string& keyShare, const std::string& keyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::IMPORT_BLS_REQ;
+    p["keyName"] = keyName;
+    p["keyShare"] = keyShare;
+    auto result = dynamic_pointer_cast<importBLSRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+}
+
+string ZMQClient::importECDSAKey(const std::string& keyShare, const std::string& keyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::IMPORT_ECDSA_REQ;
+    p["keyName"] = keyName;
+    p["keyShare"] = keyShare;
+    auto result = dynamic_pointer_cast<importECDSARspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getECDSAPublicKey();
+}
+
+pair<string, string> ZMQClient::generateECDSAKey() {
+    Json::Value p;
+    p["type"] = ZMQMessage::GENERATE_ECDSA_REQ;
+    auto result = dynamic_pointer_cast<generateECDSARspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return {result->getECDSAPublicKey(), result->getKeyName()};
+}
+
+string ZMQClient::getECDSAPublicKey(const string& keyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_PUBLIC_ECDSA_REQ;
+    p["keyName"] = keyName;
+    auto result = dynamic_pointer_cast<getPublicECDSARspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getECDSAPublicKey();
+}
+
+void ZMQClient::generateDKGPoly(const string& polyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GENERATE_DKG_POLY_REQ;
+    p["polyName"] = polyName;
+    auto result = dynamic_pointer_cast<generateDKGPolyRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+}
+
+Json::Value ZMQClient::getVerificationVector(const string& polyName, int t) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_VV_REQ;
+    p["polyName"] = polyName;
+    p["t"] = t;
+    auto result = dynamic_pointer_cast<getVerificationVectorRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getVerificationVector();
+}
+
+string ZMQClient::getSecretShare(const string& polyName, const Json::Value& pubKeys, int t, int n) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_SECRET_SHARE_REQ;
+    p["polyName"] = polyName;
+    p["publicKeys"] = pubKeys;
+    p["t"] = t;
+    p["n"] = n;
+    auto result = dynamic_pointer_cast<getSecretShareRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getSecretShare();
+}
+
+bool ZMQClient::dkgVerification(const string& publicShares, const string& ethKeyName,
+                                const string& secretShare, int t, int n, int idx) {
+    Json::Value p;
+    p["type"] = ZMQMessage::DKG_VERIFY_REQ;
+    p["ethKeyName"] = ethKeyName;
+    p["publicShares"] = publicShares;
+    p["secretShare"] = secretShare;
+    p["t"] = t;
+    p["n"] = n;
+    p["index"] = idx;
+    auto result = dynamic_pointer_cast<dkgVerificationRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->isCorrect();
+}
+
+void ZMQClient::createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
+                                    const string& secretShare, int t, int n) {
+    Json::Value p;
+    p["type"] = ZMQMessage::CREATE_BLS_PRIVATE_REQ;
+    p["ethKeyName"] = ethKeyName;
+    p["polyName"] = polyName;
+    p["blsKeyName"] = blsKeyName;
+    p["secretShare"] = secretShare;
+    p["t"] = t;
+    p["n"] = n;
+    auto result = dynamic_pointer_cast<createBLSPrivateKeyRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+}
+
+Json::Value ZMQClient::getBLSPublicKey(const string& blsKeyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_BLS_PUBLIC_REQ;
+    p["blsKeyName"] = blsKeyName;
+    auto result = dynamic_pointer_cast<getBLSPublicRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getBLSPublicKey();
+}
+
+Json::Value ZMQClient::getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t) {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_ALL_BLS_PUBLIC_REQ;
+    p["publicShares"] = publicShares;
+    p["t"] = t;
+    p["n"] = n;
+    auto result = dynamic_pointer_cast<getAllBLSPublicKeysRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getPublicKeys();
+}
+
+pair<string, string> ZMQClient::complaintResponse(const string& polyName, int t, int n, int idx) {
+    Json::Value p;
+    p["type"] = ZMQMessage::COMPLAINT_RESPONSE_REQ;
+    p["polyName"] = polyName;
+    p["t"] = t;
+    p["n"] = n;
+    auto result = dynamic_pointer_cast<complaintResponseRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return {result->getDHKey(), result->getShare()};
+}
+
+Json::Value ZMQClient::multG2(const string& x) {
+    Json::Value p;
+    p["type"] = ZMQMessage::MULT_G2_REQ;
+    p["x"] = x;
+    auto result = dynamic_pointer_cast<multG2RspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getResult();
+}
+
+bool ZMQClient::isPolyExists(const string& polyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::IS_POLY_EXISTS_REQ;
+    p["polyName"] = polyName;
+    auto result = dynamic_pointer_cast<isPolyExistsRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->isExists();
+}
+
+void ZMQClient::getServerStatus() {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_SERVER_STATUS_REQ;
+    auto result = dynamic_pointer_cast<getServerStatusRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+}
+
+string ZMQClient::getServerVersion() {
+    Json::Value p;
+    p["type"] = ZMQMessage::GET_SERVER_VERSION_REQ;
+    auto result = dynamic_pointer_cast<getServerVersionRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getVersion();
+}
+
+bool ZMQClient::deleteBLSKey(const string& blsKeyName) {
+    Json::Value p;
+    p["type"] = ZMQMessage::DELETE_BLS_KEY_REQ;
+    p["blsKeyName"] = blsKeyName;
+    auto result = dynamic_pointer_cast<deleteBLSKeyRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->isSuccessful();
 }
 
 uint64_t ZMQClient::getProcessID() {
