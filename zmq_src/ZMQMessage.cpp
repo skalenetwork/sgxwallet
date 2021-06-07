@@ -30,8 +30,7 @@
 #include "ZMQClient.h"
 #include "SGXWalletServer.hpp"
 #include "ReqMessage.h"
-#include "BLSSignRspMessage.h"
-#include "ECDSASignRspMessage.h"
+#include "RspMessage.h"
 #include "ZMQMessage.h"
 
 
@@ -250,55 +249,55 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
             ret = make_shared<ECDSASignRspMessage>(_d);
             break;
         case ENUM_IMPORT_BLS_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<importBLSRspMessage>(_d);
             break;
         case ENUM_IMPORT_ECDSA_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<importECDSARspMessage>(_d);
             break;
         case ENUM_GENERATE_ECDSA_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<generateECDSARspMessage>(_d);
             break;
         case ENUM_GET_PUBLIC_ECDSA_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getPublicECDSARspMessage>(_d);
             break;
         case ENUM_GENERATE_DKG_POLY_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<generateDKGPolyRspMessage>(_d);
             break;
         case ENUM_GET_VV_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getVerificationVectorRspMessage>(_d);
             break;
         case ENUM_GET_SECRET_SHARE_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getSecretShareRspMessage>(_d);
             break;
         case ENUM_DKG_VERIFY_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<dkgVerificationRspMessage>(_d);
             break;
         case ENUM_CREATE_BLS_PRIVATE_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<createBLSPrivateKeyRspMessage>(_d);
             break;
         case ENUM_GET_BLS_PUBLIC_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getBLSPublicRspMessage>(_d);
             break;
         case ENUM_GET_ALL_BLS_PUBLIC_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getAllBLSPublicKeysRspMessage>(_d);
             break;
         case ENUM_COMPLAINT_RESPONSE_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<complaintResponseRspMessage>(_d);
             break;
         case ENUM_MULT_G2_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<multG2RspMessage>(_d);
             break;
         case ENUM_IS_POLY_EXISTS_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<isPolyExistsRspMessage>(_d);
             break;
         case ENUM_GET_SERVER_STATUS_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getServerStatusRspMessage>(_d);
             break;
         case ENUM_GET_SERVER_VERSION_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<getServerVersionRspMessage>(_d);
             break;
         case ENUM_DELETE_BLS_KEY_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
+            ret = make_shared<deleteBLSKeyRspMessage>(_d);
             break;
         default:
             break;

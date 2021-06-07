@@ -75,7 +75,7 @@ public:
     ZMQClient(const string &ip, uint16_t port, bool _sign, const string&  _certPathName,
               const string& _certKeyName);
 
-    void reconnect() ;
+    void reconnect();
 
     static pair<EVP_PKEY*, X509*>  readPublicKeyFromCertStr(const string& _cert);
 
