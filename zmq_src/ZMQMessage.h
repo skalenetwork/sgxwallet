@@ -92,8 +92,8 @@ public:
     static constexpr const char *DELETE_BLS_KEY_REQ = "deleteBLSKeyReq";
     static constexpr const char *DELETE_BLS_KEY_RSP = "deleteBLSKeyRsp";
 
-    static const std::map<const char *, int> requests;
-    static const std::map<const char *, int> responses;
+    static const std::map<string, int> requests;
+    static const std::map<string, int> responses;
 
     enum Requests { ENUM_BLS_SIGN_REQ, ENUM_ECDSA_SIGN_REQ, ENUM_IMPORT_BLS_REQ, ENUM_IMPORT_ECDSA_REQ, ENUM_GENERATE_ECDSA_REQ, ENUM_GET_PUBLIC_ECDSA_REQ,
                     ENUM_GENERATE_DKG_POLY_REQ, ENUM_GET_VV_REQ, ENUM_GET_SECRET_SHARE_REQ, ENUM_DKG_VERIFY_REQ, ENUM_CREATE_BLS_PRIVATE_REQ,

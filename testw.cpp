@@ -559,7 +559,7 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status]") {
     sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[get-server-status-zmq]") {
+TEST_CASE_METHOD(TestFixture, "Get ServerStatusZmq", "[get-server-status-zmq]") {
     auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
                                          "./sgx_data/cert_data/rootCA.key");
     REQUIRE_NOTHROW(client->getServerStatus());
@@ -573,7 +573,7 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version]") {
     sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[get-server-version-zmq]") {
+TEST_CASE_METHOD(TestFixture, "Get ServerVersionZmq", "[get-server-version-zmq]") {
     auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
                                          "./sgx_data/cert_data/rootCA.key");
     REQUIRE(client->getServerVersion() == SGXWalletServer::getVersion());
@@ -685,6 +685,20 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
     PRINT_SRC_LINE
     Json::Value polyDoesNotExist = c.isPolyExists("Vasya");
     REQUIRE(!polyDoesNotExist["IsExist"].asBool());
+}
+
+TEST_CASE_METHOD(TestFixture, "PolyExistsZmq test", "[dkg-poly-exists-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    string polyName = SAMPLE_POLY_NAME;
+    REQUIRE_NOTHROW(client->generateDKGPoly(polyName, 2));
+
+    bool polyExists = client->isPolyExists(polyName);
+    REQUIRE(polyExists);
+
+    bool polyDoesNotExist = client->isPolyExists("Vasya");
+    REQUIRE(!polyDoesNotExist);
 }
 
 TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
@@ -936,9 +950,7 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);
 
-    string ip = ZMQ_IP;
-
-    auto client = make_shared<ZMQClient>(ip, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
                                          "./sgx_data/cert_data/rootCA.key");
 
     string keyName = "";

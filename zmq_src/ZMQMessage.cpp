@@ -163,7 +163,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
 shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapidjson::Document> _d) {
     Requests r;
     try {
-        int t = requests.at( _type.c_str() );
+        int t = requests.at( _type );
         r = static_cast<Requests>(t);
     } catch ( std::out_of_range& ) {
         BOOST_THROW_EXCEPTION(SGXException(-301, "Incorrect zmq message type: " + string(_type)));
@@ -239,7 +239,7 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
 shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rapidjson::Document> _d) {
     Responses r;
     try {
-        int t = responses.at( _type.c_str() );
+        int t = responses.at( _type );
         r = static_cast<Responses>(t);
     } catch ( std::out_of_range& ) {
         BOOST_THROW_EXCEPTION(InvalidStateException("Incorrect zmq message request type: " + string(_type),
@@ -316,7 +316,7 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
 
 cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);
 
-const std::map<const char *, int> ZMQMessage::responses {
+const std::map<string, int> ZMQMessage::requests{
     {BLS_SIGN_REQ, 0}, {ECDSA_SIGN_REQ, 1}, {IMPORT_BLS_REQ, 2}, {IMPORT_ECDSA_REQ, 3},
     {GENERATE_ECDSA_REQ, 4}, {GET_PUBLIC_ECDSA_REQ, 5}, {GENERATE_DKG_POLY_REQ, 6},
     {GET_VV_REQ, 7}, {GET_SECRET_SHARE_REQ, 8}, {DKG_VERIFY_REQ, 9},
@@ -325,7 +325,7 @@ const std::map<const char *, int> ZMQMessage::responses {
     {GET_SERVER_STATUS_REQ, 16}, {GET_SERVER_VERSION_REQ, 17}, {DELETE_BLS_KEY_REQ, 18}
 };
 
-const std::map<const char *, int> ZMQMessage::requests {
+const std::map<string, int> ZMQMessage::responses {
     {BLS_SIGN_RSP, 0}, {ECDSA_SIGN_RSP, 1}, {IMPORT_BLS_RSP, 2}, {IMPORT_ECDSA_RSP, 3},
     {GENERATE_ECDSA_RSP, 4}, {GET_PUBLIC_ECDSA_RSP, 5}, {GENERATE_DKG_POLY_RSP, 6},
     {GET_VV_RSP, 7}, {GET_SECRET_SHARE_RSP, 8}, {DKG_VERIFY_RSP, 9},

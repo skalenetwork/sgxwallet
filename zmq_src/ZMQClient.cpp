@@ -353,10 +353,11 @@ string ZMQClient::getECDSAPublicKey(const string& keyName) {
     return result->getECDSAPublicKey();
 }
 
-void ZMQClient::generateDKGPoly(const string& polyName) {
+void ZMQClient::generateDKGPoly(const string& polyName, int t) {
     Json::Value p;
     p["type"] = ZMQMessage::GENERATE_DKG_POLY_REQ;
     p["polyName"] = polyName;
+    p["t"] = t;
     auto result = dynamic_pointer_cast<generateDKGPolyRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
