@@ -95,7 +95,7 @@ public:
 
     string getECDSAPublicKey(const string& keyName);
 
-    void generateDKGPoly(const string& polyName, int t);
+    bool generateDKGPoly(const string& polyName, int t);
 
     Json::Value getVerificationVector(const string& polyName, int t);
 

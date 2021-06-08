@@ -675,10 +675,6 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
     Json::Value secretSharesWrong_t = c.getSecretShareV2(polyName, publicKeys, 3, 3);
     REQUIRE(secretSharesWrong_t["status"].asInt() != 0);
 
-    // wrong_n
-    Json::Value verifVectWrong_n = c.getVerificationVector(polyName, 2);
-    REQUIRE(verifVectWrong_n["status"].asInt() != 0);
-
     Json::Value publicKeys1;
     publicKeys1.append(SAMPLE_DKG_PUB_KEY_1);
     Json::Value secretSharesWrong_n = c.getSecretShareV2(polyName, publicKeys1, 2, 1);
@@ -699,6 +695,52 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
 
     Json::Value verificationWrongSkeys = c.dkgVerificationV2("", "", "", 2, 2, 1);
     REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
+}
+
+TEST_CASE_METHOD(TestFixture, "DKG API V2 ZMQ test", "[dkg-api-v2-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    string polyName = SAMPLE_POLY_NAME;
+
+    PRINT_SRC_LINE
+    REQUIRE(client->generateDKGPoly(polyName, 2));
+
+    Json::Value publicKeys;
+    publicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+    publicKeys.append(SAMPLE_DKG_PUB_KEY_2);
+
+    // wrongName
+    REQUIRE(!client->generateDKGPoly("poly", 2));
+
+    REQUIRE_THROWS(client->getVerificationVector("poly", 2));
+
+    REQUIRE_THROWS(client->getSecretShare("poly", publicKeys, 2, 2));
+
+    // wrong_t
+    REQUIRE(!client->generateDKGPoly(polyName, 33));
+
+    REQUIRE_THROWS(client->getVerificationVector(polyName, 0));
+
+    REQUIRE_THROWS(client->getSecretShare(polyName, publicKeys, 3, 3));
+
+    Json::Value publicKeys1;
+    publicKeys1.append(SAMPLE_DKG_PUB_KEY_1);
+    REQUIRE_THROWS(client->getSecretShare(polyName, publicKeys1, 2, 1));
+
+    //wrong number of publicKeys
+    REQUIRE_THROWS(client->getSecretShare(polyName, publicKeys, 2, 3));
+
+    //wrong verif
+    string Skeys = client->getSecretShare(polyName, publicKeys, 2, 2);
+    REQUIRE_NOTHROW(client->getSecretShare(polyName, publicKeys, 2, 2));
+    REQUIRE(Skeys == client->getSecretShare(polyName, publicKeys, 2, 2));
+
+    Json::Value verifVect = client->getVerificationVector(polyName, 2);
+    REQUIRE_NOTHROW(client->getVerificationVector(polyName, 2));
+    REQUIRE(verifVect == client->getVerificationVector(polyName, 2));
+
+    REQUIRE_THROWS(client->dkgVerification("", "", "", 2, 2, 1));
 }
 
 TEST_CASE_METHOD(TestFixture, "PolyExists test", "[dkg-poly-exists]") {
