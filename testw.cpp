@@ -981,6 +981,18 @@ TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-cr
     }
 }
 
+TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls zmq", "[many-threads-crypto-v2-zmq]") {
+    vector <thread> threads;
+    int num_threads = 4;
+    for (int i = 0; i < num_threads; i++) {
+        threads.push_back(thread(TestUtils::sendRPCRequestZMQ));
+    }
+
+    for (auto &thread : threads) {
+        thread.join();
+    }
+}
+
 TEST_CASE_METHOD(TestFixture, "First run", "[first-run]") {
 
     HttpClient client(RPC_ENDPOINT);

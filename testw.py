@@ -33,7 +33,7 @@ testList = [ "[zmq-ecdsa]",
              "[second-run]",
              "[many-threads-crypto]",
              "[many-threads-crypto-v2]",
-             # "[many-threads-crypto-v2-zmq]"
+             "[many-threads-crypto-v2-zmq]"
              "[backup-restore]",
              "[cert-sign]",
              "[get-server-status]",

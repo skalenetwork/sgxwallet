@@ -104,7 +104,7 @@ public:
     bool dkgVerification(const string& publicShares, const string& ethKeyName,
                         const string& secretShare, int t, int n, int idx);
 
-    void createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
+    bool createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
                             const string& secretShare, int t, int n);
     
     Json::Value getBLSPublicKey(const string& blsKeyName);

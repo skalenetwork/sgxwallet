@@ -25,7 +25,6 @@
 #define SGXWALLET_TESTUTILS_H
 
 #include <dkg/dkg.h>
-#include <jsonrpccpp/server/connectors/httpserver.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <dkg/dkg.h>
 #include "sgxwallet_common.h"

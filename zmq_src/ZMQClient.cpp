@@ -403,7 +403,7 @@ bool ZMQClient::dkgVerification(const string& publicShares, const string& ethKey
     return result->isCorrect();
 }
 
-void ZMQClient::createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
+bool ZMQClient::createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
                                     const string& secretShare, int t, int n) {
     Json::Value p;
     p["type"] = ZMQMessage::CREATE_BLS_PRIVATE_REQ;
@@ -415,7 +415,7 @@ void ZMQClient::createBLSPrivateKey(const string& blsKeyName, const string& ethK
     p["n"] = n;
     auto result = dynamic_pointer_cast<createBLSPrivateKeyRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
-    CHECK_STATE(result->getStatus() == 0);
+    return result->getStatus() == 0;
 }
 
 Json::Value ZMQClient::getBLSPublicKey(const string& blsKeyName) {
@@ -431,7 +431,7 @@ Json::Value ZMQClient::getBLSPublicKey(const string& blsKeyName) {
 Json::Value ZMQClient::getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t) {
     Json::Value p;
     p["type"] = ZMQMessage::GET_ALL_BLS_PUBLIC_REQ;
-    p["publicShares"] = publicShares;
+    p["publicShares"] = publicShares["publicShares"];
     p["t"] = t;
     p["n"] = n;
     auto result = dynamic_pointer_cast<getAllBLSPublicKeysRspMessage>(doRequestReply(p));

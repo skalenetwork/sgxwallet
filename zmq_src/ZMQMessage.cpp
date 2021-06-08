@@ -46,7 +46,6 @@ Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {
     CHECK_STATE(_name);
     CHECK_STATE(d->HasMember(_name));
     const rapidjson::Value &a = (*d)[_name];
-    CHECK_STATE(a.IsArray());
     
     rapidjson::StringBuffer buffer;
     rapidjson::Writer< rapidjson::StringBuffer > writer(buffer);
