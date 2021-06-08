@@ -87,7 +87,7 @@ public:
 
     string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
 
-    void importBLSKeyShare(const std::string& keyShare, const std::string& keyName);
+    bool importBLSKeyShare(const std::string& keyShare, const std::string& keyName);
 
     string importECDSAKey(const std::string& keyShare, const std::string& keyName);
 

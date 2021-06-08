@@ -108,14 +108,22 @@ public:
 
     string getStringRapid(const char *_name);
 
-    uint64_t getUint64Rapid(const char *_name);
+    uint64_t getInt64Rapid(const char *_name);
 
     Json::Value getJsonValueRapid(const char *_name);
 
     bool getBoolRapid(const char *_name);
 
     uint64_t getStatus() {
-        return getUint64Rapid("status");
+        return getInt64Rapid("status");
+    }
+
+    std::string rapidToString() {
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+        d->Accept( writer );
+        std::string strRequest = buffer.GetString();
+        return strRequest;
     }
 
     static shared_ptr <ZMQMessage> parse(const char* _msg, size_t _size, bool _isRequest,

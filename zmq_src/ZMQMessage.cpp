@@ -34,12 +34,12 @@
 #include "ZMQMessage.h"
 
 
-uint64_t ZMQMessage::getUint64Rapid(const char *_name) {
+uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
     CHECK_STATE(_name);
     CHECK_STATE(d->HasMember(_name));
     const rapidjson::Value &a = (*d)[_name];
-    CHECK_STATE(a.IsUint64());
-    return a.GetUint64();
+    CHECK_STATE(a.IsInt64());
+    return a.GetInt64();
 };
 
 Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {

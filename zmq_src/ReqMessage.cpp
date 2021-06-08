@@ -28,7 +28,7 @@
 
 
 Json::Value ECDSASignReqMessage::process() {
-    auto base = getUint64Rapid("base");
+    auto base = getInt64Rapid("base");
     auto keyName = getStringRapid("keyName");
     auto hash = getStringRapid("messageHash");
     auto result = SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
@@ -39,8 +39,8 @@ Json::Value ECDSASignReqMessage::process() {
 Json::Value BLSSignReqMessage::process() {
     auto keyName = getStringRapid("keyShareName");
     auto hash = getStringRapid("messageHash");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
     auto result = SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
     result["type"] = ZMQMessage::BLS_SIGN_RSP;
     return result;
@@ -77,7 +77,7 @@ Json::Value getPublicECDSAReqMessage::process() {
 
 Json::Value generateDKGPolyReqMessage::process() {
     auto polyName = getStringRapid("polyName");
-    auto t = getUint64Rapid("t");
+    auto t = getInt64Rapid("t");
     auto result = SGXWalletServer::generateDKGPolyImpl(polyName, t);
     result["type"] = ZMQMessage::GENERATE_DKG_POLY_RSP;
     return result;
@@ -85,8 +85,8 @@ Json::Value generateDKGPolyReqMessage::process() {
 
 Json::Value getVerificationVectorReqMessage::process() {
     auto polyName = getStringRapid("polyName");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
     auto result = SGXWalletServer::getVerificationVectorImpl(polyName, t, n);
     result["type"] = ZMQMessage::GET_VV_RSP;
     return result;
@@ -94,8 +94,8 @@ Json::Value getVerificationVectorReqMessage::process() {
 
 Json::Value getSecretShareReqMessage::process() {
     auto polyName = getStringRapid("polyName");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
     auto pubKeys = getJsonValueRapid("publicKeys");
     auto result = SGXWalletServer::getSecretShareV2Impl(polyName, pubKeys, t, n);
     result["type"] = ZMQMessage::GET_SECRET_SHARE_RSP;
@@ -104,9 +104,9 @@ Json::Value getSecretShareReqMessage::process() {
 
 Json::Value dkgVerificationReqMessage::process() {
     auto ethKeyName = getStringRapid("ethKeyName");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
-    auto idx = getUint64Rapid("index");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
+    auto idx = getInt64Rapid("index");
     auto pubShares = getStringRapid("publicShares");
     auto secretShare = getStringRapid("secretShare");
     auto result = SGXWalletServer::dkgVerificationV2Impl(pubShares, ethKeyName, secretShare, t, n, idx);
@@ -119,8 +119,8 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     auto ethKeyName = getStringRapid("ethKeyName");
     auto polyName = getStringRapid("polyName");
     auto secretShare = getStringRapid("secretShare");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
     auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
     result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
     return result;
@@ -134,8 +134,8 @@ Json::Value getBLSPublicReqMessage::process() {
 }
 
 Json::Value getAllBLSPublicKeysReqMessage::process() {
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
     auto pubShares = getJsonValueRapid("publicShares");
     auto result = SGXWalletServer::calculateAllBLSPublicKeysImpl(pubShares, t, n);
     result["type"] = ZMQMessage::GET_ALL_BLS_PUBLIC_RSP;
@@ -144,9 +144,9 @@ Json::Value getAllBLSPublicKeysReqMessage::process() {
 
 Json::Value complaintResponseReqMessage::process() {
     auto polyName = getStringRapid("polyName");
-    auto t = getUint64Rapid("t");
-    auto n = getUint64Rapid("n");
-    auto idx = getUint64Rapid("ind");
+    auto t = getInt64Rapid("t");
+    auto n = getInt64Rapid("n");
+    auto idx = getInt64Rapid("ind");
     auto result = SGXWalletServer::complaintResponseImpl(polyName, t, n, idx);
     result["type"] = ZMQMessage::COMPLAINT_RESPONSE_RSP;
     return result;

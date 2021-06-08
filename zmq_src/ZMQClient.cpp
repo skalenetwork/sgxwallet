@@ -313,14 +313,14 @@ string ZMQClient::ecdsaSignMessageHash(int base, const std::string &keyName, con
     return result->getSignature();
 }
 
-void ZMQClient::importBLSKeyShare(const std::string& keyShare, const std::string& keyName) {
+bool ZMQClient::importBLSKeyShare(const std::string& keyShare, const std::string& keyName) {
     Json::Value p;
     p["type"] = ZMQMessage::IMPORT_BLS_REQ;
-    p["keyName"] = keyName;
+    p["keyShareName"] = keyName;
     p["keyShare"] = keyShare;
     auto result = dynamic_pointer_cast<importBLSRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
-    CHECK_STATE(result->getStatus() == 0);
+    return result->getStatus() == 0;
 }
 
 string ZMQClient::importECDSAKey(const std::string& keyShare, const std::string& keyName) {
