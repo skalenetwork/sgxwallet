@@ -557,6 +557,21 @@ TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[import-ecdsa-key]") {
     REQUIRE(c.ecdsaSignMessageHash(16, name, SAMPLE_HASH)["status"] == 0);
 }
 
+TEST_CASE_METHOD(TestFixture, "Import ECDSA Key Zmq", "[import-ecdsa-key-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "NEK:abcdef";
+    REQUIRE_THROWS(client->importECDSAKey("6507625568967977077291849236396320012317305261598035438182864059942098934847",
+                                     name));
+
+    string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    string response = client->importECDSAKey(key_str, name);
+    REQUIRE(response == client->getECDSAPublicKey(name));
+
+    REQUIRE_NOTHROW(client->ecdsaSignMessageHash(16, name, SAMPLE_HASH));
+}
+
 TEST_CASE_METHOD(TestFixture, "Backup Key", "[backup-key]") {
     HttpClient client(RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);

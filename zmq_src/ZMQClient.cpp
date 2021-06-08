@@ -327,7 +327,7 @@ string ZMQClient::importECDSAKey(const std::string& keyShare, const std::string&
     Json::Value p;
     p["type"] = ZMQMessage::IMPORT_ECDSA_REQ;
     p["keyName"] = keyName;
-    p["keyShare"] = keyShare;
+    p["key"] = keyShare;
     auto result = dynamic_pointer_cast<importECDSARspMessage>(doRequestReply(p));
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
