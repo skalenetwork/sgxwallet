@@ -336,7 +336,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     vector<char> pubShares(10000, 0);
     PRINT_SRC_LINE
     status = trustedGetPublicShares(eid, &errStatus, errMsg1.data(),
-                                    encryptedDKGSecret.data(), encLen, pubShares.data(), t, n);
+                                    encryptedDKGSecret.data(), encLen, pubShares.data(), t);
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -659,7 +659,7 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
     Json::Value genPolyWrongName = c.generateDKGPoly("poly", 2);
     REQUIRE(genPolyWrongName["status"].asInt() != 0);
 
-    Json::Value verifVectWrongName = c.getVerificationVector("poly", 2, 2);
+    Json::Value verifVectWrongName = c.getVerificationVector("poly", 2);
     REQUIRE(verifVectWrongName["status"].asInt() != 0);
 
     Json::Value secretSharesWrongName = c.getSecretShareV2("poly", publicKeys, 2, 2);
@@ -669,14 +669,14 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
     Json::Value genPolyWrong_t = c.generateDKGPoly(polyName, 33);
     REQUIRE(genPolyWrong_t["status"].asInt() != 0);
 
-    Json::Value verifVectWrong_t = c.getVerificationVector(polyName, 1, 2);
+    Json::Value verifVectWrong_t = c.getVerificationVector(polyName, 1);
     REQUIRE(verifVectWrong_t["status"].asInt() != 0);
 
     Json::Value secretSharesWrong_t = c.getSecretShareV2(polyName, publicKeys, 3, 3);
     REQUIRE(secretSharesWrong_t["status"].asInt() != 0);
 
     // wrong_n
-    Json::Value verifVectWrong_n = c.getVerificationVector(polyName, 2, 1);
+    Json::Value verifVectWrong_n = c.getVerificationVector(polyName, 2);
     REQUIRE(verifVectWrong_n["status"].asInt() != 0);
 
     Json::Value publicKeys1;
@@ -693,9 +693,9 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[dkg-api-v2]") {
     REQUIRE_NOTHROW(c.getSecretShare(polyName, publicKeys, 2, 2));
     REQUIRE(Skeys == c.getSecretShare(polyName, publicKeys, 2, 2));
 
-    Json::Value verifVect = c.getVerificationVector(polyName, 2, 2);
-    REQUIRE_NOTHROW(c.getVerificationVector(polyName, 2, 2));
-    REQUIRE(verifVect == c.getVerificationVector(polyName, 2, 2));
+    Json::Value verifVect = c.getVerificationVector(polyName, 2);
+    REQUIRE_NOTHROW(c.getVerificationVector(polyName, 2));
+    REQUIRE(verifVect == c.getVerificationVector(polyName, 2));
 
     Json::Value verificationWrongSkeys = c.dkgVerificationV2("", "", "", 2, 2, 1);
     REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
@@ -762,7 +762,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
 
         polyNames[i] = polyName;
         PRINT_SRC_LINE
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         REQUIRE(verifVects[i]["status"] == 0);
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);

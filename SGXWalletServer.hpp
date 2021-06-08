@@ -82,7 +82,7 @@ public:
 
     virtual Json::Value generateDKGPoly(const string &_polyName, int _t);
 
-    virtual Json::Value getVerificationVector(const string &_polynomeName, int _t, int _n);
+    virtual Json::Value getVerificationVector(const string &_polynomeName, int _t);
 
     virtual Json::Value getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n);
 
@@ -140,7 +140,7 @@ public:
 
     static Json::Value generateDKGPolyImpl(const string &_polyName, int _t);
 
-    static Json::Value getVerificationVectorImpl(const string &_polyName, int _t, int _n);
+    static Json::Value getVerificationVectorImpl(const string &_polyName, int _t);
 
     static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
 

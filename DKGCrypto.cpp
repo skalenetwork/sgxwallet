@@ -150,7 +150,7 @@ string gen_dkg_poly(int _t) {
     return result;
 }
 
-vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, int n) {
+vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t) {
 
     auto encryptedPolyHexPtr = encryptedPolyHex.c_str();
 
@@ -174,7 +174,7 @@ vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, in
     sgx_status_t status = SGX_SUCCESS;
 
     status = trustedGetPublicShares(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
-                                    pubShares.data(), t, n);
+                                    pubShares.data(), t);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -189,7 +189,7 @@ vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, in
 }
 
 vector <vector<string>> getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n, size_t ind) {
-    auto verificationVector = get_verif_vect(encryptedPolyHex, t, n);
+    auto verificationVector = get_verif_vect(encryptedPolyHex, t);
 
     vector <vector<string>> result(t);
 

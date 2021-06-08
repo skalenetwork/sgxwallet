@@ -86,8 +86,7 @@ Json::Value generateDKGPolyReqMessage::process() {
 Json::Value getVerificationVectorReqMessage::process() {
     auto polyName = getStringRapid("polyName");
     auto t = getInt64Rapid("t");
-    auto n = getInt64Rapid("n");
-    auto result = SGXWalletServer::getVerificationVectorImpl(polyName, t, n);
+    auto result = SGXWalletServer::getVerificationVectorImpl(polyName, t);
     result["type"] = ZMQMessage::GET_VV_RSP;
     return result;
 }

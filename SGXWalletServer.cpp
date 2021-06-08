@@ -501,7 +501,7 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName, int _t
     RETURN_SUCCESS(result)
 }
 
-Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t, int _n) {
+Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, int _t) {
     COUNT_STATISTICS
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -511,13 +511,13 @@ Json::Value SGXWalletServer::getVerificationVectorImpl(const string &_polyName, 
         if (!checkName(_polyName, "POLY")) {
             throw SGXException(INVALID_DKG_GETVV_POLY_NAME, string(__FUNCTION__) + ":Invalid polynomial name");
         }
-        if (!check_n_t(_t, _n)) {
-            throw SGXException(INVALID_DKG_GETVV_PARAMS, string(__FUNCTION__) + ":Invalid parameters n or t ");
+        if (_t <= 0) {
+            throw SGXException(INVALID_DKG_GETVV_PARAMS, string(__FUNCTION__) + ":Invalid t ");
         }
 
         shared_ptr <string> encrPoly = readFromDb(_polyName);
 
-        verifVector = get_verif_vect(*encrPoly, _t, _n);
+        verifVector = get_verif_vect(*encrPoly, _t);
 
         for (int i = 0; i < _t; i++) {
             vector <string> currentCoef = verifVector.at(i);
@@ -1000,8 +1000,8 @@ Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
 
-Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName, int _t, int _n) {
-    return getVerificationVectorImpl(_polynomeName, _t, _n);
+Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName, int _t) {
+    return getVerificationVectorImpl(_polynomeName, _t);
 }
 
 Json::Value SGXWalletServer::getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n) {

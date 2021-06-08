@@ -197,7 +197,7 @@ void TestUtils::sendRPCRequest() {
         polyNames[i] = polyName;
 
         for (int i3 = 0; i3 <= testCount; i3++) {
-            verifVects[i] = c.getVerificationVector(polyName, t, n);
+            verifVects[i] = c.getVerificationVector(polyName, t);
             CHECK_STATE(verifVects[i]["status"] == 0);
         }
 
@@ -317,7 +317,7 @@ void TestUtils::sendRPCRequestV2() {
         auto response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);
@@ -421,7 +421,7 @@ void TestUtils::sendRPCRequestZMQ() {
         auto response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);
@@ -519,7 +519,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
@@ -660,7 +660,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
@@ -802,7 +802,7 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
