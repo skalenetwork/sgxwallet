@@ -40,10 +40,10 @@ shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
 ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         : checkSignature(_checkSignature),
-          caCertFile(_caCertFile), ctx_(make_shared<zmq::context_t>(1)) {
+          caCertFile(_caCertFile), ctx(make_shared<zmq::context_t>(1)) {
 
 
-    socket = make_shared<zmq::socket_t>(*ctx_, ZMQ_ROUTER);
+    socket = make_shared<zmq::socket_t>(*ctx, ZMQ_ROUTER);
 
     if (_checkSignature) {
         CHECK_STATE(!_caCertFile.empty());
@@ -84,25 +84,19 @@ void ZMQServer::run() {
         }
     }
 
+    spdlog::info("Exited zmq server loop");
+
 }
 
-
-void ZMQServer::exitAll() {
-}
 
 std::atomic<bool> ZMQServer::isExitRequested(false);
 
 void ZMQServer::exitZMQServer() {
-    auto doExit = !isExitRequested.exchange(true);
-    if (doExit) {
-
-
-        zmqServer->exitAll();
-
-        spdlog::info("deleting zmq server");
-        zmqServer = nullptr;
-        spdlog::info("deleted zmq server ");
-    }
+    isExitRequested.exchange(true);
+    zmqServer->ctx->shutdown();
+    zmqServer->socket->close();
+    zmqServer->ctx->close();
+    spdlog::info("Exited zmq server.");
 }
 
 
@@ -116,7 +110,6 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     string rootCAPath = "";
 
     if (_checkSignature) {
-
         rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
         spdlog::info("Reading root CA from {}", rootCAPath);
         CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
@@ -132,23 +125,11 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     spdlog::info("Inited zmq server ...");
 
 
-
 }
 
 shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
 ZMQServer::~ZMQServer() {
-
-
-    spdlog::info("Deleting front end");
-    socket = nullptr;
-    spdlog::info("Deleted front end");
-
-
-
-    spdlog::info("Deleting ZMQ context");
-    ctx_ = nullptr;
-    spdlog::info("Deleted ZMQ context");
 }
 
 
@@ -222,9 +203,7 @@ void ZMQServer::doOneServerLoop() {
         result["errorMessage"] = e.what();
         spdlog::error("Exception in zmq server {}", e.what());
     }
-    catch (
-            std::exception &e
-    ) {
+    catch (std::exception &e) {
         if (isExitRequested) {
             return;
         }

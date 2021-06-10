@@ -58,15 +58,13 @@ public:
 
     void run();
 
-    void exitAll();
-
     static void initZMQServer(bool _checkSignature);
     static void exitZMQServer();
 
 
 
 private:
-    shared_ptr<zmq::context_t> ctx_;
+    shared_ptr<zmq::context_t> ctx;
     shared_ptr<zmq::socket_t> socket;
 
     static std::atomic<bool> isExitRequested;
