@@ -76,6 +76,14 @@ void ZMQServer::run() {
 
     spdlog::info("Bound port ...");
 
+    while (!isExitRequested) {
+        try {
+            zmqServer->doOneServerLoop();
+        } catch (...) {
+            spdlog::error("doOneServerLoop threw exception. This should never happen!");
+        }
+    }
+
 }
 
 
@@ -97,6 +105,7 @@ void ZMQServer::exitZMQServer() {
     }
 }
 
+
 void ZMQServer::initZMQServer(bool _checkSignature) {
     static bool initedServer = false;
     CHECK_STATE(!initedServer)
@@ -115,15 +124,13 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
 
     zmqServer = make_shared<ZMQServer>(_checkSignature, rootCAPath);
 
-    CHECK_STATE(zmqServer);
+    CHECK_STATE(zmqServer)
 
-    while (!isExitRequested) {
-        try {
-            zmqServer->doOneServerLoop();
-        } catch (...) {
-            spdlog::error("doOneServerLoop threw exception. This should never happen!");
-        }
-    }
+    serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
+    serverThread->detach();
+
+    spdlog::info("Inited zmq server ...");
+
 
 
 }
