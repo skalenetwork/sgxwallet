@@ -39,8 +39,7 @@ std::atomic <uint64_t>  ServerWorker::workerCount(1);
 
 ServerWorker::ServerWorker(zmq::context_t &_ctx, int sock_type, bool _checkSignature,
                            const string& _caCert ) :            checkSignature(_checkSignature),
-                           caCert(_caCert),
-                                                                 isExitRequested(false) {
+                           caCert(_caCert), isExitRequested(false) {
 
     worker = make_shared<zmq::socket_t>(_ctx, sock_type);
 

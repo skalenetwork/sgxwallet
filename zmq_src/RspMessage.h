@@ -185,6 +185,10 @@ public:
     string getShare() {
         return getStringRapid("share*G2");
     }
+
+    Json::Value getVerificationVectorMult() {
+        return getJsonValueRapid("verificationVectorMult");
+    }
 };
 
 

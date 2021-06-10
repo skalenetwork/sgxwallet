@@ -946,6 +946,156 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
 }
 
+TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    int n = 2, t = 2;
+    vector<string> ethKeys(n);
+    Json::Value verifVects[n];
+    Json::Value pubEthKeys;
+    vector<string> secretShares(n);
+    Json::Value pubBLSKeys[n];
+    vector<string> blsSigShares(n);
+    vector<string> pubShares(n);
+    vector<string> polyNames(n);
+
+    int schainID = TestUtils::randGen();
+    int dkgID = TestUtils::randGen();
+    for (uint8_t i = 0; i < n; i++) {
+        auto generatedKey = client->generateECDSAKey();
+        ethKeys[i] = generatedKey.second;
+        string polyName =
+                "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
+        CHECK_STATE(client->generateDKGPoly(polyName, t));
+        polyNames[i] = polyName;
+        verifVects[i] = client->getVerificationVector(polyName, t);
+
+        pubEthKeys.append(generatedKey.first);
+    }
+
+    for (uint8_t i = 0; i < n; i++) {
+        secretShares[i] = client->getSecretShare(polyNames[i], pubEthKeys, t, n);
+        for (uint8_t k = 0; k < t; k++) {
+            for (uint8_t j = 0; j < 4; j++) {
+                string pubShare = verifVects[i][k][j].asString();
+                pubShares[i] += TestUtils::convertDecToHex(pubShare);
+            }
+        }
+    }
+
+    int k = 0;
+    vector <string> secShares(n);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            string secretShare = secretShares[i].substr(192 * j, 192);
+            secShares[i] += secretShares[j].substr(192 * i, 192);
+            REQUIRE(client->dkgVerification(pubShares[i], ethKeys[j], secretShare, t, n, j));
+            k++;
+        }
+
+    auto complaintResponse = client->complaintResponse(polyNames[1], t, n, 0);
+
+    string dhKey = std::get<0>(complaintResponse);
+    string shareG2 = std::get<1>(complaintResponse);
+    string secretShare = secretShares[1].substr(0, 192);
+
+    vector<char> message(65, 0);
+
+    SAFE_CHAR_BUF(encr_sshare, BUF_LEN)
+    strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
+
+    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    REQUIRE(sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
+
+    uint8_t key_to_hash[33];
+    uint64_t len;
+    REQUIRE( hex2carray(common_key, &len, key_to_hash, 64) );
+
+    auto hashed_key = cryptlite::sha256::hash_hex(string((char*)key_to_hash, 32));
+
+    SAFE_CHAR_BUF(derived_key, 33)
+
+    uint64_t key_length;
+    REQUIRE(hex2carray(&hashed_key[0], &key_length, (uint8_t *) derived_key, 33));
+
+    SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
+    strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
+
+    REQUIRE(xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
+
+    mpz_t hex_share;
+    mpz_init(hex_share);
+    mpz_set_str(hex_share, message.data(), 16);
+
+    libff::alt_bn128_Fr share(hex_share);
+    libff::alt_bn128_G2 decrypted_share_G2 = share * libff::alt_bn128_G2::one();
+    decrypted_share_G2.to_affine_coordinates();
+
+    mpz_clear(hex_share);
+
+    REQUIRE(convertG2ToString(decrypted_share_G2) == shareG2);
+
+    Json::Value verificationVectorMult = std::get<2>(complaintResponse);
+
+    libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+    for (int i = 0; i < t; ++i) {
+        libff::alt_bn128_G2 value;
+        value.Z = libff::alt_bn128_Fq2::one();
+        value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
+        value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
+        value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
+        value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+        verificationValue = verificationValue + value;
+    }
+    verificationValue.to_affine_coordinates();
+    REQUIRE(verificationValue == decrypted_share_G2);
+
+    BLSSigShareSet sigShareSet(t, n);
+
+    string hash = SAMPLE_HASH;
+
+    auto hash_arr = make_shared < array < uint8_t, 32 > > ();
+
+    uint64_t binLen;
+
+    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+        throw SGXException(TEST_INVALID_HEX, "Invalid hash");
+    }
+
+    map <size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+
+    for (int i = 0; i < t; i++) {
+        string blsName = "BLS_KEY" + polyNames[i].substr(4);
+        REQUIRE(client->createBLSPrivateKey(blsName, ethKeys[i], polyNames[i], secShares[i], t, n));
+
+        pubBLSKeys[i] = client->getBLSPublicKey(blsName);
+
+        string hash = SAMPLE_HASH;
+        blsSigShares[i] = client->blsSignMessageHash(blsName, hash, t, n);
+        REQUIRE(blsSigShares[i].length() > 0);
+
+        shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]);
+        BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+        sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+
+        vector <string> pubKey_vect;
+        for (uint8_t j = 0; j < 4; j++) {
+            pubKey_vect.push_back(pubBLSKeys[i][j].asString());
+        }
+        BLSPublicKeyShare pubKey(make_shared < vector < string >> (pubKey_vect), t, n);
+        REQUIRE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+
+        coeffs_pkeys_map[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    }
+
+    shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
+    BLSPublicKey
+    common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >>>(coeffs_pkeys_map), t, n);
+    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+}
+
 TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     int errStatus = 0;
     vector<char> errMsg(BUF_LEN, 0);

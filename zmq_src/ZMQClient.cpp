@@ -440,16 +440,17 @@ Json::Value ZMQClient::getAllBlsPublicKeys(const Json::Value& publicShares, int 
     return result->getPublicKeys();
 }
 
-pair<string, string> ZMQClient::complaintResponse(const string& polyName, int t, int n, int idx) {
+tuple<string, string, Json::Value> ZMQClient::complaintResponse(const string& polyName, int t, int n, int idx) {
     Json::Value p;
     p["type"] = ZMQMessage::COMPLAINT_RESPONSE_REQ;
     p["polyName"] = polyName;
     p["t"] = t;
     p["n"] = n;
+    p["ind"] = idx;
     auto result = dynamic_pointer_cast<complaintResponseRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
-    return {result->getDHKey(), result->getShare()};
+    return {result->getDHKey(), result->getShare(), result->getVerificationVectorMult()};
 }
 
 Json::Value ZMQClient::multG2(const string& x) {

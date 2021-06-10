@@ -111,7 +111,7 @@ public:
 
     Json::Value getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t);
 
-    pair<string, string> complaintResponse(const string& polyName, int t, int n, int idx);
+    tuple<string, string, Json::Value> complaintResponse(const string& polyName, int t, int n, int idx);
 
     Json::Value multG2(const string& x);
 

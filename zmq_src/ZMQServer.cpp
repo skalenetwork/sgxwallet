@@ -41,13 +41,10 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         : checkSignature(_checkSignature),
           caCertFile(_caCertFile), ctx_(make_shared<zmq::context_t>(1)) {
 
-
     frontend = make_shared<zmq::socket_t>(*ctx_, ZMQ_ROUTER);
     backend = make_shared<zmq::socket_t>(*ctx_, ZMQ_DEALER);
 
     //workerThreads = 2 * thread::hardware_concurrency();
-
-
 
     workerThreads = 1; // do one  thread for now
 
@@ -61,12 +58,10 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
 
     int linger = 0;
 
-
     zmq_setsockopt(*frontend, ZMQ_LINGER, &linger, sizeof(linger));
     zmq_setsockopt(*backend, ZMQ_LINGER, &linger, sizeof(linger));
 
 }
-
 
 void ZMQServer::run() {
 
@@ -91,7 +86,6 @@ void ZMQServer::run() {
         spdlog::error("Could not bind to zmq backend: {}", e.what());
         throw SGXException(ZMQ_COULD_NOT_BIND_BACK_END, "Could not bind to zmq backend.");
     }
-
 
     spdlog::info("Creating {} zmq server workers ...", workerThreads);
 
@@ -130,7 +124,6 @@ void ZMQServer::run() {
         throw SGXException(ZMQ_COULD_NOT_CREATE_PROXY, "Error, exiting zmq server.");
     }
 }
-
 
 void ZMQServer::exitAll() {
 
