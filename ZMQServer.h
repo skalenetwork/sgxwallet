@@ -35,9 +35,6 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
-
-#include "ServerWorker.h"
-
 using namespace std;
 
 
@@ -70,13 +67,11 @@ public:
 
 private:
     shared_ptr<zmq::context_t> ctx_;
-    shared_ptr<zmq::socket_t> frontend;
-    shared_ptr<zmq::socket_t> backend;
-
-    std::vector<shared_ptr<ServerWorker> > workers;
-    std::vector<shared_ptr<std::thread>> worker_threads;
+    shared_ptr<zmq::socket_t> socket;
 
     static std::atomic<bool> isExitRequested;
+
+    void doOneServerLoop();
 
 };
 
