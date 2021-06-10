@@ -145,6 +145,9 @@ void ZMQServer::doOneServerLoop() {
     zmq::message_t identit2;
     zmq::message_t copied_id;
 
+
+    string stringToParse = "";
+
     try {
 
         zmq_pollitem_t items[1];
@@ -152,6 +155,7 @@ void ZMQServer::doOneServerLoop() {
         items[0].events = ZMQ_POLLIN;
 
         int pollResult = 0;
+
 
         do {
             pollResult = zmq_poll(items, 1, 1000);
@@ -163,14 +167,14 @@ void ZMQServer::doOneServerLoop() {
 
         if (!socket->recv(&identity)) {
             // something terrible happened
-            spdlog::error("Fatal error: socket->recv(&identity) returned false" );
+            spdlog::error("Fatal error: socket->recv(&identity) returned false");
             exit(-11);
         }
 
 
         if (!identity.more()) {
             // something terrible happened
-            spdlog::error("Fatal error: zmq_msg_more(identity) returned false" );
+            spdlog::error("Fatal error: zmq_msg_more(identity) returned false");
             exit(-12);
         }
 
@@ -181,15 +185,15 @@ void ZMQServer::doOneServerLoop() {
 
         if (!socket->recv(&reqMsg, 0)) {
             // something terrible happened
-            spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false" );
+            spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false");
             exit(-13);
         }
 
 
-        string stringToParse((char*) reqMsg.data(), reqMsg.size());
+        stringToParse = string((char *) reqMsg.data(), reqMsg.size());
 
-        CHECK_STATE(stringToParse.front() = '{')
-        CHECK_STATE(stringToParse.back() = '}')
+        CHECK_STATE(stringToParse.front() == '{')
+        CHECK_STATE(stringToParse.back() == '}')
 
         auto parsedMsg = ZMQMessage::parse(
                 stringToParse.c_str(), stringToParse.size(), true, checkSignature);
@@ -197,11 +201,6 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 
         result = parsedMsg->process();
-
-    } catch (SGXException &e) {
-        result["status"] = e.getStatus();
-        result["errorMessage"] = e.what();
-        spdlog::error("Exception in zmq server {}", e.what());
     }
     catch (std::exception &e) {
         if (isExitRequested) {
@@ -209,12 +208,15 @@ void ZMQServer::doOneServerLoop() {
         }
         result["errorMessage"] = string(e.what());
         spdlog::error("Exception in zmq server :{}", e.what());
+        spdlog::error("Client request :" + stringToParse);
+
     } catch (...) {
         if (isExitRequested) {
             return;
         }
         spdlog::error("Error in zmq server ");
         result["errorMessage"] = "Error in zmq server ";
+        spdlog::error("Client request :" + stringToParse);
     }
 
     try {
@@ -228,8 +230,18 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE(replyStr.front() == '{');
         CHECK_STATE(replyStr.back() == '}');
 
-        socket->send(copied_id, ZMQ_SNDMORE);
-        s_send(*socket, replyStr);
+        if (!socket->send(copied_id, ZMQ_SNDMORE)) {
+            if (isExitRequested) {
+                return;
+            }
+            exit(-15);
+        }
+        if (!s_send(*socket, replyStr)) {
+            if (isExitRequested) {
+                return;
+            }
+            exit(-16);
+        }
 
     } catch (
             std::exception &e
@@ -238,10 +250,12 @@ void ZMQServer::doOneServerLoop() {
             return;
         }
         spdlog::error("Exception in zmq server worker send :{}", e.what());
+        exit(-17);
     } catch (...) {
         if (isExitRequested) {
             return;
         }
         spdlog::error("Unklnown exception in zmq server worker send");
+        exit(-18);
     }
 }
