@@ -204,6 +204,8 @@ ZMQServer::~ZMQServer() {
     spdlog::info("Deleted server thread");
 
 
+    zmq_ctx_destroy()
+
     spdlog::info("Deleting ZMQ context");
     ctx_ = nullptr;
     spdlog::info("Deleted ZMQ context");

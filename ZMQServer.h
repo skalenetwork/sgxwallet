@@ -71,10 +71,7 @@ public:
 private:
     shared_ptr<zmq::context_t> ctx_;
     shared_ptr<zmq::socket_t> frontend;
-    shared_ptr<zmq::socket_t> backend;
 
-    std::vector<shared_ptr<ServerWorker> > workers;
-    std::vector<shared_ptr<std::thread>> worker_threads;
 
     static std::atomic<bool> isExitRequested;
 
