@@ -208,6 +208,7 @@ void ZMQServer::doOneServerLoop() {
         }
         result["errorMessage"] = string(e.what());
         spdlog::error("Exception in zmq server :{}", e.what());
+        spdlog::error("ID:" + string((char*) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
 
     } catch (...) {
@@ -216,6 +217,7 @@ void ZMQServer::doOneServerLoop() {
         }
         spdlog::error("Error in zmq server ");
         result["errorMessage"] = "Error in zmq server ";
+        spdlog::error("ID:" + string((char*) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
     }
 
