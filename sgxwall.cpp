@@ -182,7 +182,6 @@ int main(int argc, char *argv[]) {
     initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
     cerr << "Completed initAll." << endl;
 
-
     //check if test keys already exist
 
     string TEST_KEYS_4_NODE = "sgx_data/4node.json";
@@ -193,7 +192,6 @@ int main(int argc, char *argv[]) {
     if (keysExist) {
         cerr << "Found test keys." << endl;
     }
-
 
     if (generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
@@ -220,8 +218,6 @@ int main(int argc, char *argv[]) {
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
     }
-
-
 
     while ( !ExitHandler::shouldExit() ) {
         sleep(10);

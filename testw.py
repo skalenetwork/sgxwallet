@@ -31,7 +31,6 @@ print("Top directory is:" + topDir)
 testList = [ "[zmq-ecdsa]",
              "[first-run]",
              "[second-run]",
-             "[many-threads-crypto]",
              "[many-threads-crypto-v2]",
              "[many-threads-crypto-v2-zmq]"
              "[backup-restore]",

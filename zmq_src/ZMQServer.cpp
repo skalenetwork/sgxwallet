@@ -84,7 +84,6 @@ void ZMQServer::run() {
     spdlog::info("Exited zmq server loop");
 }
 
-
 std::atomic<bool> ZMQServer::isExitRequested(false);
 
 void ZMQServer::exitZMQServer() {
@@ -94,7 +93,6 @@ void ZMQServer::exitZMQServer() {
     zmqServer->ctx->close();
     spdlog::info("Exited zmq server.");
 }
-
 
 void ZMQServer::initZMQServer(bool _checkSignature) {
     static bool initedServer = false;
@@ -134,9 +132,7 @@ void ZMQServer::doOneServerLoop() {
     result["errorMessage"] = "";
 
     zmq::message_t identity;
-    zmq::message_t identit2;
     zmq::message_t copied_id;
-
 
     string stringToParse = "";
 
