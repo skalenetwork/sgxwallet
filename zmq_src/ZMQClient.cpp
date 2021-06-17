@@ -134,6 +134,9 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
     auto msgToSign = std::regex_replace(_str, r, "");
 
     vector<uint8_t> binSig(256,0);
+    std::cout << "VERIFYING SIG: " << _str << '\n' << msgToSign << std::endl;
+
+    // std::cout << signString(pkey, _str) << std::endl;
 
     uint64_t binLen = 0;
 
@@ -152,9 +155,6 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
     CHECK_STATE((EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, _pubkey) == 1));
 
     CHECK_STATE(EVP_DigestVerifyUpdate(mdctx, msgToSign.c_str(), msgToSign.size()) == 1);
-
-/* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
- * signature. Length is returned in slen */
 
     CHECK_STATE2(EVP_DigestVerifyFinal(mdctx, binSig.data(), binLen) == 1,
                  ZMQ_COULD_NOT_VERIFY_SIG);
@@ -260,7 +260,6 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &
     certFileName = _certFileName;
     certKeyName = _certKeyName;
 
-
     url = "tcp://" + ip + ":" + to_string(port);
 }
 
@@ -273,13 +272,13 @@ void ZMQClient::reconnect() {
         clientSockets.erase( pid );
     }
 
-    uint64_t  randNumber;
+    uint64_t randNumber;
     CHECK_STATE(getrandom( &randNumber, sizeof(uint64_t), 0 ) == sizeof(uint64_t));
 
     string identity = to_string(135) + ":" + to_string(randNumber);
 
     auto clientSocket = make_shared< zmq::socket_t >( ctx, ZMQ_DEALER );
-    clientSocket->setsockopt( ZMQ_IDENTITY, identity.c_str(),  identity.size() + 1);
+    clientSocket->setsockopt( ZMQ_IDENTITY, identity.c_str(), identity.size() + 1);
     //  Configure socket to not wait at close time
     int linger = 0;
     clientSocket->setsockopt( ZMQ_LINGER, &linger, sizeof( linger ) );

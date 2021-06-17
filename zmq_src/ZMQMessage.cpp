@@ -145,7 +145,7 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
 
             auto msgToVerify = buffer.GetString();
 
-            ZMQClient::verifySig(publicKey,msgToVerify, *msgSig );
+            ZMQClient::verifySig(publicKey, msgToVerify, *msgSig );
 
         }
     }
