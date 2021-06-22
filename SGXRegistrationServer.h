@@ -42,19 +42,15 @@ class SGXRegistrationServer : public AbstractRegServer {
     recursive_mutex m;
     bool autoSign;
 
-
     static shared_ptr <HttpServer> httpServer;
 
     static shared_ptr <SGXRegistrationServer> server;
-
 
 public:
 
     static shared_ptr <SGXRegistrationServer> getServer();
 
-
     SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
-
 
     virtual Json::Value SignCertificate(const string &csr);
 

@@ -150,7 +150,6 @@ Json::Value getCertificateImpl(const string &hash) {
     RETURN_SUCCESS(result)
 }
 
-
 Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info(__FUNCTION__);
     return signCertificateImpl(csr, autoSign);
@@ -160,7 +159,6 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     spdlog::info(__FUNCTION__);
     return getCertificateImpl(hash);
 }
-
 
 void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
@@ -189,7 +187,6 @@ int SGXRegistrationServer::exitServer() {
 
   return 0;
 }
-
 
 shared_ptr<SGXRegistrationServer> SGXRegistrationServer::getServer() {
     CHECK_STATE(server);
