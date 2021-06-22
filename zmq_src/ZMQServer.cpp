@@ -174,7 +174,6 @@ void ZMQServer::doOneServerLoop() {
         }
 
         stringToParse = string((char *) reqMsg.data(), reqMsg.size());
-        std::cout << "RECEIVED MSG: " << stringToParse << std::endl;
 
         CHECK_STATE(stringToParse.front() == '{')
         CHECK_STATE(stringToParse.back() == '}')

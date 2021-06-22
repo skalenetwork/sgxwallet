@@ -134,9 +134,6 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
     auto msgToSign = std::regex_replace(_str, r, "");
 
     vector<uint8_t> binSig(256,0);
-    std::cout << "VERIFYING SIG: " << _str << '\n' << msgToSign << std::endl;
-
-    // std::cout << signString(pkey, _str) << std::endl;
 
     uint64_t binLen = 0;
 

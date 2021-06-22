@@ -33,7 +33,6 @@
 #include "RspMessage.h"
 #include "ZMQMessage.h"
 
-
 uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
     CHECK_STATE(_name);
     CHECK_STATE(d->HasMember(_name));
