@@ -181,12 +181,12 @@ void gen_SEK() {
 
 
     if (!autoconfirm) {
-        sleep(10);
         string confirm_str = "I confirm";
         string buffer;
         do {
             cout << " DO YOU CONFIRM THAT YOU COPIED THE KEY? (if you confirm type - I confirm)"
                  << endl;
+            sleep(10);
             getline(cin, buffer);
         } while (case_insensitive_match(confirm_str, buffer));
     }
