@@ -90,22 +90,18 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         }
 
         if (_autoSign) {
-            string genCert = string("cd ") + CERT_DIR + "&& ./"
-                    + CERT_CREATE_COMMAND + " " + hash ;
+            string genCert = string("cd ") + CERT_DIR + "&& ./" + CERT_CREATE_COMMAND + " " + hash ;
 
             if (system(genCert.c_str()) == 0) {
                 spdlog::info("Client cert " + hash + " generated");
-                string db_key = "CSR:HASH:" + hash + "STATUS:";
-                string status = "0";
-                LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
             } else {
                 spdlog::error("Client cert generation failed: {} ", genCert);
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
             }
-        } else {
-            string db_key = "CSR:HASH:" + hash;
-            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
         }
+        string db_key = "CSR:HASH:" + hash + "STATUS:";
+        string status = "0";
+        LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
 
         result["result"] = true;
         result["hash"] = hash;
