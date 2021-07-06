@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018-2019 SKALE Labs
+  Copyright (C) 2018- SKALE Labs
 
   This file is part of libBLS.
 
@@ -32,6 +32,7 @@ public:
     ECDSASignReqMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
 
 };
 

@@ -42,7 +42,7 @@
 #include <unistd.h>
 
 
-
+#include "ExitHandler.h"
 #include "BLSPrivateKeyShareSGX.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
@@ -68,16 +68,16 @@ using namespace std;
 void systemHealthCheck() {
     string ulimit;
     try {
-        ulimit = exec( "/bin/bash -c \"ulimit -n\"" );
-    } catch ( ... ) {
+        ulimit = exec("/bin/bash -c \"ulimit -n\"");
+    } catch (...) {
         spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
-        exit(-15);
+        throw SGXException(EXECUTION_ULIMIT_FAILED, "Execution of '/bin/bash -c ulimit -n' failed.");
     }
-    int noFiles = strtol( ulimit.c_str(), NULL, 10 );
+    int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
-    auto noUlimitCheck = getenv( "NO_ULIMIT_CHECK" ) != nullptr;
+    auto noUlimitCheck = getenv("NO_ULIMIT_CHECK") != nullptr;
 
-    if ( noFiles < 65535 && !noUlimitCheck) {
+    if (noFiles < 65535 && !noUlimitCheck) {
         string errStr =
                 "sgxwallet requires setting Linux file descriptor limit to at least 65535 "
                 "You current limit (ulimit -n) is less than 65535. \n Please set it to 65535:"
@@ -85,12 +85,9 @@ void systemHealthCheck() {
                 "and setting 'DefaultLimitNOFILE=65535'\n"
                 "After that, restart sgxwallet";
         spdlog::error(errStr);
-        exit(-16);
+        throw SGXException(WRONG_ULIMIT, errStr);
     }
 }
-
-static ZMQServer* zmqServer = nullptr;
-atomic<bool> exiting(false);
 
 void initUserSpace() {
 
@@ -104,26 +101,8 @@ void initUserSpace() {
     systemHealthCheck();
 #endif
 
-#ifdef EXPERIMENTAL_ZMQ_SERVER
-    zmqServer = new ZMQServer();
-    static std::thread serverThread(std::bind(&ZMQServer::run, zmqServer));
-#endif
 }
 
-void exitZMQServer() {
-#ifdef EXPERIMENTAL_ZMQ_SERVER
-
-    auto doExit = !exiting.exchange(true);
-
-    if (doExit) {
-        spdlog::info("Exiting zmq server ...");
-        delete zmqServer;
-        spdlog::info("Exited zmq server ...");
-        zmqServer = nullptr;
-    }
-
-#endif
-}
 
 uint64_t initEnclave() {
 
@@ -133,7 +112,7 @@ uint64_t initEnclave() {
     support = get_sgx_support();
     if (!SGX_OK(support)) {
         sgx_support_perror(support);
-        exit(-17);
+        throw SGXException(COULD_NOT_INIT_ENCLAVE, "SGX is not supported or not enabled");
     }
 #endif
 
@@ -164,11 +143,11 @@ uint64_t initEnclave() {
             } else {
                 spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
             }
-            exit(-21);
+            throw SGXException(COULD_NOT_INIT_ENCLAVE, "Error initing enclave. Please re-check your enviroment.");
         }
 
         spdlog::info("Enclave created and started successfully");
-        
+
         status = trustedEnclaveInit(eid, enclaveLogLevel);
     }
 
@@ -183,8 +162,8 @@ uint64_t initEnclave() {
 }
 
 
-
-void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generateTestKeys) {
+void initAll(uint32_t _logLevel, bool _checkCert,
+             bool _checkZMQSig, bool _autoSign, bool _generateTestKeys) {
 
 
     static atomic<bool> sgxServerInited(false);
@@ -206,9 +185,9 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
         uint64_t counter = 0;
 
         uint64_t initResult = 0;
-        while ((initResult = initEnclave()) != 0 && counter < 10){
+        while ((initResult = initEnclave()) != 0 && counter < 10) {
             sleep(1);
-            counter ++;
+            counter++;
         }
 
         if (initResult != 0) {
@@ -218,27 +197,45 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _autoSign, bool _generate
         initUserSpace();
         initSEK();
 
+        SGXWalletServer::createCertsIfNeeded();
+
         if (useHTTPS) {
+            spdlog::info("Initing JSON-RPC server over HTTPS");
+            spdlog::info("Check client cert: {}", _checkCert);
             SGXWalletServer::initHttpsServer(_checkCert);
-            SGXRegistrationServer::initRegistrationServer(_autoSign);
-            CSRManagerServer::initCSRManagerServer();
+            spdlog::info("Inited JSON-RPC server over HTTPS");
         } else {
+            spdlog::info("Initing JSON-RPC server over HTTP");
             SGXWalletServer::initHttpServer();
+            spdlog::info("Inited JSON-RPC server over HTTP");
         }
+
+        SGXRegistrationServer::initRegistrationServer(_autoSign);
+        CSRManagerServer::initCSRManagerServer();
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
+        ZMQServer::initZMQServer(_checkZMQSig);
 
         sgxServerInited = true;
     } catch (SGXException &_e) {
         spdlog::error(_e.getMessage());
-        exit(-18);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     } catch (exception &_e) {
         spdlog::error(_e.what());
-        exit(-19);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     }
     catch (...) {
         exception_ptr p = current_exception();
         printf("Exception %s \n", p.__cxa_exception_type()->name());
         spdlog::error("Unknown exception");
-        exit(-22);
+        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
     }
 };
+
+void exitAll() {
+    SGXWalletServer::exitServer();
+    SGXRegistrationServer::exitServer();
+    CSRManagerServer::exitServer();
+    SGXInfoServer::exitServer();
+    ZMQServer::exitZMQServer();
+
+}

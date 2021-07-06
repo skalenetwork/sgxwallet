@@ -162,20 +162,32 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 }
 
 
-int SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
+void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
     server = make_shared<SGXRegistrationServer>(*httpServer,
                                                 JSONRPC_SERVER_V2,
                                                 _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
 
+    spdlog::info("Starting registration server on port {} ...", BASE_PORT + 1);
+
     if (!server->StartListening()) {
         spdlog::error("Registration server could not start listening on port {}", BASE_PORT + 1);
-        exit(-10);
+        throw SGXException(REGISTRATION_SERVER_FAILED_TO_START, "Registration server could not start listening.");
     } else {
         spdlog::info("Registration server started on port {}", BASE_PORT + 1);
     }
+}
 
-    return 0;
+int SGXRegistrationServer::exitServer() {
+  spdlog::info("Stoping registration server");
+
+  if (server && !server->StopListening()) {
+      spdlog::error("Registration server could not be stopped. Will forcefully terminate the app");
+  } else {
+      spdlog::info("Registration server stopped");
+  }
+
+  return 0;
 }
 
 

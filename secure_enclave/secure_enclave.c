@@ -155,7 +155,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     }
 
     LOG_INFO("Successfully inited enclave. Signed enclave version:" SIGNED_ENCLAVE_VERSION );
-#ifndef SGX_DEBUG
+#ifdef SGX_DEBUG
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE DEBUG MODE! NEVER USE IN PRODUCTION!");
 #endif
 
@@ -166,11 +166,6 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 #ifdef SGX_HW_SIM
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
 #endif
-
-
-
-
-
 
 }
 
@@ -243,7 +238,6 @@ void sealHexSEK(int *errStatus, char *errString,
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
     CHECK_STATE(strnlen(sek_hex, 33) == 32)
-    
 
     uint64_t plaintextLen = strlen(sek_hex) + 1;
     
@@ -261,7 +255,6 @@ void sealHexSEK(int *errStatus, char *errString,
     uint64_t encrypt_text_length = sgx_get_encrypt_txt_len((const sgx_sealed_data_t *)encrypted_sek);
 
     CHECK_STATE(encrypt_text_length = plaintextLen);
-
 
     SAFE_CHAR_BUF(unsealedKey, BUF_LEN);
     uint32_t decLen = BUF_LEN;
@@ -287,7 +280,6 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
-
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
 
@@ -296,11 +288,11 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, sek_hex);
     memcpy(AES_key[512], SEK_raw, SGX_AESGCM_KEY_SIZE);
 
-
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
 
     if (*errStatus != 0) {
         LOG_ERROR("sealHexSEK failed");
+        LOG_ERROR(errString);
         goto clean;
     }
 
@@ -324,15 +316,16 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
             (uint8_t *)aes_key_hex, &dec_len);
 
     if (status == 0x3001) {
-        LOG_ERROR("Could not decrypt LevelDB storage! \n"
+        const char errorMessage [] = "Could not decrypt LevelDB storage! \n"
                   "If you upgraded sgxwallet software or if you are restoring from backup, please run sgxwallet with -b flag  and "
-                  "pass your backup key.");
+                  "pass your backup key.";
+        snprintf(errString, BUF_LEN, errorMessage);
+        LOG_ERROR(errorMessage);
     }
 
     CHECK_STATUS2("sgx unseal SEK failed with status %d");
 
     uint64_t len;
-
 
     hex2carray(aes_key_hex, &len, (uint8_t *) (AES_key[512]));
 
@@ -354,11 +347,11 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     uint64_t len;
     hex2carray(sek_hex, &len, (uint8_t *) (AES_key[512]));
 
-
     sealHexSEK(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
 
     if (*errStatus != 0) {
         LOG_ERROR("sealHexSEK failed");
+        LOG_ERROR(errString);
         goto clean;
     }
 
@@ -368,8 +361,6 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
-
-
 
 void trustedGenerateEcdsaKey(int *errStatus, char *errString,
                                 uint8_t *encryptedPrivateKey, uint64_t *enc_len, char *pub_key_x, char *pub_key_y) {
@@ -537,7 +528,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
                              &type, &exportable);
 
@@ -572,6 +562,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         if (!signature_verify(msgMpz, sign, Pkey, curve)) {
             *errStatus = -2;
             snprintf(errString, BUF_LEN, "signature is not verified! ");
+            LOG_ERROR(errString);
             point_clear(Pkey);
             goto clean;
         }
@@ -766,8 +757,6 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
 
     CHECK_STATUS("SGX AES encrypt DKG poly failed");
 
-
-
     SAFE_CHAR_BUF(decr_dkg_secret, DKG_BUFER_LENGTH);
 
     uint8_t type = 0;
@@ -850,7 +839,6 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
                                        char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
                                        uint8_t ind) {
 
-
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
@@ -867,7 +855,6 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
     trustedSetEncryptedDkgPoly(&status, errString, _encrypted_poly, _enc_len);
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
-
 
     SAFE_CHAR_BUF(skey, BUF_LEN);
 
@@ -942,7 +929,6 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
 
-
     SAFE_CHAR_BUF(skey, BUF_LEN);
 
     SAFE_CHAR_BUF(pub_key_x, BUF_LEN);
@@ -973,7 +959,6 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
-
 
     status = calc_secret_shareG2(s_share, s_shareG2);
     CHECK_STATUS("invalid decr secret share");
@@ -1021,7 +1006,7 @@ void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_
 
     CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d");
 
-    status = calc_public_shares(decrypted_dkg_secret, public_shares, _t) != 0;
+    status = calc_public_shares(decrypted_dkg_secret, public_shares, _t);
     CHECK_STATUS("t does not match polynomial in db");
 
     SET_SUCCESS
@@ -1215,7 +1200,6 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
         mpz_clear(decr_secret_share);
     }
 
-
     mpz_mod(bls_key, sum, q);
 
     SAFE_CHAR_BUF(key_share, BLS_KEY_LENGTH);
@@ -1272,7 +1256,6 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey, BUF_LEN,
                              &type, &exportable);
     CHECK_STATUS2("aes decrypt failed with status %d");
@@ -1325,7 +1308,6 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares
         mpz_addmul_ui(sum, decr_secret_share, 1);
         mpz_clear(decr_secret_share);
     }
-
 
     mpz_mod(bls_key, sum, q);
 
@@ -1385,6 +1367,4 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
 
     clean:
     ;
-
-
 }

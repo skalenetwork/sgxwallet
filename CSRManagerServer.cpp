@@ -110,16 +110,29 @@ Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
     return signByHashImpl(hash, status);
 }
 
-int CSRManagerServer::initCSRManagerServer() {
+void CSRManagerServer::initCSRManagerServer() {
     hs3 = make_shared<jsonrpc::HttpServer>(BASE_PORT + 2);
     hs3->BindLocalhost();
     cs = make_shared<CSRManagerServer>(*hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)
 
+    spdlog::info("Starting csr manager server on port {} ...", BASE_PORT + 2);
+
     if (!cs->StartListening()) {
         spdlog::info("CSR manager server could not start listening");
-        exit(-1);
+        throw SGXException(CSR_MANAGER_SERVER_FAILED_TO_START, "CSRManager server could not start listening.");
     } else {
         spdlog::info("CSR manager server started on port {}", BASE_PORT + 2);
     }
-    return 0;
 };
+
+int CSRManagerServer::exitServer() {
+  spdlog::info("Stoping CSRManager server");
+
+  if (cs && !cs->StopListening()) {
+      spdlog::error("CSRManager server could not be stopped. Will forcefully terminate the app");
+  } else {
+      spdlog::info("CSRManager server stopped");
+  }
+
+  return 0;
+}

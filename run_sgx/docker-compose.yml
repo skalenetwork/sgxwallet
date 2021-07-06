@@ -1,14 +1,15 @@
 version: '3'
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet_signed:latest
-    restart: always
+    image: skalenetwork/sgxwallet_release:latest
+    restart: unless-stopped
     ports:
       - "1026:1026"
       - "1027:1027"
       - "1028:1028"
       - "1029:1029"
       - "1030:1030"
+      - "1031:1031"
     devices:
       - "/dev/isgx"
       - "/dev/mei0"
@@ -20,7 +21,6 @@ services:
       options:
         max-size: "10m"
         max-file: "4"
-    restart: unless-stopped
     command: -s -y -d
     healthcheck:
       test: ["CMD", "ls", "/dev/isgx", "/dev/mei0"]

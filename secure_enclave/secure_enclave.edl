@@ -13,7 +13,6 @@ enclave {
 
 		public void trustedEnclaveInit(uint64_t _logLevel);
 
-
         public void trustedGenerateSEK(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,

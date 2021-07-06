@@ -107,7 +107,6 @@ string ConvertToString(const T &field_elem, int base = 10) {
     clean:
     mpz_clear(t);
     return ret;
-
 }
 
 string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const string &delim = ":") {
@@ -172,6 +171,11 @@ vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symb
 
     clean:
     return result;
+}
+
+bool isG2( const libff::alt_bn128_G2& point ) {
+  return point.is_well_formed() &&
+         libff::alt_bn128_G2::order() * point == libff::alt_bn128_G2::zero();
 }
 
 int gen_dkg_poly(char *secret, unsigned _t) {
@@ -294,8 +298,8 @@ int calc_secret_share(const char *decrypted_coeffs, char *s_share,
 
         strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
         result = 0;
-        return result;
 
+        return result;
     } catch (exception &e) {
         LOG_ERROR(e.what());
         return result;
@@ -320,7 +324,6 @@ int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
     CHECK_ARG_CLEAN(s_shareG2);
 
     try {
-
 
         if (mpz_set_str(share, s_share, 16) == -1) {
             goto clean;
@@ -389,7 +392,7 @@ int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
         ret = 1;
     } catch (...) {
         LOG_ERROR("Unknown throwable");
-        ret = 1;
+        ret = 2;
     }
 
     clean:
@@ -456,6 +459,10 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t, int ind) 
             pub_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
             pub_share.Z = libff::alt_bn128_Fq2::one();
 
+            if ( !isG2( pub_share ) ) {
+                ret = 3;
+                return ret;
+            }
             pub_shares.push_back(pub_share);
         }
 

@@ -240,9 +240,7 @@ string encryptECDSAKey(const string& _key) {
     status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
                                encryptedKey.data(), &enc_len);
 
-    if (status != 0) {
-        throw SGXException(status, string("Could not encrypt ECDSA key: " + string(errString.begin(), errString.end())).c_str());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errString.data());
 
     vector<char> hexEncrKey = carray2Hex(encryptedKey.data(), enc_len);
 

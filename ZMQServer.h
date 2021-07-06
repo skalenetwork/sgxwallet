@@ -35,33 +35,44 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
-
-#include "ServerWorker.h"
-
 using namespace std;
 
 
 class ZMQServer {
+
+    uint64_t workerThreads;
+
 public:
-    ZMQServer();
 
+    bool checkSignature = false;
+    string caCertFile = "";
+    string caCert = "";
 
-    atomic<bool> isExitRequested;
+    static shared_ptr<ZMQServer> zmqServer;
 
-    enum {
-        kMaxThread = 5
-    };
+    static shared_ptr<std::thread> serverThread;
+
+    ZMQServer(bool _checkSignature, const string& _caCertFile);
+
+    ~ZMQServer();
 
     void run();
 
-private:
-    zmq::context_t ctx_;
-    zmq::socket_t frontend_;
-    zmq::socket_t backend_;
+    static void initZMQServer(bool _checkSignature);
+    static void exitZMQServer();
 
-    std::vector<ServerWorker *> worker;
-    std::vector<std::thread *> worker_thread;
+
+
+private:
+    shared_ptr<zmq::context_t> ctx;
+    shared_ptr<zmq::socket_t> socket;
+
+    static std::atomic<bool> isExitRequested;
+
+    void doOneServerLoop();
 
 };
+
+
 
 #endif //SGXWALLET_ZMQServer_H
