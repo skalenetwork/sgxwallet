@@ -59,14 +59,16 @@ SGXRegistrationServer::SGXRegistrationServer(AbstractServerConnector &connector,
         : AbstractRegServer(connector, type), autoSign(_autoSign) {}
 
 
-Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
+Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     spdlog::info(__FUNCTION__);
     INIT_RESULT(result)
 
     result["result"] = false;
 
     try {
-        string hash = cryptlite::sha256::hash_hex(_csr);
+        std::lock_guard<std::mutex> lock(m);
+
+        string hash = cryptlite::sha256::hash_hex(csr);
 
         if (system("ls " CERT_DIR "/" CERT_CREATE_COMMAND) != 0) {
             spdlog::error("cert/create_client_cert does not exist");
@@ -76,7 +78,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         string csr_name = string(CERT_DIR) + "/" + hash + ".csr";
         ofstream outfile(csr_name);
         outfile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        outfile << _csr << endl;
+        outfile << csr << endl;
         outfile.close();
 
         if (system(("ls " + csr_name).c_str()) != 0) {
@@ -85,11 +87,11 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
         }
 
         if (system(("openssl req -in " + csr_name).c_str()) != 0) {
-            spdlog::error("Incorrect CSR format: {}", _csr);
+            spdlog::error("Incorrect CSR format: {}", csr);
             throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "Incorrect CSR format ");
         }
 
-        if (_autoSign) {
+        if (autoSign) {
             string genCert = string("cd ") + CERT_DIR + "&& ./"
                     + CERT_CREATE_COMMAND + " " + hash ;
 
@@ -104,7 +106,7 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
             }
         } else {
             string db_key = "CSR:HASH:" + hash;
-            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, _csr);
+            LevelDB::getCsrStatusDb()->writeDataUnique(db_key, csr);
         }
 
         result["result"] = true;
@@ -115,7 +117,9 @@ Json::Value signCertificateImpl(const string &_csr, bool _autoSign = false) {
     RETURN_SUCCESS(result)
 }
 
-Json::Value getCertificateImpl(const string &hash) {
+Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
+    spdlog::info(__FUNCTION__);
+    
     Json::Value result;
 
     string cert;
@@ -151,17 +155,6 @@ Json::Value getCertificateImpl(const string &hash) {
 }
 
 
-Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
-    spdlog::info(__FUNCTION__);
-    return signCertificateImpl(csr, autoSign);
-}
-
-Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
-    spdlog::info(__FUNCTION__);
-    return getCertificateImpl(hash);
-}
-
-
 void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
     server = make_shared<SGXRegistrationServer>(*httpServer,
@@ -189,7 +182,6 @@ int SGXRegistrationServer::exitServer() {
 
   return 0;
 }
-
 
 shared_ptr<SGXRegistrationServer> SGXRegistrationServer::getServer() {
     CHECK_STATE(server);
