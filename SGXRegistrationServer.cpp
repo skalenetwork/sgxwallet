@@ -97,9 +97,6 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
 
             if (system(genCert.c_str()) == 0) {
                 spdlog::info("Client cert " + hash + " generated");
-                string db_key = "CSR:HASH:" + hash + "STATUS:";
-                string status = "0";
-                LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
             } else {
                 spdlog::error("Client cert generation failed: {} ", genCert);
                 throw SGXException(FAIL_TO_CREATE_CERTIFICATE, "CLIENT CERTIFICATE GENERATION FAILED");
@@ -108,6 +105,9 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
             string db_key = "CSR:HASH:" + hash;
             LevelDB::getCsrStatusDb()->writeDataUnique(db_key, csr);
         }
+        string db_key = "CSR:HASH:" + hash + "STATUS:";
+        string status = "0";
+        LevelDB::getCsrStatusDb()->writeDataUnique(db_key, status);
 
         result["result"] = true;
         result["hash"] = hash;
