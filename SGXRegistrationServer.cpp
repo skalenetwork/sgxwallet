@@ -154,7 +154,6 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
     RETURN_SUCCESS(result)
 }
 
-
 void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
     httpServer = make_shared<HttpServer>(BASE_PORT + 1);
     server = make_shared<SGXRegistrationServer>(*httpServer,

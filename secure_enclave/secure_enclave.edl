@@ -121,8 +121,7 @@ enclave {
                                 [in, count = 3050] uint8_t* encrypted_dkg_secret,
                                 uint64_t enc_len,
                                 [out, count = 10000] char* public_shares,
-                                unsigned _t,
-                                unsigned _n);
+                                unsigned _t);
 
         public void trustedDkgVerify(
                                 [out] int *errStatus,

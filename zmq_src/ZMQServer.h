@@ -61,8 +61,6 @@ public:
     static void initZMQServer(bool _checkSignature);
     static void exitZMQServer();
 
-
-
 private:
     shared_ptr<zmq::context_t> ctx;
     shared_ptr<zmq::socket_t> socket;
@@ -72,7 +70,6 @@ private:
     void doOneServerLoop();
 
 };
-
 
 
 #endif //SGXWALLET_ZMQServer_H

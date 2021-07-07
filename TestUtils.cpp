@@ -42,7 +42,6 @@
 #include "SGXWalletServer.hpp"
 
 #include "catch.hpp"
-#include "ZMQClient.h"
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "BLSPublicKeyShare.h"
@@ -72,7 +71,6 @@ string TestUtils::stringFromFr(libff::alt_bn128_Fr &el) {
 
     return string(arr);
 }
-
 
 string TestUtils::convertDecToHex(string dec, int numBytes) {
     mpz_t num;
@@ -190,7 +188,6 @@ void TestUtils::sendRPCRequest() {
             CHECK_STATE(sig["status"].asInt() == 0);
         }
 
-
         CHECK_STATE(ethKeys[i]["status"] == 0);
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
@@ -199,7 +196,7 @@ void TestUtils::sendRPCRequest() {
         polyNames[i] = polyName;
 
         for (int i3 = 0; i3 <= testCount; i3++) {
-            verifVects[i] = c.getVerificationVector(polyName, t, n);
+            verifVects[i] = c.getVerificationVector(polyName, t);
             CHECK_STATE(verifVects[i]["status"] == 0);
         }
 
@@ -250,7 +247,6 @@ void TestUtils::sendRPCRequest() {
         publicShares["publicShares"][i] = pubShares[i];
     }
 
-
     Json::Value blsPublicKeys;
 
     for (int i6 = 0; i6 <= testCount; i6++) {
@@ -262,7 +258,6 @@ void TestUtils::sendRPCRequest() {
         string endName = polyNames[i].substr(4);
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
         string secretShare = secretShares[i]["secretShare"].asString();
-
 
         auto response = c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
                                                   t, n);
@@ -321,7 +316,7 @@ void TestUtils::sendRPCRequestV2() {
         auto response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
 
         pubEthKeys.append(ethKeys[i]["publicKey"]);
@@ -399,47 +394,41 @@ void TestUtils::sendRPCRequestV2() {
     sigShareSet.merge();
 }
 
-
 void TestUtils::sendRPCRequestZMQ() {
-    HttpClient client(RPC_ENDPOINT);
-    StubClient c(client, JSONRPC_CLIENT_V2);
-
-
-
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
 
     int n = 16, t = 16;
-    Json::Value ethKeys[n];
+    vector<string> ethKeys(n);
     Json::Value verifVects[n];
     Json::Value pubEthKeys;
-    Json::Value secretShares[n];
+    vector<string> secretShares(n);
     Json::Value pubBLSKeys[n];
-    Json::Value blsSigShares[n];
-    vector <string> pubShares(n);
-    vector <string> polyNames(n);
+    vector<string> blsSigShares(n);
+    vector<string> pubShares(n);
+    vector<string> polyNames(n);
 
     static atomic<int> counter(1);
 
     int schainID = counter.fetch_add(1);
     int dkgID = counter.fetch_add(1);
     for (uint8_t i = 0; i < n; i++) {
-        ethKeys[i] = c.generateECDSAKey();
-        CHECK_STATE(ethKeys[i]["status"] == 0);
+        auto generatedKey = client->generateECDSAKey();
+        ethKeys[i] = generatedKey.second;
         string polyName =
                 "POLY:SCHAIN_ID:" + to_string(schainID) + ":NODE_ID:" + to_string(i) + ":DKG_ID:" + to_string(dkgID);
-        auto response = c.generateDKGPoly(polyName, t);
-        CHECK_STATE(response["status"] == 0);
+        CHECK_STATE(client->generateDKGPoly(polyName, t));
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
-        CHECK_STATE(verifVects[i]["status"] == 0);
+        verifVects[i] = client->getVerificationVector(polyName, t);
 
-        pubEthKeys.append(ethKeys[i]["publicKey"]);
+        pubEthKeys.append(generatedKey.first);
     }
 
     for (uint8_t i = 0; i < n; i++) {
-        secretShares[i] = c.getSecretShareV2(polyNames[i], pubEthKeys, t, n);
+        secretShares[i] = client->getSecretShare(polyNames[i], pubEthKeys, t, n);
         for (uint8_t k = 0; k < t; k++) {
             for (uint8_t j = 0; j < 4; j++) {
-                string pubShare = verifVects[i]["verificationVector"][k][j].asString();
+                string pubShare = verifVects[i][k][j].asString();
                 pubShares[i] += convertDecToHex(pubShare);
             }
         }
@@ -449,10 +438,10 @@ void TestUtils::sendRPCRequestZMQ() {
 
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++) {
-            string secretShare = secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-            secShares[i] += secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-            Json::Value verif = c.dkgVerificationV2(pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
-            CHECK_STATE(verif["status"] == 0);
+            string secretShare = secretShares[i].substr(192 * j, 192);
+            secShares[i] += secretShares[j].substr(192 * i, 192);
+            bool verif = client->dkgVerification(pubShares[i], ethKeys[j], secretShare, t, n, j);
+            CHECK_STATE(verif);
         }
 
     BLSSigShareSet sigShareSet(t, n);
@@ -471,17 +460,31 @@ void TestUtils::sendRPCRequestZMQ() {
     for (int i = 0; i < n; ++i) {
         publicShares["publicShares"][i] = pubShares[i];
     }
-
-    Json::Value blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
-    CHECK_STATE(blsPublicKeys["status"] == 0);
+    
+    Json::Value blsPublicKeys = client->getAllBlsPublicKeys(publicShares, t, n);
 
     for (int i = 0; i < t; i++) {
         string blsName = "BLS_KEY" + polyNames[i].substr(4);
-        string hash = SAMPLE_HASH;
-        blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
-        CHECK_STATE(blsSigShares[i]["status"] == 0);
+        string secretShare = secretShares[i];
 
-        shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]["signatureShare"].asString());
+        CHECK_STATE(client->createBLSPrivateKey(blsName, ethKeys[i], polyNames[i], secShares[i], t, n));
+        pubBLSKeys[i] = client->getBLSPublicKey(blsName);
+
+        libff::alt_bn128_G2 publicKey(libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i][0].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i][1].asCString())),
+                                      libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i][2].asCString()),
+                                      libff::alt_bn128_Fq(pubBLSKeys[i][3].asCString())),
+                                      libff::alt_bn128_Fq2::one());
+
+        string public_key_str = convertG2ToString(publicKey);
+
+        CHECK_STATE(public_key_str == blsPublicKeys[i].asString());
+
+        string hash = SAMPLE_HASH;
+        blsSigShares[i] = client->blsSignMessageHash(blsName, hash, t, n);
+        CHECK_STATE(blsSigShares[i].length() > 0);
+
+        shared_ptr <string> sig_share_ptr = make_shared<string>(blsSigShares[i]);
         BLSSigShare sig(sig_share_ptr, i + 1, t, n);
         sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
     }
@@ -527,7 +530,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
@@ -668,7 +671,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }
@@ -810,7 +813,7 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
         Json::Value response = c.generateDKGPoly(polyName, t);
         CHECK_STATE(response["status"] == 0);
         polyNames[i] = polyName;
-        verifVects[i] = c.getVerificationVector(polyName, t, n);
+        verifVects[i] = c.getVerificationVector(polyName, t);
         CHECK_STATE(verifVects[i]["status"] == 0);
         pubEthKeys.append(ethKeys[i]["publicKey"]);
     }

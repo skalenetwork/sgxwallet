@@ -58,7 +58,7 @@
 #include "BLSCrypto.h"
 #include "ServerInit.h"
 #include "SGXException.h"
-#include "ZMQServer.h"
+#include "zmq_src/ZMQServer.h"
 #include "SGXWalletServer.hpp"
 
 uint32_t enclaveLogLevel = 0;
@@ -103,9 +103,7 @@ void initUserSpace() {
 
 }
 
-
 uint64_t initEnclave() {
-
 
 #ifndef SGX_HW_SIM
     unsigned long support;
@@ -161,10 +159,8 @@ uint64_t initEnclave() {
     return SGX_SUCCESS;
 }
 
-
 void initAll(uint32_t _logLevel, bool _checkCert,
              bool _checkZMQSig, bool _autoSign, bool _generateTestKeys) {
-
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
@@ -237,5 +233,4 @@ void exitAll() {
     CSRManagerServer::exitServer();
     SGXInfoServer::exitServer();
     ZMQServer::exitZMQServer();
-
 }

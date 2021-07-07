@@ -987,14 +987,14 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
 void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint64_t enc_len,
                                char *public_shares,
-                               unsigned _t, unsigned _n) {
+                               unsigned _t) {
     LOG_INFO(__FUNCTION__);
 
     INIT_ERROR_STATE
 
     CHECK_STATE(encrypted_dkg_secret);
     CHECK_STATE(public_shares);
-    CHECK_STATE(_t <= _n && _n > 0)
+    CHECK_STATE(_t > 0)
 
     SAFE_CHAR_BUF(decrypted_dkg_secret, DKG_MAX_SEALED_LEN);
 

@@ -42,7 +42,6 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
         : checkSignature(_checkSignature),
           caCertFile(_caCertFile), ctx(make_shared<zmq::context_t>(1)) {
 
-
     socket = make_shared<zmq::socket_t>(*ctx, ZMQ_ROUTER);
 
     if (_checkSignature) {
@@ -56,9 +55,7 @@ ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
     int linger = 0;
 
     zmq_setsockopt(*socket, ZMQ_LINGER, &linger, sizeof(linger));
-
 }
-
 
 void ZMQServer::run() {
 
@@ -85,9 +82,7 @@ void ZMQServer::run() {
     }
 
     spdlog::info("Exited zmq server loop");
-
 }
-
 
 std::atomic<bool> ZMQServer::isExitRequested(false);
 
@@ -98,7 +93,6 @@ void ZMQServer::exitZMQServer() {
     zmqServer->ctx->close();
     spdlog::info("Exited zmq server.");
 }
-
 
 void ZMQServer::initZMQServer(bool _checkSignature) {
     static bool initedServer = false;
@@ -123,15 +117,11 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
     serverThread->detach();
 
     spdlog::info("Inited zmq server ...");
-
-
 }
 
 shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
-ZMQServer::~ZMQServer() {
-}
-
+ZMQServer::~ZMQServer() {}
 
 void ZMQServer::doOneServerLoop() {
 
@@ -142,9 +132,7 @@ void ZMQServer::doOneServerLoop() {
     result["errorMessage"] = "";
 
     zmq::message_t identity;
-    zmq::message_t identit2;
     zmq::message_t copied_id;
-
 
     string stringToParse = "";
 
@@ -156,7 +144,6 @@ void ZMQServer::doOneServerLoop() {
 
         int pollResult = 0;
 
-
         do {
             pollResult = zmq_poll(items, 1, 1000);
             if (isExitRequested) {
@@ -164,20 +151,17 @@ void ZMQServer::doOneServerLoop() {
             }
         } while (pollResult == 0);
 
-
         if (!socket->recv(&identity)) {
             // something terrible happened
             spdlog::error("Fatal error: socket->recv(&identity) returned false");
             exit(-11);
         }
 
-
         if (!identity.more()) {
             // something terrible happened
             spdlog::error("Fatal error: zmq_msg_more(identity) returned false");
             exit(-12);
         }
-
 
         copied_id.copy(&identity);
 
@@ -188,7 +172,6 @@ void ZMQServer::doOneServerLoop() {
             spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false");
             exit(-13);
         }
-
 
         stringToParse = string((char *) reqMsg.data(), reqMsg.size());
 
@@ -201,8 +184,7 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 
         result = parsedMsg->process();
-    }
-    catch (std::exception &e) {
+    } catch (std::exception &e) {
         if (isExitRequested) {
             return;
         }
@@ -245,9 +227,7 @@ void ZMQServer::doOneServerLoop() {
             exit(-16);
         }
 
-    } catch (
-            std::exception &e
-    ) {
+    } catch ( std::exception &e ) {
         if (isExitRequested) {
             return;
         }
