@@ -39,7 +39,7 @@ using namespace jsonrpc;
 using namespace std;
 
 class SGXRegistrationServer : public AbstractRegServer {
-    recursive_mutex m;
+    mutex m;
     bool autoSign;
 
     static shared_ptr <HttpServer> httpServer;
