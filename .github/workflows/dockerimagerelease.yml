@@ -26,12 +26,12 @@ jobs:
         shell: bash
       - name: Generate public key
         run: openssl rsa -in signed_enclaves/skale_sgx_private_key0.pem -pubout -out signed_enclaves/skale_sgx_public_key0.pem
-      - name: Build enclave
-        run: ./autoconf.bash && ./configure --with-sgx-build=release && bash -c "make -j$(nproc)"
-      - name: Sign enclave
-        run: cd scripts && ./sign_enclave.bash
-      - name: Delete secrets
-        run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
+#      - name: Build enclave
+#        run: ./autoconf.bash && ./configure --with-sgx-build=release && bash -c "make -j$(nproc)"
+#      - name: Sign enclave
+#        run: cd scripts && ./sign_enclave.bash
+#      - name: Delete secrets
+#        run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
       - name: Build and deploy docker image
         run : |
           export BRANCH=${GITHUB_REF##*/}
