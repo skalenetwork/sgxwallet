@@ -28,6 +28,7 @@
 #include <fstream>
 
 #include "ZMQClient.h"
+#include "LevelDB.h"
 #include "SGXWalletServer.hpp"
 #include "ReqMessage.h"
 #include "RspMessage.h"
@@ -315,7 +316,12 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
 std::map<string, string> ZMQMessage::keysByOwners;
 
 bool ZMQMessage::isKeyByOwner(const string& keyName, const string& cert) {
-    return keysByOwners.count(keyName) && keysByOwners[keyName] == cert;
+    auto value = LevelDB::getLevelDb()->readString(keyName);
+    return value && *value == cert;
+}
+
+void ZMQMessage::addKeyByOwner(const string& keyName, const string& cert) {
+    SGXWalletServer::writeDataToDB(keyName, cert);
 }
 
 cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);

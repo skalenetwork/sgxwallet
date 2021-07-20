@@ -57,6 +57,8 @@ protected:
 
     static bool isKeyByOwner(const string& keyName, const string& cert);
 
+    static void addKeyByOwner(const string& keyName, const string& cert);
+
 public:
 
     static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";

@@ -60,7 +60,7 @@ Json::Value importBLSReqMessage::process() {
     auto result = SGXWalletServer::importBLSKeyShareImpl(keyShare, keyName);
     if (result["status"] == 0) {
         auto cert = getStringRapid("cert");
-        keysByOwners[keyName] = cert;
+        addKeyByOwner(keyName, cert);
     }
     result["type"] = ZMQMessage::IMPORT_BLS_RSP;
     return result;
@@ -72,7 +72,7 @@ Json::Value importECDSAReqMessage::process() {
     auto result = SGXWalletServer::importECDSAKeyImpl(key, keyName);
     if (result["status"] == 0) {
         auto cert = getStringRapid("cert");
-        keysByOwners[keyName] = cert;
+        addKeyByOwner(keyName, cert);
     }
     result["type"] = ZMQMessage::IMPORT_ECDSA_RSP;
     return result;
@@ -83,7 +83,7 @@ Json::Value generateECDSAReqMessage::process() {
     string keyName = result["keyName"].asString();
     if (result["status"] == 0) {
         auto cert = getStringRapid("cert");
-        keysByOwners[keyName] = cert;
+        addKeyByOwner(keyName, cert);
     }
     result["type"] = ZMQMessage::GENERATE_ECDSA_RSP;
     return result;
@@ -106,7 +106,7 @@ Json::Value generateDKGPolyReqMessage::process() {
     auto result = SGXWalletServer::generateDKGPolyImpl(polyName, t);
     if (result["status"] == 0) {
         auto cert = getStringRapid("cert");
-        keysByOwners[polyName] = cert;
+        addKeyByOwner(polyName, cert);
     }
     result["type"] = ZMQMessage::GENERATE_DKG_POLY_RSP;
     return result;
@@ -167,7 +167,7 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     }
     auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
     if (result["status"] == 0) {
-        keysByOwners[blsKeyName] = cert;
+        addKeyByOwner(blsKeyName, cert);
     }
     result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
     return result;
