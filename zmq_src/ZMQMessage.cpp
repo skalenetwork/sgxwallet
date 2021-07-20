@@ -312,6 +312,12 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
     return ret;
 }
 
+std::map<string, string> ZMQMessage::keysByOwners;
+
+bool ZMQMessage::isKeyByOwner(const string& keyName, const string& cert) {
+    return keysByOwners.count(keyName) && keysByOwners[keyName] == cert;
+}
+
 cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{

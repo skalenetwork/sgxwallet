@@ -51,6 +51,12 @@ class ZMQMessage {
 
     static cache::lru_cache<string, pair<EVP_PKEY*, X509*>> verifiedCerts;
 
+protected:
+
+    static std::map<string, string> keysByOwners;
+
+    static bool isKeyByOwner(const string& keyName, const string& cert);
+
 public:
 
     static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
