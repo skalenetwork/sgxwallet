@@ -55,6 +55,7 @@ void SGXWallet::printUsage() {
     cerr << "   -n  Use http instead of https. Default is to use https with a selg-signed server cert.  Insecure! \n";
     cerr << "   -c  Disable client authentication using certificates. Insecure!\n";
     cerr << "   -s  Sign client certificates without human confirmation. Insecure! \n";
+    cerr << "   -e  Only owner of the key can access it.\n";
 }
 
 
@@ -100,6 +101,7 @@ int main(int argc, char *argv[]) {
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
+    bool checkKeyOwnership = true;
 
     std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -110,7 +112,7 @@ int main(int argc, char *argv[]) {
         exit(-21);
     }
 
-    while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
+    while ((opt = getopt(argc, argv, "cshd0abyvVneT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
@@ -136,7 +138,11 @@ int main(int argc, char *argv[]) {
                 break;
             case 'n':
                 useHTTPSOption = false;
-                break;                
+                checkKeyOwnership = false;
+                break;
+            case 'e':
+                checkKeyOwnership = true;
+                break;
             case 'a':
                 enterBackupKeyOption = false;
                 break;
@@ -179,7 +185,7 @@ int main(int argc, char *argv[]) {
     }
 
     cerr << "Calling initAll ..." << endl;
-    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
+    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys, checkKeyOwnership);
     cerr << "Completed initAll." << endl;
 
     //check if test keys already exist

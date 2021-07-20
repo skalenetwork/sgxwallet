@@ -155,7 +155,7 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     auto secretShare = getStringRapid("secretShare");
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
-    if (checkKeyOwnership && !isKeyByOwner(ethKeyName, getStringRapid("cert")) || !isKeyByOwner(polyName, getStringRapid("cert"))) {
+    if (checkKeyOwnership && (!isKeyByOwner(ethKeyName, getStringRapid("cert")) || !isKeyByOwner(polyName, getStringRapid("cert")))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
