@@ -52,6 +52,7 @@ class ZMQMessage {
     static cache::lru_cache<string, pair<EVP_PKEY*, X509*>> verifiedCerts;
 
 protected:
+    bool checkKeyOwnership = true;
 
     static std::map<string, string> keysByOwners;
 
@@ -135,11 +136,15 @@ public:
     }
 
     static shared_ptr <ZMQMessage> parse(const char* _msg, size_t _size, bool _isRequest,
-                                         bool _verifySig);
+                                         bool _verifySig, bool _checkKeyOwnership);
 
-    static shared_ptr<ZMQMessage> buildRequest(string& type, shared_ptr<rapidjson::Document> _d);
-    static shared_ptr<ZMQMessage> buildResponse(string& type, shared_ptr<rapidjson::Document> _d);
+    static shared_ptr<ZMQMessage> buildRequest(string& type, shared_ptr<rapidjson::Document> _d,
+                                                bool _checkKeyOwnership);
+    static shared_ptr<ZMQMessage> buildResponse(string& type, shared_ptr<rapidjson::Document> _d,
+                                                bool _checkKeyOwnership);
 
     virtual Json::Value process() = 0;
+
+    void setCheckKeyOwnership(bool _check) { checkKeyOwnership = _check; }
 
 };

@@ -67,7 +67,7 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
         CHECK_STATE(resultStr.front() == '{')
         CHECK_STATE(resultStr.back() == '}')
 
-        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false, false);
+        return ZMQMessage::parse(resultStr.c_str(), resultStr.size(), false, false, false);
     } catch (std::exception &e) {
         spdlog::error(string("Error in doRequestReply:") + e.what());
         throw;

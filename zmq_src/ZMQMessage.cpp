@@ -76,7 +76,7 @@ string ZMQMessage::getStringRapid(const char *_name) {
 
 shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
                                           size_t _size, bool _isRequest,
-                                          bool _verifySig) {
+                                          bool _verifySig, bool _checkKeyOwnership) {
 
     CHECK_STATE(_msg);
     CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
@@ -150,16 +150,15 @@ shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
         }
     }
 
-    shared_ptr <ZMQMessage> result;
-
     if (_isRequest) {
-        return buildRequest(type, d);
+        return buildRequest(type, d, _checkKeyOwnership);
     } else {
-        return buildResponse(type, d);
+        return buildResponse(type, d, _checkKeyOwnership);
     }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapidjson::Document> _d) {
+shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapidjson::Document> _d,
+                                                bool _checkKeyOwnership) {
     Requests r;
     try {
         int t = requests.at( _type );
@@ -232,10 +231,13 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
             break;
     }
 
+    ret->setCheckKeyOwnership(_checkKeyOwnership);
+
     return ret;
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rapidjson::Document> _d) {
+shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rapidjson::Document> _d,
+                                                bool _checkKeyOwnership) {
     Responses r;
     try {
         int t = responses.at( _type );
@@ -309,6 +311,8 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
         default:
             break;
     }
+
+    ret->setCheckKeyOwnership(_checkKeyOwnership);
 
     return ret;
 }

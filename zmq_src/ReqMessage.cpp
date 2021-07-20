@@ -31,8 +31,7 @@ Json::Value ECDSASignReqMessage::process() {
     auto base = getInt64Rapid("base");
     auto keyName = getStringRapid("keyName");
     auto hash = getStringRapid("messageHash");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(keyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(keyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
@@ -45,8 +44,7 @@ Json::Value BLSSignReqMessage::process() {
     auto hash = getStringRapid("messageHash");
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(keyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(keyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
@@ -58,7 +56,7 @@ Json::Value importBLSReqMessage::process() {
     auto keyName = getStringRapid("keyShareName");
     auto keyShare = getStringRapid("keyShare");
     auto result = SGXWalletServer::importBLSKeyShareImpl(keyShare, keyName);
-    if (result["status"] == 0) {
+    if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
         addKeyByOwner(keyName, cert);
     }
@@ -70,7 +68,7 @@ Json::Value importECDSAReqMessage::process() {
     auto keyName = getStringRapid("keyName");
     auto key = getStringRapid("key");
     auto result = SGXWalletServer::importECDSAKeyImpl(key, keyName);
-    if (result["status"] == 0) {
+    if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
         addKeyByOwner(keyName, cert);
     }
@@ -81,7 +79,7 @@ Json::Value importECDSAReqMessage::process() {
 Json::Value generateECDSAReqMessage::process() {
     auto result = SGXWalletServer::generateECDSAKeyImpl();
     string keyName = result["keyName"].asString();
-    if (result["status"] == 0) {
+    if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
         addKeyByOwner(keyName, cert);
     }
@@ -91,8 +89,7 @@ Json::Value generateECDSAReqMessage::process() {
 
 Json::Value getPublicECDSAReqMessage::process() {
     auto keyName = getStringRapid("keyName");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(keyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(keyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::getPublicECDSAKeyImpl(keyName);
@@ -104,7 +101,7 @@ Json::Value generateDKGPolyReqMessage::process() {
     auto polyName = getStringRapid("polyName");
     auto t = getInt64Rapid("t");
     auto result = SGXWalletServer::generateDKGPolyImpl(polyName, t);
-    if (result["status"] == 0) {
+    if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
         addKeyByOwner(polyName, cert);
     }
@@ -114,8 +111,7 @@ Json::Value generateDKGPolyReqMessage::process() {
 
 Json::Value getVerificationVectorReqMessage::process() {
     auto polyName = getStringRapid("polyName");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(polyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(polyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto t = getInt64Rapid("t");
@@ -129,8 +125,7 @@ Json::Value getSecretShareReqMessage::process() {
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
     auto pubKeys = getJsonValueRapid("publicKeys");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(polyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(polyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::getSecretShareV2Impl(polyName, pubKeys, t, n);
@@ -145,8 +140,7 @@ Json::Value dkgVerificationReqMessage::process() {
     auto idx = getInt64Rapid("index");
     auto pubShares = getStringRapid("publicShares");
     auto secretShare = getStringRapid("secretShare");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(ethKeyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(ethKeyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::dkgVerificationV2Impl(pubShares, ethKeyName, secretShare, t, n, idx);
@@ -161,13 +155,12 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     auto secretShare = getStringRapid("secretShare");
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(ethKeyName, cert) || !isKeyByOwner(polyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(ethKeyName, getStringRapid("cert")) || !isKeyByOwner(polyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
-    if (result["status"] == 0) {
-        addKeyByOwner(blsKeyName, cert);
+    if (checkKeyOwnership && result["status"] == 0) {
+        addKeyByOwner(blsKeyName, getStringRapid("cert"));
     }
     result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
     return result;
@@ -175,8 +168,7 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
 
 Json::Value getBLSPublicReqMessage::process() {
     auto blsKeyName = getStringRapid("blsKeyName");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(blsKeyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(blsKeyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::getBLSPublicKeyShareImpl(blsKeyName);
@@ -198,8 +190,7 @@ Json::Value complaintResponseReqMessage::process() {
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
     auto idx = getInt64Rapid("ind");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(polyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(polyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::complaintResponseImpl(polyName, t, n, idx);
@@ -235,8 +226,7 @@ Json::Value getServerVersionReqMessage::process() {
 
 Json::Value deleteBLSKeyReqMessage::process() {
     auto blsKeyName = getStringRapid("blsKeyName");
-    auto cert = getStringRapid("cert");
-    if (!isKeyByOwner(blsKeyName, cert)) {
+    if (checkKeyOwnership && !isKeyByOwner(blsKeyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
     auto result = SGXWalletServer::deleteBlsKeyImpl(blsKeyName);
