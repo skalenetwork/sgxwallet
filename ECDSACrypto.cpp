@@ -36,7 +36,7 @@
 
 #include "secure_enclave/Verify.h"
 
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 
 #include "SEKManager.h"
 #include "ECDSACrypto.h"

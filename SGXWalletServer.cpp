@@ -38,8 +38,9 @@
 #include "SGXException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
-#include "ECDSACrypto.h"
 #include "DKGCrypto.h"
+#include "ECDSACrypto.h"
+#include "TECrypto.h"
 
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
@@ -984,6 +985,26 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
+Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& teKeyName, const std::string& publicDecryptionValue) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(teKeyName, "BLS_KEY")) {
+            throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(teKeyName);
+
+        vector<string> decryptionValueVector = calculateDecryptionShare(encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
+        for (uint8_t i = 0; i < 4; ++i) {
+            result["decryptionValue"][i] = decryptionValueVector.at(i);
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
@@ -1082,6 +1103,10 @@ Json::Value
 SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &ethKeyName, const string &polyName,
                                        const string &SecretShare, int t, int n) {
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
+}
+
+Json::Value SGXWalletServer::getDecryptionShare(const std::string& teKeyName, const std::string& publicDecryptionValue) {
+    return getDecryptionShareImpl(teKeyName, publicDecryptionValue);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

@@ -32,7 +32,7 @@
 
 #include "sgxwallet_common.h"
 #include "common.h"
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "ReqMessage.h"
 #include "RspMessage.h"
 #include "ZMQClient.h"
