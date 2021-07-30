@@ -38,8 +38,8 @@ using namespace std;
 
 shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
-ZMQServer::ZMQServer(bool _checkSignature, const string &_caCertFile)
-        : checkSignature(_checkSignature),
+ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string &_caCertFile)
+        : checkSignature(_checkSignature), checkKeyOwnership(_checkKeyOwnership),
           caCertFile(_caCertFile), ctx(make_shared<zmq::context_t>(1)) {
 
     socket = make_shared<zmq::socket_t>(*ctx, ZMQ_ROUTER);
@@ -94,12 +94,13 @@ void ZMQServer::exitZMQServer() {
     spdlog::info("Exited zmq server.");
 }
 
-void ZMQServer::initZMQServer(bool _checkSignature) {
+void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
     static bool initedServer = false;
     CHECK_STATE(!initedServer)
     initedServer = true;
 
-    spdlog::info("Initing zmq server. checkSignature is set to {}", _checkSignature);
+    spdlog::info("Initing zmq server.\n checkSignature is set to {}.\n checkKeyOwnership is set to {}",
+                _checkSignature, _checkKeyOwnership);
 
     string rootCAPath = "";
 
@@ -109,7 +110,7 @@ void ZMQServer::initZMQServer(bool _checkSignature) {
         CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
     };
 
-    zmqServer = make_shared<ZMQServer>(_checkSignature, rootCAPath);
+    zmqServer = make_shared<ZMQServer>(_checkSignature, _checkKeyOwnership, rootCAPath);
 
     CHECK_STATE(zmqServer)
 
@@ -179,7 +180,7 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE(stringToParse.back() == '}')
 
         auto parsedMsg = ZMQMessage::parse(
-                stringToParse.c_str(), stringToParse.size(), true, checkSignature);
+                stringToParse.c_str(), stringToParse.size(), true, checkSignature, checkKeyOwnership);
 
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 

@@ -171,7 +171,6 @@ void enclave_init() {
         return;
     inited = 1;
 
-
     LOG_INFO("Initing libff");
     try {
 

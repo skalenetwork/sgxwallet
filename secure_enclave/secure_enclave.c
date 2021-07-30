@@ -66,7 +66,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define INIT_ERROR_STATE *errString = 0; *errStatus = UNKNOWN_ERROR;
 #define SET_SUCCESS *errStatus = 0;
 
-
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) {        \
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
@@ -90,7 +89,6 @@ LOG_ERROR(errString); \
 *errStatus = status; \
 goto clean; \
 };
-
 
 #define CHECK_STATUS2(__ERRMESSAGE__) if (status != SGX_SUCCESS) { \
 snprintf(errString, BUF_LEN, __ERRMESSAGE__, status); \
@@ -138,9 +136,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
     LOG_INFO("Calling enclave init");
 
-
     enclave_init();
-
 
     LOG_INFO("Reading random");
 
@@ -227,7 +223,6 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
     memcpy(_randBuff, globalRandom, _size);
 }
-
 
 void sealHexSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {

@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file LevelDB.h
     @author Stan Kladko
@@ -53,7 +53,6 @@ class LevelDB {
     static shared_ptr<LevelDB> csrStatusDb;
 
     static string sgx_data_folder;
-
 
 public:
 
@@ -104,8 +103,6 @@ public:
     virtual ~LevelDB();
 
     static const string &getSgxDataFolder();
-
-
 };
 
 

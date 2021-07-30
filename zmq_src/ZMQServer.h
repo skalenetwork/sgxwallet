@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file ZMQServer.h
     @author Stan Kladko
@@ -52,16 +52,18 @@ public:
 
     static shared_ptr<std::thread> serverThread;
 
-    ZMQServer(bool _checkSignature, const string& _caCertFile);
+    ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string& _caCertFile);
 
     ~ZMQServer();
 
     void run();
 
-    static void initZMQServer(bool _checkSignature);
+    static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
     static void exitZMQServer();
 
 private:
+    bool checkKeyOwnership = true;
+
     shared_ptr<zmq::context_t> ctx;
     shared_ptr<zmq::socket_t> socket;
 
