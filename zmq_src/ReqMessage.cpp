@@ -183,3 +183,11 @@ Json::Value deleteBLSKeyReqMessage::process() {
     result["type"] = ZMQMessage::DELETE_BLS_KEY_RSP;
     return result;
 }
+
+Json::Value GetDecryptionShareReqMessage::process() {
+    auto blsKeyName = getStringRapid("blsKeyName");
+    auto publicDecryptionValue = getStringRapid("publicDecryptionValue");
+    auto result = SGXWalletServer::getDecryptionShareImpl(blsKeyName, publicDecryptionValue);
+    result["type"] = ZMQMessage::GET_DECRYPTION_SHARE_RSP;
+    return result;
+}

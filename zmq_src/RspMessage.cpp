@@ -110,3 +110,7 @@ Json::Value getServerVersionRspMessage::process() {
 Json::Value deleteBLSKeyRspMessage::process() {
     assert(false);
 }
+
+Json::Value GetDecryptionShareRspMessage::process() {
+    assert(false);
+}

@@ -227,6 +227,9 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
         case ENUM_DELETE_BLS_KEY_REQ:
             ret = make_shared<deleteBLSKeyReqMessage>(_d);
             break;
+        case ENUM_GET_DECRYPTION_SHARE_REQ:
+            ret = make_shared<GetDecryptionShareReqMessage>(_d);
+            break;
         default:
             break;
     }
@@ -305,6 +308,9 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
         case ENUM_DELETE_BLS_KEY_RSP:
             ret = make_shared<deleteBLSKeyRspMessage>(_d);
             break;
+        case ENUM_GET_DECRYPTION_SHARE_RSP:
+            ret = make_shared<GetDecryptionShareRspMessage>(_d);
+            break;
         default:
             break;
     }
@@ -320,7 +326,8 @@ const std::map<string, int> ZMQMessage::requests{
     {GET_VV_REQ, 7}, {GET_SECRET_SHARE_REQ, 8}, {DKG_VERIFY_REQ, 9},
     {CREATE_BLS_PRIVATE_REQ, 10}, {GET_BLS_PUBLIC_REQ, 11}, {GET_ALL_BLS_PUBLIC_REQ, 12},
     {COMPLAINT_RESPONSE_REQ, 13}, {MULT_G2_REQ, 14}, {IS_POLY_EXISTS_REQ, 15},
-    {GET_SERVER_STATUS_REQ, 16}, {GET_SERVER_VERSION_REQ, 17}, {DELETE_BLS_KEY_REQ, 18}
+    {GET_SERVER_STATUS_REQ, 16}, {GET_SERVER_VERSION_REQ, 17}, {DELETE_BLS_KEY_REQ, 18},
+    {GET_DECRYPTION_SHARE_REQ, 19}
 };
 
 const std::map<string, int> ZMQMessage::responses {
@@ -329,5 +336,6 @@ const std::map<string, int> ZMQMessage::responses {
     {GET_VV_RSP, 7}, {GET_SECRET_SHARE_RSP, 8}, {DKG_VERIFY_RSP, 9},
     {CREATE_BLS_PRIVATE_RSP, 10}, {GET_BLS_PUBLIC_RSP, 11}, {GET_ALL_BLS_PUBLIC_RSP, 12},
     {COMPLAINT_RESPONSE_RSP, 13}, {MULT_G2_RSP, 14}, {IS_POLY_EXISTS_RSP, 15},
-    {GET_SERVER_STATUS_RSP, 16}, {GET_SERVER_VERSION_RSP, 17}, {DELETE_BLS_KEY_RSP, 18}
+    {GET_SERVER_STATUS_RSP, 16}, {GET_SERVER_VERSION_RSP, 17}, {DELETE_BLS_KEY_RSP, 18},
+    {GET_DECRYPTION_SHARE_RSP, 19}
 };

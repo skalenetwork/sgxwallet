@@ -122,6 +122,8 @@ public:
     string getServerVersion();
 
     bool deleteBLSKey(const string& blsKeyName);
+
+    Json::Value getDecryptionShare(const string& blsKeyName, const string& publicDecryptionValue);
 };
 
 

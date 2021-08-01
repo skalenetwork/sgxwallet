@@ -63,7 +63,8 @@ testList = [ "[zmq-ecdsa]",
              "[aes-encrypt-decrypt]",
              "[aes-dkg-v2]",
              "[aes-dkg-v2-zmq]",
-             "[te-decryption-share]"
+             "[te-decryption-share]",
+             "[te-decryption-share-zmq]"
             ]
 
 
