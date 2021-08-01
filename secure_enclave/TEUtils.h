@@ -37,6 +37,6 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
-EXTERNC int getDecryptionShare(char* secret, unsigned _t);
+EXTERNC int getDecryptionShare(char* secret, char* decryptionValue, char* decryption_share);
 
 #endif

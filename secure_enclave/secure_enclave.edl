@@ -174,10 +174,18 @@ enclave {
 
         public void trustedGetBlsPubKey(
                                 [out]int *errStatus,
-                                [out, count = SMALL_BUF_SIZE]  char* err_string,
+                                [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = 320] char* bls_pub_key);
+        
+        public void trustedGetDecryptionShare(
+                                [out]int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char* err_string,
+                                [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
+                                [in, count = 320] const char* public_decryption_value,
+                                uint64_t key_len,
+                                [out, count = 320] char* decrption_share);
 	};
 
 	untrusted {

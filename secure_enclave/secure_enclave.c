@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Curves.h"
 #include "DHDkg.h"
 #include "AESUtils.h"
+#include "TEUtils.h"
 
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
@@ -1362,6 +1363,38 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     status = calc_bls_public_key(skey_hex, bls_pub_key);
 
     CHECK_STATUS("could not calculate bls public key");
+
+    SET_SUCCESS
+
+    clean:
+    ;
+}
+
+void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryptedPrivateKey,
+                                const char* public_decryption_value, uint64_t key_len,
+                                char* decryption_share ) {
+    LOG_DEBUG(__FUNCTION__);
+
+    INIT_ERROR_STATE
+
+    CHECK_STATE(decryption_share);
+    CHECK_STATE(encryptedPrivateKey);
+
+    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
+                             &type, &exportable);
+
+    CHECK_STATUS2("AES decrypt failed %d");
+
+    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
+
+    status = getDecryptionShare(skey_hex, public_decryption_value, decryption_share);
+
+    CHECK_STATUS("could not calculate decryption share");
 
     SET_SUCCESS
 

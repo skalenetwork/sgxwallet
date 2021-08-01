@@ -1183,6 +1183,38 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
     }
 }
 
+TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption", "[te-decryption-share]") {
+    // auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+    //                                      "./sgx_data/cert_data/rootCA.key");
+
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
+
+    std::string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    auto response = c.importBLSKeyShare(key_str, name);
+
+    // the same key writtn in decimal
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
+            "6507625568967977077291849236396320012317305261598035438182864059942098934847");
+
+    libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+    decryption_value.to_affine_coordinates();
+
+    auto decrytion_value_str = convertG2ToString( decryption_value, ':' );
+    auto decryption_share = c.getDecryptionShare( name, decrytion_value_str )["decryptionShare"];
+
+    libff::alt_bn128_G2 share;
+    share.Z = libff::alt_bn128_Fq2::one();
+
+    share.X.c0 = libff::alt_bn128_Fq( decryption_share[0].asCString() );
+    share.X.c1 = libff::alt_bn128_Fq( decryption_share[1].asCString() );
+    share.Y.c0 = libff::alt_bn128_Fq( decryption_share[2].asCString() );
+    share.Y.c1 = libff::alt_bn128_Fq( decryption_share[3].asCString() );
+
+    REQUIRE( share == key * decryption_value );
+}
+
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
     HttpClient htp(RPC_ENDPOINT);

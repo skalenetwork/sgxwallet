@@ -176,7 +176,7 @@ public:
 
     static Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
-    static Json::Value getDecryptionShareImpl(const std::string& teKeyName, const std::string& publicDecryptionValue);
+    static Json::Value getDecryptionShareImpl(const std::string& KeyName, const std::string& publicDecryptionValue);
 
     static void printDB();
 
