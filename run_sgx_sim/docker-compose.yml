@@ -1,7 +1,7 @@
 version: '3'
 services:
   sgxwallet:
-    image: skalenetwork/sgxwallet_sim:develop-latest
+    image: skalenetwork/sgxwallet_sim:119170448fe6ebece3782ed7e17bdd563ce9b6a5
     restart: unless-stopped
     ports:
       - "1026:1026"
