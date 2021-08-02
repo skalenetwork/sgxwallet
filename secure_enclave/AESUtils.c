@@ -21,25 +21,19 @@
     @date 2020
 */
 
-
 #include "sgx_trts.h"
 #include "sgx_tcrypto.h"
 #include "stdlib.h"
 #include <string.h>
 
-
 #include "AESUtils.h"
 
 sgx_aes_gcm_128bit_key_t AES_key[1024];
 
-
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
-int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned  char type,
+int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned char type,
                 unsigned char exportable, uint64_t* resultLen) {
-
-
-
     if (!type) {
         LOG_ERROR("Null type in AES_encrypt");
         return -1;

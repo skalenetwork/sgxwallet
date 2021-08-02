@@ -74,7 +74,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false);
+        initAll(L_INFO, false, false, true, false, false);
     }
 
     ~TestFixture() {
@@ -88,7 +88,7 @@ public:
     TestFixtureHTTPS() {
         TestUtils::resetDB();
         setOptions(L_INFO, true, true);
-        initAll(L_INFO, false, true, true, false);
+        initAll(L_INFO, false, true, true, false, true);
     }
 
     ~TestFixtureHTTPS() {
@@ -102,7 +102,7 @@ public:
     TestFixtureZMQSign() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, true, true, false);
+        initAll(L_INFO, false, true, true, false, false);
     }
 
     ~TestFixtureZMQSign() {
@@ -115,7 +115,7 @@ class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, false, true, false);
+        initAll(L_INFO, false, false, true, false, false);
     }
 
     ~TestFixtureNoResetFromBackup() {
@@ -129,7 +129,7 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false);
+        initAll(L_INFO, false, false, true, false, false);
     }
 
     ~TestFixtureNoReset() {

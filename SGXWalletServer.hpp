@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file SGXWalletServer.hpp
     @author Stan Kladko
@@ -48,11 +48,8 @@ class SGXWalletServer : public AbstractStubServer {
     static map<string,string> ecdsaRequests;
     static recursive_mutex ecdsaRequestsLock;
 
-
-
     static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
     const string &_value);
-
 
 public:
 

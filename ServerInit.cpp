@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file ServerInit.cpp
     @author Stan Kladko
@@ -160,7 +160,7 @@ uint64_t initEnclave() {
 }
 
 void initAll(uint32_t _logLevel, bool _checkCert,
-             bool _checkZMQSig, bool _autoSign, bool _generateTestKeys) {
+             bool _checkZMQSig, bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership) {
 
     static atomic<bool> sgxServerInited(false);
     static mutex initMutex;
@@ -209,7 +209,7 @@ void initAll(uint32_t _logLevel, bool _checkCert,
         SGXRegistrationServer::initRegistrationServer(_autoSign);
         CSRManagerServer::initCSRManagerServer();
         SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
-        ZMQServer::initZMQServer(_checkZMQSig);
+        ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
 
         sgxServerInited = true;
     } catch (SGXException &_e) {

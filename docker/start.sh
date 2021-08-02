@@ -47,6 +47,6 @@ sleep 5
 ./testw.py
 else
 sleep 3
-./sgxwallet $1 $2 $3 $4 $5
+./sgxwallet $1 $2 $3 $4 $5 $6
 fi
 
