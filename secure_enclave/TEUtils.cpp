@@ -111,12 +111,12 @@ std::string ConvertG2ElementToString(const libff::alt_bn128_G2 &elem, int base =
     return result;
 }
 
-std::vector <libff::alt_bn128_Fq> SplitStringToFq(const char *coeffs, const char symbol) {
+std::vector <libff::alt_bn128_Fq> SplitStringToFq(const char *coords, const char symbol) {
     std::vector <libff::alt_bn128_Fq > result;
-    std::string str(coeffs);
+    std::string str(coords);
     std::string delim;
 
-    CHECK_ARG_CLEAN(coeffs);
+    CHECK_ARG_CLEAN(coords);
 
     try {
 

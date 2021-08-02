@@ -994,6 +994,10 @@ Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyNam
             throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
+        if ( publicDecryptionValue.length() < 7 || publicDecryptionValue.length() > 78 * 4 ) {
+            throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT, string(__FUNCTION__) + ":Invalid publicDecryptionValue format");
+        }
+
         shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
 
         vector<string> decryptionValueVector = calculateDecryptionShare(encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
