@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
-    bool checkKeyOwnership = true;
+    bool checkKeyOwnership = false;
 
     std::signal(SIGABRT, SGXWallet::signalHandler);
 
