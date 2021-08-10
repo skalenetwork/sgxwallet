@@ -326,12 +326,12 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
 std::map<string, string> ZMQMessage::keysByOwners;
 
 bool ZMQMessage::isKeyByOwner(const string& keyName, const string& cert) {
-    auto value = LevelDB::getLevelDb()->readString(keyName);
+    auto value = LevelDB::getLevelDb()->readString(keyName  + ":OWNER");
     return value && *value == cert;
 }
 
 void ZMQMessage::addKeyByOwner(const string& keyName, const string& cert) {
-    SGXWalletServer::writeDataToDB(keyName, cert);
+    SGXWalletServer::writeDataToDB(keyName + ":OWNER", cert);
 }
 
 cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);

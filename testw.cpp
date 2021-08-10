@@ -74,7 +74,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixture() {
@@ -115,7 +115,7 @@ class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixtureNoResetFromBackup() {
@@ -129,7 +129,7 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixtureNoReset() {
