@@ -74,6 +74,7 @@ Json::Value importECDSAReqMessage::process() {
     auto result = SGXWalletServer::importECDSAKeyImpl(key, keyName);
     if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
+        spdlog::info("Cert {} creates key {}", cert, keyName);
         addKeyByOwner(keyName, cert);
     }
     result["type"] = ZMQMessage::IMPORT_ECDSA_RSP;
@@ -85,6 +86,7 @@ Json::Value generateECDSAReqMessage::process() {
     string keyName = result["keyName"].asString();
     if (checkKeyOwnership && result["status"] == 0) {
         auto cert = getStringRapid("cert");
+        spdlog::info("Cert {} creates key {}", cert, keyName);
         addKeyByOwner(keyName, cert);
     }
     result["type"] = ZMQMessage::GENERATE_ECDSA_RSP;
@@ -170,8 +172,9 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     }
     auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, secretShare, t, n);
     if (checkKeyOwnership && result["status"] == 0) {
-        spdlog::info("Cert {} creates key {}", getStringRapid("cert"), blsKeyName);
-        addKeyByOwner(blsKeyName, getStringRapid("cert"));
+        auto cert = getStringRapid("cert");
+        spdlog::info("Cert {} creates key {}", cert, blsKeyName);
+        addKeyByOwner(blsKeyName, cert);
     }
     result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
     return result;
