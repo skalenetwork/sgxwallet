@@ -214,6 +214,19 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value getDecryptionShare(const std::string& blsKeyName, const std::string& publicDecryptionValue) 
+        {
+            Json::Value p;
+            p["blsKeyName"] = blsKeyName;
+            p["publicDecryptionValue"] = publicDecryptionValue;
+
+            Json::Value result = this->CallMethod("getDecryptionShare",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
         Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n)
         {
             Json::Value p;

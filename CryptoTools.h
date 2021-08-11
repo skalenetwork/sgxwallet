@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2019-Present SKALE Labs
+    Copyright (C) 2021-Present SKALE Labs
 
     This file is part of sgxwallet.
 
@@ -16,13 +16,13 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSCrypto.h
-    @author Stan Kladko
-    @date 2019
+    @file CryptoTools.h
+    @author Oleh Nikolaiev
+    @date 2021
 */
 
-#ifndef SGXWALLET_BLSCRYPTO_H
-#define SGXWALLET_BLSCRYPTO_H
+#ifndef SGXWALLET_CRYPTOTOOLS_H
+#define SGXWALLET_CRYPTOTOOLS_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -35,8 +35,11 @@
 #include <string>
 #include <vector>
 
-EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n, char* _sig);
+EXTERNC int char2int(char _input);
 
-std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
+EXTERNC std::vector<char> carray2Hex(const unsigned char *d, uint64_t _len);
 
-#endif //SGXWALLET_BLSCRYPTO_H
+EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
+                 uint8_t* _bin, uint64_t _max_length );
+
+#endif // SGXWALLET_CRYPTOTOOLS_H

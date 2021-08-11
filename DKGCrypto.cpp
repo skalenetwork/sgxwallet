@@ -32,7 +32,7 @@
 #include "SGXException.h"
 
 #include "SGXWalletServer.hpp"
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "SEKManager.h"
 #include "DKGCrypto.h"
 
@@ -448,7 +448,10 @@ bool createBLSShareV2(const string &blsKeyName, const char *s_shares, const char
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
 
-    uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
+    uint64_t decKeyLen;
+    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+    SAFE_UINT8_BUF(encr_key, BUF_LEN)
+    
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
         throw SGXException(CREATE_BLS_SHARE_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }

@@ -178,4 +178,11 @@ public:
     virtual Json::Value process();
 };
 
+class GetDecryptionShareReqMessage : public ZMQMessage {
+public:
+    GetDecryptionShareReqMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+};
+
 #endif //SGXWALLET_REQMESSAGE_H

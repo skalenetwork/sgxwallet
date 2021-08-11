@@ -38,8 +38,9 @@
 #include "SGXException.h"
 #include "LevelDB.h"
 #include "BLSCrypto.h"
-#include "ECDSACrypto.h"
 #include "DKGCrypto.h"
+#include "ECDSACrypto.h"
+#include "TECrypto.h"
 
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
@@ -984,6 +985,30 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
+Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyName, const std::string& publicDecryptionValue) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(blsKeyName, "BLS_KEY")) {
+            throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+        if ( publicDecryptionValue.length() < 7 || publicDecryptionValue.length() > 78 * 4 ) {
+            throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT, string(__FUNCTION__) + ":Invalid publicDecryptionValue format");
+        }
+
+        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+
+        vector<string> decryptionValueVector = calculateDecryptionShare(encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
+        for (uint8_t i = 0; i < 4; ++i) {
+            result["decryptionShare"][i] = decryptionValueVector.at(i);
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
@@ -1084,11 +1109,14 @@ SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &e
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
+Json::Value SGXWalletServer::getDecryptionShare(const std::string& blsKeyName, const std::string& publicDecryptionValue) {
+    return getDecryptionShareImpl(blsKeyName, publicDecryptionValue);
+}
+
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
     auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
-
         throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist: "
                                                                                                     + prefix + name);
     }
@@ -1112,9 +1140,9 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
 }
 
 void SGXWalletServer::writeDataToDB(const string &name, const string &value) {
-
     if (LevelDB::getLevelDb()->readString(name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, string(__FUNCTION__) + ":Name already exists" + name);
     }
+    
     LevelDB::getLevelDb()->writeString(name, value);
 }
