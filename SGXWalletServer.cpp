@@ -1117,7 +1117,6 @@ shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string
     auto dataStr = checkDataFromDb(prefix + name);
 
     if (dataStr == nullptr) {
-
         throw SGXException(KEY_SHARE_DOES_NOT_EXIST, string(__FUNCTION__) +  ":Data with this name does not exist: "
                                                                                                     + prefix + name);
     }
@@ -1141,9 +1140,9 @@ void SGXWalletServer::writeKeyShare(const string &_keyShareName, const string &_
 }
 
 void SGXWalletServer::writeDataToDB(const string &name, const string &value) {
-
     if (LevelDB::getLevelDb()->readString(name) != nullptr) {
         throw SGXException(KEY_NAME_ALREADY_EXISTS, string(__FUNCTION__) + ":Name already exists" + name);
     }
+    
     LevelDB::getLevelDb()->writeString(name, value);
 }
