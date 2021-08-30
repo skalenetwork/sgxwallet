@@ -905,6 +905,56 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     sleep(3);
 }
 
+TEST_CASE_METHOD(TestFixture, "Exportable / non-exportable keys", "[exportable-nonexportable-keys]") {
+    int errStatus = 0;
+    vector<char> errMsg(BUF_LEN, 0);
+    vector <uint8_t> encPrivKey(BUF_LEN, 0);
+    vector<char> pubKeyX(BUF_LEN, 0);
+    vector<char> pubKeyY(BUF_LEN, 0);
+
+    uint64_t encLen = 0;
+    int exportable = 0;
+
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
+                                          pubKeyY.data());
+
+    vector<char> decrypted_key(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, decrypted_key.data());
+    REQUIRE( errStatus == -11 );
+
+    exportable = 1;
+
+    encPrivKey.clear();
+    errMsg.clear();
+    pubKeyX.clear();
+    pubKeyY.clear();
+
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
+                                          pubKeyY.data());
+
+    decrypted_key.clear();
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, decrypted_key.data());
+    REQUIRE( errStatus == 0 );
+    REQUIRE( status == SGX_SUCCESS );
+
+    string key = SAMPLE_AES_KEY;
+    vector <uint8_t> encrypted_key(BUF_LEN, 0);
+
+    status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    vector<char> decr_key(BUF_LEN, 0);
+    PRINT_SRC_LINE
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
+
+    REQUIRE(status == 0);
+    REQUIRE(key.compare(decr_key.data()) == 0);
+    REQUIRE(errStatus == 0);
+    sleep(3);
+}
+
 
 
 TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-crypto-v2]") {
