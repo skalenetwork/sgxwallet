@@ -458,7 +458,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
-    strncpy(errString, skey, 1024);
 
     status = mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE);
 
