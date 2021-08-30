@@ -149,8 +149,9 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     vector<char> pubKeyY(BUF_LEN, 0);
 
     uint64_t encLen = 0;
+    int exportable = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encrPrivKey.data(), &encLen,
                                           pubKeyX.data(),
                                           pubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -182,8 +183,9 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
     uint64_t encLen = 0;
+    int exportable = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encrPrivKey.data(), &encLen,
                                           pubKeyX.data(),
                                           pubKeyY.data());
 
@@ -200,9 +202,10 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     vector<char> pubKeyY(BUF_LEN, 0);
 
     uint64_t encLen = 0;
+    int exportable = 0;
 
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
                                           pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);

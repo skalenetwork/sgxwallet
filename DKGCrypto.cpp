@@ -574,6 +574,9 @@ string decryptDHKey(const string &polyName, int ind) {
     sgx_status_t status = SGX_SUCCESS;
 
     status = trustedDecryptKey(eid, &errStatus, errMsg1.data(), encryptedDHKey, dhEncLen, DHKey);
+    // uint8_t type = 0;
+    // uint8_t exportable = 0;
+    // status = AES_decrypt(encryptedDHKey, dhEncLen, DHKey, ECDSA_SKEY_LEN, &type, &exportable);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg1.data())
 
