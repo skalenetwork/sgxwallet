@@ -59,9 +59,11 @@ vector <string> genECDSAKey() {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    status = trustedGenerateEcdsaKey(eid, &errStatus,
-                               errMsg.data(), encr_pr_key.data(), &enc_len,
-                               pub_key_x.data(), pub_key_y.data());
+    int exportable = 0;
+
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(),
+                                    &exportable, encr_pr_key.data(), &enc_len,
+                                    pub_key_x.data(), pub_key_y.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
