@@ -465,7 +465,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
-    strncpy(errString, skey, 1024);
 
     status = mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE);
 
@@ -621,6 +620,9 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
                              &type, &exportable);
 
     if (exportable != EXPORTABLE) {
+        while (*key != '\0') {
+            *key++ = '0';
+        }
         *errStatus = -11;
         snprintf(errString, BUF_LEN, "Key is not exportable");
         LOG_ERROR(errString);
