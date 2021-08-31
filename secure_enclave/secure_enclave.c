@@ -616,6 +616,9 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
                              &type, &exportable);
 
     if (exportable != EXPORTABLE) {
+        while (*key != '\0') {
+            *key++ = '0';
+        }
         *errStatus = -11;
         snprintf(errString, BUF_LEN, "Key is not exportable");
         LOG_ERROR(errString);
