@@ -38,6 +38,17 @@ using namespace std;
 
 shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
+ZMQServer::infiniteLoop() {
+    while (!isExitRequested) {
+        try {
+            zmqServer->doOneServerLoop();
+        } catch (...) {
+            spdlog::error("doOneServerLoop threw exception. This should never happen!");
+        }
+    }
+    spdlog::info("Exited zmq server loop");
+}
+
 ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string &_caCertFile)
         : checkSignature(_checkSignature), checkKeyOwnership(_checkKeyOwnership),
           caCertFile(_caCertFile), ctx(make_shared<zmq::context_t>(1)) {
@@ -73,15 +84,8 @@ void ZMQServer::run() {
 
     spdlog::info("Bound port ...");
 
-    while (!isExitRequested) {
-        try {
-            zmqServer->doOneServerLoop();
-        } catch (...) {
-            spdlog::error("doOneServerLoop threw exception. This should never happen!");
-        }
-    }
+    infiniteLoop();
 
-    spdlog::info("Exited zmq server loop");
 }
 
 std::atomic<bool> ZMQServer::isExitRequested(false);

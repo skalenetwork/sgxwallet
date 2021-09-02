@@ -71,6 +71,8 @@ private:
 
     void doOneServerLoop();
 
+    void infiniteLoop();
+
 };
 
 
