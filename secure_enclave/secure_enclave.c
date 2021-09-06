@@ -604,7 +604,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
-
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 
@@ -616,7 +615,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072,
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024,
                              &type, &exportable);
 
     if (exportable != EXPORTABLE) {
