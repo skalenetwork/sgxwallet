@@ -23,7 +23,7 @@ cd scripts; ./build_deps.py; cd ..
 ## Set SGX environment variables
 
 ```bash
-source sgx-sdk-build/sgxsdk/environment
+source /opt/intel/sgxsdk/environment
 ```
 
 ## Configure and build sgxwallet
