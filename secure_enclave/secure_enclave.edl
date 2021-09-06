@@ -35,7 +35,7 @@ enclave {
         public void trustedGenerateEcdsaKey (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [out] int *is_exportable,
+                                [in, count = 1] int *is_exportable,
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 [out] uint64_t *enc_len,
                                 [out, count = SMALL_BUF_SIZE] char * pub_key_x,
