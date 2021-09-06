@@ -40,6 +40,7 @@ make
 Note: to run in simulation mode, add --enable-sgx-simulation flag when you run configure.
 
 ```bash
+./autoconf.bash
 ./configure --enable-sgx-simulation
 make
 ```
