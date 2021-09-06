@@ -103,7 +103,7 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
         return -3;
     }
 
-    if (!encr_message) {
+    if (!exportable) {
         LOG_ERROR("Null exportable in AES_encrypt");
         return -4;
     }
