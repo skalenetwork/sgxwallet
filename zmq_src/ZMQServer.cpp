@@ -133,11 +133,11 @@ void ZMQServer::doOneServerLoop() {
     result["errorMessage"] = "";
 
     zmq::message_t identity;
-    zmq::message_t copied_id;
 
     string stringToParse = "";
 
     try {
+
 
         zmq_pollitem_t items[1];
         items[0].socket = *socket;
@@ -163,8 +163,6 @@ void ZMQServer::doOneServerLoop() {
             spdlog::error("Fatal error: zmq_msg_more(identity) returned false");
             exit(-12);
         }
-
-        copied_id.copy(&identity);
 
         zmq::message_t reqMsg;
 
@@ -215,7 +213,7 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE(replyStr.front() == '{');
         CHECK_STATE(replyStr.back() == '}');
 
-        if (!socket->send(copied_id, ZMQ_SNDMORE)) {
+        if (!socket->send(identity, ZMQ_SNDMORE)) {
             if (isExitRequested) {
                 return;
             }
