@@ -260,11 +260,12 @@ void ZMQServer::doOneServerLoop() {
     }
 }
 
-
 void ZMQServer::workerThreadMessageProcessLoop(ZMQServer* _agent ) {
     CHECK_STATE(_agent);
     _agent->waitOnGlobalStartBarrier();
+    // do work forever until told to exit
     while (!isExitRequested) {
-        sleep(100);
+        sleep(1000);
+        cerr << "WORKER LOOP" << endl;
     }
 }

@@ -24,17 +24,14 @@
 
 #include "Agent.h"
 
-void Agent::notifyAllConditionVariables() {
-    messageCond.notify_all();
-    queueCond.notify_all();
-}
 
 Agent::Agent() : startedWorkers(false) {};
 
 void Agent::waitOnGlobalStartBarrier() {
-    unique_lock<mutex> mlock(queueMutex);
+    unique_lock<mutex> lock(startMutex);
     while (!startedWorkers) {
-        queueCond.wait(mlock);
+        // wait until notified to start running
+        startCond.wait(lock);
     }
 }
 
@@ -49,7 +46,7 @@ void Agent::releaseWorkers() {
         return;
     }
 
-    lock_guard<mutex> lock(queueMutex);
+    lock_guard<mutex> lock(startMutex);
 
-    queueCond.notify_all();
+    startCond.notify_all();
 }

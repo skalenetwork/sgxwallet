@@ -38,8 +38,8 @@ protected:
     mutex messageMutex;
     condition_variable messageCond;
 
-    condition_variable queueCond;
-    mutex queueMutex;
+    condition_variable startCond;
+    mutex startMutex;
 
     recursive_mutex m;
 
@@ -47,8 +47,6 @@ protected:
 public:
 
     Agent();
-
-    void notifyAllConditionVariables();
 
     virtual ~Agent();
 
