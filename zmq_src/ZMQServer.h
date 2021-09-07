@@ -35,10 +35,12 @@
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
+#include "Agent.h"
+
 using namespace std;
 
 
-class ZMQServer {
+class ZMQServer : Agent{
 
     uint64_t workerThreads;
 
