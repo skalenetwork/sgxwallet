@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file testw.cpp
     @author Stan Kladko
@@ -37,6 +37,7 @@
 #include <sgx_tcrypto.h>
 
 #include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "ServerInit.h"
 #include "DKGCrypto.h"
 #include "SGXException.h"
@@ -73,7 +74,7 @@ public:
     TestFixture() {
         TestUtils::resetDB();
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixture() {
@@ -114,7 +115,7 @@ class TestFixtureNoResetFromBackup {
 public:
     TestFixtureNoResetFromBackup() {
         setFullOptions(L_INFO, false, true, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixtureNoResetFromBackup() {
@@ -128,7 +129,7 @@ class TestFixtureNoReset {
 public:
     TestFixtureNoReset() {
         setOptions(L_INFO, false, true);
-        initAll(L_INFO, false, false, true, false, false);
+        initAll(L_INFO, false, false, true, false, true);
     }
 
     ~TestFixtureNoReset() {
@@ -145,8 +146,9 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test", "[ecdsa-aes
     vector<char> pubKeyY(BUF_LEN, 0);
 
     uint64_t encLen = 0;
+    int exportable = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encrPrivKey.data(), &encLen,
                                           pubKeyX.data(),
                                           pubKeyY.data());
     REQUIRE(status == SGX_SUCCESS);
@@ -176,8 +178,9 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[ecdsa-aes-key-gen]") {
     vector<char> pubKeyX(BUF_LEN, 0);
     vector<char> pubKeyY(BUF_LEN, 0);
     uint64_t encLen = 0;
+    int exportable = 0;
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encrPrivKey.data(), &encLen,
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encrPrivKey.data(), &encLen,
                                           pubKeyX.data(),
                                           pubKeyY.data());
 
@@ -193,9 +196,10 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key", "[ecdsa-aes-get-pub-ke
     vector<char> pubKeyY(BUF_LEN, 0);
 
     uint64_t encLen = 0;
+    int exportable = 0;
 
     PRINT_SRC_LINE
-    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), &encLen, pubKeyX.data(),
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
                                           pubKeyY.data());
 
     REQUIRE(status == SGX_SUCCESS);
@@ -1119,6 +1123,56 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
     sleep(3);
 }
 
+TEST_CASE_METHOD(TestFixture, "Exportable / non-exportable keys", "[exportable-nonexportable-keys]") {
+    int errStatus = 0;
+    vector<char> errMsg(BUF_LEN, 0);
+    vector <uint8_t> encPrivKey(BUF_LEN, 0);
+    vector<char> pubKeyX(BUF_LEN, 0);
+    vector<char> pubKeyY(BUF_LEN, 0);
+
+    uint64_t encLen = 0;
+    int exportable = 0;
+
+    auto status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
+                                          pubKeyY.data());
+
+    vector<char> decrypted_key(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, decrypted_key.data());
+    REQUIRE( errStatus == -11 );
+
+    exportable = 1;
+
+    encPrivKey.clear();
+    errMsg.clear();
+    pubKeyX.clear();
+    pubKeyY.clear();
+
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable, encPrivKey.data(), &encLen, pubKeyX.data(),
+                                          pubKeyY.data());
+
+    decrypted_key.clear();
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encPrivKey.data(), encLen, decrypted_key.data());
+    REQUIRE( errStatus == 0 );
+    REQUIRE( status == SGX_SUCCESS );
+
+    string key = SAMPLE_AES_KEY;
+    vector <uint8_t> encrypted_key(BUF_LEN, 0);
+
+    status = trustedEncryptKey(eid, &errStatus, errMsg.data(), key.c_str(), encrypted_key.data(), &encLen);
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    vector<char> decr_key(BUF_LEN, 0);
+    PRINT_SRC_LINE
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), encLen, decr_key.data());
+
+    REQUIRE(status == 0);
+    REQUIRE(key.compare(decr_key.data()) == 0);
+    REQUIRE(errStatus == 0);
+    sleep(3);
+}
+
 TEST_CASE_METHOD(TestFixture, "Many threads ecdsa dkg v2 bls", "[many-threads-crypto-v2]") {
     vector <thread> threads;
     int num_threads = 4;
@@ -1182,8 +1236,65 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
     }
 }
 
-TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
+TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption", "[te-decryption-share]") {
+    HttpClient client(RPC_ENDPOINT);
+    StubClient c(client, JSONRPC_CLIENT_V2);
 
+    std::string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    c.importBLSKeyShare(key_str, name);
+
+    // the same key writtn in decimal
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
+            "6507625568967977077291849236396320012317305261598035438182864059942098934847");
+
+    libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+    decryption_value.to_affine_coordinates();
+
+    auto decrytion_value_str = convertG2ToString( decryption_value, ':' );
+    auto decryption_share = c.getDecryptionShare( name, decrytion_value_str )["decryptionShare"];
+
+    libff::alt_bn128_G2 share;
+    share.Z = libff::alt_bn128_Fq2::one();
+
+    share.X.c0 = libff::alt_bn128_Fq( decryption_share[0].asCString() );
+    share.X.c1 = libff::alt_bn128_Fq( decryption_share[1].asCString() );
+    share.Y.c0 = libff::alt_bn128_Fq( decryption_share[2].asCString() );
+    share.Y.c1 = libff::alt_bn128_Fq( decryption_share[3].asCString() );
+
+    REQUIRE( share == key * decryption_value );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption via zmq", "[te-decryption-share-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    client->importBLSKeyShare(key_str, name);
+
+    // the same key writtn in decimal
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
+            "6507625568967977077291849236396320012317305261598035438182864059942098934847");
+
+    libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+    decryption_value.to_affine_coordinates();
+
+    auto decrytion_value_str = convertG2ToString( decryption_value, ':' );
+    auto decryption_share = client->getDecryptionShare( name, decrytion_value_str );
+
+    libff::alt_bn128_G2 share;
+    share.Z = libff::alt_bn128_Fq2::one();
+
+    share.X.c0 = libff::alt_bn128_Fq( decryption_share[0].asCString() );
+    share.X.c1 = libff::alt_bn128_Fq( decryption_share[1].asCString() );
+    share.Y.c0 = libff::alt_bn128_Fq( decryption_share[2].asCString() );
+    share.Y.c1 = libff::alt_bn128_Fq( decryption_share[3].asCString() );
+
+    REQUIRE( share == key * decryption_value );
+}
+
+TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);
 

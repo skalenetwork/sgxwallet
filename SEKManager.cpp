@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file SEKManager.cpp
     @author Stan Kladko
@@ -33,7 +33,7 @@
 #include "sgxwallet.h"
 
 #include "SGXException.h"
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "LevelDB.h"
 
 #include "ServerDataChecker.h"

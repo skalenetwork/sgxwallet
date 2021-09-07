@@ -55,14 +55,16 @@ testList = [ "[zmq-ecdsa]",
              "[dkg-api-v2]",
              "[dkg-api-v2-zmq]",
              "[dkg-bls]",
-             "[dkgzmqbls]",
              "[dkg-bls-v2]",
              "[dkg-poly-exists]",
              "[dkg-poly-exists-zmq]",
              "[dkg-aes-pub-shares]",
              "[aes-encrypt-decrypt]",
+             "[exportable-nonexportable-keys]",
              "[aes-dkg-v2]",
-             "[aes-dkg-v2-zmq]"
+             "[aes-dkg-v2-zmq]",
+             "[te-decryption-share]",
+             "[te-decryption-share-zmq]"
             ]
 
 

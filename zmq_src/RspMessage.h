@@ -248,4 +248,16 @@ public:
 };
 
 
+class GetDecryptionShareRspMessage : public ZMQMessage {
+public:
+    GetDecryptionShareRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+
+    Json::Value getShare() {
+        return getJsonValueRapid("decryptionShare");
+    }
+};
+
+
 #endif //SGXWALLET_RSPMESSAGE_H

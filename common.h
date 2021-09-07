@@ -98,8 +98,6 @@ inline int getValue() { //Note: this value is in KB!
     return result;
 }
 
-
-
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
@@ -136,8 +134,6 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 
 // Copy from libconsensus
 
-
-
 inline string exec( const char* cmd ) {
     CHECK_STATE( cmd );
     std::array< char, 128 > buffer;
@@ -160,7 +156,6 @@ extern uint64_t initTime;
 #define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
-
 
 
 #endif //SGXWALLET_COMMON_H

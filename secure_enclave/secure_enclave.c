@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Curves.h"
 #include "DHDkg.h"
 #include "AESUtils.h"
+#include "TEUtils.h"
 
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
@@ -357,7 +358,7 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     LOG_INFO("SGX call completed");
 }
 
-void trustedGenerateEcdsaKey(int *errStatus, char *errString,
+void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable,
                                 uint8_t *encryptedPrivateKey, uint64_t *enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
@@ -408,8 +409,15 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
     snprintf(errString, BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
-    int status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+    int status = -1;
+
+    if ( *is_exportable ) {
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+                             ECDSA, EXPORTABLE, enc_len);
+    } else {
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
                              ECDSA, NON_EXPORTABLE, enc_len);
+    }
     CHECK_STATUS("ecdsa private key encryption failed");
 
     uint8_t type = 0;
@@ -453,7 +461,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
-    strncpy(errString, skey, 1024);
 
     status = mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE);
 
@@ -609,8 +616,13 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
                              &type, &exportable);
 
     if (exportable != EXPORTABLE) {
+        while (*key != '\0') {
+            *key++ = '0';
+        }
         *errStatus = -11;
         snprintf(errString, BUF_LEN, "Key is not exportable");
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     if (status != 0) {
@@ -855,7 +867,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(pub_key_x, BUF_LEN);SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
-    trustedGenerateEcdsaKey(&status, errString, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    int is_exportable = 1;
+
+    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
 
     CHECK_STATUS("trustedGenerateEcdsaKey failed");
 
@@ -929,7 +943,9 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     SAFE_CHAR_BUF(pub_key_x, BUF_LEN);
     SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
-    trustedGenerateEcdsaKey(&status, errString, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    int is_exportable = 1;
+
+    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
 
     CHECK_STATUS("trustedGenerateEcdsaKey failed");
 
@@ -1357,6 +1373,38 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     status = calc_bls_public_key(skey_hex, bls_pub_key);
 
     CHECK_STATUS("could not calculate bls public key");
+
+    SET_SUCCESS
+
+    clean:
+    ;
+}
+
+void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryptedPrivateKey,
+                                const char* public_decryption_value, uint64_t key_len,
+                                char* decryption_share ) {
+    LOG_DEBUG(__FUNCTION__);
+
+    INIT_ERROR_STATE
+
+    CHECK_STATE(decryption_share);
+    CHECK_STATE(encryptedPrivateKey);
+
+    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
+                             &type, &exportable);
+
+    CHECK_STATUS2("AES decrypt failed %d");
+
+    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
+
+    status = getDecryptionShare(skey_hex, public_decryption_value, decryption_share);
+
+    CHECK_STATUS("could not calculate decryption share");
 
     SET_SUCCESS
 

@@ -32,6 +32,7 @@
 #include "sgxwallet.h"
 
 #include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "ServerInit.h"
 #include "SEKManager.h"
 #include "BLSPrivateKeyShareSGX.h"
@@ -122,12 +123,9 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
-
     vector<char> errMsg(BUF_LEN, 0);
 
-
     SAFE_CHAR_BUF(xStrArg, BUF_LEN)SAFE_CHAR_BUF(yStrArg, BUF_LEN)SAFE_CHAR_BUF(signature, BUF_LEN);
-
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
