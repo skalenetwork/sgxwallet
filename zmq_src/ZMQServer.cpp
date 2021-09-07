@@ -30,6 +30,7 @@
 #include "common.h"
 
 #include "SGXException.h"
+#include "ExitRequestedException.h"
 #include "ZMQMessage.h"
 #include "ZMQServer.h"
 #include "sgxwallet_common.h"
@@ -274,12 +275,24 @@ void ZMQServer::doOneServerLoop() {
     }
 }
 
+void ZMQServer::workerThreadProcessNextMessage() {
+    usleep(1000000);
+    cerr << "WORKER LOOP" << endl;
+}
+
 void ZMQServer::workerThreadMessageProcessLoop(ZMQServer* _agent ) {
     CHECK_STATE(_agent);
     _agent->waitOnGlobalStartBarrier();
     // do work forever until told to exit
     while (!isExitRequested) {
-        usleep(1000000);
-        cerr << "WORKER LOOP" << endl;
+        try {
+            _agent->workerThreadProcessNextMessage();
+        } catch (ExitRequestedException& e) {
+            break;
+        } catch (Exception& e) {
+            spdlog::error(string("Caught exception in worker thread loop:") + e.what());
+        }
     }
+
+    spdlog::info("Exit requested. Exiting worker thread.");
 }

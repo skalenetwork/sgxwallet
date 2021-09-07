@@ -79,6 +79,8 @@ public:
 
     static void workerThreadMessageProcessLoop(ZMQServer* agent );
 
+    void workerThreadProcessNextMessage();
+
 };
 
 
