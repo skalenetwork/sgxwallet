@@ -74,12 +74,16 @@ public:
 
     void run();
 
+    void initListenSocket();
+
     static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
     static void exitZMQServer();
 
     static void workerThreadMessageProcessLoop(ZMQServer* agent );
 
     void workerThreadProcessNextMessage();
+
+    void checkForExit();
 
 };
 

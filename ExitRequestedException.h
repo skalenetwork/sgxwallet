@@ -23,10 +23,9 @@
 
 #pragma once
 
-#include "Exception.h"
+#include <exception>
 
-
-class ExitRequestedException : public Exception {
+class ExitRequestedException : public std::exception {
 public:
-    ExitRequestedException( const std::string& _message, const std::string& _className );
+    ExitRequestedException();
 };

@@ -61,7 +61,7 @@ ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string
 
 }
 
-void ZMQServer::run() {
+void ZMQServer::initListenSocket() {
 
     auto port = BASE_PORT + 5;
 
@@ -71,20 +71,29 @@ void ZMQServer::run() {
         CHECK_STATE(socket);
         socket->bind("tcp://*:" + to_string(port));
     } catch (...) {
-        spdlog::error("Server task could not bind to port:{}", port);
+        spdlog::error("Zmq server task could not bind to port:{}", port);
         throw SGXException(ZMQ_COULD_NOT_BIND_FRONT_END, "Server task could not bind.");
     }
 
-    spdlog::info("Bound port ...");
+    spdlog::info("ZMQ server socket created and bound.");
+
+}
+
+void ZMQServer::run() {
 
 
+    zmqServer->initListenSocket();
 
-    spdlog::info("Started zmq read loop ...");
+    spdlog::info("Started zmq read loop.");
 
     while (!isExitRequested) {
         try {
             zmqServer->doOneServerLoop();
-        } catch (...) {
+        } catch (ExitRequestedException& e) {
+            spdlog::info("Exit requested. Exiting server loop");
+            break;
+        }
+        catch (...) {
             spdlog::error("doOneServerLoop threw exception. This should never happen!");
         }
     }
@@ -124,7 +133,7 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
     initedServer = true;
 
     spdlog::info("Initing zmq server.\n checkSignature is set to {}.\n checkKeyOwnership is set to {}",
-                _checkSignature, _checkKeyOwnership);
+                 _checkSignature, _checkKeyOwnership);
 
     string rootCAPath = "";
 
@@ -158,6 +167,12 @@ ZMQServer::~ZMQServer() {
     exitZMQServer();
 }
 
+void ZMQServer::checkForExit() {
+    if (isExitRequested) {
+        throw ExitRequestedException();
+    }
+}
+
 void ZMQServer::doOneServerLoop() {
 
     string replyStr;
@@ -172,7 +187,6 @@ void ZMQServer::doOneServerLoop() {
 
     try {
 
-
         zmq_pollitem_t items[1];
         items[0].socket = *socket;
         items[0].events = ZMQ_POLLIN;
@@ -180,21 +194,19 @@ void ZMQServer::doOneServerLoop() {
         int pollResult = 0;
 
         do {
+            checkForExit();
             pollResult = zmq_poll(items, 1, 1000);
-            if (isExitRequested) {
-                return;
-            }
         } while (pollResult == 0);
 
         if (!socket->recv(&identity)) {
             // something terrible happened
-            spdlog::error("Fatal error: socket->recv(&identity) returned false");
+            spdlog::error("Fatal error: socket->recv(&identity) returned false. Exiting.");
             exit(-11);
         }
 
         if (!identity.more()) {
             // something terrible happened
-            spdlog::error("Fatal error: zmq_msg_more(identity) returned false");
+            spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Existing.");
             exit(-12);
         }
 
@@ -202,7 +214,7 @@ void ZMQServer::doOneServerLoop() {
 
         if (!socket->recv(&reqMsg, 0)) {
             // something terrible happened
-            spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false");
+            spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false. Exiting");
             exit(-13);
         }
 
@@ -216,23 +228,18 @@ void ZMQServer::doOneServerLoop() {
 
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 
+
         result = parsedMsg->process();
     } catch (std::exception &e) {
-        if (isExitRequested) {
-            return;
-        }
         result["errorMessage"] = string(e.what());
         spdlog::error("Exception in zmq server :{}", e.what());
-        spdlog::error("ID:" + string((char*) identity.data(), identity.size()));
+        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
 
     } catch (...) {
-        if (isExitRequested) {
-            return;
-        }
         spdlog::error("Error in zmq server ");
         result["errorMessage"] = "Error in zmq server ";
-        spdlog::error("ID:" + string((char*) identity.data(), identity.size()));
+        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
     }
 
@@ -260,7 +267,7 @@ void ZMQServer::doOneServerLoop() {
             exit(-16);
         }
 
-    } catch ( std::exception &e ) {
+    } catch (std::exception &e) {
         if (isExitRequested) {
             return;
         }
@@ -280,16 +287,16 @@ void ZMQServer::workerThreadProcessNextMessage() {
     cerr << "WORKER LOOP" << endl;
 }
 
-void ZMQServer::workerThreadMessageProcessLoop(ZMQServer* _agent ) {
+void ZMQServer::workerThreadMessageProcessLoop(ZMQServer *_agent) {
     CHECK_STATE(_agent);
     _agent->waitOnGlobalStartBarrier();
     // do work forever until told to exit
     while (!isExitRequested) {
         try {
             _agent->workerThreadProcessNextMessage();
-        } catch (ExitRequestedException& e) {
+        } catch (ExitRequestedException &e) {
             break;
-        } catch (Exception& e) {
+        } catch (Exception &e) {
             spdlog::error(string("Caught exception in worker thread loop:") + e.what());
         }
     }
