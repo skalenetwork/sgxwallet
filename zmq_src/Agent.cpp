@@ -29,13 +29,11 @@ void Agent::notifyAllConditionVariables() {
     queueCond.notify_all();
 }
 
-
-
-Agent::Agent() : startedRun(false) {};
+Agent::Agent() : startedWorkers(false) {};
 
 void Agent::waitOnGlobalStartBarrier() {
     unique_lock<mutex> mlock(queueMutex);
-    while (!startedRun) {
+    while (!startedWorkers) {
         queueCond.wait(mlock);
     }
 }
@@ -44,9 +42,10 @@ Agent::~Agent() {
 }
 
 
-void Agent::releaseGlobalStartBarrier() {
+void Agent::releaseWorkers() {
 
-    if (startedRun.exchange(true)) {
+    if (startedWorkers.exchange(true)) {
+        // already started
         return;
     }
 

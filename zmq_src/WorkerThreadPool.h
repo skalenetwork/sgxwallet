@@ -27,29 +27,29 @@
 #include <atomic>
 #include <thread>
 
-#include "Agent.h"
+
+class Agent;
+class ZMQServer;
 
 class WorkerThreadPool {
 
     atomic_bool started;
 
-    virtual void createThread( uint64_t threadNumber ) = 0;
+    void createThread( uint64_t threadNumber );
+
+    recursive_mutex m;
 
 protected:
 
     atomic_bool joined;
-
     vector<shared_ptr<thread>> threadpool;
 
-    recursive_mutex threadPoolMutex;
     uint64_t numThreads = 0;
-    Agent* agent = nullptr;
-
-protected:
-
-    WorkerThreadPool(uint64_t _numThreads, Agent *_agent);
+    ZMQServer* agent = nullptr;
 
 public:
+
+    WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent);
 
     virtual ~WorkerThreadPool();
 
@@ -58,6 +58,5 @@ public:
     void joinAll();
 
     bool isJoined() const;
-
 
 };

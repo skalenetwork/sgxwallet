@@ -36,21 +36,35 @@
 #include "zhelpers.hpp"
 
 #include "Agent.h"
+#include "WorkerThreadPool.h"
 
 using namespace std;
 
 
-class ZMQServer : Agent{
+class ZMQServer : public Agent{
 
     uint64_t workerThreads;
+
+    string caCertFile;
+    string caCert;
+
+    bool checkKeyOwnership = true;
+
+    shared_ptr<zmq::context_t> ctx;
+    shared_ptr<zmq::socket_t> socket;
+
+    static std::atomic<bool> isExitRequested;
+
+    void doOneServerLoop();
 
 public:
 
     bool checkSignature = false;
-    string caCertFile = "";
-    string caCert = "";
 
     static shared_ptr<ZMQServer> zmqServer;
+
+    shared_ptr<WorkerThreadPool> threadPool = nullptr;
+
 
     static shared_ptr<std::thread> serverThread;
 
@@ -63,15 +77,7 @@ public:
     static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
     static void exitZMQServer();
 
-private:
-    bool checkKeyOwnership = true;
-
-    shared_ptr<zmq::context_t> ctx;
-    shared_ptr<zmq::socket_t> socket;
-
-    static std::atomic<bool> isExitRequested;
-
-    void doOneServerLoop();
+    static void workerThreadMessageProcessLoop(ZMQServer* agent );
 
 };
 

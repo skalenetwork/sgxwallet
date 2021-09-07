@@ -33,7 +33,7 @@ class Agent {
 
 protected:
 
-    atomic_bool startedRun;
+    atomic_bool startedWorkers;
 
     mutex messageMutex;
     condition_variable messageCond;
@@ -52,9 +52,9 @@ public:
 
     virtual ~Agent();
 
-    void releaseGlobalStartBarrier();
+    void releaseWorkers();
 
     void waitOnGlobalStartBarrier();
-    
+
     recursive_mutex& getMainMutex() { return m; }
 };

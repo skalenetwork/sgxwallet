@@ -23,14 +23,15 @@
 
 #include "common.h"
 #include "third_party/spdlog/spdlog.h"
+#include "ZMQServer.h"
 #include "WorkerThreadPool.h"
 
 
 void WorkerThreadPool::startService() {
 
-    lock_guard<recursive_mutex> lock(threadPoolMutex);
-
     CHECK_STATE(!started.exchange(true))
+
+    LOCK(m)
 
     for (uint64_t i = 0; i < (uint64_t) numThreads; i++) {
         createThread(i);
@@ -39,7 +40,7 @@ void WorkerThreadPool::startService() {
 }
 
 
-WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, Agent *_agent) : started(false), joined(false) {
+WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent) : started(false), joined(false) {
     CHECK_STATE(_numThreads > 0);
     CHECK_STATE(_agent);
     spdlog::info("Started thread pool. Threads count:" + to_string(_numThreads));
@@ -52,7 +53,7 @@ void WorkerThreadPool::joinAll() {
     if (joined)
         return;
 
-    lock_guard<recursive_mutex> lock(threadPoolMutex);
+    LOCK(m);
 
     joined = true;
 
@@ -68,4 +69,14 @@ bool WorkerThreadPool::isJoined() const {
 }
 
 WorkerThreadPool::~WorkerThreadPool(){
+}
+
+void WorkerThreadPool::createThread(uint64_t _threadNumber) {
+
+    spdlog::info("Starting ZMQ worker thread " + to_string(_threadNumber) );
+
+    this->threadpool.push_back(
+            make_shared< thread >( ZMQServer::workerThreadMessageProcessLoop, agent ) );
+
+    spdlog::info("Started ZMQ worker thread " + to_string(_threadNumber) );
 }

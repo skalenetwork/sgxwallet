@@ -55,6 +55,9 @@ ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string
     int linger = 0;
 
     zmq_setsockopt(*socket, ZMQ_LINGER, &linger, sizeof(linger));
+
+    threadPool = make_shared<WorkerThreadPool>(1, this);
+
 }
 
 void ZMQServer::run() {
@@ -73,7 +76,7 @@ void ZMQServer::run() {
 
     spdlog::info("Bound port ...");
 
-    waitOnGlobalStartBarrier();
+
 
     spdlog::info("Started zmq read loop ...");
 
@@ -123,11 +126,13 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
     serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
     serverThread->detach();
 
+    zmqServer->releaseWorkers();
+
     spdlog::info("Inited zmq server.");
 
     spdlog::info("Starting zmq server ...");
 
-    zmqServer->releaseGlobalStartBarrier();
+    zmqServer->releaseWorkers();
 
     spdlog::info("Started zmq server.");
 
@@ -252,5 +257,14 @@ void ZMQServer::doOneServerLoop() {
         }
         spdlog::error("Unklnown exception in zmq server worker send");
         exit(-18);
+    }
+}
+
+
+void ZMQServer::workerThreadMessageProcessLoop(ZMQServer* _agent ) {
+    CHECK_STATE(_agent);
+    _agent->waitOnGlobalStartBarrier();
+    while (!isExitRequested) {
+        sleep(100);
     }
 }
