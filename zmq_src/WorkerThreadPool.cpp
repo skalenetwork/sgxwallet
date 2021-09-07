@@ -27,41 +27,39 @@
 #include "WorkerThreadPool.h"
 
 
-void WorkerThreadPool::startService() {
+WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent) : joined(false) {
+    CHECK_STATE(_numThreads > 0);
+    CHECK_STATE(_agent);
 
-    CHECK_STATE(!started.exchange(true))
+    spdlog::info("Creating thread pool. Threads count:" + to_string(_numThreads));
 
-    LOCK(m)
+    this->agent = _agent;
+    this->numThreads = _numThreads;;
+
 
     for (uint64_t i = 0; i < (uint64_t) numThreads; i++) {
         createThread(i);
     }
 
-}
+    spdlog::info("Created thread pool");
 
-
-WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent) : started(false), joined(false) {
-    CHECK_STATE(_numThreads > 0);
-    CHECK_STATE(_agent);
-    spdlog::info("Started thread pool. Threads count:" + to_string(_numThreads));
-    this->agent = _agent;
-    this->numThreads = _numThreads;;
 }
 
 
 void WorkerThreadPool::joinAll() {
-    if (joined)
+
+    spdlog::info("Joining worker threads ...");
+
+    if (joined.exchange(true))
         return;
-
-    LOCK(m);
-
-    joined = true;
 
     for (auto &&thread : threadpool) {
         if (thread->joinable())
             thread->join();
         CHECK_STATE(!thread->joinable());
     }
+
+    spdlog::info("Joined worker threads.");
 }
 
 bool WorkerThreadPool::isJoined() const {

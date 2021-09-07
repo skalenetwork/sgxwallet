@@ -94,10 +94,26 @@ void ZMQServer::run() {
 std::atomic<bool> ZMQServer::isExitRequested(false);
 
 void ZMQServer::exitZMQServer() {
-    isExitRequested.exchange(true);
+    // if already exited do not exit
+    spdlog::info("exitZMQServer called");
+    if (isExitRequested.exchange(true)) {
+        spdlog::info("Exit is already under way");
+        return;
+    }
+
+    spdlog::info("Exiting ZMQServer");
+    spdlog::info("Joining worker thread pool threads ...");
+    zmqServer->threadPool->joinAll();
+    spdlog::info("Joined worker thread pool threads");
+    spdlog::info("Shutting down ZMQ contect");
     zmqServer->ctx->shutdown();
+    spdlog::info("Shut down ZMQ contect");
+    spdlog::info("Closing ZMQ server socket ...");
     zmqServer->socket->close();
+    spdlog::info("Closed ZMQ server socket");
+    spdlog::info("Closing ZMQ context ...");
     zmqServer->ctx->close();
+    spdlog::info("Closed ZMQ context.");
     spdlog::info("Exited zmq server.");
 }
 
@@ -118,7 +134,7 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
         spdlog::info("Read CA.", rootCAPath);
     };
 
-    spdlog::info("Initing zmq server.");
+    spdlog::info("Initing zmq server ...");
 
     zmqServer = make_shared<ZMQServer>(_checkSignature, _checkKeyOwnership, rootCAPath);
 
@@ -126,22 +142,20 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
     serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
     serverThread->detach();
 
+    spdlog::info("Releasing SGX worker threads  ...");
+
     zmqServer->releaseWorkers();
+
+    spdlog::info("Released SGX worker threads.");
 
     spdlog::info("Inited zmq server.");
-
-    spdlog::info("Starting zmq server ...");
-
-    zmqServer->releaseWorkers();
-
-    spdlog::info("Started zmq server.");
-
-
 }
 
 shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
 
-ZMQServer::~ZMQServer() {}
+ZMQServer::~ZMQServer() {
+    exitZMQServer();
+}
 
 void ZMQServer::doOneServerLoop() {
 
@@ -265,7 +279,7 @@ void ZMQServer::workerThreadMessageProcessLoop(ZMQServer* _agent ) {
     _agent->waitOnGlobalStartBarrier();
     // do work forever until told to exit
     while (!isExitRequested) {
-        sleep(1000);
+        usleep(1000000);
         cerr << "WORKER LOOP" << endl;
     }
 }

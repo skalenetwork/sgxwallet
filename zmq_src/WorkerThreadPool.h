@@ -33,8 +33,6 @@ class ZMQServer;
 
 class WorkerThreadPool {
 
-    atomic_bool started;
-
     void createThread( uint64_t threadNumber );
 
     recursive_mutex m;
@@ -52,8 +50,6 @@ public:
     WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent);
 
     virtual ~WorkerThreadPool();
-
-    virtual void startService();
 
     void joinAll();
 
