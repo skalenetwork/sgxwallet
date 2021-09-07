@@ -31,6 +31,7 @@
 
 #include "SGXException.h"
 #include "ExitRequestedException.h"
+#include "ReqMessage.h"
 #include "ZMQMessage.h"
 #include "ZMQServer.h"
 #include "sgxwallet_common.h"
@@ -199,6 +200,7 @@ void ZMQServer::doOneServerLoop() {
         } while (pollResult == 0);
 
         if (!socket->recv(&identity)) {
+            checkForExit();
             // something terrible happened
             spdlog::error("Fatal error: socket->recv(&identity) returned false. Exiting.");
             exit(-11);
@@ -213,6 +215,7 @@ void ZMQServer::doOneServerLoop() {
         zmq::message_t reqMsg;
 
         if (!socket->recv(&reqMsg, 0)) {
+            checkForExit();
             // something terrible happened
             spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false. Exiting");
             exit(-13);
@@ -226,6 +229,16 @@ void ZMQServer::doOneServerLoop() {
         auto parsedMsg = ZMQMessage::parse(
                 stringToParse.c_str(), stringToParse.size(), true, checkSignature, checkKeyOwnership);
 
+
+        if ((dynamic_pointer_cast<BLSSignReqMessage>(parsedMsg)!= nullptr) ||
+             dynamic_pointer_cast<ECDSASignReqMessage>(parsedMsg)) {
+            spdlog::info("FUFUFUFUF");
+        } else {
+            spdlog::info("HAHAHA");
+        }
+
+
+
         CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
 
 
@@ -233,11 +246,13 @@ void ZMQServer::doOneServerLoop() {
     } catch (ExitRequestedException) {
         throw;
     } catch (std::exception &e) {
+        checkForExit();
         result["errorMessage"] = string(e.what());
         spdlog::error("Exception in zmq server :{}", e.what());
         spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
     } catch (...) {
+        checkForExit();
         spdlog::error("Error in zmq server ");
         result["errorMessage"] = "Error in zmq server ";
         spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
@@ -255,23 +270,20 @@ void ZMQServer::doOneServerLoop() {
         CHECK_STATE(replyStr.back() == '}');
 
         if (!socket->send(identity, ZMQ_SNDMORE)) {
-            if (isExitRequested) {
-                return;
-            }
             exit(-15);
         }
         if (!s_send(*socket, replyStr)) {
-            if (isExitRequested) {
-                return;
-            }
             exit(-16);
         }
     } catch (ExitRequestedException) {
         throw;
     } catch (std::exception &e) {
+
+        checkForExit();
         spdlog::error("Exception in zmq server worker send :{}", e.what());
         exit(-17);
     } catch (...) {
+        checkForExit();
         spdlog::error("Unklnown exception in zmq server worker send");
         exit(-18);
     }
