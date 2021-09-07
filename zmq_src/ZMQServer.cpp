@@ -230,12 +230,13 @@ void ZMQServer::doOneServerLoop() {
 
 
         result = parsedMsg->process();
+    } catch (ExitRequestedException) {
+        throw;
     } catch (std::exception &e) {
         result["errorMessage"] = string(e.what());
         spdlog::error("Exception in zmq server :{}", e.what());
         spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
         spdlog::error("Client request :" + stringToParse);
-
     } catch (...) {
         spdlog::error("Error in zmq server ");
         result["errorMessage"] = "Error in zmq server ";
@@ -244,7 +245,6 @@ void ZMQServer::doOneServerLoop() {
     }
 
     try {
-
         Json::FastWriter fastWriter;
         fastWriter.omitEndingLineFeed();
 
@@ -266,17 +266,12 @@ void ZMQServer::doOneServerLoop() {
             }
             exit(-16);
         }
-
+    } catch (ExitRequestedException) {
+        throw;
     } catch (std::exception &e) {
-        if (isExitRequested) {
-            return;
-        }
         spdlog::error("Exception in zmq server worker send :{}", e.what());
         exit(-17);
     } catch (...) {
-        if (isExitRequested) {
-            return;
-        }
         spdlog::error("Unklnown exception in zmq server worker send");
         exit(-18);
     }
