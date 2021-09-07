@@ -615,8 +615,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024,
-                             &type, &exportable);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024, &type, &exportable);
 
     if (exportable != EXPORTABLE) {
         while (*key != '\0') {
@@ -635,11 +634,10 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
         goto clean;
     }
 
-    *errStatus = -10;
-
-    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+    size_t keyLen = strnlen(key, MAX_KEY_LENGTH);
 
     if (keyLen == MAX_KEY_LENGTH) {
+        *errStatus = -10;
         snprintf(errString, BUF_LEN, "Key is not null terminated");
         LOG_ERROR(errString);
         goto clean;
