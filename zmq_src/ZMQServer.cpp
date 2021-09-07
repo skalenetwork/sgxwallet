@@ -73,6 +73,10 @@ void ZMQServer::run() {
 
     spdlog::info("Bound port ...");
 
+    waitOnGlobalStartBarrier();
+
+    spdlog::info("Started zmq read loop ...");
+
     while (!isExitRequested) {
         try {
             zmqServer->doOneServerLoop();
@@ -108,16 +112,26 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
         rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
         spdlog::info("Reading root CA from {}", rootCAPath);
         CHECK_STATE(access(rootCAPath.c_str(), F_OK) == 0);
+        spdlog::info("Read CA.", rootCAPath);
     };
+
+    spdlog::info("Initing zmq server.");
 
     zmqServer = make_shared<ZMQServer>(_checkSignature, _checkKeyOwnership, rootCAPath);
 
     CHECK_STATE(zmqServer)
-
     serverThread = make_shared<thread>(std::bind(&ZMQServer::run, ZMQServer::zmqServer));
     serverThread->detach();
 
-    spdlog::info("Inited zmq server ...");
+    spdlog::info("Inited zmq server.");
+
+    spdlog::info("Starting zmq server ...");
+
+    zmqServer->releaseGlobalStartBarrier();
+
+    spdlog::info("Started zmq server.");
+
+
 }
 
 shared_ptr <std::thread> ZMQServer::serverThread = nullptr;
