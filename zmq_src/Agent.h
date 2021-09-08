@@ -23,12 +23,6 @@
 
 #pragma once
 
-#include <condition_variable>
-#include <mutex>
-#include <atomic>
-
-using namespace std;
-
 class Agent {
 
 protected:

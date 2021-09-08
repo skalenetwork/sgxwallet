@@ -21,9 +21,8 @@
     @date 2021
 */
 
-
+#include "common.h"
 #include "Agent.h"
-
 
 Agent::Agent() : startedWorkers(false) {};
 

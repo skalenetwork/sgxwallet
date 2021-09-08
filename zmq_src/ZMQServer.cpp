@@ -28,13 +28,14 @@
 #include "third_party/spdlog/spdlog.h"
 
 #include "common.h"
+#include "sgxwallet_common.h"
 
 #include "SGXException.h"
 #include "ExitRequestedException.h"
 #include "ReqMessage.h"
 #include "ZMQMessage.h"
 #include "ZMQServer.h"
-#include "sgxwallet_common.h"
+
 
 using namespace std;
 
@@ -174,102 +175,63 @@ void ZMQServer::checkForExit() {
     }
 }
 
-void ZMQServer::doOneServerLoop() {
+void ZMQServer::poll() {
+    zmq_pollitem_t items[1];
+    items[0].socket = *socket;
+    items[0].events = ZMQ_POLLIN;
 
-    string replyStr;
+    int pollResult = 0;
 
-    Json::Value result;
-    result["status"] = ZMQ_SERVER_ERROR;
-    result["errorMessage"] = "";
-
-    zmq::message_t identity;
-
-    string stringToParse = "";
-
-    try {
-
-        zmq_pollitem_t items[1];
-        items[0].socket = *socket;
-        items[0].events = ZMQ_POLLIN;
-
-        int pollResult = 0;
-
-        do {
-            checkForExit();
-            pollResult = zmq_poll(items, 1, 1000);
-        } while (pollResult == 0);
-
-        if (!socket->recv(&identity)) {
-            checkForExit();
-            // something terrible happened
-            spdlog::error("Fatal error: socket->recv(&identity) returned false. Exiting.");
-            exit(-11);
-        }
-
-        if (!identity.more()) {
-            // something terrible happened
-            spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Existing.");
-            exit(-12);
-        }
-
-        zmq::message_t reqMsg;
-
-        if (!socket->recv(&reqMsg, 0)) {
-            checkForExit();
-            // something terrible happened
-            spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false. Exiting");
-            exit(-13);
-        }
-
-        stringToParse = string((char *) reqMsg.data(), reqMsg.size());
-
-        CHECK_STATE(stringToParse.front() == '{')
-        CHECK_STATE(stringToParse.back() == '}')
-
-        auto parsedMsg = ZMQMessage::parse(
-                stringToParse.c_str(), stringToParse.size(), true, checkSignature, checkKeyOwnership);
-
-
-        if ((dynamic_pointer_cast<BLSSignReqMessage>(parsedMsg)!= nullptr) ||
-             dynamic_pointer_cast<ECDSASignReqMessage>(parsedMsg)) {
-            spdlog::info("FUFUFUFUF");
-        } else {
-            spdlog::info("HAHAHA");
-        }
-
-
-
-        CHECK_STATE2(parsedMsg, ZMQ_COULD_NOT_PARSE);
-
-
-        result = parsedMsg->process();
-    } catch (ExitRequestedException) {
-        throw;
-    } catch (std::exception &e) {
+    do {
         checkForExit();
-        result["errorMessage"] = string(e.what());
-        spdlog::error("Exception in zmq server :{}", e.what());
-        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
-        spdlog::error("Client request :" + stringToParse);
-    } catch (...) {
+        pollResult = zmq_poll(items, 1, 1000);
+    } while (pollResult == 0);
+}
+
+string ZMQServer::receiveMessage(zmq::message_t& _identity) {
+    if (!socket->recv(&_identity)) {
         checkForExit();
-        spdlog::error("Error in zmq server ");
-        result["errorMessage"] = "Error in zmq server ";
-        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
-        spdlog::error("Client request :" + stringToParse);
+        // something terrible happened
+        spdlog::error("Fatal error: socket->recv(&identity) returned false. Exiting.");
+        exit(-11);
     }
 
+    if (!_identity.more()) {
+        checkForExit();
+        // something terrible happened
+        spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Existing.");
+        exit(-12);
+    }
+
+    zmq::message_t reqMsg;
+
+    if (!socket->recv(&reqMsg, 0)) {
+        checkForExit();
+        // something terrible happened
+        spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false. Exiting");
+        exit(-13);
+    }
+
+    auto result = string((char *) reqMsg.data(), reqMsg.size());
+
+    CHECK_STATE(result.front() == '{')
+    CHECK_STATE(result.back() == '}')
+    return result;
+}
+
+void ZMQServer::sendToClient(Json::Value& _result,  zmq::message_t& _identity  ) {
+    string replyStr;
     try {
         Json::FastWriter fastWriter;
         fastWriter.omitEndingLineFeed();
 
-        replyStr = fastWriter.write(result);
+        replyStr = fastWriter.write(_result);
 
         CHECK_STATE(replyStr.size() > 2);
         CHECK_STATE(replyStr.front() == '{');
         CHECK_STATE(replyStr.back() == '}');
 
-        if (!socket->send(identity, ZMQ_SNDMORE)) {
+        if (!socket->send(_identity, ZMQ_SNDMORE)) {
             exit(-15);
         }
         if (!s_send(*socket, replyStr)) {
@@ -278,7 +240,6 @@ void ZMQServer::doOneServerLoop() {
     } catch (ExitRequestedException) {
         throw;
     } catch (std::exception &e) {
-
         checkForExit();
         spdlog::error("Exception in zmq server worker send :{}", e.what());
         exit(-17);
@@ -287,6 +248,54 @@ void ZMQServer::doOneServerLoop() {
         spdlog::error("Unklnown exception in zmq server worker send");
         exit(-18);
     }
+
+}
+
+void ZMQServer::doOneServerLoop() {
+
+    Json::Value result;
+    result["status"] = ZMQ_SERVER_ERROR;
+
+    zmq::message_t identity;
+    string msgStr;
+
+    try {
+
+        poll();
+
+        msgStr = receiveMessage(identity);
+
+        auto msg = ZMQMessage::parse(
+                msgStr.c_str(), msgStr.size(), true, checkSignature, checkKeyOwnership);
+
+        CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
+
+        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)!= nullptr) ||
+             dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
+            spdlog::info("FUFUFUFUF");
+        } else {
+            spdlog::info("HAHAHA");
+        }
+
+        result = msg->process();
+    } catch (ExitRequestedException) {
+        throw;
+    } catch (std::exception &e) {
+        checkForExit();
+        result["errorMessage"] = string(e.what());
+        spdlog::error("Exception in zmq server :{}", e.what());
+        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
+        spdlog::error("Client request :" + msgStr);
+    } catch (...) {
+        checkForExit();
+        spdlog::error("Error in zmq server ");
+        result["errorMessage"] = "Error in zmq server ";
+        spdlog::error("ID:" + string((char *) identity.data(), identity.size()));
+        spdlog::error("Client request :" + msgStr);
+    }
+
+    sendToClient(result, identity);
+
 }
 
 void ZMQServer::workerThreadProcessNextMessage() {

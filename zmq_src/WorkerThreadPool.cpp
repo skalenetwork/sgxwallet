@@ -21,7 +21,14 @@
     @date 2021
 */
 
+#include "document.h"
+#include "stringbuffer.h"
+#include "writer.h"
+
+
+
 #include "common.h"
+#include "sgxwallet_common.h"
 #include "third_party/spdlog/spdlog.h"
 #include "ZMQServer.h"
 #include "WorkerThreadPool.h"

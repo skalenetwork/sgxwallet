@@ -23,11 +23,6 @@
 
 #pragma once
 
-#include <vector>
-#include <atomic>
-#include <thread>
-
-
 class Agent;
 class ZMQServer;
 

@@ -25,21 +25,11 @@
 #ifndef SGXWALLET_ZMQServer_H
 #define SGXWALLET_ZMQServer_H
 
-
-#include <vector>
-#include <thread>
-#include <memory>
-#include <functional>
-#include <atomic>
-
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
 #include "Agent.h"
 #include "WorkerThreadPool.h"
-
-using namespace std;
-
 
 class ZMQServer : public Agent{
 
@@ -84,6 +74,12 @@ public:
     void workerThreadProcessNextMessage();
 
     void checkForExit();
+
+    void poll();
+
+    string receiveMessage(zmq::message_t& _identity);
+
+    void sendToClient(Json::Value& _result,  zmq::message_t& _identity);
 
 };
 
