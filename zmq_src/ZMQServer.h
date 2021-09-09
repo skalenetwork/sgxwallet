@@ -31,6 +31,8 @@
 #include "Agent.h"
 #include "WorkerThreadPool.h"
 
+typedef enum {GOT_INCOMING_MSG = 0, GOT_OUTFOING_MSG = 1} PollResult;
+
 class ZMQServer : public Agent{
 
     uint64_t workerThreads;
@@ -75,7 +77,7 @@ public:
 
     void checkForExit();
 
-    void poll();
+    PollResult poll();
 
     string receiveMessage(zmq::message_t& _identity);
 

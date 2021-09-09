@@ -175,7 +175,9 @@ void ZMQServer::checkForExit() {
     }
 }
 
-void ZMQServer::poll() {
+
+
+PollResult ZMQServer::poll() {
     zmq_pollitem_t items[1];
     items[0].socket = *socket;
     items[0].events = ZMQ_POLLIN;
@@ -184,8 +186,10 @@ void ZMQServer::poll() {
 
     do {
         checkForExit();
-        pollResult = zmq_poll(items, 1, 1000);
+        pollResult = zmq_poll(items, 1, 1);
     } while (pollResult == 0);
+
+    return GOT_INCOMING_MSG;
 }
 
 string ZMQServer::receiveMessage(zmq::message_t& _identity) {
