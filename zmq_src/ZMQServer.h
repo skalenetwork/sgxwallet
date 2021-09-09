@@ -91,7 +91,7 @@ public:
 
     void checkForExit();
 
-    PollResult poll();
+    PollResult pollIncomingAndSendOutGoing();
 
     pair<string, shared_ptr<zmq::message_t>>  receiveMessage();
 

@@ -179,7 +179,7 @@ void ZMQServer::checkForExit() {
 }
 
 
-PollResult ZMQServer::poll() {
+PollResult ZMQServer::pollIncomingAndSendOutgoing() {
     zmq_pollitem_t items[1];
     items[0].socket = *socket;
     items[0].events = ZMQ_POLLIN;
@@ -289,7 +289,7 @@ void ZMQServer::doOneServerLoop() {
 
         uint64_t index = 0;
 
-        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg) != nullptr) ||
+        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)) ||
             dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
 
             boost::hash<std::string> string_hash;
@@ -386,5 +386,5 @@ void ZMQServer::workerThreadMessageProcessLoop(ZMQServer *_agent, uint64_t _thre
         }
     }
 
-    spdlog::info("Exit requested. Exiting worker thread.");
+    spdlog::info("Exit requested. Exiting worker thread:" + to_string(_threadNumber));
 }
