@@ -34,12 +34,14 @@
 
 #include "Agent.h"
 #include "WorkerThreadPool.h"
+#include "ZMQMessage.h"
 
 using namespace moodycamel;
 
 typedef enum {GOT_INCOMING_MSG = 0, GOT_OUTFOING_MSG = 1} PollResult;
 
 static const uint64_t NUM_ZMQ_WORKER_THREADS = 2;
+
 
 class ZMQServer : public Agent{
 
@@ -48,9 +50,9 @@ class ZMQServer : public Agent{
     string caCertFile;
     string caCert;
 
-    ReaderWriterQueue<pair<string, shared_ptr<zmq_msg_t>>> outgoingQueue;
+    ReaderWriterQueue<pair<string, shared_ptr<zmq::message_t>>> outgoingQueue;
 
-    vector<ReaderWriterQueue<pair<string, shared_ptr<zmq_msg_t>>>> incomingQueue;
+    vector<ReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
 
     bool checkKeyOwnership = true;
 

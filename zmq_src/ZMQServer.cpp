@@ -42,8 +42,10 @@ using namespace std;
 shared_ptr <ZMQServer> ZMQServer::zmqServer = nullptr;
 
 ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string &_caCertFile)
-        : outgoingQueue(NUM_ZMQ_WORKER_THREADS), checkSignature(_checkSignature), checkKeyOwnership(_checkKeyOwnership),
+        : incomingQueue(NUM_ZMQ_WORKER_THREADS), checkSignature(_checkSignature), checkKeyOwnership(_checkKeyOwnership),
           caCertFile(_caCertFile), ctx(make_shared<zmq::context_t>(1)) {
+
+    CHECK_STATE(NUM_ZMQ_WORKER_THREADS > 1);
 
     socket = make_shared<zmq::socket_t>(*ctx, ZMQ_ROUTER);
 
@@ -277,11 +279,19 @@ void ZMQServer::doOneServerLoop() {
 
         CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
 
+
+        uint64_t index = 0;
+
         if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)!= nullptr) ||
              dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
+            index = NUM_ZMQ_WORKER_THREADS - 1;
         } else {
-
+            index = 0;
         }
+
+        auto element = pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>(msg, identity);
+
+        incomingQueue.at(index).enqueue(element);
 
         result = msg->process();
     } catch (ExitRequestedException) {
