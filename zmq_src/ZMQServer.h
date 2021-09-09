@@ -25,13 +25,21 @@
 #ifndef SGXWALLET_ZMQServer_H
 #define SGXWALLET_ZMQServer_H
 
+
+#include "third_party/readerwriterqueue.h"
+
+
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
 #include "Agent.h"
 #include "WorkerThreadPool.h"
 
+using namespace moodycamel;
+
 typedef enum {GOT_INCOMING_MSG = 0, GOT_OUTFOING_MSG = 1} PollResult;
+
+static const uint64_t NUM_ZMQ_WORKER_THREADS = 2;
 
 class ZMQServer : public Agent{
 
@@ -40,12 +48,16 @@ class ZMQServer : public Agent{
     string caCertFile;
     string caCert;
 
+    ReaderWriterQueue<pair<string, shared_ptr<zmq_msg_t>>> outgoingQueue;
+
+    vector<ReaderWriterQueue<pair<string, shared_ptr<zmq_msg_t>>>> incomingQueue;
+
     bool checkKeyOwnership = true;
 
     shared_ptr<zmq::context_t> ctx;
     shared_ptr<zmq::socket_t> socket;
 
-    static std::atomic<bool> isExitRequested;
+    static atomic<bool> isExitRequested;
 
     void doOneServerLoop();
 
@@ -56,7 +68,6 @@ public:
     static shared_ptr<ZMQServer> zmqServer;
 
     shared_ptr<WorkerThreadPool> threadPool = nullptr;
-
 
     static shared_ptr<std::thread> serverThread;
 
@@ -79,9 +90,9 @@ public:
 
     PollResult poll();
 
-    string receiveMessage(zmq::message_t& _identity);
+    pair<string, shared_ptr<zmq::message_t>>  receiveMessage();
 
-    void sendToClient(Json::Value& _result,  zmq::message_t& _identity);
+    void sendToClient(Json::Value& _result,  shared_ptr<zmq::message_t>& _identity);
 
 };
 
