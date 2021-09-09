@@ -27,6 +27,7 @@
 
 
 #include "third_party/readerwriterqueue.h"
+#include "third_party/concurrentqueue.h"
 
 
 #include <zmq.hpp>
@@ -50,7 +51,7 @@ class ZMQServer : public Agent{
     string caCertFile;
     string caCert;
 
-    BlockingReaderWriterQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
+    ConcurrentQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
 
     vector<BlockingReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
 
