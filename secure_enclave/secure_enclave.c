@@ -597,7 +597,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     LOG_DEBUG("SGX call completed");
 }
 
-
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
 
@@ -606,14 +605,30 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(key);
+    CHECK_STATE( enc_len == strnlen( encryptedPrivateKey, 1024 ) );
 
     *errStatus = -9;
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072,
-                             &type, &exportable);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024, &type, &exportable);
+
+    if (status != 0) {
+        *errStatus = status;
+        snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    size_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+
+    if (keyLen == MAX_KEY_LENGTH) {
+        *errStatus = -10;
+        snprintf(errString, BUF_LEN, "Key is not null terminated");
+        LOG_ERROR(errString);
+        goto clean;
+    }
 
     if (exportable != EXPORTABLE) {
         while (*key != '\0') {
@@ -625,28 +640,10 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
         goto clean;
     }
 
-    if (status != 0) {
-        *errStatus = status;
-        snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
-    *errStatus = -10;
-
-    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
-
-    if (keyLen == MAX_KEY_LENGTH) {
-        snprintf(errString, BUF_LEN, "Key is not null terminated");
-        LOG_ERROR(errString);
-        goto clean;
-    }
-
     SET_SUCCESS
     clean:
     ;
 }
-
 
 void trustedEncryptKey(int *errStatus, char *errString, const char *key,
                           uint8_t *encryptedPrivateKey, uint64_t *enc_len) {
