@@ -40,7 +40,7 @@ using namespace moodycamel;
 
 typedef enum {GOT_INCOMING_MSG = 0, GOT_OUTFOING_MSG = 1} PollResult;
 
-static const uint64_t NUM_ZMQ_WORKER_THREADS = 2;
+static const uint64_t NUM_ZMQ_WORKER_THREADS = 16;
 
 
 class ZMQServer : public Agent{

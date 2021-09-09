@@ -24,6 +24,7 @@
 #include <fstream>
 #include <streambuf>
 
+#include <boost/functional/hash.hpp>
 
 #include "third_party/spdlog/spdlog.h"
 
@@ -290,13 +291,20 @@ void ZMQServer::doOneServerLoop() {
 
         if ((dynamic_pointer_cast<BLSSignReqMessage>(msg) != nullptr) ||
             dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
-            index = NUM_ZMQ_WORKER_THREADS - 1;
+
+            boost::hash<std::string> string_hash;
+
+            auto hash = string_hash(string((const char*) identity->data()));
+
+            index = hash % (NUM_ZMQ_WORKER_THREADS - 1);
         } else {
-            index = 0;
+            index = NUM_ZMQ_WORKER_THREADS - 1;
         }
 
         auto element = pair < shared_ptr < ZMQMessage >, shared_ptr<zmq::message_t>>
         (msg, identity);
+
+
 
         incomingQueue.at(index).enqueue(element);
 
