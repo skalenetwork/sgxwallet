@@ -345,8 +345,8 @@ void ZMQServer::workerThreadProcessNextMessage(uint64_t _threadNumber) {
     try {
 
         while (!incomingQueue.at(_threadNumber)
-                .wait_dequeue_timed(element, std::chrono::milliseconds(100))) {
-
+                .wait_dequeue_timed(element, std::chrono::milliseconds(1000))) {
+            checkForExit();
         }
 
         result = element.first->process();
