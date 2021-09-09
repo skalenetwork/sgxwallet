@@ -50,9 +50,9 @@ class ZMQServer : public Agent{
     string caCertFile;
     string caCert;
 
-    ReaderWriterQueue<pair<string, shared_ptr<zmq::message_t>>> outgoingQueue;
+    BlockingReaderWriterQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
 
-    vector<ReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
+    vector<BlockingReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
 
     bool checkKeyOwnership = true;
 
@@ -84,9 +84,9 @@ public:
     static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
     static void exitZMQServer();
 
-    static void workerThreadMessageProcessLoop(ZMQServer* agent );
+    static void workerThreadMessageProcessLoop(ZMQServer* agent, uint64_t _threadNumber );
 
-    void workerThreadProcessNextMessage();
+    void workerThreadProcessNextMessage(uint64_t _threadNumber);
 
     void checkForExit();
 

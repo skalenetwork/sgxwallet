@@ -61,7 +61,7 @@ ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string
 
     zmq_setsockopt(*socket, ZMQ_LINGER, &linger, sizeof(linger));
 
-    threadPool = make_shared<WorkerThreadPool>(1, this);
+    threadPool = make_shared<WorkerThreadPool>(NUM_ZMQ_WORKER_THREADS, this);
 
 }
 
@@ -93,7 +93,7 @@ void ZMQServer::run() {
     while (!isExitRequested) {
         try {
             zmqServer->doOneServerLoop();
-        } catch (ExitRequestedException& e) {
+        } catch (ExitRequestedException &e) {
             spdlog::info("Exit requested. Exiting server loop");
             break;
         }
@@ -178,7 +178,6 @@ void ZMQServer::checkForExit() {
 }
 
 
-
 PollResult ZMQServer::poll() {
     zmq_pollitem_t items[1];
     items[0].socket = *socket;
@@ -189,12 +188,19 @@ PollResult ZMQServer::poll() {
     do {
         checkForExit();
         pollResult = zmq_poll(items, 1, 1);
+
+        pair <Json::Value, shared_ptr<zmq::message_t>> element;
+
+        // send all items in outgoing queue
+        while (outgoingQueue.try_dequeue(element)) {
+            sendToClient(element.first, element.second);
+        }
     } while (pollResult == 0);
 
     return GOT_INCOMING_MSG;
 }
 
-pair<string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
+pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
 
     auto identity = make_shared<zmq::message_t>();
 
@@ -228,7 +234,7 @@ pair<string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
     return {result, identity};
 }
 
-void ZMQServer::sendToClient(Json::Value& _result,  shared_ptr<zmq::message_t>& _identity  ) {
+void ZMQServer::sendToClient(Json::Value &_result, shared_ptr <zmq::message_t> &_identity) {
     string replyStr;
     try {
         Json::FastWriter fastWriter;
@@ -265,7 +271,7 @@ void ZMQServer::doOneServerLoop() {
     Json::Value result;
     result["status"] = ZMQ_SERVER_ERROR;
 
-    shared_ptr<zmq::message_t> identity = nullptr;
+    shared_ptr <zmq::message_t> identity = nullptr;
     string msgStr;
 
     try {
@@ -282,18 +288,61 @@ void ZMQServer::doOneServerLoop() {
 
         uint64_t index = 0;
 
-        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)!= nullptr) ||
-             dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
+        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg) != nullptr) ||
+            dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
             index = NUM_ZMQ_WORKER_THREADS - 1;
         } else {
             index = 0;
         }
 
-        auto element = pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>(msg, identity);
+        auto element = pair < shared_ptr < ZMQMessage >, shared_ptr<zmq::message_t>>
+        (msg, identity);
 
         incomingQueue.at(index).enqueue(element);
 
-        result = msg->process();
+    } catch (ExitRequestedException) {
+        throw;
+    } catch (exception &e) {
+        checkForExit();
+        result["errorMessage"] = string(e.what());
+        spdlog::error("Exception in zmq server :{}", e.what());
+        spdlog::error("ID:" + string((char *) identity->data(), identity->size()));
+        spdlog::error("Client request :" + msgStr);
+        sendToClient(result, identity);
+    } catch (...) {
+        checkForExit();
+        spdlog::error("Error in zmq server ");
+        result["errorMessage"] = "Error in zmq server ";
+        spdlog::error("ID:" + string((char *) identity->data(), identity->size()));
+        spdlog::error("Client request :" + msgStr);
+        sendToClient(result, identity);
+    }
+
+
+
+
+}
+
+void ZMQServer::workerThreadProcessNextMessage(uint64_t _threadNumber) {
+
+
+    Json::Value result;
+    result["status"] = ZMQ_SERVER_ERROR;
+
+    shared_ptr <zmq::message_t> identity = nullptr;
+    string msgStr;
+
+    pair <shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>> element;
+
+    try {
+
+        while (!incomingQueue.at(_threadNumber)
+                .wait_dequeue_timed(element, std::chrono::milliseconds(100))) {
+
+        }
+
+        result = element.first->process();
+
     } catch (ExitRequestedException) {
         throw;
     } catch (exception &e) {
@@ -310,22 +359,18 @@ void ZMQServer::doOneServerLoop() {
         spdlog::error("Client request :" + msgStr);
     }
 
-    sendToClient(result, identity);
+    pair <Json::Value, shared_ptr<zmq::message_t>> fullResult(result, element.second);
 
+    outgoingQueue.enqueue(fullResult);
 }
 
-void ZMQServer::workerThreadProcessNextMessage() {
-    usleep(1000000);
-    cerr << "WORKER LOOP" << endl;
-}
-
-void ZMQServer::workerThreadMessageProcessLoop(ZMQServer *_agent) {
+void ZMQServer::workerThreadMessageProcessLoop(ZMQServer *_agent, uint64_t _threadNumber) {
     CHECK_STATE(_agent);
     _agent->waitOnGlobalStartBarrier();
     // do work forever until told to exit
     while (!isExitRequested) {
         try {
-            _agent->workerThreadProcessNextMessage();
+            _agent->workerThreadProcessNextMessage(_threadNumber);
         } catch (ExitRequestedException &e) {
             break;
         } catch (Exception &e) {

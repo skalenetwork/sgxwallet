@@ -81,7 +81,7 @@ void WorkerThreadPool::createThread(uint64_t _threadNumber) {
     spdlog::info("Starting ZMQ worker thread " + to_string(_threadNumber) );
 
     this->threadpool.push_back(
-            make_shared< thread >( ZMQServer::workerThreadMessageProcessLoop, agent ) );
+            make_shared< thread >( ZMQServer::workerThreadMessageProcessLoop, agent, _threadNumber ) );
 
     spdlog::info("Started ZMQ worker thread " + to_string(_threadNumber) );
 }
