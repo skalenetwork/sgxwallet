@@ -95,6 +95,8 @@ public:
 
     void sendToClient(Json::Value& _result,  shared_ptr<zmq::message_t>& _identity);
 
+    void sendMessagesInOutgoingMessageQueueIfAny();
+
 };
 
 

@@ -179,6 +179,15 @@ void ZMQServer::checkForExit() {
 }
 
 
+void ZMQServer::sendMessagesInOutgoingMessageQueueIfAny() {
+    pair <Json::Value, shared_ptr<zmq::message_t>> element;
+
+    // send all items in outgoing queue
+    while (outgoingQueue.try_dequeue(element)) {
+        sendToClient(element.first, element.second);
+    }
+}
+
 void ZMQServer::waitForIncomingAndProcessOutgoingMessages()  {
     zmq_pollitem_t items[1];
     items[0].socket = *socket;
@@ -190,12 +199,8 @@ void ZMQServer::waitForIncomingAndProcessOutgoingMessages()  {
         checkForExit();
         pollResult = zmq_poll(items, 1, 1);
 
-        pair <Json::Value, shared_ptr<zmq::message_t>> element;
+        sendMessagesInOutgoingMessageQueueIfAny();
 
-        // send all items in outgoing queue
-        while (outgoingQueue.try_dequeue(element)) {
-            sendToClient(element.first, element.second);
-        }
     } while (pollResult == 0);
 
 }
@@ -280,31 +285,33 @@ void ZMQServer::doOneServerLoop() {
 
         tie(msgStr, identity) = receiveMessage();
 
-        auto msg = ZMQMessage::parse(
-                msgStr.c_str(), msgStr.size(), true, checkSignature, checkKeyOwnership);
+        {
 
-        CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
+            auto msg = ZMQMessage::parse(
+                    msgStr.c_str(), msgStr.size(), true, checkSignature, checkKeyOwnership);
+
+            CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
+
+            uint64_t index = 0;
+
+            if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)) ||
+                dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
+
+                boost::hash <std::string> string_hash;
+
+                auto hash = string_hash(string((const char *) identity->data()));
+
+                index = hash % (NUM_ZMQ_WORKER_THREADS - 1);
+            } else {
+                index = NUM_ZMQ_WORKER_THREADS - 1;
+            }
+
+            auto element = pair < shared_ptr < ZMQMessage >, shared_ptr<zmq::message_t>>
+            (msg, identity);
 
 
-        uint64_t index = 0;
-
-        if ((dynamic_pointer_cast<BLSSignReqMessage>(msg)) ||
-            dynamic_pointer_cast<ECDSASignReqMessage>(msg)) {
-
-            boost::hash <std::string> string_hash;
-
-            auto hash = string_hash(string((const char *) identity->data()));
-
-            index = hash % (NUM_ZMQ_WORKER_THREADS - 1);
-        } else {
-            index = NUM_ZMQ_WORKER_THREADS - 1;
+            incomingQueue.at(index).enqueue(element);
         }
-
-        auto element = pair < shared_ptr < ZMQMessage >, shared_ptr<zmq::message_t>>
-        (msg, identity);
-
-
-        incomingQueue.at(index).enqueue(element);
 
     } catch (ExitRequestedException) {
         throw;
