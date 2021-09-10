@@ -26,29 +26,49 @@
 #define SGXWALLET_ZMQServer_H
 
 
-#include <vector>
-#include <thread>
-#include <memory>
-#include <functional>
-#include <atomic>
+#include "third_party/readerwriterqueue.h"
+#include "third_party/concurrentqueue.h"
+
 
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 
-using namespace std;
+#include "Agent.h"
+#include "WorkerThreadPool.h"
+#include "ZMQMessage.h"
+
+using namespace moodycamel;
+
+static const uint64_t NUM_ZMQ_WORKER_THREADS = 16;
 
 
-class ZMQServer {
+class ZMQServer : public Agent{
 
     uint64_t workerThreads;
+
+    string caCertFile;
+    string caCert;
+
+    ConcurrentQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
+
+    vector<BlockingReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
+
+    bool checkKeyOwnership = true;
+
+    shared_ptr<zmq::context_t> ctx;
+    shared_ptr<zmq::socket_t> socket;
+
+    static atomic<bool> isExitRequested;
+
+    void doOneServerLoop();
 
 public:
 
     bool checkSignature = false;
-    string caCertFile = "";
-    string caCert = "";
 
     static shared_ptr<ZMQServer> zmqServer;
+
+    shared_ptr<WorkerThreadPool> threadPool = nullptr;
 
     static shared_ptr<std::thread> serverThread;
 
@@ -58,18 +78,24 @@ public:
 
     void run();
 
+    void initListenSocket();
+
     static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
     static void exitZMQServer();
 
-private:
-    bool checkKeyOwnership = true;
+    static void workerThreadMessageProcessLoop(ZMQServer* agent, uint64_t _threadNumber );
 
-    shared_ptr<zmq::context_t> ctx;
-    shared_ptr<zmq::socket_t> socket;
+    void workerThreadProcessNextMessage(uint64_t _threadNumber);
 
-    static std::atomic<bool> isExitRequested;
+    void checkForExit();
 
-    void doOneServerLoop();
+    void waitForIncomingAndProcessOutgoingMessages();
+
+    pair<string, shared_ptr<zmq::message_t>>  receiveMessage();
+
+    void sendToClient(Json::Value& _result,  shared_ptr<zmq::message_t>& _identity);
+
+    void sendMessagesInOutgoingMessageQueueIfAny();
 
 };
 

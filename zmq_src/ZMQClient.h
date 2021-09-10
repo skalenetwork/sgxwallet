@@ -31,7 +31,6 @@
 #include <openssl/rand.h>
 
 #include "third_party/spdlog/spdlog.h"
-
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 #include <jsonrpccpp/client.h>

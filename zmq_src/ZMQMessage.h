@@ -24,9 +24,6 @@
 #pragma once
 
 
-#include <memory>
-#include <vector>
-
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
