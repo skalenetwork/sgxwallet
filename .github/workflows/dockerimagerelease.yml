@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - stable
+      - bug/SKALE-4402-fix-automated-signed-build
 jobs:
   build:
     runs-on: ubuntu-18.04
@@ -38,7 +38,7 @@ jobs:
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileRelease sgxwallet_release
-          bash ./scripts/publish_image.sh sgxwallet_release
+          # bash ./scripts/publish_image.sh sgxwallet_release
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       - name: Delete secrets
@@ -49,22 +49,24 @@ jobs:
           docker create --name extract $IMAGE_NAME
           docker cp extract:/usr/src/sdk/secure_enclave/secure_enclave.signed.so signed_enclaves/secure_enclave_signed.so
           docker rm extract
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
-          draft: false
-          prerelease: false
-      - name: Upload signed enclave to Release
-        uses: actions/upload-release-asset@latest
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: signed_enclaves/secure_enclave_signed.so
-          asset_name: signed_enclave.so
-          asset_content_type: application/octet-stream
+      - name: Check signed enclaves dir
+        run: ls signed_enclaves
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ env.VERSION }}
+      #     release_name: ${{ env.VERSION }}
+      #     draft: false
+      #     prerelease: false
+      # - name: Upload signed enclave to Release
+      #   uses: actions/upload-release-asset@latest
+      #   env: 
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: signed_enclaves/secure_enclave_signed.so
+      #     asset_name: signed_enclave.so
+      #     asset_content_type: application/octet-stream
