@@ -604,30 +604,19 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
-
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(key);
+    CHECK_STATE( enc_len == strnlen( encryptedPrivateKey, 1024 ) );
 
     *errStatus = -9;
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072,
-                             &type, &exportable);
-
-    if (exportable != EXPORTABLE) {
-        while (*key != '\0') {
-            *key++ = '0';
-        }
-        *errStatus = -11;
-        snprintf(errString, BUF_LEN, "Key is not exportable");
-        LOG_ERROR(errString);
-        goto clean;
-    }
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024, &type, &exportable);
 
     if (status != 0) {
         *errStatus = status;
@@ -636,12 +625,21 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
         goto clean;
     }
 
-    *errStatus = -10;
-
-    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+    size_t keyLen = strnlen(key, MAX_KEY_LENGTH);
 
     if (keyLen == MAX_KEY_LENGTH) {
+        *errStatus = -10;
         snprintf(errString, BUF_LEN, "Key is not null terminated");
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    if (exportable != EXPORTABLE) {
+        while (*key != '\0') {
+            *key++ = '0';
+        }
+        *errStatus = -11;
+        snprintf(errString, BUF_LEN, "Key is not exportable");
         LOG_ERROR(errString);
         goto clean;
     }
