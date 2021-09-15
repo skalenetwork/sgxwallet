@@ -114,3 +114,7 @@ Json::Value deleteBLSKeyRspMessage::process() {
 Json::Value GetDecryptionShareRspMessage::process() {
     assert(false);
 }
+
+Json::Value RegisterKeyOwnerRspMessage::process() {
+    assert(false);
+}

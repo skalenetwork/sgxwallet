@@ -265,7 +265,7 @@ Json::Value GetDecryptionShareReqMessage::process() {
 Json::Value RegisterKeyOwnerReqMessage::process() {
     auto keyName = getStringRapid("keyName");
     auto cert = getStringRapid("cert");
-    auto result = SGXWalletServer::getDecryptionShareImpl(keyName, cert);
+    auto result = SGXWalletServer::registerKeyOwnerImpl(keyName, cert);
     result["type"] = ZMQMessage::REGISTER_KEY_OWNER_RSP;
     return result;
 }
