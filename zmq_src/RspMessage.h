@@ -265,8 +265,8 @@ public:
 
     virtual Json::Value process();
 
-    Json::Value getShare() {
-        return getJsonValueRapid("decryptionShare");
+    Json::Value isRegistered() {
+        return getBoolRapid("Registered");
     }
 };
 

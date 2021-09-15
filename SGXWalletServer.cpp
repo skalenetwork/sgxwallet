@@ -1024,8 +1024,10 @@ Json::Value SGXWalletServer::registerKeyOwnerImpl(const std::string& keyName, co
             LevelDB::getLevelDb()->writeString( ownerKeyName, cert );
         } else {
             spdlog::error("The key {} already registered", keyName);
-            throw SGXException(KEY_ALREADY_REGISTERED, string(__FUNCTION__) + ":The key is already registered");
+            throw SGXException(KEY_ALREADY_REGISTERED, "The key owner is already registered");
         }
+
+        result["Registered"] = true;
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)
