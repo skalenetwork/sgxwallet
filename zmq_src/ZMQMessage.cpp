@@ -230,6 +230,9 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
         case ENUM_GET_DECRYPTION_SHARE_REQ:
             ret = make_shared<GetDecryptionShareReqMessage>(_d);
             break;
+        case ENUM_REGISTER_KEY_OWNER_REQ:
+            ret = make_shared<RegisterKeyOwnerReqMessage>(_d);
+            break;
         default:
             break;
     }
@@ -313,6 +316,9 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
             break;
         case ENUM_GET_DECRYPTION_SHARE_RSP:
             ret = make_shared<GetDecryptionShareRspMessage>(_d);
+            break;
+        case ENUM_REGISTER_KEY_OWNER_RSP:
+            ret = make_shared<RegisterKeyOwnerRspMessage>(_d);
             break;
         default:
             break;

@@ -1009,6 +1009,28 @@ Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyNam
     RETURN_SUCCESS(result)
 }
 
+Json::Value SGXWalletServer::registerKeyOwnerImpl(const std::string& keyName, const std::string& cert) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(keyName, "BLS_KEY") && !checkECDSAKeyName(keyName)) {
+            throw SGXException(INVALID_KEY_FORMAT, string(__FUNCTION__) + ":Invalid key format");
+        }
+
+        std::string ownerKeyName = keyName  + ":OWNER";
+        if ( !LevelDB::getLevelDb()->readString( ownerKeyName ) ) {
+            spdlog::info("Cert {} registers key {}", cert, keyName);
+            LevelDB::getLevelDb()->writeString( ownerKeyName, cert );
+        } else {
+            spdlog::error("The key {} already registered", keyName);
+            throw SGXException(KEY_ALREADY_REGISTERED, string(__FUNCTION__) + ":The key is already registered");
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
     return generateDKGPolyImpl(_polyName, _t);
 }
