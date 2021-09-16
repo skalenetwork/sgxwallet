@@ -259,5 +259,4 @@ public:
     }
 };
 
-
 #endif //SGXWALLET_RSPMESSAGE_H

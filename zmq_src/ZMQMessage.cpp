@@ -334,6 +334,10 @@ void ZMQMessage::addKeyByOwner(const string& keyName, const string& cert) {
     SGXWalletServer::writeDataToDB(keyName + ":OWNER", cert);
 }
 
+bool ZMQMessage::isKeyRegistered(const string& keyName) {
+    return LevelDB::getLevelDb()->readString(keyName  + ":OWNER") != nullptr;
+}
+
 cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{
