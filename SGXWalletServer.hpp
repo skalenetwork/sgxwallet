@@ -175,8 +175,6 @@ public:
 
     static Json::Value getDecryptionShareImpl(const std::string& KeyName, const std::string& publicDecryptionValue);
 
-    static Json::Value registerKeyOwnerImpl(const std::string& keyName, const std::string& cert);
-
     static void printDB();
 
     static void initHttpServer();

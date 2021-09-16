@@ -185,11 +185,4 @@ public:
     virtual Json::Value process();
 };
 
-class RegisterKeyOwnerReqMessage : public ZMQMessage {
-public:
-    RegisterKeyOwnerReqMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
-
-    virtual Json::Value process();
-};
-
 #endif //SGXWALLET_REQMESSAGE_H
