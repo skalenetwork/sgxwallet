@@ -57,6 +57,8 @@ protected:
 
     static void addKeyByOwner(const string& keyName, const string& cert);
 
+    static bool isKeyRegistered(const std::string& keyName);
+
 public:
 
     static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";

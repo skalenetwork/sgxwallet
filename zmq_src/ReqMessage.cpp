@@ -32,9 +32,15 @@ Json::Value ECDSASignReqMessage::process() {
     auto base = getInt64Rapid("base");
     auto keyName = getStringRapid("keyName");
     auto hash = getStringRapid("messageHash");
-    if (checkKeyOwnership && !isKeyByOwner(keyName, getStringRapid("cert"))) {
-        spdlog::error("Cert {} try to access key {} which does not belong to it", getStringRapid("cert"), keyName);
-        throw std::invalid_argument("Only owner of the key can access it");
+    if (checkKeyOwnership) {
+        if (!isKeyRegistered(keyName)) {
+            addKeyByOwner(keyName, getStringRapid("cert"));
+        } else {
+            if (!isKeyByOwner(keyName, getStringRapid("cert"))) {
+                spdlog::error("Cert {} try to access key {} which does not belong to it", getStringRapid("cert"), keyName);
+                throw std::invalid_argument("Only owner of the key can access it");
+            }
+        }
     }
     auto result = SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
     result["type"] = ZMQMessage::ECDSA_SIGN_RSP;
@@ -46,9 +52,15 @@ Json::Value BLSSignReqMessage::process() {
     auto hash = getStringRapid("messageHash");
     auto t = getInt64Rapid("t");
     auto n = getInt64Rapid("n");
-    if (checkKeyOwnership && !isKeyByOwner(keyName, getStringRapid("cert"))) {
-        spdlog::error("Cert {} try to access key {} which does not belong to it", getStringRapid("cert"), keyName);
-        throw std::invalid_argument("Only owner of the key can access it");
+    if (checkKeyOwnership) {
+        if (!isKeyRegistered(keyName)) {
+            addKeyByOwner(keyName, getStringRapid("cert"));
+        } else {
+            if (!isKeyByOwner(keyName, getStringRapid("cert"))) {
+                spdlog::error("Cert {} try to access key {} which does not belong to it", getStringRapid("cert"), keyName);
+                throw std::invalid_argument("Only owner of the key can access it");
+            }
+        }
     }
     auto result = SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
     result["type"] = ZMQMessage::BLS_SIGN_RSP;
