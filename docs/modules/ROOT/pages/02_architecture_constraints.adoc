@@ -1,0 +1,77 @@
+[[section-architecture-constraints]]
+== Architecture Constraints
+
+`sgxwallet` shall be:
+
+* platform-dependent and should run on Ubuntu Linux machines equipped with Intel SGX
+* using secure enclave to generate secret keys
+* encrypting and signing incoming enclave messages
+* a containerized instance
+* a network server
+
+=== Technical Constraints
+
+[%header, cols="1,2,8"]
+|===
+|
+| Constraint
+| Background and/or motivation
+
+| TC1
+| Specialized hardware equipment
+| SGXWallet exclusively uses Intel SGX hardware technology
+
+| TC2
+| OS Dependent development
+| The server should be compatible on Ubuntu Linux machines
+
+| TC3
+| Implementation in C++
+| The application should be part of C++, and C where required by the Enclave.
+
+| TC4
+| A Networked server
+| Uses a private network to transfer messages with other nodes.
+
+| TC5
+| Third party software must be available under a compatible open source license.
+| Developers should be able to check out the sources, compile, and run the application without problems compiling or installing dependencies. All external dependencies should be available through an installer.
+|===
+
+=== Organizational Constraints
+
+[%header, cols="1,2,8"]
+|===
+|
+| Constraint
+| Background and/or motivation
+
+| OC1
+| Team
+| SKALE Labs: Stan Kladko, Oleh Nikolaiev, Sergiy Lavrynenko
+
+| OC2
+| Release as Open Source
+| The source code of the solution must be available as open source. License: Affero GNU General Public License version 3.0 (AGPLv3). Hosted at GitHub.
+|===
+
+=== Conventions
+
+[%header, cols="1,2,8"]
+|===
+|
+| Conventions
+| Background and/or motivation
+
+| C1
+| Architecture documentation
+|
+
+| C2
+| Coding conventions
+|
+
+| C3
+| Language
+| English. The project and the corresponding documentation targets an International audience, so English should be used throughout the whole project.
+|===

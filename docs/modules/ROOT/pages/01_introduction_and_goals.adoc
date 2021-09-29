@@ -1,0 +1,144 @@
+[[section-introduction-and-goals]]
+== Introduction and Goals
+
+`SGXWallet` shall support SKALE Network validator node operations in signing blocks and messages using various cryptographic techniques.
+
+=== Requirements Overview
+
+The overall goal of `sgxwallet` is to create a performant and secure way to generate random numbers, private keys, and encrypt messages leaving the enclave, for serving encrypted and signed messages across a private network to specialized nodes.
+
+==== Basic Usage
+
+. A user runs an `sgxwallet` docker container on a private networked machine equipped with Intel SGX.
+. Nodes within the same private network connect to `sgxwallet` through a URL.
+. Nodes establish a secure TLS connection with `sgxwallet`
+. Nodes send various messages to `sgxwallet`, and receive an encrypted response.
+. `sgxwallet` is run from the command line.
+
+==== General Functionality
+
+.General Requirements
+[%header, cols="1,2,3"]
+|===
+| ID
+| Functionality
+| Description
+
+| G-1
+| JSON-RPC Server
+| Receiving and sending messages through the private network
+
+| G-2
+| DKG Operations
+| Performing distributed key generation according to Joint-Feldman
+
+| G-3
+| BLS Operations
+| Performing BLS threshold cryptography operations on messages
+
+| G-4
+| ECDSA Operations
+| Performing ECDSA cryptography operations on messages
+
+| G-5
+| Enclave Operations
+| Performing secret operations within the secure enclave
+
+|===
+
+==== Types of Checks
+
+.Required Checks
+[%header, cols="1,2,3"]
+|===
+| ID
+| Check
+| Description
+
+| R-1
+| Check ECDSA Key Name
+| Ensure ECDSA Key Name complies with two parts, starts with "NEK" and the second part length is greater than 64.
+
+| R-2
+| DKG Operations
+| Performing distributed key generation according to Joint-Feldman
+
+| R-3
+| BLS Operations
+| Performing BLS threshold cryptography operations on messages
+
+| R-4
+| Enclave Authenticity
+| Check that enclave code is signed by Intel's trusted list.
+|===
+
+.Optional Checks
+[%header, cols="1,2,3"]
+|===
+| ID
+| Check
+| Description
+
+| Opt-1
+| Check ECDSA Key Name
+| Ensure ECDSA Key Name complies with two parts, starts with "NEK" and the second part length is greater than 64.
+
+| Opt-2
+| Check Hex
+| Ensure key conforms to hex.
+
+| Opt-3
+| Check Name
+| Ensure names complies with 7 parts: 1) prefix, 2) SCHAIN_ID, 3) SCHAIN_ID.length > 78, 4) NODE_ID, 5) NODE_ID.length > 5, 6) DKG_ID, 7) DKG_ID.length > 78
+
+| Opt-4
+| Check n_t
+|
+|===
+
+=== Quality Goals
+
+[%header, cols="1,2,3"]
+|===
+| Priority
+| Quality-Goal
+| Scenario
+
+| 1
+| Safety
+| Keys never leave the enclave un-encrypted
+
+| 2
+| Performance
+| 
+
+| 
+| Correctness
+|
+
+|===
+
+=== Stakeholders
+
+[%header, cols="1,2,3"]
+|===
+| Role
+| Description
+| Goal, Intention
+
+| sgxwallet user
+| uses `sgxwallet` to support validator nodes
+| wants install and operation guides, and architecture documentation.
+
+| sgxwallet auditor
+| contributes to `sgxwallet` security
+| wants pragmatic architecture and documentation
+
+| open source contributor
+| contributes to `sgxwallet`
+| wants pragmatic architecture and documentation
+
+| software engineer
+|
+| wants pragmatic architecture, documentation and usage
+|===

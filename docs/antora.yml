@@ -1,0 +1,5 @@
+name: sgxwallet
+title: SGXWallet
+version: v1.83.x
+nav:
+  - modules/ROOT/nav.adoc

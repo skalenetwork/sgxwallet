@@ -1,0 +1,5 @@
+[[section-technical-risks]]
+== Risks and Technical Debts
+
+* secure enclave technology is a relatively new technology and may be susceptible to novel attacks
+* sgxwallet depends on several libraries provided by Intel

@@ -1,0 +1,56 @@
+[[section-system-scope-and-context]]
+== System Scope and Context
+
+This chapter describes the: 
+
+=== Business Context
+
+Validator node operators run sgxwallet to support signing of messages among their nodes.
+
+A node operator initializes sgxwallet and retains a secret backup key when initializing the server.
+
+The server URL is then used by each SKALE node to establish a secure connection with the sgxwallet server to send and receive messages to interact with the secure enclave.
+
+[%header, cols="1,3"]
+|===
+| Neighbor
+| Description
+
+| validator
+| runs SKALE Nodes. Wants nodes to sign blocks and messages using BLS threshold cryptography, and messages using ECDSA.
+
+| 
+| 
+
+| DKG private key shares
+| `sgxwallet` reads key shares and computes polynomials, interacting with SKALE Nodes.
+
+| BLS private key database
+| `sgxwallet` stores and rotates private key shares for each associated SKALE Chain.
+
+| TLS Connection
+| `sgxwallet` establishes a secure connection with each connected SKALE Node.
+
+| SKALE Nodes
+| Interact with SKALE Manager contacts on Ethereum to perform DKG in response to SKALE Chain creation and node rotation requests. Nodes also sign messages such as blocks and transactions using `sgxwallet` secure enclave BLS keys.
+
+|===
+
+**<Diagram or Table>**
+
+**<optionally: Explanation of external domain interfaces>**
+
+=== Technical Context
+
+`sgxwallet` is broken into 2 components: 
+
+* client
+* server
+
+The server 
+
+**<Diagram or Table>**
+
+**<optionally: Explanation of technical interfaces>**
+
+**<Mapping Input/Output to Channels>**

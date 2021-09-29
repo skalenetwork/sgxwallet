@@ -1,0 +1,122 @@
+[[section-runtime-view]]
+== Runtime View
+
+=== <Runtime Scenario 1: Server Initialization>
+
+.Production Runtime
+
+ifdef::env-github[image::production-runtime.png[Production Runtime]]
+ifndef::env-github[]
+[plantuml, target="production-runtime", format="png"]
+....
+@startuml
+participant SGXWalletInit
+participant SGXWalletServer
+participant SEKManager
+participant SGXRegistrationServer
+participant CSRManagerServer
+participant SGXInfoServer
+participant ZMQServer
+participant Enclave
+
+SGXWalletInit -> Enclave : Init enclave
+Enclave --> SGXWalletInit : SGX Success
+SGXWalletInit -> SGXWalletInit : Init alt_bn128
+SGXWalletInit -> levelDB : Init database
+SGXWalletInit -> SEKManager : Init SEK
+
+group Initialize storage encryption key
+
+    alt backup key
+
+        SEKManager -> SEKManager : enter SEK
+
+    else no backup key
+
+        alt read SEK from DB
+            SEKManager -> levelDB : read "SEK"
+            levelDB --> SEKManager
+        else generate SEK
+            SEKManager -> SEKManager : generate SEK
+        end
+
+        SEKManager -> SEKManager : set SEK
+
+    end
+
+end
+
+SGXWalletInit -> SGXWalletServer : create Certificates
+
+group createCerts
+    alt root CA
+        SGXWalletServer -> SGXWalletServer : Load CA
+    else generate root CA
+        SGXWalletServer -> SGXWalletServer : generate CA
+    end
+    
+    alt server Cert
+        SGXWalletServer -> SGXWalletServer : Load Server Certificate
+    else generate server Certificate
+        SGXWalletServer -> SGXWalletServer : Generate server cert
+    end
+    SGXWalletServer -> SGXWalletServer : verify server cert
+end
+
+SGXWalletInit -> SGXWalletServer : init http(s) server
+alt useHTTPS
+    SGXWalletServer -> SGXWalletServer : listen :1029
+else
+    SGXWalletServer -> SGXWalletServer : listen :1026
+end
+SGXWalletInit -> SGXRegistrationServer : init Registration server
+SGXRegistrationServer -> SGXRegistrationServer : listen :1027
+SGXWalletInit -> CSRManagerServer : init CSR
+CSRManagerServer -> CSRManagerServer : listen :1028
+SGXWalletInit -> SGXInfoServer : init Info server
+SGXInfoServer -> SGXInfoServer : listen :1030
+SGXWalletInit -> ZMQServer : init ZMQ
+ZMQServer -> ZMQServer : listen :1031
+
+@enduml
+....
+endif::[]
+
+* _SGXWalletInit initializes an enclave and receives response._
+* _alt_bn128 parameters are loaded._
+* _LevelDB database is initialized._
+* _The SEK is initialized._
+** _If a backup key is entered, this is sealed and set in levelDB._
+** _SEK is loaded from DB, if available._
+** _Otherwise, SEK is generated and set._
+* SGXWallet root CA and server certificates are created, if needed.
+* SGXWallet begins listening on port 1026 or 1029 (http/https)
+* Registration Server is initialized and listens on port 1027.
+* CSR Server is initialized and listens on port 1028.
+* Info Server is initialized and listens on port 1030.
+* ZMQ Server is initialized and listens on port 1031.
+
+=== <Runtime Scenario 2>
+
+.Node Registration
+[plantuml]
+....
+@startuml
+participant Node
+participant SGXRegistrationServer
+participant CSRManagerServer
+
+Node -> SGXRegistrationServer : Begin Link
+Node -> SGXRegistrationServer : Request Certificate
+SGXRegistrationServer --> Node : Response
+...TLS Connection...
+
+@enduml
+....
+
+* _SGXWallet performs HTTP request for whitelist from Intel servers._
+* _Timeout occurs_
+* _Enclave is unsecured and is initialized with special debug codes._
+* _Node and Server begin TLS Handshake protocol._
+
+=== ...

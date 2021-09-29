@@ -1,0 +1,16 @@
+[[section-glossary]]
+== Glossary
+
+[cols="e,2e" options="header"]
+|===
+|Term |Definition
+
+|CSR
+|Client Signing Request
+
+|SEK
+|Storage Encryption Key
+
+|SGX
+|Software Guard Extensions
+|===

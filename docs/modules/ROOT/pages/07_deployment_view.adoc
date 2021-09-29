@@ -1,0 +1,126 @@
+[[section-deployment-view]]
+
+
+== Deployment View
+
+[plantuml]
+....
+@startuml
+
+cloud intel
+
+intel -- sgxwallet1 : :80
+intel -- sgxwallet2 : :80
+
+cloud vpc {
+    component Linux1 {
+        node sgxwallet1 {
+                database leveldb1
+                rectangle signed_enclave1
+                rectangle SGXInfoServer1
+                rectangle SGXRegistrationServer1
+                rectangle SGXWalletServer1
+            }
+    }
+    
+    component Linux2 {
+        node sgxwallet2 {
+            database leveldb2
+            rectangle signed_enclave2
+            rectangle SGXInfoServer2
+            rectangle SGXRegistrationServer2
+            rectangle SGXWalletServer2
+        }
+    }
+
+    SGXWalletServer1 -- node1 : :1026,1029,1031
+    SGXWalletServer1 -- node2 : :1026,1029,1031
+    SGXWalletServer1 -- node3 : :1026,1029,1031
+    SGXWalletServer1 -- node4 : :1026,1029,1031
+    SGXWalletServer1 -- node5 : :1026,1029,1031
+
+    SGXWalletServer2 -- node6 : :1026,1029,1031
+    SGXWalletServer2 -- node7 : :1026,1029,1031
+
+
+    node node1 {
+
+    }
+
+    node node2 {
+
+    }   
+
+    node node3 {
+
+    }
+
+    node node4 {
+
+    }
+
+    node node5 {
+
+    }
+
+    node node6 {
+
+    }
+
+    node node7 {
+
+    }
+
+    
+
+}
+
+@enduml
+....
+
+[%header, cols="1,8"]
+|===
+| Node / artifact
+| Description
+
+| `sgxwallet` development
+|
+
+| docker hub
+| A host DockerHub where built unsigned and signed containers reside.
+
+|
+
+|===
+
+=== Infrastructure Level 1
+
+_**<Overview Diagram>**_
+
+Motivation::
+
+_<explanation in text form>_
+
+Quality and/or Performance Features::
+
+_<explanation in text form>_
+
+Mapping of Building Blocks to Infrastructure::
+_<description of the mapping>_
+
+
+=== Infrastructure Level 2
+
+==== _<Infrastructure Element 1>_
+
+_<diagram + explanation>_
+
+==== _<Infrastructure Element 2>_
+
+_<diagram + explanation>_
+
+...
+
+==== _<Infrastructure Element n>_
+
+_<diagram + explanation>_

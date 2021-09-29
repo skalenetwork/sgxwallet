@@ -1,0 +1,14 @@
+[[section-quality-scenarios]]
+== Quality Requirements
+
+
+=== Quality Tree
+
+=== Quality Scenarios
+
+.Testability / Coverage
+By using *** during development and build processes to ensure a code coverage at at least 95%.
+
+.Testability / Independent 
+
+
