@@ -5,7 +5,7 @@
 
 .Production Runtime
 
-ifdef::env-github[image::production-runtime.png[Production Runtime]]
+ifdef::env-github[image::./images/production-runtime.png[Production Runtime]]
 ifndef::env-github[]
 [plantuml, target="production-runtime", format="png"]
 ....
