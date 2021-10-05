@@ -35,7 +35,7 @@ pid=$!
 sleep 2
 echo "Checking that sgxwallet can connect to SGX whitelist update server whitelist.trustedservices.intel.com "
 echo "If this test fails, you need to update your network config or firewall to allow this connection"
-curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
+curl -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
 else
 echo "Running in SGX simulation mode"
 fi
@@ -46,7 +46,7 @@ echo "Test run requested"
 sleep 5
 ./testw.py
 else
-  sleep 3
-   ./sgxwallet $1 $2 $3 $4 $5
+sleep 3
+./sgxwallet $1 $2 $3 $4 $5 $6
 fi
 

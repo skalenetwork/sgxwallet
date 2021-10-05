@@ -9,6 +9,7 @@ services:
       - "1028:1028"
       - "1029:1029"
       - "1030:1030"
+      - "1031:1031"
     volumes:
       - ./sgx_data:/usr/src/sdk/sgx_data
       -  /dev/urandom:/dev/random
@@ -17,4 +18,4 @@ services:
       options:
         max-size: "10m"
         max-file: "4"
-    command: -s -y
+    command: -s -y -e

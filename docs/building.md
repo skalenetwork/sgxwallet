@@ -2,6 +2,25 @@
 
 # Building SGX wallet from source
 
+## Build and install Intel SGX SDK
+
+We are currently using SGX SDK version 2.13. 
+
+Below is a sequence of commands that builds SDK and installs it into /opt/intel directory.
+
+
+```bash
+git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
+cd linux-sgx
+make preparation
+sudo make sdk_install_pkg_no_mitigation
+cd /opt/intel
+sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin
+sudo make psw_install_pkg
+sudo cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
+```
+
 ## Clone this repository and its submodules
 
 `git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
@@ -23,7 +42,7 @@ cd scripts; ./build_deps.py; cd ..
 ## Set SGX environment variables
 
 ```bash
-source sgx-sdk-build/sgxsdk/environment
+source /opt/intel/sgxsdk/environment
 ```
 
 ## Configure and build sgxwallet
@@ -40,6 +59,7 @@ make
 Note: to run in simulation mode, add --enable-sgx-simulation flag when you run configure.
 
 ```bash
+./autoconf.bash
 ./configure --enable-sgx-simulation
 make
 ```

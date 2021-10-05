@@ -1,8 +1,8 @@
 diff --git a/linux/installer/bin/install-sgx-psw.bin.tmpl b/linux/installer/bin/install-sgx-psw.bin.tmpl
-index 3510e97c..751831ab 100755
+index 7d19987..7386ce7 100755
 --- a/linux/installer/bin/install-sgx-psw.bin.tmpl
 +++ b/linux/installer/bin/install-sgx-psw.bin.tmpl
-@@ -30,34 +30,10 @@
+@@ -30,33 +30,10 @@
  #
  #
  
@@ -12,7 +12,7 @@ index 3510e97c..751831ab 100755
 -    if [[ $? != "0" ]]; then
 -        /sbin/modinfo intel_sgx &> /dev/null
 -        if [[ $? != "0" ]]; then
--            lsmod | grep 'isgx\|intel_sgx' &> /dev/null
+-            /sbin/lsmod 2> /dev/null | grep 'isgx\|intel_sgx'
 -            if [[ $? = "0" ]]; then
 -                echo "Warning: You did not follow the document to install the driver package."
 -                echo
@@ -33,45 +33,46 @@ index 3510e97c..751831ab 100755
 -    exit 4
 -fi
 -
--
+ 
  PKG_ARCH=@arch@
  ARCH=$(uname -m)
- 
-diff --git a/linux/installer/common/libsgx-enclave-common/install.sh b/linux/installer/common/libsgx-enclave-common/install.sh
-index 296879af..851d520b 100755
---- a/linux/installer/common/libsgx-enclave-common/install.sh
-+++ b/linux/installer/common/libsgx-enclave-common/install.sh
-@@ -33,11 +33,6 @@
- 
- set -e 
- 
--if test $(id -u) -ne 0; then
--    echo "Root privilege is required."
--    exit 1
--fi
--
- SCRIPT_DIR=$(dirname "$0")
- source ${SCRIPT_DIR}/installConfig
- 
-@@ -95,7 +90,7 @@ elif [ -d /etc/init/ ]; then
- else
-     echo " failed."
-     echo "Unsupported platform - neither systemctl nor initctl is found."
--    exit 5
-+    retval=0
- fi
- 
- if test $retval -ne 0; then
 diff --git a/linux/installer/common/psw/install.sh b/linux/installer/common/psw/install.sh
-index 59f3ed61..8ba940a3 100755
+index 042f83c..3043ad1 100755
 --- a/linux/installer/common/psw/install.sh
 +++ b/linux/installer/common/psw/install.sh
-@@ -96,7 +96,7 @@ elif [ -d /etc/init/ ]; then
- else
-     echo " failed."
-     echo "Unsupported platform - neither systemctl nor initctl is found."
--    exit 5
-+    retval=0
+@@ -106,7 +106,7 @@ else
+         echo "Warning: No systemctl/initctl to start AESM. You may start AESM manually, e.g., /opt/intel/sgxpsw/aesm/aesm_service --no-daemon"
+     else
+         echo "Error: Unsupported platform - neither systemctl nor initctl is found."
+-        exit 5
++        retval=0
+     fi
  fi
  
- if test $retval -ne 0; then
+diff --git a/linux/installer/common/sgx-aesm-service/Makefile b/linux/installer/common/sgx-aesm-service/Makefile
+index 89c5b21..2b4eb8f 100644
+--- a/linux/installer/common/sgx-aesm-service/Makefile
++++ b/linux/installer/common/sgx-aesm-service/Makefile
+@@ -48,7 +48,8 @@ AESMD_CONF_DEL=aesmd.conf
+ AESMD_CONF_PATH=/lib/systemd/system
+ $(warning "You may need to start aesmd manually after it's installed!")
+ else
+-$(error "Unsupported platform - neither systemctl nor initctl is found!")
++# $(error "Unsupported platform - neither systemctl nor initctl is found!")
++exit 0
+ endif
+ endif
+ 
+ diff --git a/external/dcap_source/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile b/external/dcap_source/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
+index 1f3efdb..07ede24 100644
+--- a/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
++++ b/tools/SGXPlatformRegistration/package/installer/common/sgx-ra-service/Makefile
+@@ -47,7 +47,8 @@ RAD_CONF_NAME=mpa_registration_tool.service
+ RAD_CONF_DEL=mpa_registration.conf
+ RAD_CONF_PATH=/lib/systemd/system
+ else
+-$(error "Unsupported platform - neither systemctl nor initctl is found!")
++# $(error "Unsupported platform - neither systemctl nor initctl is found!")
++exit 0
+ endif
+ endif

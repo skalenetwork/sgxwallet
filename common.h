@@ -31,11 +31,20 @@ using namespace std;
 #include <iostream>
 #include <map>
 #include <memory>
+#include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <string.h>
 #include <vector>
-
+#include <json/value.h>
 #include <boost/throw_exception.hpp>
-
 #include <gmp.h>
+#include <thread>
+#include <functional>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+
+
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
 #include "SGXException.h"
@@ -68,18 +77,40 @@ inline void print_stack(int _line) {
     backtrace_symbols_fd(array, size, STDERR_FILENO);
 }
 
+inline int parseLine(char* line) {
+    // This assumes that a digit will be found and the line ends in " Kb".
+    int i = strlen(line);
+    const char* p = line;
+    while (*p <'0' || *p > '9') p++;
+    line[i-3] = '\0';
+    i = atoi(p);
+    return i;
+}
+
+inline int getValue() { //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
 
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack(__LINE__);            \
         \
         BOOST_THROW_EXCEPTION(SGXException(-100, string(__CLASS_NAME__) +  ":" + __msg__));}
 
 #define CHECK_STATE2(_EXPRESSION_, __STATUS__) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        print_stack(__LINE__);            \
         \
         BOOST_THROW_EXCEPTION(SGXException(__STATUS__, string(__CLASS_NAME__) +  ":" + __msg__));}
 
@@ -107,8 +138,6 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 
 // Copy from libconsensus
 
-
-
 inline string exec( const char* cmd ) {
     CHECK_STATE( cmd );
     std::array< char, 128 > buffer;
@@ -131,25 +160,6 @@ extern uint64_t initTime;
 #define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
-
-
-#include <boost/interprocess/sync/interprocess_semaphore.hpp>
-
-// max of 200 threads can call enclave at a time
-extern boost::interprocess::interprocess_semaphore enclaveSemaphore;
-
-class semaphore_guard {
-    boost::interprocess::interprocess_semaphore &sem;
-public:
-    semaphore_guard(boost::interprocess::interprocess_semaphore &_semaphore) : sem(_semaphore) {
-        sem.wait();
-    }
-
-    ~semaphore_guard() {
-        sem.post();
-    }
-};
-
 
 
 #endif //SGXWALLET_COMMON_H

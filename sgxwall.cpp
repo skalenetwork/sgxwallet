@@ -36,7 +36,7 @@
 
 #include "TestUtils.h"
 
-#include "ZMQServer.h"
+#include "zmq_src/ZMQServer.h"
 
 #include "testw.h"
 #include "sgxwall.h"
@@ -55,6 +55,7 @@ void SGXWallet::printUsage() {
     cerr << "   -n  Use http instead of https. Default is to use https with a selg-signed server cert.  Insecure! \n";
     cerr << "   -c  Disable client authentication using certificates. Insecure!\n";
     cerr << "   -s  Sign client certificates without human confirmation. Insecure! \n";
+    cerr << "   -e  Only owner of the key can access it.\n";
 }
 
 
@@ -100,6 +101,7 @@ int main(int argc, char *argv[]) {
     bool checkClientCertOption = true;
     bool autoSignClientCertOption = false;
     bool generateTestKeys = false;
+    bool checkKeyOwnership = false;
 
     std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -110,7 +112,7 @@ int main(int argc, char *argv[]) {
         exit(-21);
     }
 
-    while ((opt = getopt(argc, argv, "cshd0abyvVnT")) != -1) {
+    while ((opt = getopt(argc, argv, "cshd0abyvVneT")) != -1) {
         switch (opt) {
             case 'h':
                 SGXWallet::printUsage();
@@ -136,7 +138,11 @@ int main(int argc, char *argv[]) {
                 break;
             case 'n':
                 useHTTPSOption = false;
-                break;                
+                checkKeyOwnership = false;
+                break;
+            case 'e':
+                checkKeyOwnership = true;
+                break;
             case 'a':
                 enterBackupKeyOption = false;
                 break;
@@ -178,11 +184,22 @@ int main(int argc, char *argv[]) {
         enclaveLogLevel = L_TRACE;
     }
 
-    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys);
+    cerr << "Calling initAll ..." << endl;
+    initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption, autoSignClientCertOption, generateTestKeys, checkKeyOwnership);
+    cerr << "Completed initAll." << endl;
 
-    ifstream is("sgx_data/4node.json");
+    //check if test keys already exist
 
-    if (generateTestKeys && !is.good() && !!ExitHandler::shouldExit()) {
+    string TEST_KEYS_4_NODE = "sgx_data/4node.json";
+
+    ifstream is(TEST_KEYS_4_NODE);
+    auto keysExist = is.good();
+
+    if (keysExist) {
+        cerr << "Found test keys." << endl;
+    }
+
+    if (generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
         cerr << "Generating test keys ..." << endl;
 
         HttpClient client(RPC_ENDPOINT);
@@ -207,8 +224,6 @@ int main(int argc, char *argv[]) {
 
         cerr << "Successfully completed generating test keys into sgx_data" << endl;
     }
-
-
 
     while ( !ExitHandler::shouldExit() ) {
         sleep(10);

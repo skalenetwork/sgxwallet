@@ -45,11 +45,11 @@ apt-get install  build-essential
 Run the following command:
 
 ```bash
-cd scripts; sudo ./sgx_linux_x64_driver_2.5.0_2605efa.bin; cd ..
+cd scripts; sudo ./sgx_linux_x64_driver_2.11.0_0373e2e.bin; cd ..
 ```
 
 Alternatively, other driver versions may be downloaded from Intel.
-Please note that version `2.5.0_2605efa` is what is currently supported.
+Please note that version `2.11.0_0373e2e` is what is currently supported.
 
 Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.

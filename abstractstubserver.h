@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file BLSEnclave.cpp
     @author Stan Kladko
@@ -45,7 +45,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("ecdsaSignMessageHash", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "base",jsonrpc::JSON_INTEGER,"keyName",jsonrpc::JSON_STRING,"messageHash",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::ecdsaSignMessageHashI);
 
           this->bindAndAddMethod(jsonrpc::Procedure("generateDKGPoly", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::generateDKGPolyI);
-          this->bindAndAddMethod(jsonrpc::Procedure("getVerificationVector", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"polyName",jsonrpc::JSON_STRING, "t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getVerificationVectorI);
+          this->bindAndAddMethod(jsonrpc::Procedure("getVerificationVector", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName", jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getVerificationVectorI);
           this->bindAndAddMethod(jsonrpc::Procedure("getSecretShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"publicKeys",jsonrpc::JSON_ARRAY, "n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getSecretShareI);
           this->bindAndAddMethod(jsonrpc::Procedure("dkgVerification", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::dkgVerificationI);
           this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::createBLSPrivateKeyI);
@@ -62,6 +62,8 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("getSecretShareV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "polyName",jsonrpc::JSON_STRING,"publicKeys",jsonrpc::JSON_ARRAY, "n",jsonrpc::JSON_INTEGER,"t",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::getSecretShareV2I);
           this->bindAndAddMethod(jsonrpc::Procedure("dkgVerificationV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::dkgVerificationV2I);
           this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKeyV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::createBLSPrivateKeyV2I);
+
+          this->bindAndAddMethod(jsonrpc::Procedure("getDecryptionShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING,"publicDecryptionValue",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::getDecryptionShareI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -97,7 +99,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         }
         inline virtual void getVerificationVectorI(const Json::Value &request, Json::Value &response)
         {
-            response = this->getVerificationVector(request["polyName"].asString(), request["t"].asInt(), request["n"].asInt());
+            response = this->getVerificationVector(request["polyName"].asString(), request["t"].asInt());
         }
         inline virtual void getSecretShareI(const Json::Value &request, Json::Value &response)
         {
@@ -161,6 +163,11 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->createBLSPrivateKeyV2(request["blsKeyName"].asString(), request["ethKeyName"].asString(), request["polyName"].asString(),request["secretShare"].asString(),request["t"].asInt(), request["n"].asInt());
         }
 
+        inline virtual void getDecryptionShareI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->getDecryptionShare(request["blsKeyName"].asString(), request["publicDecryptionValue"].asString());
+        }
+
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n ) = 0;
         virtual Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName) = 0;
@@ -169,7 +176,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) = 0;
 
         virtual Json::Value generateDKGPoly(const std::string& polyName, int t) = 0;
-        virtual Json::Value getVerificationVector(const std::string& polyName, int t, int n) = 0;
+        virtual Json::Value getVerificationVector(const std::string& polyName, int t) = 0;
         virtual Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) = 0;
         virtual Json::Value dkgVerification( const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
         virtual Json::Value createBLSPrivateKey(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) = 0;
@@ -186,6 +193,8 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value getSecretShareV2(const std::string& polyName, const Json::Value& publicKeys, int t, int n) = 0;
         virtual Json::Value dkgVerificationV2( const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
         virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n) = 0;
+        
+        virtual Json::Value getDecryptionShare(const std::string& KeyName, const std::string& publicDecryptionValue) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

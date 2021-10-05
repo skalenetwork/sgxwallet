@@ -1,8 +1,8 @@
-# sgxwallet: SKALE SGX-based hardware crypto wallet
+# sgxwallet: SKALE SGX-based hardware crypto wallet 
 
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3581/badge)](https://bestpractices.coreinfrastructure.org/projects/3581)
 
 ## Intro
 
@@ -80,7 +80,7 @@ guide [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Contributing
 
-See [contributing](CONTRIBUTING.md) for information on how to contribute.
+See [contributing](.github/CONTRIBUTING.md) for information on how to contribute.
 
 ## Libraries used by this project
 

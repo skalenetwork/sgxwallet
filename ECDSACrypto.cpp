@@ -36,7 +36,7 @@
 
 #include "secure_enclave/Verify.h"
 
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 
 #include "SEKManager.h"
 #include "ECDSACrypto.h"
@@ -59,9 +59,11 @@ vector <string> genECDSAKey() {
 
     sgx_status_t status = SGX_SUCCESS;
 
-    status = trustedGenerateEcdsaKey(eid, &errStatus,
-                               errMsg.data(), encr_pr_key.data(), &enc_len,
-                               pub_key_x.data(), pub_key_y.data());
+    int exportable = 0;
+
+    status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(),
+                                    &exportable, encr_pr_key.data(), &enc_len,
+                                    pub_key_x.data(), pub_key_y.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
@@ -240,9 +242,7 @@ string encryptECDSAKey(const string& _key) {
     status = trustedEncryptKey(eid, &errStatus, errString.data(), key.data(),
                                encryptedKey.data(), &enc_len);
 
-    if (status != 0) {
-        throw SGXException(status, string("Could not encrypt ECDSA key: " + string(errString.begin(), errString.end())).c_str());
-    }
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errString.data());
 
     vector<char> hexEncrKey = carray2Hex(encryptedKey.data(), enc_len);
 

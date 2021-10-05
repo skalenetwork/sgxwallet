@@ -67,6 +67,7 @@ If operating with a firewall, please make sure these ports are open so clients a
 -   \-n     Launch SGXWalletServer using http (not https)
 -   \-b     Restore from back up (you will need to enter backup key) 
 -   \-y     Do not ask user to acknowledge receipt of backup key 
+-   \-e     Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!)
 -   \-T     Generate test keys     
 
 ### Healthcheck

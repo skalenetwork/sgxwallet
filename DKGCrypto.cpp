@@ -32,7 +32,7 @@
 #include "SGXException.h"
 
 #include "SGXWalletServer.hpp"
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "SEKManager.h"
 #include "DKGCrypto.h"
 
@@ -150,7 +150,7 @@ string gen_dkg_poly(int _t) {
     return result;
 }
 
-vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, int n) {
+vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t) {
 
     auto encryptedPolyHexPtr = encryptedPolyHex.c_str();
 
@@ -174,7 +174,7 @@ vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, in
     sgx_status_t status = SGX_SUCCESS;
 
     status = trustedGetPublicShares(eid, &errStatus, errMsg.data(), encrDKGPoly.data(), encLen,
-                                    pubShares.data(), t, n);
+                                    pubShares.data(), t);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -189,7 +189,7 @@ vector <vector<string>> get_verif_vect(const string &encryptedPolyHex, int t, in
 }
 
 vector <vector<string>> getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n, size_t ind) {
-    auto verificationVector = get_verif_vect(encryptedPolyHex, t, n);
+    auto verificationVector = get_verif_vect(encryptedPolyHex, t);
 
     vector <vector<string>> result(t);
 
@@ -448,7 +448,10 @@ bool createBLSShareV2(const string &blsKeyName, const char *s_shares, const char
     vector<char> errMsg(BUF_LEN, 0);
     int errStatus = 0;
 
-    uint64_t decKeyLen;SAFE_UINT8_BUF(encr_bls_key, BUF_LEN);SAFE_UINT8_BUF(encr_key, BUF_LEN);
+    uint64_t decKeyLen;
+    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+    SAFE_UINT8_BUF(encr_key, BUF_LEN)
+    
     if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
         throw SGXException(CREATE_BLS_SHARE_INVALID_KEY_HEX, string(__FUNCTION__) + ":Invalid encryptedKeyHex");
     }
@@ -532,7 +535,6 @@ vector <string> calculateAllBlsPublicKeys(const vector <string> &public_shares) 
             public_share.Z = libff::alt_bn128_Fq2::one();
 
             public_values[j] = public_values[j] + public_share;
-
         }
     }
 

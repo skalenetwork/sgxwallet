@@ -21,25 +21,19 @@
     @date 2020
 */
 
-
 #include "sgx_trts.h"
 #include "sgx_tcrypto.h"
 #include "stdlib.h"
 #include <string.h>
 
-
 #include "AESUtils.h"
 
 sgx_aes_gcm_128bit_key_t AES_key[1024];
 
-
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
-int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned  char type,
+int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned char type,
                 unsigned char exportable, uint64_t* resultLen) {
-
-
-
     if (!type) {
         LOG_ERROR("Null type in AES_encrypt");
         return -1;
@@ -55,11 +49,16 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
         return -2;
     }
 
+    if (!resultLen) {
+        LOG_ERROR("Null resultLen in AES_encrypt");
+        return -3;
+    }
+
     uint64_t len = strlen(message) + 1;
 
     if (2 + len + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE > encrBufLen ) {
         LOG_ERROR("Output buffer too small");
-        return -3;
+        return -4;
     }
 
     SAFE_CHAR_BUF(fullMessage, len + 2);
@@ -103,38 +102,36 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
         return -3;
     }
 
-    if (!encr_message) {
+    if (!exportable) {
         LOG_ERROR("Null exportable in AES_encrypt");
         return -4;
     }
 
 
-  if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
-      LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
-      return -1;
-  }
+    if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
+        LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
+        return -5;
+    }
 
+    uint64_t len = length - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE;
 
-
-  uint64_t len = length - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE;
-
-  if (msgLen < len) {
+    if (msgLen < len) {
         LOG_ERROR("Output buffer not large enough");
-        return -2;
-  }
+        return -6;
+    }
 
-  sgx_status_t status = sgx_rijndael128GCM_decrypt(&(AES_key[512]),
-                                                   encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
-                                                   (unsigned char*) message,
-                                                   encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
-                                                   NULL, 0,
-                                                   (sgx_aes_gcm_128bit_tag_t *)encr_message);
+    sgx_status_t status = sgx_rijndael128GCM_decrypt(&(AES_key[512]),
+                                                    encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
+                                                    (unsigned char*) message,
+                                                    encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
+                                                    NULL, 0,
+                                                    (sgx_aes_gcm_128bit_tag_t *)encr_message);
 
-  *type = message[0];
-  *exportable = message[1];
-  for (int i = 2; i < strlen(message) + 1; i++) {
-      message[i - 2 ] = message[i];
-  }
+    *type = message[0];
+    *exportable = message[1];
+    for (int i = 2; i < strlen(message) + 1; i++) {
+        message[i - 2 ] = message[i];
+    }
 
-  return status;
+    return status;
 }
