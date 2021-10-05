@@ -65,9 +65,9 @@ end
 
 SGXWalletInit -> SGXWalletServer : init http(s) server
 alt useHTTPS
-    SGXWalletServer -> SGXWalletServer : listen :1029
-else
     SGXWalletServer -> SGXWalletServer : listen :1026
+else
+    SGXWalletServer -> SGXWalletServer : listen :1029
 end
 SGXWalletInit -> SGXRegistrationServer : init Registration server
 SGXRegistrationServer -> SGXRegistrationServer : listen :1027
@@ -90,7 +90,7 @@ endif::[]
 ** _SEK is loaded from DB, if available._
 ** _Otherwise, SEK is generated and set._
 * SGXWallet root CA and server certificates are created, if needed.
-* SGXWallet begins listening on port 1026 or 1029 (http/https)
+* SGXWallet begins listening on port 1026 or 1029 (https/http)
 * Registration Server is initialized and listens on port 1027.
 * CSR Server is initialized and listens on port 1028.
 * Info Server is initialized and listens on port 1030.
@@ -113,10 +113,40 @@ SGXRegistrationServer --> Node : Response
 
 @enduml
 ....
-
-* _SGXWallet performs HTTP request for whitelist from Intel servers._
-* _Timeout occurs_
-* _Enclave is unsecured and is initialized with special debug codes._
+* _If run in release mode._
+** _SGXWallet checks connection to Intel whitelist update server whitelist.trustedservices.intel.com._
+** _SGXWallet verifies enclave signature._
+** _SGXWallet starts with DEBUG=0 iff the check above pass._
+* _If run in debug mode._
+** _Enclave is unsecured and is initialized with special debug codes._
 * _Node and Server begin TLS Handshake protocol._
+** _Node generates csr(cerificate signing request) and sends it to SGXWallet._
+** _SGXWallet signs incoming csr request and returns signed certificate and its hash if autosigning enabled. Otherwise csr is submitted to SGXWallet database and SGXWallet admin have to sign it manually._
+* _Once Node receives signed certificate it sends a request to generate an ECDSA private key to Ethereum Mainnet account by name. Server responds with corresponding public key._
+* _Once Node has its account on Ethereum Mainnet it starts registration process in SKALE Network and can run SKALE Chain._
+
+=== ...
+
+=== <Runtime Scenario 3>
+
+.Node Operations
+[plantuml]
+....
+@startuml
+participant Node
+participant SGXRegistrationServer
+participant CSRManagerServer
+
+Node -> SGXRegistrationServer : Begin Link
+Node -> SGXRegistrationServer : Request Certificate
+SGXRegistrationServer --> Node : Response
+...TLS Connection...
+
+@enduml
+....
+* _Once Node is registered in SKALE Network it calls Server's methods in three different scenarios: signing Ethereum Mainnet transactions, creating SKALE Chain, running SKALE Chain._
+** _Signing Ethereum Mainnet transactions requires calling ECDSASignMessageHash method on Server that receives a message to sign and key name to sign message with and returns ECDSA signature._
+** _Creating SKALE Chain assumes running Distributed Key Generation(DKG) algorithm and requires calling multiple methods on Server(createDKGPolynomial - create secret data for DKG, getVerificationVector - get public data corresponding to generated secret data, getSecretKeyContribution - get encrypted shares to send to every other node participated in SKALE Chain creation, verifySecretShare - verifies share submitted by another node, createBLSPrivateKey - create BLS private key from other nodes shares). In case any of the nodes submitted invalid data for DKG protocol complaintResponse method will be called that reveals secret data and submits it to smart contract._
+** _Running SKALE Chain requires signing messages submitted by SKALE Consensus with BLS and ECDSA keys on each block(50 ECDSA messages and 2 BLS messages)._
 
 === ...
