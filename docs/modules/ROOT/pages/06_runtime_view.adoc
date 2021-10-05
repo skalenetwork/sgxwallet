@@ -103,13 +103,9 @@ endif::[]
 ....
 @startuml
 participant Node
-participant SGXRegistrationServer
-participant CSRManagerServer
+participant SGXWalletServer
 
-Node -> SGXRegistrationServer : Begin Link
-Node -> SGXRegistrationServer : Request Certificate
-SGXRegistrationServer --> Node : Response
-...TLS Connection...
+Node -> SGXWalletServer : Call Method
 
 @enduml
 ....
