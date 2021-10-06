@@ -53,6 +53,7 @@ sgxwallet operates on the following network ports:
 -   1028 (localhost for admin )
 -   1029 (http only operation)
 -   1030 (localhost for informational requests)
+-   1031 (zmq)
 
 If operating with a firewall, please make sure these ports are open so clients are able to connect to the server. 
 
