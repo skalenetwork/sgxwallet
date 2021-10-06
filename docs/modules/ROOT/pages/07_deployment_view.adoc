@@ -99,11 +99,19 @@ _**<Overview Diagram>**_
 
 Motivation::
 
-_<explanation in text form>_
+_SGXWallet is built as docker container and all images are uploaded to DockerHub. Secure enclaves for stable releases are built with flag DEBUG=0 and signed with key provided by Intel. Enclaves for all other purposes and releases are built in DEBUG mode. Also on each release container in simulation mode is built to run SGXWallet on machines with disabled SGX. Each Server supports up to 200 parallel http(s) connections but SKALE Network requires not more than 5 Nodes connected to the same Server._
 
 Quality and/or Performance Features::
 
-_<explanation in text form>_
+* _HTTPS Server performance._
+** _ECDSA Signatures._
+** _BLS Signatures._
+* _HTTP Server performance._
+** _ECDSA Signatures._
+** _BLS Signatures._
+* _ZMQ Server performance._
+** _ECDSA Signatures._
+** _BLS Signatures._
 
 Mapping of Building Blocks to Infrastructure::
 _<description of the mapping>_
@@ -111,16 +119,60 @@ _<description of the mapping>_
 
 === Infrastructure Level 2
 
+_SGXWallet docker container has number of binaries inside it that are used by main application to sign ssl certificates, run secure encalve functions, enable SGX module etc._
+
+
 ==== _<Infrastructure Element 1>_
 
-_<diagram + explanation>_
+_<diagram + explanation>._
+
+_sgxwallet - docker container application entrypoint, initializes secure enclave and starts all servers._
 
 ==== _<Infrastructure Element 2>_
 
 _<diagram + explanation>_
 
-...
+_secure_enclave/secure_enclave.so - enclave itself, loaded into application in sgxwallet code._
 
-==== _<Infrastructure Element n>_
+==== _<Infrastructure Element 3>_
 
 _<diagram + explanation>_
+
+_sgx_util - utility tool used for getting information from leveldb through the SGXInfoServer( dump all keys, get key's timestamp, get latest created key, get all signed certificates, get flags sgxwallet running with ), NOT USED IN CODE._
+
+==== _<Infrastructure Element 4>_
+
+_<diagram + explanation>_
+
+_sgx_enable - binary provided by Intel to enable sgx, NOT USED IN CODE._
+
+==== _<Infrastructure Element 5>_
+
+_<diagram + explanation>_
+
+_scripts/sgx_linux_driver, scripts/sgx_linux_sdk - binaries to install in system to start developing sgxwallet in HW mode (real mode, not simulation)._
+
+==== _<Infrastructure Element 6>_
+
+_<diagram + explanation>_
+
+_cert/verify_client_cert - verifies incoming client certificate, USED IN CODE._
+
+==== _<Infrastructure Element 7>_
+
+_<diagram + explanation>_
+
+_cert/create_client_cert - creates client certificate based on csr incoming from a node, USED IN CODE._
+
+==== _<Infrastructure Element 8>_
+
+_<diagram + explanation>_
+
+_cert/create_CA - creates certificate authority fro sgxwallet server, USED IN CODE._
+
+==== _<Infrastructure Element 9>_
+
+_<diagram + explanation>_
+
+_cert/create_server_cert - creates server certificate for sgxwallet server, USED IN CODE._
+
