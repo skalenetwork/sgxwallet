@@ -26,12 +26,6 @@ jobs:
         shell: bash
       - name: Generate public key
         run: openssl rsa -in signed_enclaves/skale_sgx_private_key0.pem -pubout -out signed_enclaves/skale_sgx_public_key0.pem
-#      - name: Build enclave
-#        run: ./autoconf.bash && ./configure --with-sgx-build=release && bash -c "make -j$(nproc)"
-#      - name: Sign enclave
-#        run: cd scripts && ./sign_enclave.bash
-#      - name: Delete secrets
-#        run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
       - name: Build and deploy docker image
         run : |
           export BRANCH=${GITHUB_REF##*/}
@@ -47,6 +41,16 @@ jobs:
           bash ./scripts/publish_image.sh sgxwallet_release
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      - name: Delete secrets
+        run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
+      - name: Copy secure_enclave.signed.so
+        run: |
+          export IMAGE_NAME=skalenetwork/sgxwallet_release:$VERSION
+          docker create --name extract $IMAGE_NAME
+          docker cp extract:/usr/src/sdk/secure_enclave/secure_enclave.signed.so signed_enclaves/secure_enclave_signed.so
+          docker rm extract
+      - name: Check signed enclaves dir
+        run: ls signed_enclaves
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -63,6 +67,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: signed_enclaves/secure_enclave_signed0.so
+          asset_path: signed_enclaves/secure_enclave_signed.so
           asset_name: signed_enclave.so
           asset_content_type: application/octet-stream

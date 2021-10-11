@@ -10,14 +10,12 @@ RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure --with-sgx-build=release
 RUN bash -c "make -j$(nproc)"
-RUN cd scripts && ./sign_enclave.bash
 RUN ccache -sz
+RUN cd scripts && ./sign_enclave.bash
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
-RUN rm  /opt/intel/sgxsdk/lib64/*_sim.so
-RUN rm  /usr/src/sdk/secure_enclave/secure_enclave*.so
-RUN cd /usr/src/sdk/secure_enclave && \
-     curl --output secure_enclave.signed.so  \
-     https://raw.githubusercontent.com/skalenetwork/signed_sgx_enclaves/master/secure_enclave_signed.so.4
+RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+RUN rm /usr/src/sdk/secure_enclave/secure_enclave*.so
+RUN cp signed_enclaves/secure_enclave_signed0.so secure_enclave/secure_enclave.signed.so
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

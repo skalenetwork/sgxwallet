@@ -362,7 +362,7 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     LOG_INFO("SGX call completed");
 }
 
-void trustedGenerateEcdsaKey(int *errStatus, char *errString,
+void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable,
                                 uint8_t *encryptedPrivateKey, uint64_t *enc_len, char *pub_key_x, char *pub_key_y) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
@@ -413,8 +413,15 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString,
     strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
     snprintf(errString, BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
-    int status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+    int status = -1;
+
+    if ( *is_exportable ) {
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+                             ECDSA, EXPORTABLE, enc_len);
+    } else {
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
                              ECDSA, NON_EXPORTABLE, enc_len);
+    }
     CHECK_STATUS("ecdsa private key encryption failed");
 
     uint8_t type = 0;
@@ -458,7 +465,6 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
-    strncpy(errString, skey, 1024);
 
     status = mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE);
 
@@ -598,25 +604,19 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
-
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(key);
+    CHECK_STATE( enc_len == strnlen( encryptedPrivateKey, 1024 ) );
 
     *errStatus = -9;
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 3072,
-                             &type, &exportable);
-
-    if (exportable != EXPORTABLE) {
-        *errStatus = -11;
-        snprintf(errString, BUF_LEN, "Key is not exportable");
-    }
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, 1024, &type, &exportable);
 
     if (status != 0) {
         *errStatus = status;
@@ -625,12 +625,21 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
         goto clean;
     }
 
-    *errStatus = -10;
-
-    uint64_t keyLen = strnlen(key, MAX_KEY_LENGTH);
+    size_t keyLen = strnlen(key, MAX_KEY_LENGTH);
 
     if (keyLen == MAX_KEY_LENGTH) {
+        *errStatus = -10;
         snprintf(errString, BUF_LEN, "Key is not null terminated");
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    if (exportable != EXPORTABLE) {
+        while (*key != '\0') {
+            *key++ = '0';
+        }
+        *errStatus = -11;
+        snprintf(errString, BUF_LEN, "Key is not exportable");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -860,7 +869,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(pub_key_x, BUF_LEN);SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
-    trustedGenerateEcdsaKey(&status, errString, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    int is_exportable = 1;
+
+    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
 
     CHECK_STATUS("trustedGenerateEcdsaKey failed");
 
@@ -934,7 +945,9 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     SAFE_CHAR_BUF(pub_key_x, BUF_LEN);
     SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
 
-    trustedGenerateEcdsaKey(&status, errString, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    int is_exportable = 1;
+
+    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
 
     CHECK_STATUS("trustedGenerateEcdsaKey failed");
 
