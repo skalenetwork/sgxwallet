@@ -168,7 +168,7 @@ _cert/create_client_cert - creates client certificate based on csr incoming from
 
 _<diagram + explanation>_
 
-_cert/create_CA - creates certificate authority fro sgxwallet server, USED IN CODE._
+_cert/create_CA - creates certificate authority for sgxwallet server, USED IN CODE._
 
 ==== _<Infrastructure Element 9>_
 
