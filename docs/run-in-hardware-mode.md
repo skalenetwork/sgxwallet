@@ -52,6 +52,8 @@ sgxwallet operates on the following network ports:
 -   1027 (http for initial SSL certification signing)
 -   1028 (localhost for admin )
 -   1029 (http only operation)
+-   1030 (localhost for informational requests)
+-   1031 (zmq)
 
 If operating with a firewall, please make sure these ports are open so clients are able to connect to the server. 
 
@@ -62,7 +64,7 @@ If operating with a firewall, please make sure these ports are open so clients a
 -   \-s     Sign client certificate without human confirmation
 -   \-d     Turn on debug output
 -   \-v     Verbose mode: turn on debug output
--   \-vv    Detailed verbose mode: turn on debug and trace outputs
+-   \-V    Detailed verbose mode: turn on debug and trace outputs
 -   \-n     Launch SGXWalletServer using http (not https)
 -   \-b     Restore from back up (you will need to enter backup key) 
 -   \-y     Do not ask user to acknowledge receipt of backup key 
