@@ -609,7 +609,6 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(key);
-    CHECK_STATE( enc_len == strnlen( encryptedPrivateKey, 1024 ) );
 
     *errStatus = -9;
 
