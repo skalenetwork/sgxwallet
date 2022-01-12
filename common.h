@@ -119,7 +119,7 @@ string __ERR_STRING__ = string("SGX enclave call to ") + \
                    __FUNCTION__  +  " failed with status:" \
                    + to_string(__STATUS__) + \
                    " Err message:" + __ERR_MSG__; \
-BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_MSG__))); \
+BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_STRING__))); \
 }\
 \
 if (__ERR_STATUS__ != 0) {\
