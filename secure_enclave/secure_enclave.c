@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Curves.h"
 #include "DHDkg.h"
 #include "AESUtils.h"
+#include "TEUtils.h"
 
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
@@ -65,7 +66,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define INIT_ERROR_STATE *errString = 0; *errStatus = UNKNOWN_ERROR;
 #define SET_SUCCESS *errStatus = 0;
-
 
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) {        \
@@ -90,7 +90,6 @@ LOG_ERROR(errString); \
 *errStatus = status; \
 goto clean; \
 };
-
 
 #define CHECK_STATUS2(__ERRMESSAGE__) if (status != SGX_SUCCESS) { \
 snprintf(errString, BUF_LEN, __ERRMESSAGE__, status); \
@@ -138,9 +137,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
     LOG_INFO("Calling enclave init");
 
-
     enclave_init();
-
 
     LOG_INFO("Reading random");
 
@@ -227,7 +224,6 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
 
     memcpy(_randBuff, globalRandom, _size);
 }
-
 
 void sealHexSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {
@@ -601,7 +597,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     LOG_DEBUG("SGX call completed");
 }
 
-
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
     LOG_DEBUG(__FUNCTION__);
@@ -647,7 +642,6 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
     clean:
     ;
 }
-
 
 void trustedEncryptKey(int *errStatus, char *errString, const char *key,
                           uint8_t *encryptedPrivateKey, uint64_t *enc_len) {
@@ -999,14 +993,14 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
 void trustedGetPublicShares(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret, uint64_t enc_len,
                                char *public_shares,
-                               unsigned _t, unsigned _n) {
+                               unsigned _t) {
     LOG_INFO(__FUNCTION__);
 
     INIT_ERROR_STATE
 
     CHECK_STATE(encrypted_dkg_secret);
     CHECK_STATE(public_shares);
-    CHECK_STATE(_t <= _n && _n > 0)
+    CHECK_STATE(_t > 0)
 
     SAFE_CHAR_BUF(decrypted_dkg_secret, DKG_MAX_SEALED_LEN);
 
@@ -1374,6 +1368,38 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     status = calc_bls_public_key(skey_hex, bls_pub_key);
 
     CHECK_STATUS("could not calculate bls public key");
+
+    SET_SUCCESS
+
+    clean:
+    ;
+}
+
+void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryptedPrivateKey,
+                                const char* public_decryption_value, uint64_t key_len,
+                                char* decryption_share ) {
+    LOG_DEBUG(__FUNCTION__);
+
+    INIT_ERROR_STATE
+
+    CHECK_STATE(decryption_share);
+    CHECK_STATE(encryptedPrivateKey);
+
+    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
+                             &type, &exportable);
+
+    CHECK_STATUS2("AES decrypt failed %d");
+
+    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
+
+    status = getDecryptionShare(skey_hex, public_decryption_value, decryption_share);
+
+    CHECK_STATUS("could not calculate decryption share");
 
     SET_SUCCESS
 

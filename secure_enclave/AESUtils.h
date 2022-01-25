@@ -32,14 +32,11 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
                 uint8_t *type, uint8_t* exportable) ;
 
 
-
 #define ECDSA '1'
 #define BLS '2'
 #define DKG '3'
 
 #define EXPORTABLE '1'
 #define NON_EXPORTABLE '2'
-
-
 
 #endif //SGXD_AESUTILS_H

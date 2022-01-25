@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 #
-#    @file  build_deps.py
+#    @file build_deps.py
 #    @author Stan Kladko
 #    @date 2018
 #
@@ -36,8 +36,6 @@ GMP_DIR = topDir + "/sgx-gmp"
 SGX_SDK_DIR_SSL = topDir + "/sgx-sdk-build/sgxsdk"
 ZMQ_DIR = topDir + "/libzmq"
 ZMQ_BUILD_DIR = ZMQ_DIR + "/build"
-CZMQ_DIR = topDir + "/cppzmq"
-CZMQ_BUILD_DIR = CZMQ_DIR + "/build"
 
 LEVELDB_DIR = topDir + "/leveldb"
 LEVELDB_BUILD_DIR = LEVELDB_DIR + "/build"
@@ -52,26 +50,19 @@ BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
 
-subprocess.call(["rm", "-f",  "install-sh"])
-subprocess.call(["rm", "-f",  "compile"])
-subprocess.call(["rm", "-f",  "missing"])
-subprocess.call(["rm", "-f",  "depcomp"])
-subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
+subprocess.call(["rm", "-f", "install-sh"])
+subprocess.call(["rm", "-f", "compile"])
+subprocess.call(["rm", "-f", "missing"])
+subprocess.call(["rm", "-f", "depcomp"])
+subprocess.call(["rm", "-rf", GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
-subprocess.call(["rm", "-rf",  GMP_BUILD_DIR])
+subprocess.call(["rm", "-rf", GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
-
-
-
-
-
-
 
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
-
 
 print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
@@ -81,14 +72,12 @@ assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) ==
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0
 
-
 print("Build ZMQ");
 
 os.chdir(ZMQ_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(ZMQ_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
-
 
 print("Build LevelDB");
 

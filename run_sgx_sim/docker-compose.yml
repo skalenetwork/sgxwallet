@@ -18,4 +18,4 @@ services:
       options:
         max-size: "10m"
         max-file: "4"
-    command: -s -y
+    command: -s -y -e

@@ -36,7 +36,7 @@
 
 #include "secure_enclave/Verify.h"
 
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 
 #include "SEKManager.h"
 #include "ECDSACrypto.h"
@@ -62,8 +62,8 @@ vector <string> genECDSAKey() {
     int exportable = 0;
 
     status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(),
-                                &exportable, encr_pr_key.data(), &enc_len,
-                               pub_key_x.data(), pub_key_y.data());
+                                    &exportable, encr_pr_key.data(), &enc_len,
+                                    pub_key_x.data(), pub_key_y.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus,errMsg.data());
 
