@@ -1,28 +1,25 @@
 /*
     Copyright (C) 2018-2019 SKALE Labs
 
-    This file is part of skale-consensus.
+    This file is part of sgxwallet.
 
-    skale-consensus is free software: you can redistribute it and/or modify
+    sgxwallet is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
     by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    skale-consensus is distributed in the hope that it will be useful,
+    sgxwallet is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with skale-consensus.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
     @file ZMQClient.h
     @author Stan Kladko
     @date 2021
 */
-
-
-
 
 #ifndef SGXWALLET_ZMQCLIENT_H
 #define SGXWALLET_ZMQCLIENT_H
@@ -34,33 +31,25 @@
 #include <openssl/rand.h>
 
 #include "third_party/spdlog/spdlog.h"
-
 #include <zmq.hpp>
 #include "zhelpers.hpp"
 #include <jsonrpccpp/client.h>
 #include "ZMQMessage.h"
 
-
-
-
 #define REQUEST_TIMEOUT     10000    //  msecs, (> 1000!)
 
 class ZMQClient {
-
-
 private:
 
     EVP_PKEY* pkey = 0;
     EVP_PKEY* pubkey = 0;
     X509* x509Cert = 0;
 
-
     bool sign = true;
     string certFileName = "";
     string certKeyName = "";
     string certificate = "";
     string key = "";
-
 
     recursive_mutex mutex;
 
@@ -82,24 +71,59 @@ private:
 
 public:
 
-
     ZMQClient(const string &ip, uint16_t port, bool _sign, const string&  _certPathName,
               const string& _certKeyName);
 
-    void reconnect() ;
+    void reconnect();
 
     static pair<EVP_PKEY*, X509*>  readPublicKeyFromCertStr(const string& _cert);
 
     static string signString(EVP_PKEY* _pkey, const string& _str);
 
-    static void   verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig);
+    static void verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig);
 
     string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);
 
     string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
 
-};
+    bool importBLSKeyShare(const std::string& keyShare, const std::string& keyName);
 
+    string importECDSAKey(const std::string& keyShare, const std::string& keyName);
+
+    pair<string, string> generateECDSAKey();
+
+    string getECDSAPublicKey(const string& keyName);
+
+    bool generateDKGPoly(const string& polyName, int t);
+
+    Json::Value getVerificationVector(const string& polyName, int t);
+
+    string getSecretShare(const string& polyName, const Json::Value& pubKeys, int t, int n);
+
+    bool dkgVerification(const string& publicShares, const string& ethKeyName,
+                        const string& secretShare, int t, int n, int idx);
+
+    bool createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
+                            const string& secretShare, int t, int n);
+    
+    Json::Value getBLSPublicKey(const string& blsKeyName);
+
+    Json::Value getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t);
+
+    tuple<string, string, Json::Value> complaintResponse(const string& polyName, int t, int n, int idx);
+
+    Json::Value multG2(const string& x);
+
+    bool isPolyExists(const string& polyName);
+
+    void getServerStatus();
+
+    string getServerVersion();
+
+    bool deleteBLSKey(const string& blsKeyName);
+
+    Json::Value getDecryptionShare(const string& blsKeyName, const string& publicDecryptionValue);
+};
 
 
 #endif //SGXWALLET_ZMQCLIENT_H

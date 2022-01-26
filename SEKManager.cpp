@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file SEKManager.cpp
     @author Stan Kladko
@@ -28,13 +28,12 @@
 
 #include "third_party/spdlog/spdlog.h"
 
-
 #include "sgxwallet_common.h"
 #include "common.h"
 #include "sgxwallet.h"
 
 #include "SGXException.h"
-#include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "LevelDB.h"
 
 #include "ServerDataChecker.h"
@@ -76,7 +75,6 @@ void create_test_key() {
     LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
 }
 
-
 void validate_SEK() {
 
     shared_ptr <string> test_key_ptr = LevelDB::getLevelDb()->readString("TEST_KEY");
@@ -112,7 +110,6 @@ void validate_SEK() {
     }
 }
 
-
 shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
 
     vector<char> decr_key(BUF_LEN, 0);
@@ -130,7 +127,6 @@ shared_ptr <vector<uint8_t>> check_and_set_SEK(const string &SEK) {
         status = trustedSetSEKBackup(eid, &err_status, errMsg.data(), encrypted_SEK->data(), &l,
                              SEK.c_str());
     }
-
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
 
@@ -151,7 +147,6 @@ void gen_SEK() {
 
     spdlog::info("Generating backup key. Will be stored in backup_key.txt ... ");
 
-
     sgx_status_t status = SGX_SUCCESS;
     {
 
@@ -159,7 +154,6 @@ void gen_SEK() {
     }
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, err_status, errMsg.data());
-
 
     if (strnlen(SEK, 33) != 32) {
         throw SGXException(-1, "strnlen(SEK,33) != 32");
@@ -174,23 +168,20 @@ void gen_SEK() {
 
     sek_file << SEK;
 
-
     cout << "ATTENTION! YOUR BACKUP KEY HAS BEEN WRITTEN INTO sgx_data/backup_key.txt \n" <<
          "PLEASE COPY IT TO THE SAFE PLACE AND THEN DELETE THE FILE MANUALLY BY RUNNING THE FOLLOWING COMMAND:\n" <<
          "apt-get install secure-delete && srm -vz sgx_data/backup_key.txt" << endl;
 
-
     if (!autoconfirm) {
-        sleep(10);
         string confirm_str = "I confirm";
         string buffer;
         do {
             cout << " DO YOU CONFIRM THAT YOU COPIED THE KEY? (if you confirm type - I confirm)"
                  << endl;
+            sleep(10);
             getline(cin, buffer);
         } while (case_insensitive_match(confirm_str, buffer));
     }
-
 
     LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
 
@@ -241,7 +232,6 @@ void enter_SEK() {
         spdlog::error("Error: corrupt or empty LevelDB database");
         throw SGXException(CORRUPT_DATABASE, "Could not find TEST_KEY in database.");
     }
-
 
     if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
         spdlog::error("File does not exist: " BACKUP_PATH);

@@ -33,7 +33,7 @@ using namespace std;
 
 string gen_dkg_poly( int _t);
 
-vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t, int n);
+vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t);
 
 vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind);
 

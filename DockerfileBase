@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install  -y \
+RUN apt-get update && apt-get install -y \
     autoconf \
     automake \
     build-essential \
@@ -48,19 +48,19 @@ COPY . /usr/src/sdk
 RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
 
-RUN    apt update && \
-       apt install -yq apt-utils && \
-       apt install -yq --no-install-recommends python-yaml vim \
-           telnet git ca-certificates perl \
-           reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
-           yasm flex bison libprocps-dev ccache texinfo \
-           libjsonrpccpp-dev curl libjsonrpccpp-tools && \
-       ln -s /usr/bin/ccache /usr/local/bin/clang && \
-       ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
-       ln -s /usr/bin/ccache /usr/local/bin/gcc && \
-       ln -s /usr/bin/ccache /usr/local/bin/g++ && \
-       ln -s /usr/bin/ccache /usr/local/bin/cc && \
-       ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN apt update && \
+    apt install -yq apt-utils && \
+    apt install -yq --no-install-recommends python-yaml vim \
+        telnet git ca-certificates perl \
+        reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
+        yasm flex bison libprocps-dev ccache texinfo \
+        libjsonrpccpp-dev curl libjsonrpccpp-tools && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/gcc && \
+    ln -s /usr/bin/ccache /usr/local/bin/g++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/cc && \
+    ln -s /usr/bin/ccache /usr/local/bin/c++
 
 RUN    cd scripts && ./build_deps.py && \
        wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
