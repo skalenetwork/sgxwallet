@@ -234,8 +234,6 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
 
     auto result = string((char *) reqMsg->data(), reqMsg->size());
 
-    CHECK_STATE(result.front() == '{')
-    CHECK_STATE(result.back() == '}')
     return {result, identity};
 }
 
