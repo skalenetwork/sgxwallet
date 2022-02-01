@@ -219,7 +219,7 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
     if (!identity->more()) {
         checkForExit();
         // something terrible happened
-        spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Existing.");
+        spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Exiting.");
         exit(-12);
     }
 
@@ -234,8 +234,6 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
 
     auto result = string((char *) reqMsg->data(), reqMsg->size());
 
-    CHECK_STATE(result.front() == '{')
-    CHECK_STATE(result.back() == '}')
     return {result, identity};
 }
 
@@ -257,7 +255,7 @@ void ZMQServer::sendToClient(Json::Value &_result, shared_ptr <zmq::message_t> &
         if (!s_send(*socket, replyStr)) {
             exit(-16);
         }
-    } catch (ExitRequestedException) {
+    } catch (ExitRequestedException&) {
         throw;
     } catch (exception &e) {
         checkForExit();
@@ -276,7 +274,7 @@ void ZMQServer::doOneServerLoop() {
     Json::Value result;
     result["status"] = ZMQ_SERVER_ERROR;
 
-    shared_ptr <zmq::message_t> identity = nullptr;
+    shared_ptr <zmq::message_t> identity = make_shared<zmq::message_t>();
     string msgStr;
 
     try {
@@ -313,7 +311,7 @@ void ZMQServer::doOneServerLoop() {
             incomingQueue.at(index).enqueue(element);
         }
 
-    } catch (ExitRequestedException) {
+    } catch (ExitRequestedException&) {
         throw;
     } catch (exception &e) {
         checkForExit();
@@ -348,7 +346,7 @@ void ZMQServer::workerThreadProcessNextMessage(uint64_t _threadNumber) {
                 .wait_dequeue_timed(element, std::chrono::milliseconds(1000))) {
             checkForExit();
         }
-    } catch (ExitRequestedException) {
+    } catch (ExitRequestedException&) {
         throw;
     } catch (exception &e) {
         checkForExit();
@@ -364,7 +362,7 @@ void ZMQServer::workerThreadProcessNextMessage(uint64_t _threadNumber) {
 
     try {
         result = element.first->process();
-    } catch (ExitRequestedException) {
+    } catch (ExitRequestedException&) {
         throw;
     } catch (exception &e) {
         checkForExit();
