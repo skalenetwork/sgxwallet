@@ -6,7 +6,7 @@
  <TCSNum>25</TCSNum>
  <TCSMaxNum>25</TCSMaxNum>
  <TCSMinPool>25</TCSMinPool>
- <TCSPolicy>1</TCSPolicy>
+ <TCSPolicy>0</TCSPolicy>
  <!-- Recommend changing 'DisableDebug' to 1 to make the enclave undebuggable for enclave release -->
  <DisableDebug>0</DisableDebug>
  <MiscSelect>0</MiscSelect>
