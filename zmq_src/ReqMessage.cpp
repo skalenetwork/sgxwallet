@@ -265,11 +265,11 @@ Json::Value deleteBLSKeyReqMessage::process() {
 
 Json::Value GetDecryptionShareReqMessage::process() {
     auto blsKeyName = getStringRapid("blsKeyName");
-    auto publicDecryptionValue = getStringRapid("publicDecryptionValue");
+    auto publicDecryptionValues = getJsonValueRapid("publicDecryptionValues");
     if (checkKeyOwnership && !isKeyByOwner(blsKeyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
-    auto result = SGXWalletServer::getDecryptionShareImpl(blsKeyName, publicDecryptionValue);
+    auto result = SGXWalletServer::getDecryptionShareImpl(blsKeyName, publicDecryptionValues);
     result["type"] = ZMQMessage::GET_DECRYPTION_SHARE_RSP;
     return result;
 }

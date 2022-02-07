@@ -113,7 +113,7 @@ public:
 
     virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
-    virtual Json::Value getDecryptionShare(const std::string& blsKeyName, const std::string& publicDecryptionValue);
+    virtual Json::Value getDecryptionShare(const std::string& KeyName, const Json::Value& publicDecryptionValues);
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
@@ -173,7 +173,7 @@ public:
 
     static Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
-    static Json::Value getDecryptionShareImpl(const std::string& KeyName, const std::string& publicDecryptionValue);
+    static Json::Value getDecryptionShareImpl(const std::string& KeyName, const Json::Value& publicDecryptionValues);
 
     static void printDB();
 
