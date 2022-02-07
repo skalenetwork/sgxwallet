@@ -255,7 +255,7 @@ public:
     virtual Json::Value process();
 
     Json::Value getShare() {
-        return getJsonValueRapid("decryptionShare");
+        return getJsonValueRapid("decryptionShares");
     }
 };
 
