@@ -122,7 +122,7 @@ public:
 
     bool deleteBLSKey(const string& blsKeyName);
 
-    Json::Value getDecryptionShare(const string& blsKeyName, const string& publicDecryptionValue);
+    Json::Value getDecryptionShares(const string& blsKeyName, const Json::Value& publicDecryptionValues);
 };
 
 
