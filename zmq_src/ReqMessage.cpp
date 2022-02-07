@@ -269,7 +269,7 @@ Json::Value GetDecryptionShareReqMessage::process() {
     if (checkKeyOwnership && !isKeyByOwner(blsKeyName, getStringRapid("cert"))) {
         throw std::invalid_argument("Only owner of the key can access it");
     }
-    auto result = SGXWalletServer::getDecryptionShareImpl(blsKeyName, publicDecryptionValues);
+    auto result = SGXWalletServer::getDecryptionSharesImpl(blsKeyName, publicDecryptionValues);
     result["type"] = ZMQMessage::GET_DECRYPTION_SHARE_RSP;
     return result;
 }

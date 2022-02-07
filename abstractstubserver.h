@@ -63,7 +63,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("dkgVerificationV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "publicShares",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t",jsonrpc::JSON_INTEGER, "n",jsonrpc::JSON_INTEGER, "index",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::dkgVerificationV2I);
           this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKeyV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, "ethKeyName",jsonrpc::JSON_STRING, "polyName", jsonrpc::JSON_STRING, "secretShare",jsonrpc::JSON_STRING,"t", jsonrpc::JSON_INTEGER,"n",jsonrpc::JSON_INTEGER, NULL), &AbstractStubServer::createBLSPrivateKeyV2I);
 
-          this->bindAndAddMethod(jsonrpc::Procedure("getDecryptionShare", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING,"publicDecryptionValues",jsonrpc::JSON_ARRAY, NULL), &AbstractStubServer::getDecryptionShareI);
+          this->bindAndAddMethod(jsonrpc::Procedure("getDecryptionShares", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING,"publicDecryptionValues",jsonrpc::JSON_ARRAY, NULL), &AbstractStubServer::getDecryptionSharesI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -162,9 +162,9 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->createBLSPrivateKeyV2(request["blsKeyName"].asString(), request["ethKeyName"].asString(), request["polyName"].asString(),request["secretShare"].asString(),request["t"].asInt(), request["n"].asInt());
         }
 
-        inline virtual void getDecryptionShareI(const Json::Value &request, Json::Value &response)
+        inline virtual void getDecryptionSharesI(const Json::Value &request, Json::Value &response)
         {
-            response = this->getDecryptionShare(request["blsKeyName"].asString(), request["publicDecryptionValues"]);
+            response = this->getDecryptionShares(request["blsKeyName"].asString(), request["publicDecryptionValues"]);
         }
 
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
@@ -193,7 +193,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value dkgVerificationV2( const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) = 0;
         virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n) = 0;
         
-        virtual Json::Value getDecryptionShare(const std::string& KeyName, const Json::Value& publicDecryptionValues) = 0;
+        virtual Json::Value getDecryptionShares(const std::string& KeyName, const Json::Value& publicDecryptionValues) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

@@ -220,7 +220,7 @@ class StubClient : public jsonrpc::Client
             p["blsKeyName"] = blsKeyName;
             p["publicDecryptionValues"] = publicDecryptionValues["publicDecryptionValues"];
 
-            Json::Value result = this->CallMethod("getDecryptionShare",p);
+            Json::Value result = this->CallMethod("getDecryptionShares",p);
             if (result.isObject())
                 return result;
             else

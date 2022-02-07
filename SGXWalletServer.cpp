@@ -985,7 +985,7 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
-Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
+Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -1117,8 +1117,8 @@ SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &e
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
-Json::Value SGXWalletServer::getDecryptionShare(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
-    return getDecryptionShareImpl(blsKeyName, publicDecryptionValues);
+Json::Value SGXWalletServer::getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
+    return getDecryptionSharesImpl(blsKeyName, publicDecryptionValues);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {
