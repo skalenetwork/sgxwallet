@@ -1248,21 +1248,43 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption", 
     libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
             "6507625568967977077291849236396320012317305261598035438182864059942098934847");
 
-    libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
-    decryption_value.to_affine_coordinates();
+    libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
+    libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
 
-    auto decrytion_value_str = convertG2ToString( decryption_value, ':' );
-    auto decryption_share = c.getDecryptionShare( name, decrytion_value_str )["decryptionShare"];
+    decryption_value1.to_affine_coordinates();
+    decryption_value2.to_affine_coordinates();
 
-    libff::alt_bn128_G2 share;
-    share.Z = libff::alt_bn128_Fq2::one();
+    auto decrytion_value_str1 = convertG2ToString( decryption_value1, ':' );
+    auto decrytion_value_str2 = convertG2ToString( decryption_value2, ':' );
 
-    share.X.c0 = libff::alt_bn128_Fq( decryption_share[0].asCString() );
-    share.X.c1 = libff::alt_bn128_Fq( decryption_share[1].asCString() );
-    share.Y.c0 = libff::alt_bn128_Fq( decryption_share[2].asCString() );
-    share.Y.c1 = libff::alt_bn128_Fq( decryption_share[3].asCString() );
+    Json::Value publicDecryptionValues;
+    publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
+    publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
 
-    REQUIRE( share == key * decryption_value );
+    auto decryptionShares = c.getDecryptionShares( name, publicDecryptionValues );
+
+    auto decryption_share1 = decryptionShares["decryptionShares"][0];
+    auto decryption_share2 = decryptionShares["decryptionShares"][1];
+
+    libff::alt_bn128_G2 share1;
+    share1.Z = libff::alt_bn128_Fq2::one();
+
+    share1.X.c0 = libff::alt_bn128_Fq( decryption_share1[0].asCString() );
+    share1.X.c1 = libff::alt_bn128_Fq( decryption_share1[1].asCString() );
+    share1.Y.c0 = libff::alt_bn128_Fq( decryption_share1[2].asCString() );
+    share1.Y.c1 = libff::alt_bn128_Fq( decryption_share1[3].asCString() );
+
+    REQUIRE( share1 == key * decryption_value1 );
+
+    libff::alt_bn128_G2 share2;
+    share2.Z = libff::alt_bn128_Fq2::one();
+
+    share2.X.c0 = libff::alt_bn128_Fq( decryption_share2[0].asCString() );
+    share2.X.c1 = libff::alt_bn128_Fq( decryption_share2[1].asCString() );
+    share2.Y.c0 = libff::alt_bn128_Fq( decryption_share2[2].asCString() );
+    share2.Y.c1 = libff::alt_bn128_Fq( decryption_share2[3].asCString() );
+
+    REQUIRE( share2 == key * decryption_value2 );
 }
 
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption via zmq", "[te-decryption-share-zmq]") {
@@ -1277,21 +1299,43 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption vi
     libff::alt_bn128_Fr key = libff::alt_bn128_Fr(
             "6507625568967977077291849236396320012317305261598035438182864059942098934847");
 
-    libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
-    decryption_value.to_affine_coordinates();
+    libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
+    libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
 
-    auto decrytion_value_str = convertG2ToString( decryption_value, ':' );
-    auto decryption_share = client->getDecryptionShare( name, decrytion_value_str );
+    decryption_value1.to_affine_coordinates();
+    decryption_value2.to_affine_coordinates();
 
-    libff::alt_bn128_G2 share;
-    share.Z = libff::alt_bn128_Fq2::one();
+    auto decrytion_value_str1 = convertG2ToString( decryption_value1, ':' );
+    auto decrytion_value_str2 = convertG2ToString( decryption_value2, ':' );
 
-    share.X.c0 = libff::alt_bn128_Fq( decryption_share[0].asCString() );
-    share.X.c1 = libff::alt_bn128_Fq( decryption_share[1].asCString() );
-    share.Y.c0 = libff::alt_bn128_Fq( decryption_share[2].asCString() );
-    share.Y.c1 = libff::alt_bn128_Fq( decryption_share[3].asCString() );
+    Json::Value publicDecryptionValues;
+    publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
+    publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
 
-    REQUIRE( share == key * decryption_value );
+    auto decryptionShares = client->getDecryptionShares( name, publicDecryptionValues );
+
+    auto decryption_share1 = decryptionShares[0];
+    auto decryption_share2 = decryptionShares[1];
+
+    libff::alt_bn128_G2 share1;
+    share1.Z = libff::alt_bn128_Fq2::one();
+
+    share1.X.c0 = libff::alt_bn128_Fq( decryption_share1[0].asCString() );
+    share1.X.c1 = libff::alt_bn128_Fq( decryption_share1[1].asCString() );
+    share1.Y.c0 = libff::alt_bn128_Fq( decryption_share1[2].asCString() );
+    share1.Y.c1 = libff::alt_bn128_Fq( decryption_share1[3].asCString() );
+
+    REQUIRE( share1 == key * decryption_value1 );
+
+    libff::alt_bn128_G2 share2;
+    share2.Z = libff::alt_bn128_Fq2::one();
+
+    share2.X.c0 = libff::alt_bn128_Fq( decryption_share2[0].asCString() );
+    share2.X.c1 = libff::alt_bn128_Fq( decryption_share2[1].asCString() );
+    share2.Y.c0 = libff::alt_bn128_Fq( decryption_share2[2].asCString() );
+    share2.Y.c1 = libff::alt_bn128_Fq( decryption_share2[3].asCString() );
+
+    REQUIRE( share2 == key * decryption_value2 );
 }
 
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {

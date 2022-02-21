@@ -233,6 +233,7 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
     }
 
     auto result = string((char *) reqMsg->data(), reqMsg->size());
+    spdlog::debug("Received request via ZMQ server: {}", result);
 
     return {result, identity};
 }
@@ -255,6 +256,7 @@ void ZMQServer::sendToClient(Json::Value &_result, shared_ptr <zmq::message_t> &
         if (!s_send(*socket, replyStr)) {
             exit(-16);
         }
+        spdlog::debug("Send response to client: {}", replyStr);
     } catch (ExitRequestedException) {
         throw;
     } catch (exception &e) {

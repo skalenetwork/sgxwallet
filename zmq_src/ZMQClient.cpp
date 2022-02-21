@@ -496,11 +496,11 @@ bool ZMQClient::deleteBLSKey(const string& blsKeyName) {
     return result->isSuccessful();
 }
 
-Json::Value ZMQClient::getDecryptionShare(const string& blsKeyName, const string& publicDecryptionValue) {
+Json::Value ZMQClient::getDecryptionShares(const string& blsKeyName, const Json::Value& publicDecryptionValues) {
     Json::Value p;
     p["type"] = ZMQMessage::GET_DECRYPTION_SHARE_REQ;
     p["blsKeyName"] = blsKeyName;
-    p["publicDecryptionValue"] = publicDecryptionValue;
+    p["publicDecryptionValues"] = publicDecryptionValues["publicDecryptionValues"];
     auto result = dynamic_pointer_cast<GetDecryptionShareRspMessage>(doRequestReply(p));
     CHECK_STATE(result);
     CHECK_STATE(result->getStatus() == 0);
