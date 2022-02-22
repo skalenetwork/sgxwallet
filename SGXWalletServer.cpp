@@ -982,7 +982,7 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
-Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyName, const std::string& publicDecryptionValue) {
+Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
@@ -991,15 +991,23 @@ Json::Value SGXWalletServer::getDecryptionShareImpl(const std::string& blsKeyNam
             throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
-        if ( publicDecryptionValue.length() < 7 || publicDecryptionValue.length() > 78 * 4 ) {
-            throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT, string(__FUNCTION__) + ":Invalid publicDecryptionValue format");
+        if (!publicDecryptionValues.isArray()) {
+            throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
+                               string(__FUNCTION__) + ":Public decryption values should be an array");
         }
 
-        shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+        for (int i = 0; i < publicDecryptionValues.size(); ++i) {
+            std::string publicDecryptionValue = publicDecryptionValues[i].asString();
+            if ( publicDecryptionValue.length() < 7 || publicDecryptionValue.length() > 78 * 4 ) {
+                throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT, string(__FUNCTION__) + ":Invalid publicDecryptionValue format");
+            }
 
-        vector<string> decryptionValueVector = calculateDecryptionShare(encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
-        for (uint8_t i = 0; i < 4; ++i) {
-            result["decryptionShare"][i] = decryptionValueVector.at(i);
+            shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+
+            vector<string> decryptionValueVector = calculateDecryptionShare(encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
+            for (uint8_t j = 0; j < 4; ++j) {
+                result["decryptionShares"][i][j] = decryptionValueVector.at(j);
+            }
         }
     } HANDLE_SGX_EXCEPTION(result)
 
@@ -1106,8 +1114,8 @@ SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &e
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
-Json::Value SGXWalletServer::getDecryptionShare(const std::string& blsKeyName, const std::string& publicDecryptionValue) {
-    return getDecryptionShareImpl(blsKeyName, publicDecryptionValue);
+Json::Value SGXWalletServer::getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
+    return getDecryptionSharesImpl(blsKeyName, publicDecryptionValues);
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

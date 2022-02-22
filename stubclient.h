@@ -214,13 +214,13 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getDecryptionShare(const std::string& blsKeyName, const std::string& publicDecryptionValue) 
+        Json::Value getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) 
         {
             Json::Value p;
             p["blsKeyName"] = blsKeyName;
-            p["publicDecryptionValue"] = publicDecryptionValue;
+            p["publicDecryptionValues"] = publicDecryptionValues["publicDecryptionValues"];
 
-            Json::Value result = this->CallMethod("getDecryptionShare",p);
+            Json::Value result = this->CallMethod("getDecryptionShares",p);
             if (result.isObject())
                 return result;
             else
