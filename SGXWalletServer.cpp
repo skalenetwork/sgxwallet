@@ -316,9 +316,6 @@ SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName, const strin
         if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
             hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
         }
-        while (hashTmp[0] == '0') {
-            hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
-        }
 
         if (!checkHex(hashTmp)) {
             throw SGXException(INVALID_BLS_HEX, string(__FUNCTION__) + ":Invalid bls hex");
