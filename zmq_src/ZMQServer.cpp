@@ -203,6 +203,7 @@ void ZMQServer::waitForIncomingAndProcessOutgoingMessages()  {
 
     } while (pollResult == 0);
 
+    spdlog::info("Received a message via socket.");
 }
 
 pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
@@ -233,7 +234,7 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
     }
 
     auto result = string((char *) reqMsg->data(), reqMsg->size());
-    spdlog::debug("Received request via ZMQ server: {}", result);
+//    spdlog::debug("Received request via ZMQ server: {}", result);
 
     return {result, identity};
 }
@@ -289,6 +290,9 @@ void ZMQServer::doOneServerLoop() {
 
             auto msg = ZMQMessage::parse(
                     msgStr.c_str(), msgStr.size(), true, checkSignature, checkKeyOwnership);
+            if ( (dynamic_pointer_cast<BLSSignReqMessage>(msg)) ) {
+                spdlog::info("Received request via ZMQ server: {}", msgStr);
+            }
 
             CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
 
@@ -308,7 +312,6 @@ void ZMQServer::doOneServerLoop() {
 
             auto element = pair < shared_ptr < ZMQMessage >, shared_ptr<zmq::message_t>>
             (msg, identity);
-
 
             incomingQueue.at(index).enqueue(element);
         }
