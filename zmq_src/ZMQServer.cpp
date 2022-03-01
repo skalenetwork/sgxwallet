@@ -211,28 +211,29 @@ pair <string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
 
     if (!socket->recv(identity.get())) {
         checkForExit();
-        // something terrible happened
-        spdlog::error("Fatal error: socket->recv(&identity) returned false. Exiting.");
-        exit(-11);
+        // bad socket type
+        spdlog::error("Error: socket->recv(&identity) returned false.");
+        throw SGXException(ZMQ_SERVER_ERROR, "Error: socket->recv(&identity) returned false.");
     }
 
     if (!identity->more()) {
         checkForExit();
-        // something terrible happened
-        spdlog::error("Fatal error: zmq_msg_more(identity) returned false. Exiting.");
-        exit(-12);
+        // bad socket type
+        spdlog::error("Error: zmq_msg_more(identity) returned false.");
+        throw SGXException(ZMQ_SERVER_ERROR, "Error: zmq_msg_more(identity) returned false.");
     }
 
     auto reqMsg = make_shared<zmq::message_t>();
 
     if (!socket->recv(reqMsg.get(), 0)) {
         checkForExit();
-        // something terrible happened
-        spdlog::error("Fatal error: socket.recv(&reqMsg, 0) returned false. Exiting");
-        exit(-13);
+        // bad socket type
+        spdlog::error("Error: socket.recv(&reqMsg, 0) returned false.");
+        throw SGXException(ZMQ_SERVER_ERROR, "Error: socket.recv(&reqMsg, 0) returned false.");
     }
 
     auto result = string((char *) reqMsg->data(), reqMsg->size());
+    spdlog::debug("Received request via ZMQ server: {}", result);
 
     return {result, identity};
 }
@@ -255,6 +256,7 @@ void ZMQServer::sendToClient(Json::Value &_result, shared_ptr <zmq::message_t> &
         if (!s_send(*socket, replyStr)) {
             exit(-16);
         }
+        spdlog::debug("Send response to client: {}", replyStr);
     } catch (ExitRequestedException&) {
         throw;
     } catch (exception &e) {
