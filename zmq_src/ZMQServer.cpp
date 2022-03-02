@@ -291,7 +291,14 @@ void ZMQServer::doOneServerLoop() {
             auto msg = ZMQMessage::parse(
                     msgStr.c_str(), msgStr.size(), true, checkSignature, checkKeyOwnership);
             if ( (dynamic_pointer_cast<BLSSignReqMessage>(msg)) ) {
-                spdlog::info("Received request via ZMQ server: {}", msgStr);
+                rapidjson::Document d;
+                d.Parse(msgStr.c_str());
+                d.RemoveMember("cert");
+                rapidjson::StringBuffer buffer;
+                rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+                d.Accept( writer );
+                std::string strRequest = buffer.GetString();
+                spdlog::info("Received request via ZMQ server: {}", strRequest);
             }
 
             CHECK_STATE2(msg, ZMQ_COULD_NOT_PARSE);
