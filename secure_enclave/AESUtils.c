@@ -21,17 +21,14 @@
     @date 2020
 */
 
-
 #include "sgx_trts.h"
 #include "sgx_tcrypto.h"
 #include "stdlib.h"
 #include <string.h>
 
-
 #include "AESUtils.h"
 
 sgx_aes_gcm_128bit_key_t AES_key[1024];
-
 
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
@@ -108,6 +105,11 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
     if (!exportable) {
         LOG_ERROR("Null exportable in AES_encrypt");
         return -4;
+    }
+
+    if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
+        LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
+        return -5;
     }
 
     if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {

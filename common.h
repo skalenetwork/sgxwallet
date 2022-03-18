@@ -31,16 +31,20 @@ using namespace std;
 #include <iostream>
 #include <map>
 #include <memory>
-
 #include <sys/types.h>
 #include <sys/sysinfo.h>
 #include <string.h>
-
 #include <vector>
-
+#include <json/value.h>
 #include <boost/throw_exception.hpp>
-
 #include <gmp.h>
+#include <thread>
+#include <functional>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+
+
 #include "secure_enclave/Verify.h"
 #include "InvalidStateException.h"
 #include "SGXException.h"
@@ -98,8 +102,6 @@ inline int getValue() { //Note: this value is in KB!
     return result;
 }
 
-
-
 #define CHECK_STATE(_EXPRESSION_) \
     if (!(_EXPRESSION_)) { \
         auto __msg__ = std::string("State check failed::") + #_EXPRESSION_ +  " " + std::string(__FILE__) + ":" + std::to_string(__LINE__); \
@@ -119,7 +121,7 @@ string __ERR_STRING__ = string("SGX enclave call to ") + \
                    __FUNCTION__  +  " failed with status:" \
                    + to_string(__STATUS__) + \
                    " Err message:" + __ERR_MSG__; \
-BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_MSG__))); \
+BOOST_THROW_EXCEPTION(SGXException(-102, string(__ERR_STRING__))); \
 }\
 \
 if (__ERR_STATUS__ != 0) {\
@@ -135,8 +137,6 @@ BOOST_THROW_EXCEPTION(runtime_error(__ERR_STRING__)); \
 #define SAFE_UINT8_BUF(__X__, __Y__)  ;uint8_t __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
 // Copy from libconsensus
-
-
 
 inline string exec( const char* cmd ) {
     CHECK_STATE( cmd );
@@ -160,7 +160,6 @@ extern uint64_t initTime;
 #define LOCK(__X__) std::lock_guard<std::recursive_mutex> __LOCK__(__X__);
 #define READ_LOCK(__X__) std::shared_lock<std::shared_timed_mutex> __LOCK__(__X__);
 #define WRITE_LOCK(__X__) std::unique_lock<std::shared_timed_mutex> __LOCK__(__X__);
-
 
 
 #endif //SGXWALLET_COMMON_H

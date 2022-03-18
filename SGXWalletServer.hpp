@@ -14,7 +14,7 @@
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 
     @file SGXWalletServer.hpp
     @author Stan Kladko
@@ -48,11 +48,8 @@ class SGXWalletServer : public AbstractStubServer {
     static map<string,string> ecdsaRequests;
     static recursive_mutex ecdsaRequestsLock;
 
-
-
     static void checkForDuplicate(map <string, string> &_map, recursive_mutex &_m, const string &_key,
     const string &_value);
-
 
 public:
 
@@ -82,7 +79,7 @@ public:
 
     virtual Json::Value generateDKGPoly(const string &_polyName, int _t);
 
-    virtual Json::Value getVerificationVector(const string &_polynomeName, int _t, int _n);
+    virtual Json::Value getVerificationVector(const string &_polynomeName, int _t);
 
     virtual Json::Value getSecretShare(const string &_polyName, const Json::Value &_publicKeys, int t, int n);
 
@@ -116,6 +113,8 @@ public:
 
     virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
+    virtual Json::Value getDecryptionShares(const std::string& KeyName, const Json::Value& publicDecryptionValues);
+
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
     static shared_ptr <string> checkDataFromDb(const string &name, const string &prefix = "");
@@ -140,7 +139,7 @@ public:
 
     static Json::Value generateDKGPolyImpl(const string &_polyName, int _t);
 
-    static Json::Value getVerificationVectorImpl(const string &_polyName, int _t, int _n);
+    static Json::Value getVerificationVectorImpl(const string &_polyName, int _t);
 
     static Json::Value getSecretShareImpl(const string &_polyName, const Json::Value &_pubKeys, int _t, int _n);
 
@@ -172,7 +171,9 @@ public:
 
     static Json::Value dkgVerificationV2Impl(const string &_publicShares, const string &_ethKeyName, const string &_secretShare, int _t, int _n, int _index);
 
-    virtual Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+    static Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
+
+    static Json::Value getDecryptionSharesImpl(const std::string& KeyName, const Json::Value& publicDecryptionValues);
 
     static void printDB();
 

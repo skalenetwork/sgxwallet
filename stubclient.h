@@ -98,11 +98,10 @@ class StubClient : public jsonrpc::Client
                 throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
-        Json::Value getVerificationVector(const std::string& polyName, int t, int n) 
+        Json::Value getVerificationVector(const std::string& polyName, int t) 
         {
             Json::Value p;
             p["polyName"] = polyName;
-            p["n"] = n;
             p["t"] = t;
             Json::Value result = this->CallMethod("getVerificationVector",p);
             if (result.isObject())
@@ -209,6 +208,19 @@ class StubClient : public jsonrpc::Client
             p["blsKeyName"] = blsKeyName;
 
             Json::Value result = this->CallMethod("getBLSPublicKeyShare",p);
+            if (result.isObject())
+                return result;
+            else
+                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) 
+        {
+            Json::Value p;
+            p["blsKeyName"] = blsKeyName;
+            p["publicDecryptionValues"] = publicDecryptionValues["publicDecryptionValues"];
+
+            Json::Value result = this->CallMethod("getDecryptionShares",p);
             if (result.isObject())
                 return result;
             else
