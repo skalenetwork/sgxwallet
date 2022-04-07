@@ -51,7 +51,7 @@
 #include "Log.h"
 
 #ifdef SGX_HW_SIM
-#define NUM_THREADS 16
+#define NUM_THREADS 8
 #else
 #define NUM_THREADS 200
 #endif
