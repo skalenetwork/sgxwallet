@@ -1,4 +1,4 @@
-SGWallet performance measured on Intel Core i7-10510U CPU @ 1.80 GHz * 8.
+SGWallet performance measured on version 1.83.0-stable.1 for signed mode and 1.83.0-beta.5 for simulation mode on Intel Core i7-10510U CPU @ 1.80 GHz * 8.
 
 BLS sign operations:
 - simulation mode:
