@@ -60,7 +60,7 @@ curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_lis
 Install cpuid and libelf-dev packages:
 
 ```bash
-sudo apt-get install -y libelf-dev cpuid
+sudo apt-get install -y libelf-dev cpuid ocamlbuild
 ```
 
 Verify processor support of Intel SGX:
