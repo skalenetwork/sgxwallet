@@ -12,6 +12,7 @@ RUN ccache -sz
 RUN cd scripts && ./sign_enclave.bash
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
+COPY docker/check_firewall.py ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
 RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
 RUN rm /usr/src/sdk/secure_enclave/secure_enclave*.so

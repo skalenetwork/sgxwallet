@@ -15,6 +15,7 @@ RUN ./autoconf.bash && \
     mkdir -p /usr/src/sdk/sgx_data
 
 COPY docker/start.sh ./
+COPY docker/check_firewall.py ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
 
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
