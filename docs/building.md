@@ -2,7 +2,20 @@
 
 # Building SGX wallet from source
 
-## Build and install Intel SGX SDK
+#
+
+## Clone this repository and its submodules
+
+`git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
+
+## Install required debian packages
+
+```bash
+cd scripts; sudo ./install_packages.sh; cd ..
+```
+
+
+# Build and install Intel SGX SDK
 
 We are currently using SGX SDK version 2.13. 
 
@@ -19,16 +32,6 @@ sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin
 sudo make psw_install_pkg
 sudo cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
-```
-
-## Clone this repository and its submodules
-
-`git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
-
-## Install required debian packages
-
-```bash
-cd scripts; sudo ./install_packages.sh; cd ..
 ```
 
 ## Build dependencies
