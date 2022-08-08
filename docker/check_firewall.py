@@ -1,4 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python3
+
 
 import requests
 import re
@@ -31,6 +32,7 @@ try:
     with TorClient() as tor:
         # Choose random guard node and create 3-hops circuit
         print("Connecting to TOR network ...");
+        print("Please ignore error messages, as we are attempting to connect to the TOR network ...");
         with tor.create_circuit(1) as circuit:
             print("Connected to TOR network. Connecting to sgxwallet from a random external IP."
                   " This may take up to a minute.")
