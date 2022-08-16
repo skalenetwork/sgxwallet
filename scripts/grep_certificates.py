@@ -31,6 +31,7 @@ def main():
             for line in file_one:
                 if re.search(pattern, line):
                     print(line)
+                    break
 
 
 if __name__ == '__main__':
