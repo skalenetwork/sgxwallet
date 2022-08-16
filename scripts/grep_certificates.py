@@ -13,11 +13,17 @@ def main():
         exit(2)
     
     certs_path = os.path.join(path, "cert_data", "new_certs")
+    if not os.path.exists(certs_path):
+        print("No such file or directory: ", certs_path)
+        exit(3)
+
     if len(os.listdir(certs_path)) == 0:
         print("Empty certificates directory. Nothing to review.")
         return
     
+    print("Total number of elements in folder:", len(os.listdir(certs_path)))
     for entity in os.listdir(certs_path):
+        print("Reviewing", entity)
         entity_path = os.path.join(certs_path, entity)
         if not os.path.isfile(entity_path):
             print("Not a regular file. Skipping.")
@@ -32,7 +38,6 @@ def main():
                 if re.search(pattern, line):
                     print(line)
                     break
-
 
 if __name__ == '__main__':
     main()
