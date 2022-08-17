@@ -1,5 +1,5 @@
 # How to check when the certificates stored on sgxwallet were created
-- Download file `scripts/grep_certificates.py` from the sgxwallet repository and put it in sgxwallet repository directory on your machine.
+- Download the file https://github.com/skalenetwork/sgxwallet/blob/develop/scripts/grep_certificates.py and put it in sgxwallet repository directory on your machine.
 - Go to sgxwallet repository directory.
 - Run `python3 grep_certificates.py PATH_TO_SGXWALLET_DB_FOLDER`. PATH_TO_SGXWALLET_DB_FOLDER - path (either absolute or relative) to the `sgx_data` directory where sgxwallet db is stored. For example, `/root/sgxwallet/run_sgx/sgx_data` or `run_sgx/sgx_data`
 - The script will output the dates when every certificate was created.
