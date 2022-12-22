@@ -30,7 +30,7 @@
 
 
 #include "bls.h"
-#include <bls/BLSutils.h>
+#include <tools/utils.h>
 
 #include "BLSPrivateKeyShareSGX.h"
 
@@ -80,8 +80,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
         throw SGXException(SIGN_AES_INVALID_HASH, string(__FUNCTION__) +  ":Invalid hash");
     }
 
-    shared_ptr <signatures::Bls> obj;
-    obj = make_shared<signatures::Bls>(signatures::Bls(_t, _n));
+    shared_ptr <libBLS::Bls> obj;
+    obj = make_shared<libBLS::Bls>(libBLS::Bls(_t, _n));
 
     pair <libff::alt_bn128_G1, string> hash_with_hint = obj->HashtoG1withHint(hash);
 
@@ -125,7 +125,7 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
+    string hint = libBLS::ThresholdUtils::fieldElementToString(hash_with_hint.first.Y) + ":" + hash_with_hint.second;
 
     string sig = signature;
 

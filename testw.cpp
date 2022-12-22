@@ -359,7 +359,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
-    signatures::Dkg dkgObj(t, n);
+    libBLS::Dkg dkgObj(t, n);
 
     vector <libff::alt_bn128_Fr> poly = TestUtils::splitStringToFr(secret.data(), colon);
     vector <libff::alt_bn128_G2> pubSharesDkg = dkgObj.VerificationVector(poly);
@@ -947,7 +947,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey
     common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >>>(coeffs_pkeys_map), t, n);
-    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
 TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
@@ -1097,7 +1097,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey
     common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >>>(coeffs_pkeys_map), t, n);
-    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
 TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {

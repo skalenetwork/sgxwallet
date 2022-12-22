@@ -23,7 +23,7 @@
 
 #include "BLSSigShare.h"
 #include "BLSSignature.h"
-#include "BLSutils.h"
+#include <tools/utils.h>
 
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
@@ -100,12 +100,11 @@ BLSPrivateKeyShareSGX::BLSPrivateKeyShareSGX(
 string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
         shared_ptr <array<uint8_t, 32>> hash_byte_arr,
         size_t _signerIndex) {
-    shared_ptr <signatures::Bls> obj;
+    shared_ptr <libBLS::Bls> obj;
 
     CHECK_STATE(hash_byte_arr)
 
-    obj = make_shared<signatures::Bls>(
-            signatures::Bls(requiredSigners, totalSigners));
+    obj = make_shared<libBLS::Bls>( libBLS::Bls(requiredSigners, totalSigners));
 
     pair <libff::alt_bn128_G1, string> hash_with_hint =
             obj->HashtoG1withHint(hash_byte_arr);
@@ -159,7 +158,7 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
         BOOST_THROW_EXCEPTION(runtime_error("Signature is too short:" + to_string(sigLen)));
     }
 
-    string hint = BLSutils::ConvertToString(hash_with_hint.first.Y) + ":" +
+    string hint = libBLS::ThresholdUtils::fieldElementToString(hash_with_hint.first.Y) + ":" +
                   hash_with_hint.second;
 
     string sig = signature;

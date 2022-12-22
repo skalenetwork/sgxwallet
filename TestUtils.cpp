@@ -632,7 +632,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
 
-    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
 
     for (auto&& i : _ecdsaKeyNames)
         cerr << i << endl;
@@ -773,7 +773,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
 
-    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
 
     for (auto&& i : _ecdsaKeyNames)
         cerr << i << endl;
@@ -913,7 +913,7 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
 
-    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
 
     for (auto&& i : _ecdsaKeyNames)
         cerr << i << endl;
