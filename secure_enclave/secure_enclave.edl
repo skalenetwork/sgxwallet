@@ -187,7 +187,7 @@ enclave {
                                 [in, count = 320] const char* public_decryption_value,
                                 uint64_t key_len,
                                 [out, count = 320] char* decrption_share);
-	};
+        };
 
 	untrusted {
 		include "gmp.h"

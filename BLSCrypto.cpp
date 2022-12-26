@@ -143,6 +143,69 @@ bool bls_sign(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
     return sign_aes(_encryptedKeyHex, _hashHex, _t, _n, _sig);
 }
 
+bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
+    CHECK_STATE(encryptedKeyHex);
+
+    SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
+
+    size_t sz = 0;
+
+    if (!hex2carray(encryptedKeyHex, &sz, encryptedKey, BUF_LEN)) {
+        BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
+    }
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    vector<char> errMsg(BUF_LEN, 0);
+
+    int errStatus = 0;
+
+    SAFE_CHAR_BUF(pubKey, 320)
+
+    status = trustedGetBlsPubKey(eid, &errStatus, errMsg.data(), encryptedKey, sz, pubKey);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    vector <string> pubKeyVect = splitString(pubKey, ':');
+
+    spdlog::debug("pub key is ");
+    for (int i = 0; i < 4; i++)
+        spdlog::debug("{}", pubKeyVect.at(i));
+
+    libff::alt_bn128_G2 public_key = libBLS::ThresholdUtils::stringToG2( pubKey );
+
+    libff::alt_bn128_G1 hash_public_key = libBLS::Bls::HashPublicKeyToG1( public_key );
+
+    hash_public_key.to_affine_coordinates();
+
+    string *xStr = FqToString(&(hash_public_key.X));
+
+    CHECK_STATE(xStr);
+
+    string *yStr = FqToString(&(hash_public_key.Y));
+
+    if (yStr == nullptr) {
+        delete xStr;
+        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
+    }
+
+    SAFE_CHAR_BUF(xStrArg, BUF_LEN);SAFE_CHAR_BUF(yStrArg, BUF_LEN);SAFE_CHAR_BUF(signature, BUF_LEN);
+
+    strncpy(xStrArg, xStr->c_str(), BUF_LEN);
+    strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+
+    delete xStr;
+    delete yStr;
+
+    errStatus = 0;
+
+    status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey, sz, xStrArg, yStrArg, prove);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    return true;
+}
+
 string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key) {
     CHECK_STATE(errStatus);
     CHECK_STATE(err_string);

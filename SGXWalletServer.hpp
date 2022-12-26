@@ -91,6 +91,8 @@ public:
     createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName, const string &polyName,
                         const string &SecretShare, int t, int n);
 
+    virtual Json::Value generateBLSPrivateKey( const string& blsKeyName );
+
     virtual Json::Value getBLSPublicKeyShare(const string &blsKeyName);
 
     virtual Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n);
@@ -114,6 +116,8 @@ public:
     virtual Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
     virtual Json::Value getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues);
+
+    virtual Json::Value popProve( const std::string& blsKeyName );
 
     static shared_ptr<string> readFromDb(const string &name, const string &prefix = "");
 
@@ -173,7 +177,11 @@ public:
 
     static Json::Value createBLSPrivateKeyV2Impl(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string & SecretShare, int t, int n);
 
+    static Json::Value generateBLSPrivateKeyImpl( const string& blsKeyName );
+
     static Json::Value getDecryptionSharesImpl(const std::string& KeyName, const Json::Value& publicDecryptionValues);
+
+    static Json::Value popProveImpl( const std::string& blsKeyName );
 
     static void printDB();
 

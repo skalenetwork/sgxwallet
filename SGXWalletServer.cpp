@@ -982,6 +982,20 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
+Json::Value SGXWalletServer::generateBLSPrivateKeyImpl(const string& blsKeyName) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(blsKeyName, "BLS_KEY")) {
+            throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result);
+}
+
 Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -1009,6 +1023,24 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyNa
                 result["decryptionShares"][i][j] = decryptionValueVector.at(j);
             }
         }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
+Json::Value SGXWalletServer::popProveImpl( const std::string& blsKeyName ) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(blsKeyName, "BLS_KEY")) {
+            throw SGXException(POP_PROVE_INVALID_KEY_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+
+        vector <char> prove(BUF_LEN, 0);
+        bool result = popProveSGX(encryptedKeyHex_ptr->c_str(), prove.data());
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result)
@@ -1114,8 +1146,16 @@ SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &e
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
+Json::Value SGXWalletServer::generateBLSPrivateKey(const string& blsKeyName) {
+    return generateBLSPrivateKeyImpl(blsKeyName);
+}
+
 Json::Value SGXWalletServer::getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     return getDecryptionSharesImpl(blsKeyName, publicDecryptionValues);
+}
+
+Json::Value SGXWalletServer::popProve( const std::string& blsKeyName ) {
+    return popProveImpl( blsKeyName );
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

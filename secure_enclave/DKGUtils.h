@@ -52,5 +52,7 @@ EXTERNC int Verification ( char * public_shares, mpz_t decr_secret_share, int _t
 EXTERNC int calc_bls_public_key(char* skey, char* pub_key);
 
 EXTERNC int calc_secret_shareG2(const char* s_share, char * s_shareG2);
+
+EXTERNC int calc_pop_prove(const char* skey, const char* hash_pub_key, char* prove);
 #endif
 

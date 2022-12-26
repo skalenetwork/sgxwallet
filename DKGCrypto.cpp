@@ -36,27 +36,6 @@
 #include "SEKManager.h"
 #include "DKGCrypto.h"
 
-vector <string> splitString(const char *coeffs, const char symbol) {
-    CHECK_STATE(coeffs);
-    string str(coeffs);
-    string delim;
-    delim.push_back(symbol);
-    vector <string> G2_strings;
-    size_t prev = 0, pos = 0;
-    do {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos - prev);
-        if (!token.empty()) {
-            string coeff(token.c_str());
-            G2_strings.push_back(coeff);
-        }
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-
-    return G2_strings;
-}
-
 template<class T>
 string ConvertToString(T field_elem, int base = 10) {
     mpz_t t;
