@@ -988,7 +988,7 @@ Json::Value SGXWalletServer::generateBLSPrivateKeyImpl(const string& blsKeyName)
 
     try {
         if (!checkName(blsKeyName, "BLS_KEY")) {
-            throw SGXException(BLS_SIGN_INVALID_KS_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+            throw SGXException(GENERATE_BLS_KEY_INVALID_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
     } HANDLE_SGX_EXCEPTION(result)
@@ -1032,6 +1032,8 @@ Json::Value SGXWalletServer::popProveImpl( const std::string& blsKeyName ) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
 
+    vector <char> prove(BUF_LEN, 0);
+
     try {
         if (!checkName(blsKeyName, "BLS_KEY")) {
             throw SGXException(POP_PROVE_INVALID_KEY_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
@@ -1039,9 +1041,12 @@ Json::Value SGXWalletServer::popProveImpl( const std::string& blsKeyName ) {
 
         shared_ptr <string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
 
-        vector <char> prove(BUF_LEN, 0);
-        bool result = popProveSGX(encryptedKeyHex_ptr->c_str(), prove.data());
+        if (!popProveSGX(encryptedKeyHex_ptr->c_str(), prove.data())) {
+            throw SGXException(COULD_NOT_CREATE_POP_PROVE, ":Could not create popProve ");
+        }
     } HANDLE_SGX_EXCEPTION(result)
+
+    result["popProve"] = string(prove.data());
 
     RETURN_SUCCESS(result)
 }

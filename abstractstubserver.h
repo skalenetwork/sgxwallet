@@ -66,6 +66,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
           this->bindAndAddMethod(jsonrpc::Procedure("getDecryptionShares", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING,"publicDecryptionValues",jsonrpc::JSON_ARRAY, NULL), &AbstractStubServer::getDecryptionSharesI);
 
           this->bindAndAddMethod(jsonrpc::Procedure("popProve", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::popProveI);
+          this->bindAndAddMethod(jsonrpc::Procedure("generateBLSPrivateKey", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT, "blsKeyName",jsonrpc::JSON_STRING, NULL), &AbstractStubServer::generateBLSPrivateKeyI);
         }
 
         inline virtual void importBLSKeyShareI(const Json::Value &request, Json::Value &response)
@@ -135,7 +136,6 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->isPolyExists(request["polyName"].asString());
         }
 
-
         inline virtual void getServerStatusI(const Json::Value &request, Json::Value &response)
         {
           (void)request;
@@ -175,6 +175,11 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
             response = this->popProve(request["blsKeyName"].asString());
         }
 
+        inline virtual void generateBLSPrivateKeyI(const Json::Value &request, Json::Value &response)
+        {
+            response = this->generateBLSPrivateKey(request["blsKeyName"].asString());
+        }
+
         virtual Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName) = 0;
         virtual Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n ) = 0;
         virtual Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName) = 0;
@@ -204,6 +209,7 @@ class AbstractStubServer : public jsonrpc::AbstractServer<AbstractStubServer>
         virtual Json::Value getDecryptionShares(const std::string& KeyName, const Json::Value& publicDecryptionValues) = 0;
 
         virtual Json::Value popProve(const std::string& blsKeyName) = 0;
+        virtual Json::Value generateBLSPrivateKey(const std::string& blsKeyName) = 0;
 };
 
 #endif //JSONRPC_CPP_STUB_ABSTRACTSTUBSERVER_H_

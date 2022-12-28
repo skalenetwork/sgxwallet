@@ -174,15 +174,15 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
 
     libff::alt_bn128_G2 public_key = libBLS::ThresholdUtils::stringToG2( pubKey );
 
-    libff::alt_bn128_G1 hash_public_key = libBLS::Bls::HashPublicKeyToG1( public_key );
+    pair <libff::alt_bn128_G1, string> hash_public_key_with_hint = libBLS::Bls::HashPublicKeyToG1WithHint( public_key );
 
-    hash_public_key.to_affine_coordinates();
+    hash_public_key_with_hint.first.to_affine_coordinates();
 
-    string *xStr = FqToString(&(hash_public_key.X));
+    string *xStr = FqToString(&(hash_public_key_with_hint.first.X));
 
     CHECK_STATE(xStr);
 
-    string *yStr = FqToString(&(hash_public_key.Y));
+    string *yStr = FqToString(&(hash_public_key_with_hint.first.Y));
 
     if (yStr == nullptr) {
         delete xStr;
@@ -202,6 +202,15 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
     status = trustedBlsSignMessage(eid, &errStatus, errMsg.data(), encryptedKey, sz, xStrArg, yStrArg, prove);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    string hint = libBLS::ThresholdUtils::fieldElementToString(hash_public_key_with_hint.first.Y) + ":" + hash_public_key_with_hint.second;
+
+    string _prove = prove;
+
+    _prove.append(":");
+    _prove.append(hint);
+
+    strncpy(prove, _prove.c_str(), BUF_LEN);
 
     return true;
 }
