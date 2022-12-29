@@ -993,10 +993,10 @@ Json::Value SGXWalletServer::generateBLSPrivateKeyImpl(const string& blsKeyName)
 
         bool res = generateBLSPrivateKeyAggegated(blsKeyName.c_str());
         if (res) {
-            spdlog::info("BLS KEY SHARE CREATED ");
+            spdlog::info("BLS AGGREGATED KEY CREATED ");
         } else {
-            throw SGXException(INVALID_CREATE_BLS_SHARE,
-                               string(__FUNCTION__) + ":Error while creating BLS key share");
+            throw SGXException(INVALID_CREATE_BLS_AGGREGATED_KEY,
+                               string(__FUNCTION__) + ":Error while creating BLS aggregated key");
         }
 
     } HANDLE_SGX_EXCEPTION(result)
