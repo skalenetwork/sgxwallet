@@ -991,6 +991,14 @@ Json::Value SGXWalletServer::generateBLSPrivateKeyImpl(const string& blsKeyName)
             throw SGXException(GENERATE_BLS_KEY_INVALID_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
+        bool res = generateBLSPrivateKeyAggegated(blsKeyName.c_str());
+        if (res) {
+            spdlog::info("BLS KEY SHARE CREATED ");
+        } else {
+            throw SGXException(INVALID_CREATE_BLS_SHARE,
+                               string(__FUNCTION__) + ":Error while creating BLS key share");
+        }
+
     } HANDLE_SGX_EXCEPTION(result)
 
     RETURN_SUCCESS(result);

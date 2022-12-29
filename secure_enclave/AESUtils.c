@@ -88,22 +88,22 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
                 uint8_t *type, uint8_t* exportable){
 
     if (!message) {
-        LOG_ERROR("Null message in AES_encrypt");
+        LOG_ERROR("Null message in AES_decrypt");
         return -1;
     }
 
     if (!encr_message) {
-        LOG_ERROR("Null encr message in AES_encrypt");
+        LOG_ERROR("Null encr message in AES_decrypt");
         return -2;
     }
 
     if (!type) {
-        LOG_ERROR("Null type in AES_encrypt");
+        LOG_ERROR("Null type in AES_decrypt");
         return -3;
     }
 
     if (!exportable) {
-        LOG_ERROR("Null exportable in AES_encrypt");
+        LOG_ERROR("Null exportable in AES_decrypt");
         return -4;
     }
 

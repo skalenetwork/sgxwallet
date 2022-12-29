@@ -1407,3 +1407,52 @@ void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryp
     clean:
     ;
 }
+
+void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
+                           uint8_t *encryptedPrivateKey, uint64_t *enc_len) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encryptedPrivateKey);
+
+    RANDOM_CHAR_BUF(rand_char, 32);
+
+    mpz_t seed;
+    mpz_init(seed);
+
+    mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    mpz_t skey;
+    mpz_init(skey);
+
+    mpz_mod(skey, seed, q);
+
+    SAFE_CHAR_BUF(bls_key, BLS_KEY_LENGTH);
+
+    SAFE_CHAR_BUF(arr_skey_str, BUF_LEN);
+
+    mpz_get_str(arr_skey_str, 16, skey);
+    int n_zeroes = 64 - strlen(arr_skey_str);
+    for (int i = 0; i < n_zeroes; i++) {
+        bls_key[i] = '0';
+    }
+    strncpy(bls_key + n_zeroes, arr_skey_str, 65 - n_zeroes);
+    bls_key[BLS_KEY_LENGTH - 1] = 0;
+
+    int status = AES_encrypt(bls_key, encryptedPrivateKey, BUF_LEN, BLS, NON_EXPORTABLE, enc_len);
+
+    CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
+
+    SET_SUCCESS
+    clean:
+
+    mpz_clear(seed);
+    mpz_clear(skey);
+    mpz_clear(q);
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}

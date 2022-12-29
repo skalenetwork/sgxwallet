@@ -187,6 +187,14 @@ enclave {
                                 [in, count = 320] const char* public_decryption_value,
                                 uint64_t key_len,
                                 [out, count = 320] char* decrption_share);
+
+        public void trustedGenerateBLSKey(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char* err_string,
+                                [in, count = 1] int *is_exportable,
+                                [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
+                                [out] uint64_t *enc_len
+                                );
         };
 
 	untrusted {

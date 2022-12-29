@@ -39,6 +39,8 @@ EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t
 
 EXTERNC bool popProveSGX( const char* encryptedKeyHex, char* _prove );
 
+EXTERNC bool generateBLSPrivateKeyAggegated(const char* blsKeyName);
+
 std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
 
 #endif //SGXWALLET_BLSCRYPTO_H

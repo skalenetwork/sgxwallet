@@ -40,7 +40,7 @@
 #include "SGXException.h"
 #include "third_party/spdlog/spdlog.h"
 #include "common.h"
-#include "SGXWalletServer.h"
+#include "SGXWalletServer.hpp"
 
 #include "SEKManager.h"
 #include "LevelDB.h"
@@ -211,6 +211,31 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
     _prove.append(hint);
 
     strncpy(prove, _prove.c_str(), BUF_LEN);
+
+    return true;
+}
+
+bool generateBLSPrivateKeyAggegated(const char* blsKeyName) {
+    CHECK_STATE(blsKeyName);
+
+    vector<char> errMsg(BUF_LEN, 0);
+    int errStatus = 0;
+
+    int exportable = 0;
+
+    uint64_t enc_bls_len = 0;
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key, &enc_bls_len);
+
+    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+    vector<char> hexBLSKey = carray2Hex(encr_bls_key, enc_bls_len);
+
+    SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
 
     return true;
 }
