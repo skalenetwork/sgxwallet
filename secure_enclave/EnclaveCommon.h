@@ -41,7 +41,7 @@ EXTERNC bool enclave_sign(const char *_keyString, const char* _hashXString, cons
 
 EXTERNC int char2int(char _input);
 
-EXTERNC void  carray2Hex(const unsigned char *d, int _len, char* _hexArray);
+EXTERNC void carray2Hex(const unsigned char *d, int _len, char* _hexArray);
 EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
                        uint8_t* _bin );
 EXTERNC bool hex2carray2(const char * _hex, uint64_t  *_bin_len,
