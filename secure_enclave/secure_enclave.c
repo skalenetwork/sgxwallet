@@ -53,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Signature.h"
 #include "Curves.h"
 #include "DHDkg.h"
+#include "HKDF.h"
 #include "AESUtils.h"
 #include "TEUtils.h"
 
@@ -1422,6 +1423,10 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
+    SAFE_CHAR_BUF(ikm, mpz_sizeinbase(seed, 16) + 2);
+
+    mpz_get_str(ikm, 16, seed);
+
     mpz_t q;
     mpz_init(q);
     mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
@@ -1429,13 +1434,79 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
     mpz_t skey;
     mpz_init(skey);
 
+    mpz_set_ui(skey, 0);
+
+    char* salt = "BLS-SIG-KEYGEN-SALT";
+
+    int L = 48; // math.ceil(3*math.ceil(math.log2(q))/16)
+    char l[2] = "30"; // octet L
+
+    while (mpz_cmp_ui(skey, 0) == 0) {
+        if (!hash_key(salt, salt)) {
+            *errStatus = 111;
+            snprintf(errString, BUF_LEN, "error in hash_key");
+            LOG_ERROR(errString);
+
+            goto clean;
+        }
+
+        SAFE_CHAR_BUF(ikm_concat, BUF_LEN);
+        strncat(ikm_concat, ikm, ECDSA_BIN_LEN - 1);
+
+        SAFE_CHAR_BUF(octetStr0, 3);
+        octetStr0[0] = '0';
+        octetStr0[1] = '0';
+        octetStr0[2] = '\0';
+
+        strncat(ikm_concat, octetStr0, 2);
+
+        SAFE_CHAR_BUF(prk, BUF_LEN);
+
+        if (!hkdf_extract(salt, ikm_concat, prk)) {
+            *errStatus = 111;
+            snprintf(errString, BUF_LEN, "error in hkdf_extract");
+            LOG_ERROR(errString);
+
+            goto clean;
+        }
+
+        SAFE_CHAR_BUF(okm, BUF_LEN);
+        if (!hkdf_expand(prk, l, L, okm)) {
+            *errStatus = 111;
+            snprintf(errString, BUF_LEN, "error in hkdf_expand");
+            LOG_ERROR(errString);
+
+            goto clean;
+        }
+
+        SAFE_CHAR_BUF(bls_key, BUF_LEN);
+        carray2Hex((unsigned char*)okm, ECDSA_BIN_LEN - 1, bls_key);
+
+        if (!mpz_set_str(skey, bls_key, 16)) {
+            *errStatus = 111;
+            snprintf(errString, BUF_LEN, "error in mpz_set_str");
+            LOG_ERROR(errString);
+
+            goto clean;
+        }
+
+        mpz_mod(skey, skey, q);
+    }
+
     mpz_mod(skey, seed, q);
 
     SAFE_CHAR_BUF(bls_key, BLS_KEY_LENGTH);
 
     SAFE_CHAR_BUF(arr_skey_str, BUF_LEN);
 
-    mpz_get_str(arr_skey_str, 16, skey);
+    if (!mpz_get_str(arr_skey_str, 16, skey)) {
+        *errStatus = 111;
+        snprintf(errString, BUF_LEN, "error in mpz_get_str");
+        LOG_ERROR(errString);
+
+        goto clean;
+    }
+
     int n_zeroes = 64 - strlen(arr_skey_str);
     for (int i = 0; i < n_zeroes; i++) {
         bls_key[i] = '0';
