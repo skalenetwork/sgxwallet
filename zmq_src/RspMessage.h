@@ -271,6 +271,10 @@ public:
     popProveRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
 
     virtual Json::Value process();
+
+    std::string getPopProve() {
+        getStringRapid("popProve");
+    }
 };
 
 #endif //SGXWALLET_RSPMESSAGE_H

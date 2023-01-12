@@ -507,6 +507,23 @@ Json::Value ZMQClient::getDecryptionShares(const string& blsKeyName, const Json:
     return result->getShare();
 }
 
+bool ZMQClient::generateBLSPrivateKey(const string& blsKeyName) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    auto result = dynamic_pointer_cast<generateBLSPrivateKeyRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    return result->getStatus() == 0;
+}
+
+std::string ZMQClient::popProve(const string& blsKeyName) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    auto result = dynamic_pointer_cast<popProveRspMessage>(doRequestReply(p));
+    CHECK_STATE(result);
+    CHECK_STATE(result->getStatus() == 0);
+    return result->getPopProve();
+}
+
 uint64_t ZMQClient::getProcessID() {
     return syscall(__NR_gettid);
 }

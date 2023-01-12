@@ -76,7 +76,7 @@ public:
 
     void reconnect();
 
-    static pair<EVP_PKEY*, X509*>  readPublicKeyFromCertStr(const string& _cert);
+    static pair<EVP_PKEY*, X509*> readPublicKeyFromCertStr(const string& _cert);
 
     static string signString(EVP_PKEY* _pkey, const string& _str);
 
@@ -105,6 +105,10 @@ public:
 
     bool createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
                             const string& secretShare, int t, int n);
+
+    string popProve(const string& blsKeyName);
+
+    bool generateBLSPrivateKey(const string& blsKeyName);
     
     Json::Value getBLSPublicKey(const string& blsKeyName);
 
