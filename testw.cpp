@@ -1338,6 +1338,67 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption vi
     REQUIRE( share2 == key * decryption_value2 );
 }
 
+TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme", "[bls-aggregated-key-generation]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    auto response = c.generateBLSPrivateKey(name);
+
+    REQUIRE( response["status"] == 0 );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme via zmq", "[bls-aggregated-key-generation-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    REQUIRE( client->generateBLSPrivateKey(name) );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signatures scheme", "[bls-aggregated-signing]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    auto response = c.generateBLSPrivateKey(name);
+    REQUIRE( response["status"] == 0 );
+
+    string hash = SAMPLE_HASH;
+    response = c.blsSignMessageHash(name, hash, 1, 1);
+    REQUIRE( response["status"] == 0 );
+
+    string signature = response["signatureShare"].asString();
+
+    response = c.blsSignMessageHash(name, hash, 1, 1);
+    REQUIRE( response["status"] == 0 );
+
+    REQUIRE( signature == response["signatureShare"].asString() );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signatures scheme via zmq", "[bls-aggregated-signing-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    REQUIRE( client->generateBLSPrivateKey(name) );
+
+    string hash = SAMPLE_HASH;
+    string signature = client->blsSignMessageHash(name, hash, 1, 1);
+    REQUIRE( !signature.empty() );
+
+    REQUIRE( signature == client->blsSignMessageHash(name, hash, 1, 1) );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme", "[bls-aggregated-pop-prove]") {
+
+}
+
+TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme via zmq", "[bls-aggregated-pop-prove-zmq]") {
+
+}
+
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);
