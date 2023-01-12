@@ -185,4 +185,18 @@ public:
     virtual Json::Value process();
 };
 
+class generateBLSPrivateKeyReqMessage : public ZMQMessage {
+public:
+    generateBLSPrivateKeyReqMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+};
+
+class popProveReqMessage : public ZMQMessage {
+public:
+    popProveReqMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+};
+
 #endif //SGXWALLET_REQMESSAGE_H

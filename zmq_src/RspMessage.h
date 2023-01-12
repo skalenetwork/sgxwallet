@@ -259,4 +259,18 @@ public:
     }
 };
 
+class generateBLSPrivateKeyRspMessage : public ZMQMessage {
+public:
+    generateBLSPrivateKeyRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+};
+
+class popProveRspMessage : public ZMQMessage {
+public:
+    popProveRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+
+    virtual Json::Value process();
+};
+
 #endif //SGXWALLET_RSPMESSAGE_H
