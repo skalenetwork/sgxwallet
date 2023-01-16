@@ -1442,47 +1442,31 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
     char l[2] = "30"; // octet L
 
     while (mpz_cmp_ui(skey, 0) == 0) {
-        if (!hash_key(salt, salt)) {
-            *errStatus = 111;
-            snprintf(errString, BUF_LEN, "error in hash_key");
-            LOG_ERROR(errString);
-
-            goto clean;
-        }
+        int status = hash_key(salt, salt);
+        CHECK_STATUS("hash key failed")
 
         SAFE_CHAR_BUF(ikm_concat, BUF_LEN);
         strncat(ikm_concat, ikm, ECDSA_BIN_LEN - 1);
 
-        SAFE_CHAR_BUF(octetStr0, 3);
+        SAFE_CHAR_BUF(octetStr0, 2);
         octetStr0[0] = '0';
-        octetStr0[1] = '0';
-        octetStr0[2] = '\0';
+        octetStr0[1] = '\0';
+        //octetStr0[2] = '\0';
 
-        strncat(ikm_concat, octetStr0, 2);
+        strncat(ikm_concat, octetStr0, 1);
 
         SAFE_CHAR_BUF(prk, BUF_LEN);
-
-        if (!hkdf_extract(salt, ikm_concat, prk)) {
-            *errStatus = 111;
-            snprintf(errString, BUF_LEN, "error in hkdf_extract");
-            LOG_ERROR(errString);
-
-            goto clean;
-        }
+        status = hkdf_extract(salt, ikm_concat, prk);
+        CHECK_STATUS("hkdf_extract failed");
 
         SAFE_CHAR_BUF(okm, BUF_LEN);
-        if (!hkdf_expand(prk, l, L, okm)) {
-            *errStatus = 111;
-            snprintf(errString, BUF_LEN, "error in hkdf_expand");
-            LOG_ERROR(errString);
-
-            goto clean;
-        }
+        status = hkdf_expand(prk, l, L, okm);
+        CHECK_STATUS("hkdf_expand failed");
 
         SAFE_CHAR_BUF(bls_key, BUF_LEN);
         carray2Hex((unsigned char*)okm, ECDSA_BIN_LEN - 1, bls_key);
 
-        if (!mpz_set_str(skey, bls_key, 16)) {
+        if (mpz_set_str(skey, bls_key, 16) == -1) {
             *errStatus = 111;
             snprintf(errString, BUF_LEN, "error in mpz_set_str");
             LOG_ERROR(errString);
@@ -1499,7 +1483,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
 
     SAFE_CHAR_BUF(arr_skey_str, BUF_LEN);
 
-    if (!mpz_get_str(arr_skey_str, 16, skey)) {
+    if (mpz_get_str(arr_skey_str, 16, skey) == -1) {
         *errStatus = 111;
         snprintf(errString, BUF_LEN, "error in mpz_get_str");
         LOG_ERROR(errString);
