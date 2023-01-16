@@ -172,7 +172,12 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
     for (int i = 0; i < 4; i++)
         spdlog::debug("{}", pubKeyVect.at(i));
 
-    libff::alt_bn128_G2 public_key = libBLS::ThresholdUtils::stringToG2( pubKey );
+    libff::alt_bn128_G2 public_key;
+    public_key.Z = libff::alt_bn128_Fq2::one();
+    public_key.X.c0 = libff::alt_bn128_Fq(pubKeyVect[0].c_str());
+    public_key.X.c1 = libff::alt_bn128_Fq(pubKeyVect[1].c_str());
+    public_key.Y.c0 = libff::alt_bn128_Fq(pubKeyVect[2].c_str());
+    public_key.Y.c1 = libff::alt_bn128_Fq(pubKeyVect[3].c_str());
 
     pair <libff::alt_bn128_G1, string> hash_public_key_with_hint = libBLS::Bls::HashPublicKeyToG1WithHint( public_key );
 
@@ -189,7 +194,7 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
         BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
     }
 
-    SAFE_CHAR_BUF(xStrArg, BUF_LEN);SAFE_CHAR_BUF(yStrArg, BUF_LEN);SAFE_CHAR_BUF(signature, BUF_LEN);
+    SAFE_CHAR_BUF(xStrArg, BUF_LEN);SAFE_CHAR_BUF(yStrArg, BUF_LEN);
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);

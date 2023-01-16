@@ -50,7 +50,7 @@ class TestUtils {
 public:
     static default_random_engine randGen;
 
-    static string stringFromFr(libff::alt_bn128_Fr &el);
+    static string stringFromFr(libff::alt_bn128_Fr &el, size_t base = 10);
 
     static string convertDecToHex(string dec, int numBytes = 32);
 

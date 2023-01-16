@@ -62,12 +62,12 @@ using namespace std;
 
 default_random_engine TestUtils::randGen((unsigned int) time(0));
 
-string TestUtils::stringFromFr(libff::alt_bn128_Fr &el) {
+string TestUtils::stringFromFr(libff::alt_bn128_Fr &el, size_t base) {
     mpz_t t;
     mpz_init(t);
     el.as_bigint().to_mpz(t);
     char arr[mpz_sizeinbase(t, 10) + 2];
-    mpz_get_str(arr, 10, t);
+    mpz_get_str(arr, base, t);
     mpz_clear(t);
 
     return string(arr);

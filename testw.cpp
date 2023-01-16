@@ -1392,11 +1392,54 @@ TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signature
 }
 
 TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme", "[bls-aggregated-pop-prove]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
 
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
+    while (key == libff::alt_bn128_Fr::zero()) {
+        key = libff::alt_bn128_Fr::random_element();
+    }
+
+    std::string key_str = TestUtils::stringFromFr(key, 16);
+    auto response = c.importBLSKeyShare(key_str, name);
+    REQUIRE(response["status"] == 0);
+
+    libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+
+    response = c.popProve(name);
+    REQUIRE(response["status"] == 0);
+    shared_ptr<string> sig_share_ptr = make_shared<string>(response["popProve"].asString());
+    BLSSigShare sig(sig_share_ptr, 1, 1, 1);
+    libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+
+    REQUIRE( popProveLocal == popProveEnclave );
 }
 
 TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme via zmq", "[bls-aggregated-pop-prove-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
 
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
+    while (key == libff::alt_bn128_Fr::zero()) {
+        key = libff::alt_bn128_Fr::random_element();
+    }
+
+    std::string key_str = TestUtils::stringFromFr(key, 16);
+    auto response = client->importBLSKeyShare(key_str, name);
+    REQUIRE(response);
+
+    libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+
+    std::string pop_prove_response = client->popProve(name);
+    shared_ptr<string> sig_share_ptr = make_shared<string>(pop_prove_response);
+    BLSSigShare sig(sig_share_ptr, 1, 1, 1);
+    libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+
+    REQUIRE( popProveLocal == popProveEnclave );
 }
 
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {

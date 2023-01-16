@@ -273,7 +273,7 @@ public:
     virtual Json::Value process();
 
     std::string getPopProve() {
-        getStringRapid("popProve");
+        return getStringRapid("popProve");
     }
 };
 
