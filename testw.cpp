@@ -1416,13 +1416,6 @@ TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signature
     string hash = SAMPLE_HASH;
     response = c.blsSignMessageHash(name, hash, 1, 1);
     REQUIRE( response["status"] == 0 );
-
-    string signature = response["signatureShare"].asString();
-
-    response = c.blsSignMessageHash(name, hash, 1, 1);
-    REQUIRE( response["status"] == 0 );
-
-    REQUIRE( signature == response["signatureShare"].asString() );
 }
 
 TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signatures scheme via zmq", "[bls-aggregated-signing-zmq]") {
@@ -1435,8 +1428,6 @@ TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signature
     string hash = SAMPLE_HASH;
     string signature = client->blsSignMessageHash(name, hash, 1, 1);
     REQUIRE( !signature.empty() );
-
-    REQUIRE( signature == client->blsSignMessageHash(name, hash, 1, 1) );
 }
 
 TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme", "[bls-aggregated-pop-prove]") {

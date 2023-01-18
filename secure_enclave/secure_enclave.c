@@ -1517,7 +1517,6 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
     mpz_clear(seed);
     mpz_clear(skey);
     mpz_clear(q);
-    //SAFE_FREE(salt);
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
