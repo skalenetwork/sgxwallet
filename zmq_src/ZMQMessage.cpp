@@ -77,7 +77,6 @@ string ZMQMessage::getStringRapid(const char *_name) {
 shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
                                           size_t _size, bool _isRequest,
                                           bool _verifySig, bool _checkKeyOwnership) {
-
     CHECK_STATE(_msg);
     CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
     // CHECK NULL TERMINATED
