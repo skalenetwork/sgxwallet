@@ -83,8 +83,29 @@ int hkdf_expand(char* prk, char* key_info, int length, char* okm) {
     int n = ceil(length / (ECDSA_BIN_LEN - 1));
 
     SAFE_CHAR_BUF(t, BUF_LEN);
-    for (unsigned i = 0; i < n; ++i) {
-        ret = sgx_hmac_sha256_msg(prk, ECDSA_BIN_LEN - 1, key_info, ECDSA_BIN_LEN, t + (ECDSA_BIN_LEN - 1) * i, ECDSA_BIN_LEN - 1);
+    SAFE_CHAR_BUF(tmp, BUF_LEN);
+    for (int i = 0; i < n; ++i) {
+        char hex[4] = "0x01";
+        snprintf(hex + 3, 1, "%d", i + 1);
+        SAFE_CHAR_BUF(to_hash, BUF_LEN);
+        if (i > 0) {
+            strncat(to_hash, tmp, ECDSA_BIN_LEN - 1);
+        }
+        strncat(to_hash, key_info, ECDSA_BIN_LEN - 1);
+        strncat(to_hash, hex, 4);
+
+        ret = sgx_hmac_sha256_msg(prk, ECDSA_BIN_LEN - 1, to_hash, ECDSA_BIN_LEN, tmp, ECDSA_BIN_LEN - 1);
+        if (ret != 0) {
+            return ret;
+        }
+
+        for (int j = 0; j < ECDSA_BIN_LEN - 1; ++j) {
+            t[(ECDSA_BIN_LEN - 1) * i + j] = tmp[j];
+        }
+    }
+
+    for (int i = 0; i < length; ++i) {
+        okm[i] = t[i];
     }
 
     return ret;

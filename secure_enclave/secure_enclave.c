@@ -972,7 +972,7 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     CHECK_STATUS("invalid decr secret share");
 
     SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key);
+    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
     CHECK_STATUS("hash key failed")
     derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1110,7 +1110,7 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *public_shar
     CHECK_STATUS("session_key_recover failed");
 
     SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key);
+    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
     CHECK_STATUS("hash key failed")
     derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1290,7 +1290,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares
         common_key[64] = 0;
 
         SAFE_CHAR_BUF(derived_key, BUF_LEN);
-        status = hash_key(common_key, derived_key);
+        status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
         CHECK_STATUS("hash key failed")
         derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1436,28 +1436,32 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
 
     mpz_set_ui(skey, 0);
 
-    char* salt = "BLS-SIG-KEYGEN-SALT";
+    char* salt = "424c532d5349472d4b455947454e2d53414c54\0"; // "BLS-SIG-KEYGEN-SALT" hexademical
 
     int L = 48; // math.ceil(3*math.ceil(math.log2(q))/16)
     char l[2] = "30"; // octet L
 
     while (mpz_cmp_ui(skey, 0) == 0) {
-        int status = hash_key(salt, salt);
+        SAFE_CHAR_BUF(salt_hashed, BUF_LEN);
+        int len = strnlen(salt, 38);
+        int status = hash_key(salt, salt_hashed, len);
         CHECK_STATUS("hash key failed")
 
         SAFE_CHAR_BUF(ikm_concat, BUF_LEN);
         strncat(ikm_concat, ikm, ECDSA_BIN_LEN - 1);
+        ikm_concat[ECDSA_BIN_LEN - 1] = '\0';
 
         SAFE_CHAR_BUF(octetStr0, 2);
         octetStr0[0] = '0';
         octetStr0[1] = '\0';
-        //octetStr0[2] = '\0';
 
         strncat(ikm_concat, octetStr0, 1);
+        ikm_concat[ECDSA_BIN_LEN] = '\0';
 
         SAFE_CHAR_BUF(prk, BUF_LEN);
-        status = hkdf_extract(salt, ikm_concat, prk);
+        status = hkdf_extract(salt_hashed, ikm_concat, prk);
         CHECK_STATUS("hkdf_extract failed");
+        prk[ECDSA_BIN_LEN - 1] = '\0';
 
         SAFE_CHAR_BUF(okm, BUF_LEN);
         status = hkdf_expand(prk, l, L, okm);
@@ -1498,7 +1502,12 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
     strncpy(bls_key + n_zeroes, arr_skey_str, 65 - n_zeroes);
     bls_key[BLS_KEY_LENGTH - 1] = 0;
 
-    int status = AES_encrypt(bls_key, encryptedPrivateKey, BUF_LEN, BLS, NON_EXPORTABLE, enc_len);
+    int status;
+    if (is_exportable) {
+        status = AES_encrypt(bls_key, encryptedPrivateKey, BUF_LEN, BLS, EXPORTABLE, enc_len);
+    } else {
+        status = AES_encrypt(bls_key, encryptedPrivateKey, BUF_LEN, BLS, NON_EXPORTABLE, enc_len);
+    }
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
 
@@ -1508,6 +1517,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
     mpz_clear(seed);
     mpz_clear(skey);
     mpz_clear(q);
+    //SAFE_FREE(salt);
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
