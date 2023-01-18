@@ -1338,6 +1338,57 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption vi
     REQUIRE( share2 == key * decryption_value2 );
 }
 
+TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt", "[bls-aggregated-key-decrypt]") {
+    vector <uint8_t> encrypted_key(BUF_LEN, 0);
+    vector<char> errMsg(BUF_LEN, 0);
+    int errStatus = 0;
+
+    int exportable = 0;
+
+    uint64_t enc_bls_len = 0;
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key, &enc_bls_len);
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    vector<char> decr_key(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key.data(), enc_bls_len, decr_key.data());
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    mpz_t bls_key;
+    mpz_init(bls_key);
+    REQUIRE(mpz_set_str(bls_key, decr_key.data(), 16) == 0);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    REQUIRE(mpz_cmp(bls_key, 0) > 0);
+    REQUIRE(mpz_cmp(bls_key, q) < 0);
+
+    vector <uint8_t> encrypted_key_second(BUF_LEN, 0);
+
+    SAFE_UINT8_BUF(encr_bls_key_second, BUF_LEN)
+
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key_second, &enc_bls_len);
+
+    vector<char> decr_key_second(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrypted_key_second.data(), enc_bls_len, decr_key_second.data());
+
+    mpz_t bls_key_second;
+    mpz_init(bls_key_second);
+    mpz_set_str(bls_key_second, decr_key.data(), 16);
+
+    REQUIRE( mpz_cmp(bls_key, bls_key_second) != 0);
+}
+
 TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme", "[bls-aggregated-key-generation]") {
     HttpClient htp(RPC_ENDPOINT);
     StubClient c(htp, JSONRPC_CLIENT_V2);
