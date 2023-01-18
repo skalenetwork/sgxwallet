@@ -39,7 +39,6 @@
 
 
 shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
-
     Json::FastWriter fastWriter;
 
     if (sign) {
@@ -62,7 +61,6 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
     auto resultStr = doZmqRequestReply(reqStr);
 
     try {
-
         CHECK_STATE(resultStr.size() > 5)
         CHECK_STATE(resultStr.front() == '{')
         CHECK_STATE(resultStr.back() == '}')
@@ -78,7 +76,6 @@ shared_ptr <ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 }
 
 string ZMQClient::doZmqRequestReply(string &_req) {
-
     stringstream request;
 
     shared_ptr <zmq::socket_t> clientSocket = nullptr;
@@ -126,7 +123,6 @@ string ZMQClient::readFileIntoString(const string &_fileName) {
 }
 
 void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig) {
-
     CHECK_STATE(_pubkey);
     CHECK_STATE(!_str.empty());
 
@@ -162,7 +158,6 @@ void ZMQClient::verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _
 }
 
 string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
-
     CHECK_STATE(_pkey);
     CHECK_STATE(!_str.empty());
 
@@ -201,7 +196,6 @@ string ZMQClient::signString(EVP_PKEY* _pkey, const string& _str) {
 }
 
 pair<EVP_PKEY*, X509*> ZMQClient::readPublicKeyFromCertStr(const string& _certStr) {
-
     CHECK_STATE(!_certStr.empty())
 
     BIO *bo = BIO_new(BIO_s_mem());
@@ -220,7 +214,6 @@ pair<EVP_PKEY*, X509*> ZMQClient::readPublicKeyFromCertStr(const string& _certSt
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign, const string &_certFileName,
                      const string &_certKeyName) : ctx(1), sign(_sign),
                                                    certKeyName(_certKeyName), certFileName(_certFileName) {
-
     spdlog::info("Initing ZMQClient. Sign:{} ", _sign);
 
     if (sign) {
