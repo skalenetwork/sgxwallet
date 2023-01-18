@@ -283,6 +283,7 @@ Json::Value generateBLSPrivateKeyReqMessage::process() {
         addKeyByOwner(blsKeyName, cert);
     }
     result["type"] = ZMQMessage::GENERATE_BLS_PRIVATE_KEY_RSP;
+    return result;
 }
 
 
