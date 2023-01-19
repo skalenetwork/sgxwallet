@@ -972,7 +972,7 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     CHECK_STATUS("invalid decr secret share");
 
     SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
+    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
     derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1110,7 +1110,7 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *public_shar
     CHECK_STATUS("session_key_recover failed");
 
     SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
+    status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
     derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1290,7 +1290,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares
         common_key[64] = 0;
 
         SAFE_CHAR_BUF(derived_key, BUF_LEN);
-        status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1);
+        status = hash_key(common_key, derived_key, ECDSA_BIN_LEN - 1, true);
         CHECK_STATUS("hash key failed")
         derived_key[ECDSA_BIN_LEN - 1] = 0;
 
@@ -1436,15 +1436,20 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
 
     mpz_set_ui(skey, 0);
 
-    char* salt = "424c532d5349472d4b455947454e2d53414c54\0"; // "BLS-SIG-KEYGEN-SALT" hexademical
+    char salt[39] = "424c532d5349472d4b455947454e2d53414c54"; // "BLS-SIG-KEYGEN-SALT" hexademical
 
     int L = 48; // math.ceil(3*math.ceil(math.log2(q))/16)
     char l[2] = "30"; // octet L
 
+    int k = 0;
     while (mpz_cmp_ui(skey, 0) == 0) {
         SAFE_CHAR_BUF(salt_hashed, BUF_LEN);
-        int len = strnlen(salt, 38);
-        int status = hash_key(salt, salt_hashed, len);
+        int len = strnlen(salt, 39);
+        int status;
+        if (len > ECDSA_BIN_LEN - 1)
+            status = hash_key(salt, salt_hashed, len, true);
+        else
+            status = hash_key(salt, salt_hashed, len, false);
         CHECK_STATUS("hash key failed")
 
         SAFE_CHAR_BUF(ikm_concat, BUF_LEN);
@@ -1479,6 +1484,13 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *is_exportable,
         }
 
         mpz_mod(skey, skey, q);
+
+        if (mpz_cmp_ui(skey, 0) == 0) {
+            for (int i = 0; i < ECDSA_BIN_LEN - 1; ++i) {
+                salt[i] = salt_hashed[i];
+            }
+            salt[ECDSA_BIN_LEN - 1] = '\0';
+        }
     }
 
     mpz_mod(skey, seed, q);

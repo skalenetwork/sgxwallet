@@ -57,7 +57,7 @@ int hkdf_extract(char* salt, char* seed, char* prk) {
         return ret;
     }
 
-    ret = sgx_hmac_sha256_msg(salt, ECDSA_BIN_LEN - 1, seed, ECDSA_BIN_LEN, prk, ECDSA_BIN_LEN - 1);
+    ret = sgx_hmac_sha256_msg((unsigned char*)salt, ECDSA_BIN_LEN - 1, seed, ECDSA_BIN_LEN, prk, ECDSA_BIN_LEN - 1);
 
     return ret;
 }
