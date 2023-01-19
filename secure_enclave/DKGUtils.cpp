@@ -183,7 +183,6 @@ libff::alt_bn128_G1 stringToG1(const char* elem) {
         return result;
     }
 
-    clean:
     return result;
 }
 
