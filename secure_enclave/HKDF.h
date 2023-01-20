@@ -16,26 +16,16 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file DH_dkg.h
-    @author Stan Kladko
-    @date 2019
+    @file HKDF.h
+    @author Oleh Nikolaiev
+    @date 2023
 */
 
-#ifndef SGXD_DRIVE_KEY_DKG_H
-#define SGXD_DRIVE_KEY_DKG_H
+#ifndef SGX_HKDF_H
+#define SGX_HKDF_H
 
-int gen_session_key(char* skey, char* pub_keyB, char* common_key);
+int hkdfExtract(char* salt, char* seed, char* prk);
 
-int session_key_recover(const char *skey_str, const char* sshare, char* common_key);
+int hkdfExpand(char* prk, char* keyInfo, int length, char* okm);
 
-int xor_encrypt(char* key, char* message, char* cypher);
-
-int xor_encrypt_v2(char* key, char* message, char* cypher);
-
-int xor_decrypt(char* key, char* cypher, char* message);
-
-int xor_decrypt_v2(char* key, char* cypher, char* message);
-
-int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded);
-
-#endif //SGXD_DRIVE_KEY_DKG_H
+#endif // SGX_HKDF_H

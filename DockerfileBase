@@ -1,6 +1,8 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install software-properties-common -y && \
+    add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get update && apt-get install -y \
     autoconf \
     automake \
     build-essential \
@@ -23,7 +25,14 @@ RUN apt-get update && apt-get install -y \
     libssl1.1 \
     make \
     module-init-tools \
-    unzip
+    unzip \
+    gcc-9 g++-9
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9 && \
+    update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-9 9 && \
+    update-alternatives --install /usr/bin/gcov-dump gcov-dump /usr/bin/gcov-dump-9 9 && \
+    update-alternatives --install /usr/bin/gcov-tool gcov-tool /usr/bin/gcov-tool-9 9
 
 RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
 

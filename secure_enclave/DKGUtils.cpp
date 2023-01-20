@@ -136,6 +136,56 @@ string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10, const s
     return result;
 }
 
+string ConvertG1ToString(const libff::alt_bn128_G1 &elem, int base = 10, const string &delim = ":") {
+
+    string result = "";
+
+    try {
+
+        result += ConvertToString(elem.X);
+        result += delim;
+        result += ConvertToString(elem.Y);
+
+        return result;
+
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return result;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return result;
+    }
+
+    return result;
+}
+
+libff::alt_bn128_G1 stringToG1(const char* elem) {
+    string str(elem);
+
+    libff::alt_bn128_G1 result = libff::alt_bn128_G1::zero();
+
+    try {
+        int pos = str.find(":", 0);
+        if (pos == string::npos)
+            pos = str.length();
+        result.X = libff::alt_bn128_Fq(str.substr(0, pos).c_str());
+        result.Y = libff::alt_bn128_Fq(str.substr(pos, string::npos).c_str());
+
+        if ( str.find(":", pos) != string::npos )
+            return result;
+
+        return result;
+    } catch (exception &e) {
+        LOG_ERROR(e.what());
+        return result;
+    } catch (...) {
+        LOG_ERROR("Unknown throwable");
+        return result;
+    }
+
+    return result;
+}
+
 vector <libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs, const char symbol) {
     vector <libff::alt_bn128_Fr> result;
     string str(coeffs);

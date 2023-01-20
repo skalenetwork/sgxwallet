@@ -359,7 +359,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test", "[dkg-aes-pub-shares
     REQUIRE(status == SGX_SUCCESS);
     REQUIRE(errStatus == SGX_SUCCESS);
 
-    signatures::Dkg dkgObj(t, n);
+    libBLS::Dkg dkgObj(t, n);
 
     vector <libff::alt_bn128_Fr> poly = TestUtils::splitStringToFr(secret.data(), colon);
     vector <libff::alt_bn128_G2> pubSharesDkg = dkgObj.VerificationVector(poly);
@@ -947,7 +947,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey
     common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >>>(coeffs_pkeys_map), t, n);
-    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
 TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
@@ -1097,7 +1097,7 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
     shared_ptr <BLSSignature> commonSig = sigShareSet.merge();
     BLSPublicKey
     common_public(make_shared < map < size_t, shared_ptr < BLSPublicKeyShare >>>(coeffs_pkeys_map), t, n);
-    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig, t, n));
+    REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
 TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
@@ -1336,6 +1336,149 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption vi
     share2.Y.c1 = libff::alt_bn128_Fq( decryption_share2[3].asCString() );
 
     REQUIRE( share2 == key * decryption_value2 );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt", "[bls-aggregated-key-decrypt]") {
+    vector<char> errMsg(BUF_LEN, 0);
+    int errStatus = 0;
+
+    int exportable = 1;
+
+    uint64_t encBlsLen = 0;
+
+    sgx_status_t status = SGX_SUCCESS;
+
+    SAFE_UINT8_BUF(encrBlsKey, BUF_LEN)
+
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encrBlsKey, &encBlsLen);
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    vector<char> decrKey(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrBlsKey, encBlsLen, decrKey.data());
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    mpz_t blsKey;
+    mpz_init(blsKey);
+    REQUIRE(mpz_set_str(blsKey, decrKey.data(), 16) == 0);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    REQUIRE(mpz_cmp_ui(blsKey, 0) > 0);
+    REQUIRE(mpz_cmp(blsKey, q) < 0);
+
+    SAFE_UINT8_BUF(encrBlsKeySecond, BUF_LEN)
+
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encrBlsKeySecond, &encBlsLen);
+
+    vector<char> decrKeySecond(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrBlsKeySecond, encBlsLen, decrKeySecond.data());
+
+    mpz_t blsKeySecond;
+    mpz_init(blsKeySecond);
+    mpz_set_str(blsKeySecond, decrKeySecond.data(), 16);
+
+    REQUIRE( mpz_cmp(blsKey, blsKeySecond) != 0);
+}
+
+TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme", "[bls-aggregated-key-generation]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    auto response = c.generateBLSPrivateKey(name);
+
+    REQUIRE( response["status"] == 0 );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme via zmq", "[bls-aggregated-key-generation-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    REQUIRE( client->generateBLSPrivateKey(name) );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signatures scheme", "[bls-aggregated-signing]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    auto response = c.generateBLSPrivateKey(name);
+    REQUIRE( response["status"] == 0 );
+
+    string hash = SAMPLE_HASH;
+    response = c.blsSignMessageHash(name, hash, 1, 1);
+    REQUIRE( response["status"] == 0 );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test message signing for bls aggregated signatures scheme via zmq", "[bls-aggregated-signing-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+    REQUIRE( client->generateBLSPrivateKey(name) );
+
+    string hash = SAMPLE_HASH;
+    string signature = client->blsSignMessageHash(name, hash, 1, 1);
+    REQUIRE( !signature.empty() );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme", "[bls-aggregated-pop-prove]") {
+    HttpClient htp(RPC_ENDPOINT);
+    StubClient c(htp, JSONRPC_CLIENT_V2);
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
+    while (key == libff::alt_bn128_Fr::zero()) {
+        key = libff::alt_bn128_Fr::random_element();
+    }
+
+    std::string keyStr = TestUtils::stringFromFr(key, 16);
+    auto response = c.importBLSKeyShare(keyStr, name);
+    REQUIRE(response["status"] == 0);
+
+    libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+
+    response = c.popProve(name);
+    REQUIRE(response["status"] == 0);
+    shared_ptr<string> sigSharePtr = make_shared<string>(response["popProve"].asString());
+    BLSSigShare sig(sigSharePtr, 1, 1, 1);
+    libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+
+    REQUIRE( popProveLocal == popProveEnclave );
+}
+
+TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures scheme via zmq", "[bls-aggregated-pop-prove-zmq]") {
+    auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, "./sgx_data/cert_data/rootCA.pem",
+                                         "./sgx_data/cert_data/rootCA.key");
+
+    std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+
+    libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
+    while (key == libff::alt_bn128_Fr::zero()) {
+        key = libff::alt_bn128_Fr::random_element();
+    }
+
+    std::string keyStr = TestUtils::stringFromFr(key, 16);
+    auto response = client->importBLSKeyShare(keyStr, name);
+    REQUIRE(response);
+
+    libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+
+    std::string pop_prove_response = client->popProve(name);
+    shared_ptr<string> sigSharePtr = make_shared<string>(pop_prove_response);
+    BLSSigShare sig(sigSharePtr, 1, 1, 1);
+    libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+
+    REQUIRE( popProveLocal == popProveEnclave );
 }
 
 TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {

@@ -77,7 +77,6 @@ string ZMQMessage::getStringRapid(const char *_name) {
 shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
                                           size_t _size, bool _isRequest,
                                           bool _verifySig, bool _checkKeyOwnership) {
-
     CHECK_STATE(_msg);
     CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
     // CHECK NULL TERMINATED
@@ -230,6 +229,12 @@ shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapi
         case ENUM_GET_DECRYPTION_SHARE_REQ:
             ret = make_shared<GetDecryptionShareReqMessage>(_d);
             break;
+        case ENUM_GENERATE_BLS_PRIVATE_KEY_REQ:
+            ret = make_shared<generateBLSPrivateKeyReqMessage>(_d);
+            break;
+        case ENUM_POP_PROVE_REQ:
+            ret = make_shared<popProveReqMessage>(_d);
+            break;
         default:
             break;
     }
@@ -314,6 +319,12 @@ shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rap
         case ENUM_GET_DECRYPTION_SHARE_RSP:
             ret = make_shared<GetDecryptionShareRspMessage>(_d);
             break;
+        case ENUM_GENERATE_BLS_PRIVATE_KEY_RSP:
+            ret = make_shared<generateBLSPrivateKeyRspMessage>(_d);
+            break;
+        case ENUM_POP_PROVE_RSP:
+            ret = make_shared<popProveRspMessage>(_d);
+            break;
         default:
             break;
     }
@@ -347,7 +358,8 @@ const std::map<string, int> ZMQMessage::requests{
     {CREATE_BLS_PRIVATE_REQ, 10}, {GET_BLS_PUBLIC_REQ, 11}, {GET_ALL_BLS_PUBLIC_REQ, 12},
     {COMPLAINT_RESPONSE_REQ, 13}, {MULT_G2_REQ, 14}, {IS_POLY_EXISTS_REQ, 15},
     {GET_SERVER_STATUS_REQ, 16}, {GET_SERVER_VERSION_REQ, 17}, {DELETE_BLS_KEY_REQ, 18},
-    {GET_DECRYPTION_SHARE_REQ, 19}
+    {GET_DECRYPTION_SHARE_REQ, 19}, {GENERATE_BLS_PRIVATE_KEY_REQ, 20},
+    {POP_PROVE_REQ, 21}
 };
 
 const std::map<string, int> ZMQMessage::responses {
@@ -357,5 +369,6 @@ const std::map<string, int> ZMQMessage::responses {
     {CREATE_BLS_PRIVATE_RSP, 10}, {GET_BLS_PUBLIC_RSP, 11}, {GET_ALL_BLS_PUBLIC_RSP, 12},
     {COMPLAINT_RESPONSE_RSP, 13}, {MULT_G2_RSP, 14}, {IS_POLY_EXISTS_RSP, 15},
     {GET_SERVER_STATUS_RSP, 16}, {GET_SERVER_VERSION_RSP, 17}, {DELETE_BLS_KEY_RSP, 18},
-    {GET_DECRYPTION_SHARE_RSP, 19}
+    {GET_DECRYPTION_SHARE_RSP, 19}, {GENERATE_BLS_PRIVATE_KEY_RSP, 20},
+    {POP_PROVE_RSP, 21}
 };

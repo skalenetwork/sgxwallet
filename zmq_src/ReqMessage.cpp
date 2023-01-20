@@ -273,3 +273,26 @@ Json::Value GetDecryptionShareReqMessage::process() {
     result["type"] = ZMQMessage::GET_DECRYPTION_SHARE_RSP;
     return result;
 }
+
+Json::Value generateBLSPrivateKeyReqMessage::process() {
+    auto blsKeyName = getStringRapid("blsKeyName");
+    auto result = SGXWalletServer::generateBLSPrivateKeyImpl(blsKeyName);
+    if (checkKeyOwnership && result["status"] == 0) {
+        auto cert = getStringRapid("cert");
+        spdlog::info("Cert {} creates key {}", cert, blsKeyName);
+        addKeyByOwner(blsKeyName, cert);
+    }
+    result["type"] = ZMQMessage::GENERATE_BLS_PRIVATE_KEY_RSP;
+    return result;
+}
+
+
+Json::Value popProveReqMessage::process() {
+    auto blsKeyName = getStringRapid("blsKeyName");
+    if (checkKeyOwnership && !isKeyByOwner(blsKeyName, getStringRapid("cert"))) {
+        throw std::invalid_argument("Only owner of the key can access it");
+    }
+    auto result = SGXWalletServer::popProveImpl(blsKeyName);
+    result["type"] = ZMQMessage::POP_PROVE_RSP;
+    return result;
+}

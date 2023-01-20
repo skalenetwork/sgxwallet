@@ -202,6 +202,17 @@ class StubClient : public jsonrpc::Client
            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
+        Json::Value generateBLSPrivateKey(const std::string& blsKeyName) {
+            Json::Value p;
+            p["blsKeyName"] = blsKeyName;
+
+            Json::Value result = this->CallMethod("generateBLSPrivateKey", p);
+            if (result.isObject())
+              return result;
+            else
+              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
         Json::Value getBLSPublicKeyShare(const std::string & blsKeyName) 
         {
             Json::Value p;
@@ -248,11 +259,22 @@ class StubClient : public jsonrpc::Client
           p["t"] = t;
           p["n"] = n;
           p["ind"] = ind;
-          Json::Value result = this->CallMethod("complaintResponse",p);
+          Json::Value result = this->CallMethod("complaintResponse", p);
           if (result.isObject())
             return result;
           else
             throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+        }
+
+        Json::Value popProve(const std::string& blsKeyName) {
+            Json::Value p;
+            p["blsKeyName"] = blsKeyName;
+
+            Json::Value result = this->CallMethod("popProve", p);
+            if (result.isObject())
+              return result;
+            else
+              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
         }
 
         Json::Value multG2(const std::string & x) 

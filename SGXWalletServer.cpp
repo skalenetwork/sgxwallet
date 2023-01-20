@@ -982,6 +982,28 @@ SGXWalletServer::createBLSPrivateKeyV2Impl(const string &_blsKeyName, const stri
     RETURN_SUCCESS(result);
 }
 
+Json::Value SGXWalletServer::generateBLSPrivateKeyImpl(const string& blsKeyName) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    try {
+        if (!checkName(blsKeyName, "BLS_KEY")) {
+            throw SGXException(GENERATE_BLS_KEY_INVALID_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+        bool res = generateBLSPrivateKeyAggegated(blsKeyName.c_str());
+        if (res) {
+            spdlog::info("BLS AGGREGATED KEY CREATED ");
+        } else {
+            throw SGXException(INVALID_CREATE_BLS_AGGREGATED_KEY,
+                               string(__FUNCTION__) + ":Error while creating BLS aggregated key");
+        }
+
+    } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result);
+}
+
 Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     spdlog::info("Entering {}", __FUNCTION__);
     INIT_RESULT(result)
@@ -1010,6 +1032,29 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(const std::string& blsKeyNa
             }
         }
     } HANDLE_SGX_EXCEPTION(result)
+
+    RETURN_SUCCESS(result)
+}
+
+Json::Value SGXWalletServer::popProveImpl( const std::string& blsKeyName ) {
+    spdlog::info("Entering {}", __FUNCTION__);
+    INIT_RESULT(result)
+
+    vector <char> prove(BUF_LEN, 0);
+
+    try {
+        if (!checkName(blsKeyName, "BLS_KEY")) {
+            throw SGXException(POP_PROVE_INVALID_KEY_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
+        }
+
+        shared_ptr <string> encryptedKeyHexPtr = readFromDb(blsKeyName);
+
+        if (!popProveSGX(encryptedKeyHexPtr->c_str(), prove.data())) {
+            throw SGXException(COULD_NOT_CREATE_POP_PROVE, ":Could not create popProve ");
+        }
+    } HANDLE_SGX_EXCEPTION(result)
+
+    result["popProve"] = string(prove.data());
 
     RETURN_SUCCESS(result)
 }
@@ -1114,8 +1159,16 @@ SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName, const string &e
     return createBLSPrivateKeyV2Impl(blsKeyName, ethKeyName, polyName, SecretShare, t, n);
 }
 
+Json::Value SGXWalletServer::generateBLSPrivateKey(const string& blsKeyName) {
+    return generateBLSPrivateKeyImpl(blsKeyName);
+}
+
 Json::Value SGXWalletServer::getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) {
     return getDecryptionSharesImpl(blsKeyName, publicDecryptionValues);
+}
+
+Json::Value SGXWalletServer::popProve( const std::string& blsKeyName ) {
+    return popProveImpl( blsKeyName );
 }
 
 shared_ptr <string> SGXWalletServer::readFromDb(const string &name, const string &prefix) {

@@ -87,3 +87,24 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len,
 
     return true;
 }
+
+vector <std::string> splitString(const char *coeffs, const char symbol) {
+    CHECK_STATE(coeffs);
+    std::string str(coeffs);
+    std::string delim;
+    delim.push_back(symbol);
+    vector <std::string> G2Strings;
+    size_t prev = 0, pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) pos = str.length();
+        std::string token = str.substr(prev, pos - prev);
+        if (!token.empty()) {
+            std::string coeff(token.c_str());
+            G2Strings.push_back(coeff);
+        }
+        prev = pos + delim.length();
+    } while (pos < str.length() && prev < str.length());
+
+    return G2Strings;
+}
