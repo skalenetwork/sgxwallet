@@ -37,37 +37,15 @@
 #include "SEKManager.h"
 #include "BLSPrivateKeyShareSGX.h"
 
-string *stringFromFq(libff::alt_bn128_Fq *_fq) {
-
-    CHECK_STATE(_fq);
-
-    mpz_t t;
-    mpz_init(t);
-
-    _fq->as_bigint().to_mpz(t);
-
-    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, 10) + 2);
-
-    char *tmp = mpz_get_str(arr, 10, t);
-
-    mpz_clear(t);
-
-    return new string(tmp);
-}
-
-string *stringFromG1(libff::alt_bn128_G1 *_g1) {
+shared_ptr<string> stringFromG1(libff::alt_bn128_G1 *_g1) {
 
     CHECK_STATE(_g1);
 
-    auto sX = stringFromFq(&_g1->X);
-    auto sY = stringFromFq(&_g1->Y);
-    auto sZ = stringFromFq(&_g1->Z);
+    auto sX = FqToString(&_g1->X);
+    auto sY = FqToString(&_g1->Y);
+    auto sZ = FqToString(&_g1->Z);
 
-    auto sG1 = new string(*sX + ":" + *sY + ":" + *sZ);
-
-    delete (sX);
-    delete (sY);
-    delete (sZ);
+    auto sG1 =  make_shared<string>(*sX + ":" + *sY + ":" + *sZ);
 
     return sG1;
 }
@@ -111,16 +89,13 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
     int errStatus = 0;
 
-    string *xStr = stringFromFq(&(hash_with_hint.first.X));
+    shared_ptr<string> xStr = FqToString(&(hash_with_hint.first.X));
 
     CHECK_STATE(xStr);
 
-    string *yStr = stringFromFq(&(hash_with_hint.first.Y));
+    shared_ptr<string> yStr = FqToString(&(hash_with_hint.first.Y));
 
-    if (yStr == nullptr) {
-        delete xStr;
-        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
-    }
+    CHECK_STATE(yStr);
 
     vector<char> errMsg(BUF_LEN, 0);
 
@@ -128,9 +103,6 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
-
-    delete xStr;
-    delete yStr;
 
     size_t sz = 0;
 

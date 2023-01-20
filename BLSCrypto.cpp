@@ -29,10 +29,7 @@
 #include "third_party/intel/create_enclave.h"
 
 
-#include "bls.h"
 #include <tools/utils.h>
-
-#include "BLSPrivateKeyShareSGX.h"
 
 
 #include "sgxwallet_common.h"
@@ -49,7 +46,7 @@
 #include "CryptoTools.h"
 
 
-string *FqToString(libff::alt_bn128_Fq *_fq) {
+shared_ptr<string> FqToString(libff::alt_bn128_Fq *_fq) {
 
     CHECK_STATE(_fq);
 
@@ -63,7 +60,7 @@ string *FqToString(libff::alt_bn128_Fq *_fq) {
     mpz_get_str(arr, 10, t);
     mpz_clear(t);
 
-    return new string(arr);
+    return make_shared<string>(string(arr));
 }
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, size_t _n, char *_sig) {
@@ -85,16 +82,13 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     pair <libff::alt_bn128_G1, string> hash_with_hint = obj->HashtoG1withHint(hash);
 
-    string *xStr = FqToString(&(hash_with_hint.first.X));
+    shared_ptr<string> xStr = FqToString(&(hash_with_hint.first.X));
 
     CHECK_STATE(xStr);
 
-    string *yStr = FqToString(&(hash_with_hint.first.Y));
+    shared_ptr<string> yStr = FqToString(&(hash_with_hint.first.Y));
 
-    if (yStr == nullptr) {
-        delete xStr;
-        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
-    }
+    CHECK_STATE(yStr);
 
     vector<char> errMsg(BUF_LEN, 0);
 
@@ -102,9 +96,6 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t, siz
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
-
-    delete xStr;
-    delete yStr;
 
     size_t sz = 0;
 
@@ -183,24 +174,18 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
 
     hashPublicKeyWithHint.first.to_affine_coordinates();
 
-    string *xStr = FqToString(&(hashPublicKeyWithHint.first.X));
+    shared_ptr<string> xStr = FqToString(&(hashPublicKeyWithHint.first.X));
 
     CHECK_STATE(xStr);
 
-    string *yStr = FqToString(&(hashPublicKeyWithHint.first.Y));
+    shared_ptr<string> yStr = FqToString(&(hashPublicKeyWithHint.first.Y));
 
-    if (yStr == nullptr) {
-        delete xStr;
-        BOOST_THROW_EXCEPTION(runtime_error("Null yStr"));
-    }
+    CHECK_STATE(yStr);
 
     SAFE_CHAR_BUF(xStrArg, BUF_LEN);SAFE_CHAR_BUF(yStrArg, BUF_LEN);
 
     strncpy(xStrArg, xStr->c_str(), BUF_LEN);
     strncpy(yStrArg, yStr->c_str(), BUF_LEN);
-
-    delete xStr;
-    delete yStr;
 
     errStatus = 0;
 

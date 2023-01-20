@@ -127,7 +127,7 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVi
 
     uint64_t readCounter = 0;
 
-    leveldb::Iterator *it = db->NewIterator(readOptions);
+    shared_ptr<leveldb::Iterator> it( db->NewIterator(readOptions) );
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         _visitor->visitDBKey(it->key().data());
         readCounter++;
@@ -136,8 +136,6 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor, uint64_t _maxKeysToVi
         }
     }
 
-    delete it;
-
     return readCounter;
 }
 
@@ -145,7 +143,7 @@ std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
   uint64_t readCounter = 0;
   std::vector<string> keys;
 
-  leveldb::Iterator *it = db->NewIterator(readOptions);
+  shared_ptr<leveldb::Iterator> it( db->NewIterator(readOptions) );
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     string cur_key(it->key().data(), it->key().size());
     keys.push_back(cur_key);
@@ -154,8 +152,6 @@ std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit){
       break;
     }
   }
-
-  delete it;
 
   return keys;
 }
