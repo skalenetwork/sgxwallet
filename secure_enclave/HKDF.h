@@ -18,14 +18,14 @@
 
     @file HKDF.h
     @author Oleh Nikolaiev
-    @date 2022
+    @date 2023
 */
 
 #ifndef SGX_HKDF_H
 #define SGX_HKDF_H
 
-int hkdf_extract(char* salt, char* seed, char* prk);
+int hkdfExtract(char* salt, char* seed, char* prk);
 
-int hkdf_expand(char* prk, char* key_info, int length, char* okm);
+int hkdfExpand(char* prk, char* keyInfo, int length, char* okm);
 
 #endif // SGX_HKDF_H

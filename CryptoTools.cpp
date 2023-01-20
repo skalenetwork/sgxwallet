@@ -93,7 +93,7 @@ vector <std::string> splitString(const char *coeffs, const char symbol) {
     std::string str(coeffs);
     std::string delim;
     delim.push_back(symbol);
-    vector <std::string> G2_strings;
+    vector <std::string> G2Strings;
     size_t prev = 0, pos = 0;
     do {
         pos = str.find(delim, prev);
@@ -101,10 +101,10 @@ vector <std::string> splitString(const char *coeffs, const char symbol) {
         std::string token = str.substr(prev, pos - prev);
         if (!token.empty()) {
             std::string coeff(token.c_str());
-            G2_strings.push_back(coeff);
+            G2Strings.push_back(coeff);
         }
         prev = pos + delim.length();
     } while (pos < str.length() && prev < str.length());
 
-    return G2_strings;
+    return G2Strings;
 }

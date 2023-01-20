@@ -719,9 +719,9 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared<array<uint8_t, 32 >>();
+    auto hashArr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+    if (!hex2carray(hash.c_str(), &binLen, hashArr->data(), 32)) {
         throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
@@ -768,12 +768,12 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
 
         auto pubKey = pubKeyShares[i+1];
 
-        CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+        CHECK_STATE(pubKey->VerifySigWithHelper(hashArr, make_shared<BLSSigShare>(sig), t, n));
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
 
-    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hashArr, commonSig));
 
     for (auto&& i : _ecdsaKeyNames)
         cerr << i << endl;
@@ -861,9 +861,9 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
 
     string hash = SAMPLE_HASH;
 
-    auto hash_arr = make_shared<array<uint8_t, 32 >>();
+    auto hashArr = make_shared<array<uint8_t, 32 >>();
     uint64_t binLen;
-    if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+    if (!hex2carray(hash.c_str(), &binLen, hashArr->data(), 32)) {
         throw SGXException(TEST_INVALID_HEX, "Invalid hash");
     }
 
@@ -908,12 +908,12 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
 
         auto pubKey = pubKeyShares[i+1];
 
-        CHECK_STATE(pubKey->VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig), t, n));
+        CHECK_STATE(pubKey->VerifySigWithHelper(hashArr, make_shared<BLSSigShare>(sig), t, n));
     }
 
     shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
 
-    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
+    CHECK_STATE(blsPublicKey.VerifySigWithHelper(hashArr, commonSig));
 
     for (auto&& i : _ecdsaKeyNames)
         cerr << i << endl;

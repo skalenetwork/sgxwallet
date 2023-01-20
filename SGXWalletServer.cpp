@@ -1047,9 +1047,9 @@ Json::Value SGXWalletServer::popProveImpl( const std::string& blsKeyName ) {
             throw SGXException(POP_PROVE_INVALID_KEY_NAME, string(__FUNCTION__) + ":Invalid BLSKey name");
         }
 
-        shared_ptr <string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+        shared_ptr <string> encryptedKeyHexPtr = readFromDb(blsKeyName);
 
-        if (!popProveSGX(encryptedKeyHex_ptr->c_str(), prove.data())) {
+        if (!popProveSGX(encryptedKeyHexPtr->c_str(), prove.data())) {
             throw SGXException(COULD_NOT_CREATE_POP_PROVE, ":Could not create popProve ");
         }
     } HANDLE_SGX_EXCEPTION(result)

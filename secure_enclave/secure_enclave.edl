@@ -190,10 +190,10 @@ enclave {
 
         public void trustedGenerateBLSKey(
                                 [out] int *errStatus,
-                                [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 1] int *is_exportable,
-                                [out, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
-                                [out] uint64_t *enc_len
+                                [out, count = SMALL_BUF_SIZE] char* errString,
+                                [in, count = 1] int *isExportable,
+                                [out, count = SMALL_BUF_SIZE] uint8_t* encryptedKey,
+                                [out] uint64_t *encLen
                                 );
         };
 

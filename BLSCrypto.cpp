@@ -172,22 +172,22 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
     for (int i = 0; i < 4; i++)
         spdlog::debug("{}", pubKeyVect.at(i));
 
-    libff::alt_bn128_G2 public_key;
-    public_key.Z = libff::alt_bn128_Fq2::one();
-    public_key.X.c0 = libff::alt_bn128_Fq(pubKeyVect[0].c_str());
-    public_key.X.c1 = libff::alt_bn128_Fq(pubKeyVect[1].c_str());
-    public_key.Y.c0 = libff::alt_bn128_Fq(pubKeyVect[2].c_str());
-    public_key.Y.c1 = libff::alt_bn128_Fq(pubKeyVect[3].c_str());
+    libff::alt_bn128_G2 publicKey;
+    publicKey.Z = libff::alt_bn128_Fq2::one();
+    publicKey.X.c0 = libff::alt_bn128_Fq(pubKeyVect[0].c_str());
+    publicKey.X.c1 = libff::alt_bn128_Fq(pubKeyVect[1].c_str());
+    publicKey.Y.c0 = libff::alt_bn128_Fq(pubKeyVect[2].c_str());
+    publicKey.Y.c1 = libff::alt_bn128_Fq(pubKeyVect[3].c_str());
 
-    pair <libff::alt_bn128_G1, string> hash_public_key_with_hint = libBLS::Bls::HashPublicKeyToG1WithHint( public_key );
+    pair <libff::alt_bn128_G1, string> hashPublicKeyWithHint = libBLS::Bls::HashPublicKeyToG1WithHint( publicKey );
 
-    hash_public_key_with_hint.first.to_affine_coordinates();
+    hashPublicKeyWithHint.first.to_affine_coordinates();
 
-    string *xStr = FqToString(&(hash_public_key_with_hint.first.X));
+    string *xStr = FqToString(&(hashPublicKeyWithHint.first.X));
 
     CHECK_STATE(xStr);
 
-    string *yStr = FqToString(&(hash_public_key_with_hint.first.Y));
+    string *yStr = FqToString(&(hashPublicKeyWithHint.first.Y));
 
     if (yStr == nullptr) {
         delete xStr;
@@ -208,7 +208,7 @@ bool popProveSGX( const char* encryptedKeyHex, char* prove ) {
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    string hint = libBLS::ThresholdUtils::fieldElementToString(hash_public_key_with_hint.first.Y) + ":" + hash_public_key_with_hint.second;
+    string hint = libBLS::ThresholdUtils::fieldElementToString(hashPublicKeyWithHint.first.Y) + ":" + hashPublicKeyWithHint.second;
 
     string _prove = prove;
 
@@ -228,17 +228,17 @@ bool generateBLSPrivateKeyAggegated(const char* blsKeyName) {
 
     int exportable = 0;
 
-    uint64_t enc_bls_len = 0;
+    uint64_t encBlsLen = 0;
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+    SAFE_UINT8_BUF(encrBlsKey, BUF_LEN)
 
-    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key, &enc_bls_len);
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encrBlsKey, &encBlsLen);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    vector<char> hexBLSKey = carray2Hex(encr_bls_key, enc_bls_len);
+    vector<char> hexBLSKey = carray2Hex(encrBlsKey, encBlsLen);
 
     SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
 

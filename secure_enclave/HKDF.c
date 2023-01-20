@@ -18,7 +18,7 @@
 
     @file HKDF.c
     @author Oleh Nikolaiev
-    @date 2022
+    @date 2023
 */
 
 #include <math.h>
@@ -39,21 +39,21 @@
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
 
-int hkdf_extract(char* salt, char* seed, char* prk) {
+int hkdfExtract(char* salt, char* seed, char* prk) {
     int ret = -1;
 
     if (!salt) {
-        LOG_ERROR("hkdf_extract: null salt");
+        LOG_ERROR("hkdfExtract: null salt");
         return ret;
     }
 
     if (!seed) {
-        LOG_ERROR("hkdf_extract: null seed");
+        LOG_ERROR("hkdfExtract: null seed");
         return ret;
     }
 
     if (!prk) {
-        LOG_ERROR("hkdf_extract: null prk");
+        LOG_ERROR("hkdfExtract: null prk");
         return ret;
     }
 
@@ -62,21 +62,21 @@ int hkdf_extract(char* salt, char* seed, char* prk) {
     return ret;
 }
 
-int hkdf_expand(char* prk, char* key_info, int length, char* okm) {
+int hkdfExpand(char* prk, char* keyInfo, int length, char* okm) {
     int ret = -1;
 
     if (!prk) {
-        LOG_ERROR("hkdf_expand: null prk");
+        LOG_ERROR("hkdfExpand: null prk");
         return ret;
     }
 
-    if (!key_info) {
-        LOG_ERROR("hkdf_expand: null key_info");
+    if (!keyInfo) {
+        LOG_ERROR("hkdfExpand: null key_info");
         return ret;
     }
 
     if (!okm) {
-        LOG_ERROR("hkdf_expand: null okm");
+        LOG_ERROR("hkdfExpand: null okm");
         return ret;
     }
 
@@ -87,14 +87,14 @@ int hkdf_expand(char* prk, char* key_info, int length, char* okm) {
     for (int i = 0; i < n; ++i) {
         char hex[4] = "0x01";
         snprintf(hex + 3, 1, "%d", i + 1);
-        SAFE_CHAR_BUF(to_hash, BUF_LEN);
+        SAFE_CHAR_BUF(toHash, BUF_LEN);
         if (i > 0) {
-            strncat(to_hash, tmp, ECDSA_BIN_LEN - 1);
+            strncat(toHash, tmp, ECDSA_BIN_LEN - 1);
         }
-        strncat(to_hash, key_info, ECDSA_BIN_LEN - 1);
-        strncat(to_hash, hex, 4);
+        strncat(toHash, keyInfo, ECDSA_BIN_LEN - 1);
+        strncat(toHash, hex, 4);
 
-        ret = sgx_hmac_sha256_msg(prk, ECDSA_BIN_LEN - 1, to_hash, ECDSA_BIN_LEN, tmp, ECDSA_BIN_LEN - 1);
+        ret = sgx_hmac_sha256_msg(prk, ECDSA_BIN_LEN - 1, toHash, ECDSA_BIN_LEN, tmp, ECDSA_BIN_LEN - 1);
         if (ret != 0) {
             return ret;
         }

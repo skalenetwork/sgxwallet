@@ -332,7 +332,7 @@ int xor_decrypt_v2(char *key, char *cypher, char *message) {
     return ret;
 }
 
-int hash_key(char* key, char* hashed_key, int length, bool is_convert_needed) {
+int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded) {
     int ret = -1;
 
     if (!key) {
@@ -340,21 +340,21 @@ int hash_key(char* key, char* hashed_key, int length, bool is_convert_needed) {
         return ret;
     }
 
-    if (!hashed_key) {
+    if (!hashedKey) {
         LOG_ERROR("hash_key: null hashed_key");
         return ret;
     }
 
-    if (is_convert_needed) {
+    if (isConvertNeeded) {
         uint8_t key_to_hash[length + 1];
         uint64_t len;
         if (!hex2carray(key, &len, key_to_hash)) {
             return ret;
         }
 
-        ret = sgx_sha256_msg(key_to_hash, length, (uint8_t*)hashed_key);
+        ret = sgx_sha256_msg(key_to_hash, length, (uint8_t*)hashedKey);
     } else {
-        ret = sgx_sha256_msg((uint8_t*)key, length, (uint8_t*)hashed_key);
+        ret = sgx_sha256_msg((uint8_t*)key, length, (uint8_t*)hashedKey);
     }
 
     return ret;

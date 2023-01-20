@@ -1344,46 +1344,46 @@ TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt", "[bls-aggregated
 
     int exportable = 1;
 
-    uint64_t enc_bls_len = 0;
+    uint64_t encBlsLen = 0;
 
     sgx_status_t status = SGX_SUCCESS;
 
-    SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+    SAFE_UINT8_BUF(encrBlsKey, BUF_LEN)
 
-    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key, &enc_bls_len);
-
-    REQUIRE(status == 0);
-    REQUIRE(errStatus == 0);
-
-    vector<char> decr_key(BUF_LEN, 0);
-    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encr_bls_key, enc_bls_len, decr_key.data());
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encrBlsKey, &encBlsLen);
 
     REQUIRE(status == 0);
     REQUIRE(errStatus == 0);
 
-    mpz_t bls_key;
-    mpz_init(bls_key);
-    REQUIRE(mpz_set_str(bls_key, decr_key.data(), 16) == 0);
+    vector<char> decrKey(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrBlsKey, encBlsLen, decrKey.data());
+
+    REQUIRE(status == 0);
+    REQUIRE(errStatus == 0);
+
+    mpz_t blsKey;
+    mpz_init(blsKey);
+    REQUIRE(mpz_set_str(blsKey, decrKey.data(), 16) == 0);
 
     mpz_t q;
     mpz_init(q);
     mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
 
-    REQUIRE(mpz_cmp_ui(bls_key, 0) > 0);
-    REQUIRE(mpz_cmp(bls_key, q) < 0);
+    REQUIRE(mpz_cmp_ui(blsKey, 0) > 0);
+    REQUIRE(mpz_cmp(blsKey, q) < 0);
 
-    SAFE_UINT8_BUF(encr_bls_key_second, BUF_LEN)
+    SAFE_UINT8_BUF(encrBlsKeySecond, BUF_LEN)
 
-    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encr_bls_key_second, &enc_bls_len);
+    status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(), &exportable, encrBlsKeySecond, &encBlsLen);
 
-    vector<char> decr_key_second(BUF_LEN, 0);
-    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encr_bls_key_second, enc_bls_len, decr_key_second.data());
+    vector<char> decrKeySecond(BUF_LEN, 0);
+    status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrBlsKeySecond, encBlsLen, decrKeySecond.data());
 
-    mpz_t bls_key_second;
-    mpz_init(bls_key_second);
-    mpz_set_str(bls_key_second, decr_key_second.data(), 16);
+    mpz_t blsKeySecond;
+    mpz_init(blsKeySecond);
+    mpz_set_str(blsKeySecond, decrKeySecond.data(), 16);
 
-    REQUIRE( mpz_cmp(bls_key, bls_key_second) != 0);
+    REQUIRE( mpz_cmp(blsKey, blsKeySecond) != 0);
 }
 
 TEST_CASE_METHOD(TestFixture, "Test key generation for bls aggregated signatures scheme", "[bls-aggregated-key-generation]") {
@@ -1441,16 +1441,16 @@ TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures sche
         key = libff::alt_bn128_Fr::random_element();
     }
 
-    std::string key_str = TestUtils::stringFromFr(key, 16);
-    auto response = c.importBLSKeyShare(key_str, name);
+    std::string keyStr = TestUtils::stringFromFr(key, 16);
+    auto response = c.importBLSKeyShare(keyStr, name);
     REQUIRE(response["status"] == 0);
 
     libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
 
     response = c.popProve(name);
     REQUIRE(response["status"] == 0);
-    shared_ptr<string> sig_share_ptr = make_shared<string>(response["popProve"].asString());
-    BLSSigShare sig(sig_share_ptr, 1, 1, 1);
+    shared_ptr<string> sigSharePtr = make_shared<string>(response["popProve"].asString());
+    BLSSigShare sig(sigSharePtr, 1, 1, 1);
     libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
 
     REQUIRE( popProveLocal == popProveEnclave );
@@ -1467,15 +1467,15 @@ TEST_CASE_METHOD(TestFixture, "Test pop prove for bls aggregated signatures sche
         key = libff::alt_bn128_Fr::random_element();
     }
 
-    std::string key_str = TestUtils::stringFromFr(key, 16);
-    auto response = client->importBLSKeyShare(key_str, name);
+    std::string keyStr = TestUtils::stringFromFr(key, 16);
+    auto response = client->importBLSKeyShare(keyStr, name);
     REQUIRE(response);
 
     libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
 
     std::string pop_prove_response = client->popProve(name);
-    shared_ptr<string> sig_share_ptr = make_shared<string>(pop_prove_response);
-    BLSSigShare sig(sig_share_ptr, 1, 1, 1);
+    shared_ptr<string> sigSharePtr = make_shared<string>(pop_prove_response);
+    BLSSigShare sig(sigSharePtr, 1, 1, 1);
     libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
 
     REQUIRE( popProveLocal == popProveEnclave );

@@ -64,7 +64,7 @@ vector<string> calculateDecryptionShare(const string& encryptedKeyShare,
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    auto splitted_share = libBLS::ThresholdUtils::SplitString(std::make_shared<std::string>(decryptionShare), ":");
+    auto splittedShare = libBLS::ThresholdUtils::SplitString(std::make_shared<std::string>(decryptionShare), ":");
 
-    return *splitted_share;
+    return *splittedShare;
 }

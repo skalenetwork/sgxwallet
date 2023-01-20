@@ -36,6 +36,6 @@ int xor_decrypt(char* key, char* cypher, char* message);
 
 int xor_decrypt_v2(char* key, char* cypher, char* message);
 
-int hash_key(char* key, char* hashed_key, int length, bool is_convert_needed);
+int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded);
 
 #endif //SGXD_DRIVE_KEY_DKG_H
