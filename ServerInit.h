@@ -32,7 +32,9 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(uint32_t  _logLevel, bool _checkCert, bool _checkZMQSig, bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership);
+EXTERNC void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
+                     bool _autoSign, bool _generateTestKeys,
+                     bool _checkKeyOwnership);
 
 void exitAll();
 
@@ -42,6 +44,4 @@ EXTERNC uint64_t initEnclave();
 
 EXTERNC void exitZMQServer();
 
-
-
-#endif //SGXWALLET_SERVERINIT_H
+#endif // SGXWALLET_SERVERINIT_H

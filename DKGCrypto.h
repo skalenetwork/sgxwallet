@@ -31,36 +31,45 @@
 
 using namespace std;
 
-string gen_dkg_poly( int _t);
+string gen_dkg_poly(int _t);
 
-vector <vector<string>> get_verif_vect(const string& encryptedPolyHex, int t);
+vector<vector<string>> get_verif_vect(const string &encryptedPolyHex, int t);
 
-vector <vector<string>> getVerificationVectorMult(const std::string& encryptedPolyHex, int t, int n, size_t ind);
+vector<vector<string>>
+getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n,
+                          size_t ind);
 
-string getSecretShares(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
+string getSecretShares(const string &_polyName, const char *_encryptedPolyHex,
+                       const vector<string> &_publicKeys, int _t, int _n);
 
-string getSecretSharesV2(const string& _polyName, const char* _encryptedPolyHex, const vector<string>& _publicKeys, int _t, int _n);
+string getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex,
+                         const vector<string> &_publicKeys, int _t, int _n);
 
-bool verifyShares(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
+bool verifyShares(const char *publicShares, const char *encr_sshare,
+                  const char *encryptedKeyHex, int t, int n, int ind);
 
-bool verifySharesV2(const char* publicShares, const char* encr_sshare, const char * encryptedKeyHex, int t, int n, int ind);
+bool verifySharesV2(const char *publicShares, const char *encr_sshare,
+                    const char *encryptedKeyHex, int t, int n, int ind);
 
-string decryptDHKey(const string& polyName, int ind);
+string decryptDHKey(const string &polyName, int ind);
 
-bool createBLSShare( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
+bool createBLSShare(const string &blsKeyName, const char *s_shares,
+                    const char *encryptedKeyHex);
 
-bool createBLSShareV2( const string& blsKeyName, const char * s_shares, const char * encryptedKeyHex);
+bool createBLSShareV2(const string &blsKeyName, const char *s_shares,
+                      const char *encryptedKeyHex);
 
-vector<string> getBLSPubKey(const char * encryptedKeyHex);
+vector<string> getBLSPubKey(const char *encryptedKeyHex);
 
-vector<string> mult_G2(const string& x);
+vector<string> mult_G2(const string &x);
 
-string convertHexToDec(const string& hex_str);
+string convertHexToDec(const string &hex_str);
 
-string convertG2ToString(const libff::alt_bn128_G2& elem, int base = 10, const string& delim = ":");
+string convertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10,
+                         const string &delim = ":");
 
-vector<string> calculateAllBlsPublicKeys(const vector<string>& public_shares);
+vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares);
 
-bool testCreateBLSShare( const char * s_shares);
+bool testCreateBLSShare(const char *s_shares);
 
-#endif //SGXD_DKGCRYPTO_H
+#endif // SGXD_DKGCRYPTO_H

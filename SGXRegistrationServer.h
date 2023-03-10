@@ -24,42 +24,38 @@
 #ifndef SGXD_SGXREGISTRATIONSERVER_H
 #define SGXD_SGXREGISTRATIONSERVER_H
 
-
 #include <mutex>
 
 #include "abstractregserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-
 #define CERT_DIR "cert"
 #define CERT_CREATE_COMMAND "create_client_cert"
-
 
 using namespace jsonrpc;
 using namespace std;
 
 class SGXRegistrationServer : public AbstractRegServer {
-    mutex m;
-    bool autoSign;
+  mutex m;
+  bool autoSign;
 
-    static shared_ptr <HttpServer> httpServer;
+  static shared_ptr<HttpServer> httpServer;
 
-    static shared_ptr <SGXRegistrationServer> server;
+  static shared_ptr<SGXRegistrationServer> server;
 
 public:
+  static shared_ptr<SGXRegistrationServer> getServer();
 
-    static shared_ptr <SGXRegistrationServer> getServer();
+  SGXRegistrationServer(AbstractServerConnector &connector,
+                        serverVersion_t type, bool _autoSign = false);
 
-    SGXRegistrationServer(AbstractServerConnector &connector, serverVersion_t type, bool _autoSign = false);
+  virtual Json::Value SignCertificate(const string &csr);
 
-    virtual Json::Value SignCertificate(const string &csr);
+  virtual Json::Value GetCertificate(const string &hash);
 
-    virtual Json::Value GetCertificate(const string &hash);
+  static void initRegistrationServer(bool _autoSign = false);
 
-    static void initRegistrationServer(bool _autoSign = false);
-
-    static int exitServer();
+  static int exitServer();
 };
-
 
 #endif // SGXD_SGXREGISTRATIONSERVER_H

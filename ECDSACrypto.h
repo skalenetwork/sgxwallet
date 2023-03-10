@@ -24,18 +24,18 @@
 #ifndef SGXD_ECDSACRYPTO_H
 #define SGXD_ECDSACRYPTO_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 using namespace std;
 
 vector<string> genECDSAKey();
 
-string getECDSAPubKey(const std::string& _encryptedKeyHex);
+string getECDSAPubKey(const std::string &_encryptedKeyHex);
 
-vector<string> ecdsaSignHash(const std::string& encryptedKeyHex, const char* hashHex, int base);
+vector<string> ecdsaSignHash(const std::string &encryptedKeyHex,
+                             const char *hashHex, int base);
 
-string encryptECDSAKey(const string& key);
+string encryptECDSAKey(const string &key);
 
-
-#endif //SGXD_ECDSACRYPTO_H
+#endif // SGXD_ECDSACRYPTO_H

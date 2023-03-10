@@ -28,26 +28,23 @@ class ZMQServer;
 
 class WorkerThreadPool {
 
-    void createThread( uint64_t threadNumber );
+  void createThread(uint64_t threadNumber);
 
-    recursive_mutex m;
+  recursive_mutex m;
 
 protected:
+  atomic_bool joined;
+  vector<shared_ptr<thread>> threadpool;
 
-    atomic_bool joined;
-    vector<shared_ptr<thread>> threadpool;
-
-    uint64_t numThreads = 0;
-    ZMQServer* agent = nullptr;
+  uint64_t numThreads = 0;
+  ZMQServer *agent = nullptr;
 
 public:
+  WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent);
 
-    WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent);
+  virtual ~WorkerThreadPool();
 
-    virtual ~WorkerThreadPool();
+  void joinAll();
 
-    void joinAll();
-
-    bool isJoined() const;
-
+  bool isJoined() const;
 };

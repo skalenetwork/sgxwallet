@@ -21,31 +21,29 @@
     @date 2021
 */
 
-#include "common.h"
 #include "Agent.h"
+#include "common.h"
 
-Agent::Agent() : startedWorkers(false) {};
+Agent::Agent() : startedWorkers(false){};
 
 void Agent::waitOnGlobalStartBarrier() {
-    unique_lock<mutex> lock(startMutex);
-    while (!startedWorkers) {
-        // wait until notified to start running
-        startCond.wait(lock);
-    }
+  unique_lock<mutex> lock(startMutex);
+  while (!startedWorkers) {
+    // wait until notified to start running
+    startCond.wait(lock);
+  }
 }
 
-Agent::~Agent() {
-}
-
+Agent::~Agent() {}
 
 void Agent::releaseWorkers() {
 
-    if (startedWorkers.exchange(true)) {
-        // already started
-        return;
-    }
+  if (startedWorkers.exchange(true)) {
+    // already started
+    return;
+  }
 
-    lock_guard<mutex> lock(startMutex);
+  lock_guard<mutex> lock(startMutex);
 
-    startCond.notify_all();
+  startCond.notify_all();
 }

@@ -26,27 +26,24 @@
 class Agent {
 
 protected:
+  atomic_bool startedWorkers;
 
-    atomic_bool startedWorkers;
+  mutex messageMutex;
+  condition_variable messageCond;
 
-    mutex messageMutex;
-    condition_variable messageCond;
+  condition_variable startCond;
+  mutex startMutex;
 
-    condition_variable startCond;
-    mutex startMutex;
-
-    recursive_mutex m;
-
+  recursive_mutex m;
 
 public:
+  Agent();
 
-    Agent();
+  virtual ~Agent();
 
-    virtual ~Agent();
+  void releaseWorkers();
 
-    void releaseWorkers();
+  void waitOnGlobalStartBarrier();
 
-    void waitOnGlobalStartBarrier();
-
-    recursive_mutex& getMainMutex() { return m; }
+  recursive_mutex &getMainMutex() { return m; }
 };

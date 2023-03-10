@@ -23,26 +23,25 @@
 
 #pragma once
 
-
 class Exception : public std::exception {
 public:
-    Exception( const std::string& _message, const std::string& _className ) {
-        message = _className + ":" + _message;
-    }
-    const char* what() const noexcept override {
-        return message.empty() ? std::exception::what() : message.c_str();
-    }
+  Exception(const std::string &_message, const std::string &_className) {
+    message = _className + ":" + _message;
+  }
+  const char *what() const noexcept override {
+    return message.empty() ? std::exception::what() : message.c_str();
+  }
 
-    const std::string& getMessage() const { return message; }
+  const std::string &getMessage() const { return message; }
 
-    bool isFatal() const { return fatal; }
+  bool isFatal() const { return fatal; }
 
 private:
-    std::string message;
+  std::string message;
 
 protected:
-    bool fatal = false;
+  bool fatal = false;
 
 public:
-    static void logNested( const std::exception& e, int level = 0 );
+  static void logNested(const std::exception &e, int level = 0);
 };
