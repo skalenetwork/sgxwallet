@@ -21,7 +21,7 @@
     @date 2019
 */
 
-#include <cstdint>
+#include <stdint.h>
 
 #include "DomainParameters.h"
 
