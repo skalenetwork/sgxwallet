@@ -16,10 +16,12 @@
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
 
-    @file BLSEnclave.h
+    @file EnclaveCommon.h
     @author Stan Kladko
     @date 2019
 */
+
+#include <cstdint>
 
 #include "DomainParameters.h"
 
