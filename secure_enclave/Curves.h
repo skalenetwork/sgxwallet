@@ -30,6 +30,8 @@
 #define EXTERNC
 #endif
 
+#include "DomainParameters.h"
+
 /*Curves that can be loaded using domain_parameters_load_curve()*/
 typedef enum {
   secp112r1 = 0,
