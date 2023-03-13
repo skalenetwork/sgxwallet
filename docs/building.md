@@ -73,7 +73,7 @@ To format code run
 
 ```bash
 cd scripts
-python format.py
+python3 format.py
 ```
 
 ## Build base Docker container
