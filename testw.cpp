@@ -1516,7 +1516,6 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
     std::for_each(workers.begin(), workers.end(), [](
             std::thread &t) { t.join(); });
     PRINT_SRC_LINE
-
 }
 
 TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore", "[backup-restore]") {}

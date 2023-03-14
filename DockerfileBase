@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     git \
     libcurl4-openssl-dev \
     libprotobuf-dev \
+    libssl-dev \
     libtool \
     lsb-release \
     ocaml \
@@ -27,7 +28,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
+RUN git clone -b sgx_2.19 --depth 1 https://github.com/intel/linux-sgx
 
 RUN cd linux-sgx && make preparation
 
