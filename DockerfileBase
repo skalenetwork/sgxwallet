@@ -21,7 +21,6 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     python-is-python3 \
     wget \
     libcurl4 \
-    libssl1.1 \
     make \
     module-init-tools \
     unzip \
