@@ -53,8 +53,7 @@ WORKDIR /usr/src/sdk
 
 RUN apt update && \
     apt install -yq apt-utils && \
-    apt install -yq --no-install-recommends python-yaml vim \
-        telnet git ca-certificates perl \
+    apt install -yq --no-install-recommends vim telnet git ca-certificates perl \
         reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
         yasm flex bison libprocps-dev ccache texinfo \
         libjsonrpccpp-dev curl libjsonrpccpp-tools && \
