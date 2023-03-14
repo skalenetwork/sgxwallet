@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     git \
     libcurl4-openssl-dev \
     libprotobuf-dev \
-    libssl-dev \
     libtool \
     lsb-release \
     ocaml \
