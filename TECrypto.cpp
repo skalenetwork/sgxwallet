@@ -21,50 +21,53 @@
     @date 2021
 */
 
-#include <memory>
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <memory>
 
 #include "threshold_encryption/threshold_encryption.h"
 
-#include "sgxwallet_common.h"
-#include "sgxwallet.h"
 #include "SGXException.h"
-#include "third_party/spdlog/spdlog.h"
-#include "common.h"
 #include "SGXWalletServer.h"
+#include "common.h"
+#include "sgxwallet.h"
+#include "sgxwallet_common.h"
+#include "third_party/spdlog/spdlog.h"
 
-#include "TECrypto.h"
 #include "CryptoTools.h"
+#include "TECrypto.h"
 
 #include <tools/utils.h>
 
-vector<string> calculateDecryptionShare(const string& encryptedKeyShare,
-                                        const string& publicDecryptionValue) {
-    size_t sz = 0;
+vector<string> calculateDecryptionShare(const string &encryptedKeyShare,
+                                        const string &publicDecryptionValue) {
+  size_t sz = 0;
 
-    SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
+  SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
 
-    bool result = hex2carray(encryptedKeyShare.data(), &sz, encryptedKey, BUF_LEN);
+  bool result =
+      hex2carray(encryptedKeyShare.data(), &sz, encryptedKey, BUF_LEN);
 
-    if (!result) {
-        BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
-    }
+  if (!result) {
+    BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
+  }
 
-    SAFE_CHAR_BUF(decryptionShare, BUF_LEN)
+  SAFE_CHAR_BUF(decryptionShare, BUF_LEN)
 
-    vector<char> errMsg(BUF_LEN, 0);
+  vector<char> errMsg(BUF_LEN, 0);
 
-    int errStatus = 0;
+  int errStatus = 0;
 
-    sgx_status_t status = SGX_SUCCESS;
+  sgx_status_t status = SGX_SUCCESS;
 
-    status = trustedGetDecryptionShare(eid, &errStatus, errMsg.data(), encryptedKey,
-                                    publicDecryptionValue.data(), sz, decryptionShare);
+  status = trustedGetDecryptionShare(eid, &errStatus, errMsg.data(),
+                                     encryptedKey, publicDecryptionValue.data(),
+                                     sz, decryptionShare);
 
-    HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+  HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-    auto splittedShare = libBLS::ThresholdUtils::SplitString(std::make_shared<std::string>(decryptionShare), ":");
+  auto splittedShare = libBLS::ThresholdUtils::SplitString(
+      std::make_shared<std::string>(decryptionShare), ":");
 
-    return *splittedShare;
+  return *splittedShare;
 }

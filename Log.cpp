@@ -21,38 +21,38 @@
     @date 2019
 */
 
-#include "third_party/spdlog/spdlog.h"
-#include "sgxwallet_common.h"
-#include "common.h"
-#include "SGXException.h"
 #include "Log.h"
+#include "SGXException.h"
+#include "common.h"
+#include "sgxwallet_common.h"
+#include "third_party/spdlog/spdlog.h"
 
 using namespace std;
 
 void Log::setGlobalLogLevel(string &_s) {
-    globalLogLevel = logLevelFromString(_s);
+  globalLogLevel = logLevelFromString(_s);
 }
 
 level_enum Log::logLevelFromString(string &_s) {
-    level_enum  result = trace;
+  level_enum result = trace;
 
-    if (_s == "trace")
-        result = trace;
-    else if (_s == "debug")
-        result = debug;
-    else if (_s == "info")
-        result = info;
-    else if (_s == "warn")
-        result = warn;
-    else if (_s == "err")
-        result = err;
-    else
-        throw InvalidArgumentException("Unknown level name " + _s, __CLASS_NAME__);
-    return result;
+  if (_s == "trace")
+    result = trace;
+  else if (_s == "debug")
+    result = debug;
+  else if (_s == "info")
+    result = info;
+  else if (_s == "warn")
+    result = warn;
+  else if (_s == "err")
+    result = err;
+  else
+    throw InvalidArgumentException("Unknown level name " + _s, __CLASS_NAME__);
+  return result;
 }
 
-void Log::handleSGXException(Json::Value& _result, SGXException& _e ) {
-    spdlog::error("Responding with JSON error:" +  _e.getErrString());
-    _result["status"] = _e.getStatus();
-    _result["errorMessage"] = _e.getErrString();
+void Log::handleSGXException(Json::Value &_result, SGXException &_e) {
+  spdlog::error("Responding with JSON error:" + _e.getErrString());
+  _result["status"] = _e.getStatus();
+  _result["errorMessage"] = _e.getErrString();
 }

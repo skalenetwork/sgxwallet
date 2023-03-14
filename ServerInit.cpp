@@ -21,216 +21,221 @@
     @date 2019
 */
 
-#include <memory>
 #include <iostream>
+#include <memory>
 
-#include <unistd.h>
-#include <stdio.h>
 #include <limits.h>
-#include <sys/types.h>
+#include <stdio.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
-#include <libff/common/profiling.hpp>
 #include "bls.h"
 #include "leveldb/db.h"
+#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <libff/common/profiling.hpp>
 
 #include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
 #include <sgx_urts.h>
 #include <unistd.h>
 
-
-#include "ExitHandler.h"
+#include "BLSCrypto.h"
 #include "BLSPrivateKeyShareSGX.h"
+#include "CSRManagerServer.h"
+#include "ExitHandler.h"
+#include "LevelDB.h"
+#include "SEKManager.h"
+#include "SGXException.h"
+#include "SGXInfoServer.h"
+#include "SGXRegistrationServer.h"
+#include "SGXWalletServer.h"
+#include "SGXWalletServer.hpp"
+#include "ServerInit.h"
+#include "secure_enclave_u.h"
+#include "sgxwallet.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
-#include "secure_enclave_u.h"
 #include "third_party/intel/sgx_detect.h"
-#include "sgxwallet.h"
-#include "LevelDB.h"
-#include "SGXWalletServer.h"
-#include "SGXRegistrationServer.h"
-#include "SGXInfoServer.h"
-#include "SEKManager.h"
-#include "CSRManagerServer.h"
-#include "BLSCrypto.h"
-#include "ServerInit.h"
-#include "SGXException.h"
 #include "zmq_src/ZMQServer.h"
-#include "SGXWalletServer.hpp"
 
 uint32_t enclaveLogLevel = 0;
 
 using namespace std;
 
 void systemHealthCheck() {
-    string ulimit;
-    try {
-        ulimit = exec("/bin/bash -c \"ulimit -n\"");
-    } catch (...) {
-        spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
-        throw SGXException(EXECUTION_ULIMIT_FAILED, "Execution of '/bin/bash -c ulimit -n' failed.");
-    }
-    int noFiles = strtol(ulimit.c_str(), NULL, 10);
+  string ulimit;
+  try {
+    ulimit = exec("/bin/bash -c \"ulimit -n\"");
+  } catch (...) {
+    spdlog::error("Execution of '/bin/bash -c ulimit -n' failed");
+    throw SGXException(EXECUTION_ULIMIT_FAILED,
+                       "Execution of '/bin/bash -c ulimit -n' failed.");
+  }
+  int noFiles = strtol(ulimit.c_str(), NULL, 10);
 
-    auto noUlimitCheck = getenv("NO_ULIMIT_CHECK") != nullptr;
+  auto noUlimitCheck = getenv("NO_ULIMIT_CHECK") != nullptr;
 
-    if (noFiles < 65535 && !noUlimitCheck) {
-        string errStr =
-                "sgxwallet requires setting Linux file descriptor limit to at least 65535 "
-                "You current limit (ulimit -n) is less than 65535. \n Please set it to 65535:"
-                "by editing /etc/systemd/system.conf"
-                "and setting 'DefaultLimitNOFILE=65535'\n"
-                "After that, restart sgxwallet";
-        spdlog::error(errStr);
-        throw SGXException(WRONG_ULIMIT, errStr);
-    }
+  if (noFiles < 65535 && !noUlimitCheck) {
+    string errStr = "sgxwallet requires setting Linux file descriptor limit to "
+                    "at least 65535 "
+                    "You current limit (ulimit -n) is less than 65535. \n "
+                    "Please set it to 65535:"
+                    "by editing /etc/systemd/system.conf"
+                    "and setting 'DefaultLimitNOFILE=65535'\n"
+                    "After that, restart sgxwallet";
+    spdlog::error(errStr);
+    throw SGXException(WRONG_ULIMIT, errStr);
+  }
 }
 
 void initUserSpace() {
 
-    libff::inhibit_profiling_counters = true;
+  libff::inhibit_profiling_counters = true;
 
-    libff::init_alt_bn128_params();
+  libff::init_alt_bn128_params();
 
-    LevelDB::initDataFolderAndDBs();
+  LevelDB::initDataFolderAndDBs();
 
 #ifndef SGX_HW_SIM
-    systemHealthCheck();
+  systemHealthCheck();
 #endif
-
 }
 
 uint64_t initEnclave() {
 
 #ifndef SGX_HW_SIM
-    unsigned long support;
-    support = get_sgx_support();
-    if (!SGX_OK(support)) {
-        sgx_support_perror(support);
-        throw SGXException(COULD_NOT_INIT_ENCLAVE, "SGX is not supported or not enabled");
-    }
+  unsigned long support;
+  support = get_sgx_support();
+  if (!SGX_OK(support)) {
+    sgx_support_perror(support);
+    throw SGXException(COULD_NOT_INIT_ENCLAVE,
+                       "SGX is not supported or not enabled");
+  }
 #endif
 
-    spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
+  spdlog::info("SGX_DEBUG_FLAG = {}", SGX_DEBUG_FLAG);
 
-    sgx_status_t status = SGX_SUCCESS;
+  sgx_status_t status = SGX_SUCCESS;
 
-    {
+  {
 
-        WRITE_LOCK(sgxInitMutex);
+    WRITE_LOCK(sgxInitMutex);
 
-        if (eid != 0) {
-            if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
-                spdlog::error("Could not destroy enclave");
-            }
-        }
-
-        eid = 0;
-        updated = 0;
-
-        status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
-                                           &updated, &eid, 0);
-
-        if (status != SGX_SUCCESS) {
-            if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
-                spdlog::error("sgx_create_enclave: {}: file not found", ENCLAVE_NAME);
-                spdlog::error("Did you forget to set LD_LIBRARY_PATH?");
-            } else {
-                spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME, status);
-            }
-            throw SGXException(COULD_NOT_INIT_ENCLAVE, "Error initing enclave. Please re-check your enviroment.");
-        }
-
-        spdlog::info("Enclave created and started successfully");
-
-        status = trustedEnclaveInit(eid, enclaveLogLevel);
+    if (eid != 0) {
+      if (sgx_destroy_enclave(eid) != SGX_SUCCESS) {
+        spdlog::error("Could not destroy enclave");
+      }
     }
+
+    eid = 0;
+    updated = 0;
+
+    status = sgx_create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, &token,
+                                       &updated, &eid, 0);
 
     if (status != SGX_SUCCESS) {
-        spdlog::error("trustedEnclaveInit failed: {}", status);
-        return status;
+      if (status == SGX_ERROR_ENCLAVE_FILE_ACCESS) {
+        spdlog::error("sgx_create_enclave: {}: file not found", ENCLAVE_NAME);
+        spdlog::error("Did you forget to set LD_LIBRARY_PATH?");
+      } else {
+        spdlog::error("sgx_create_enclave_search failed {} {}", ENCLAVE_NAME,
+                      status);
+      }
+      throw SGXException(
+          COULD_NOT_INIT_ENCLAVE,
+          "Error initing enclave. Please re-check your enviroment.");
     }
 
-    spdlog::info("Enclave libtgmp library and logging initialized successfully");
+    spdlog::info("Enclave created and started successfully");
 
-    return SGX_SUCCESS;
+    status = trustedEnclaveInit(eid, enclaveLogLevel);
+  }
+
+  if (status != SGX_SUCCESS) {
+    spdlog::error("trustedEnclaveInit failed: {}", status);
+    return status;
+  }
+
+  spdlog::info("Enclave libtgmp library and logging initialized successfully");
+
+  return SGX_SUCCESS;
 }
 
-void initAll(uint32_t _logLevel, bool _checkCert,
-             bool _checkZMQSig, bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership) {
+void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
+             bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership) {
 
-    static atomic<bool> sgxServerInited(false);
-    static mutex initMutex;
-    enclaveLogLevel = _logLevel;
+  static atomic<bool> sgxServerInited(false);
+  static mutex initMutex;
+  enclaveLogLevel = _logLevel;
 
-    lock_guard <mutex> lock(initMutex);
+  lock_guard<mutex> lock(initMutex);
 
-    if (sgxServerInited)
-        return;
+  if (sgxServerInited)
+    return;
 
-    try {
+  try {
 
-        cout << "Running sgxwallet version:" << SGXWalletServer::getVersion() << endl;
+    cout << "Running sgxwallet version:" << SGXWalletServer::getVersion()
+         << endl;
 
-        CHECK_STATE(sgxServerInited != 1)
-        sgxServerInited = 1;
+    CHECK_STATE(sgxServerInited != 1)
+    sgxServerInited = 1;
 
-        uint64_t counter = 0;
+    uint64_t counter = 0;
 
-        uint64_t initResult = 0;
-        while ((initResult = initEnclave()) != 0 && counter < 10) {
-            sleep(1);
-            counter++;
-        }
-
-        if (initResult != 0) {
-            spdlog::error("Coult not init enclave");
-        }
-
-        initUserSpace();
-        initSEK();
-
-        SGXWalletServer::createCertsIfNeeded();
-
-        if (useHTTPS) {
-            spdlog::info("Initing JSON-RPC server over HTTPS");
-            spdlog::info("Check client cert: {}", _checkCert);
-            SGXWalletServer::initHttpsServer(_checkCert);
-            spdlog::info("Inited JSON-RPC server over HTTPS");
-        } else {
-            spdlog::info("Initing JSON-RPC server over HTTP");
-            SGXWalletServer::initHttpServer();
-            spdlog::info("Inited JSON-RPC server over HTTP");
-        }
-
-        SGXRegistrationServer::initRegistrationServer(_autoSign);
-        CSRManagerServer::initCSRManagerServer();
-        SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign, _generateTestKeys);
-        ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
-
-        sgxServerInited = true;
-    } catch (SGXException &_e) {
-        spdlog::error(_e.getMessage());
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
-    } catch (exception &_e) {
-        spdlog::error(_e.what());
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+    uint64_t initResult = 0;
+    while ((initResult = initEnclave()) != 0 && counter < 10) {
+      sleep(1);
+      counter++;
     }
-    catch (...) {
-        exception_ptr p = current_exception();
-        printf("Exception %s \n", p.__cxa_exception_type()->name());
-        spdlog::error("Unknown exception");
-        ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+
+    if (initResult != 0) {
+      spdlog::error("Coult not init enclave");
     }
+
+    initUserSpace();
+    initSEK();
+
+    SGXWalletServer::createCertsIfNeeded();
+
+    if (useHTTPS) {
+      spdlog::info("Initing JSON-RPC server over HTTPS");
+      spdlog::info("Check client cert: {}", _checkCert);
+      SGXWalletServer::initHttpsServer(_checkCert);
+      spdlog::info("Inited JSON-RPC server over HTTPS");
+    } else {
+      spdlog::info("Initing JSON-RPC server over HTTP");
+      SGXWalletServer::initHttpServer();
+      spdlog::info("Inited JSON-RPC server over HTTP");
+    }
+
+    SGXRegistrationServer::initRegistrationServer(_autoSign);
+    CSRManagerServer::initCSRManagerServer();
+    SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign,
+                                  _generateTestKeys);
+    ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
+
+    sgxServerInited = true;
+  } catch (SGXException &_e) {
+    spdlog::error(_e.getMessage());
+    ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+  } catch (exception &_e) {
+    spdlog::error(_e.what());
+    ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+  } catch (...) {
+    exception_ptr p = current_exception();
+    printf("Exception %s \n", p.__cxa_exception_type()->name());
+    spdlog::error("Unknown exception");
+    ExitHandler::exitHandler(SIGTERM, ExitHandler::ec_initing_user_space);
+  }
 };
 
 void exitAll() {
-    SGXWalletServer::exitServer();
-    SGXRegistrationServer::exitServer();
-    CSRManagerServer::exitServer();
-    SGXInfoServer::exitServer();
-    ZMQServer::exitZMQServer();
+  SGXWalletServer::exitServer();
+  SGXRegistrationServer::exitServer();
+  CSRManagerServer::exitServer();
+  SGXInfoServer::exitServer();
+  ZMQServer::exitZMQServer();
 }

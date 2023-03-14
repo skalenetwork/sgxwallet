@@ -36,11 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SGXD_SGXD_COMMON_H
 #define SGXD_SGXD_COMMON_H
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <stdbool.h>
 
@@ -66,7 +66,6 @@ extern bool autoconfirm;
 #define ECDSA_SKEY_BASE 16
 #define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
-
 
 #define PLAINTEXT_KEY_TOO_LONG -2
 #define UNPADDED_KEY -3
@@ -140,7 +139,7 @@ extern bool autoconfirm;
 #define INVALID_DKG_VV_V2_ECDSA_KEY_NAME -67
 #define INVALID_DKG_VV_V2_PARAMS -68
 #define INVALID_DKG_VV_V2_SS_HEX -69
-#define INVALID_DKG_VV_V2_SS_COUNT  -70
+#define INVALID_DKG_VV_V2_SS_COUNT -70
 #define EXCEPTION_IN_CONVERT_HEX_TO_DEC -71
 #define GET_SS_V2_INVALID_HEX -72
 #define EXCEPTION_IN_CONVERT_G2_STRING -73
@@ -204,6 +203,4 @@ extern bool autoconfirm;
 
 #define TEST_VALUE "1234567890"
 
-
-
-#endif //SGXWALLET_SGXWALLET_COMMON_H
+#endif // SGXWALLET_SGXWALLET_COMMON_H

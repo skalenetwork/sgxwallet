@@ -5,408 +5,464 @@
 #ifndef JSONRPC_CPP_STUB_STUBCLIENT_H_
 #define JSONRPC_CPP_STUB_STUBCLIENT_H_
 
-#include <jsonrpccpp/client.h>
 #include <cassert>
+#include <jsonrpccpp/client.h>
 
-class StubClient : public jsonrpc::Client
-{
-    public:
-        StubClient(jsonrpc::IClientConnector &conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2) : jsonrpc::Client(conn, type) {}
+class StubClient : public jsonrpc::Client {
+public:
+  StubClient(jsonrpc::IClientConnector &conn,
+             jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
+      : jsonrpc::Client(conn, type) {}
 
-        Json::Value importBLSKeyShare(const std::string& keyShare, const std::string& keyShareName)
-        {
-            Json::Value p;
-            p["keyShare"] = keyShare;
-            p["keyShareName"] = keyShareName;
-            Json::Value result = this->CallMethod("importBLSKeyShare",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value importBLSKeyShare(const std::string &keyShare,
+                                const std::string &keyShareName) {
+    Json::Value p;
+    p["keyShare"] = keyShare;
+    p["keyShareName"] = keyShareName;
+    Json::Value result = this->CallMethod("importBLSKeyShare", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value blsSignMessageHash(const std::string& keyShareName, const std::string& messageHash, int t, int n)
-        {
-            Json::Value p;
-            p["keyShareName"] = keyShareName;
-            p["messageHash"] = messageHash;
-            p["n"] = n;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("blsSignMessageHash",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value blsSignMessageHash(const std::string &keyShareName,
+                                 const std::string &messageHash, int t, int n) {
+    Json::Value p;
+    p["keyShareName"] = keyShareName;
+    p["messageHash"] = messageHash;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("blsSignMessageHash", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value importECDSAKey(const std::string& keyShare, const std::string& keyShareName)
-        {
-            Json::Value p;
-            p["key"] = keyShare;
-            p["keyName"] = keyShareName;
-            Json::Value result = this->CallMethod("importECDSAKey",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value importECDSAKey(const std::string &keyShare,
+                             const std::string &keyShareName) {
+    Json::Value p;
+    p["key"] = keyShare;
+    p["keyName"] = keyShareName;
+    Json::Value result = this->CallMethod("importECDSAKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value generateECDSAKey() 
-        {
-          Json::Value p;
-          p = Json::nullValue;
-          Json::Value result = this->CallMethod("generateECDSAKey",p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value generateECDSAKey() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("generateECDSAKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getPublicECDSAKey(const std::string& keyName) 
-        {
-            Json::Value p;
-            p["keyName"] = keyName;
-            Json::Value result = this->CallMethod("getPublicECDSAKey",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getPublicECDSAKey(const std::string &keyName) {
+    Json::Value p;
+    p["keyName"] = keyName;
+    Json::Value result = this->CallMethod("getPublicECDSAKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value ecdsaSignMessageHash(int base, const std::string& keyName, const std::string& messageHash) 
-        {
-            Json::Value p;
-            p["base"] = base;
-            p["keyName"] = keyName;
-            p["messageHash"] = messageHash;
-            Json::Value result = this->CallMethod("ecdsaSignMessageHash",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value ecdsaSignMessageHash(int base, const std::string &keyName,
+                                   const std::string &messageHash) {
+    Json::Value p;
+    p["base"] = base;
+    p["keyName"] = keyName;
+    p["messageHash"] = messageHash;
+    Json::Value result = this->CallMethod("ecdsaSignMessageHash", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value generateDKGPoly(const std::string& polyName, int t) 
-        {
-            Json::Value p;
-            p["polyName"] = polyName;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("generateDKGPoly",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value generateDKGPoly(const std::string &polyName, int t) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("generateDKGPoly", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getVerificationVector(const std::string& polyName, int t) 
-        {
-            Json::Value p;
-            p["polyName"] = polyName;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("getVerificationVector",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getVerificationVector(const std::string &polyName, int t) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("getVerificationVector", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getSecretShare(const std::string& polyName, const Json::Value& publicKeys, int t, int n) 
-        {
-            Json::Value p;
-            p["polyName"] = polyName;
-            p["publicKeys"] = publicKeys;
-            p["n"] = n;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("getSecretShare",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getSecretShare(const std::string &polyName,
+                             const Json::Value &publicKeys, int t, int n) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["publicKeys"] = publicKeys;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("getSecretShare", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getSecretShareV2(const std::string& polyName, const Json::Value& publicKeys, int t, int n)
-        {
-            Json::Value p;
-            p["polyName"] = polyName;
-            p["publicKeys"] = publicKeys;
-            p["n"] = n;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("getSecretShareV2",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getSecretShareV2(const std::string &polyName,
+                               const Json::Value &publicKeys, int t, int n) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["publicKeys"] = publicKeys;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("getSecretShareV2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value dkgVerification(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index) 
-        {
-            Json::Value p;
-            p["ethKeyName"] = ethKeyName;
-            p["secretShare"] = SecretShare;
-            p["index"] = index;
-            p["n"] = n;
-            p["publicShares"] = publicShares;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("dkgVerification",p);
-            if (result.isObject())
-              return result;
-            else
-              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value dkgVerification(const std::string &publicShares,
+                              const std::string &ethKeyName,
+                              const std::string &SecretShare, int t, int n,
+                              int index) {
+    Json::Value p;
+    p["ethKeyName"] = ethKeyName;
+    p["secretShare"] = SecretShare;
+    p["index"] = index;
+    p["n"] = n;
+    p["publicShares"] = publicShares;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("dkgVerification", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value dkgVerificationV2(const std::string& publicShares, const std::string& ethKeyName, const std::string& SecretShare, int t, int n, int index)
-        {
-            Json::Value p;
-            p["ethKeyName"] = ethKeyName;
-            p["secretShare"] = SecretShare;
-            p["index"] = index;
-            p["n"] = n;
-            p["publicShares"] = publicShares;
-            p["t"] = t;
-            Json::Value result = this->CallMethod("dkgVerificationV2",p);
-            if (result.isObject())
-              return result;
-            else
-              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value dkgVerificationV2(const std::string &publicShares,
+                                const std::string &ethKeyName,
+                                const std::string &SecretShare, int t, int n,
+                                int index) {
+    Json::Value p;
+    p["ethKeyName"] = ethKeyName;
+    p["secretShare"] = SecretShare;
+    p["index"] = index;
+    p["n"] = n;
+    p["publicShares"] = publicShares;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("dkgVerificationV2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value createBLSPrivateKey(const std::string & blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n) 
-        {
-          Json::Value p;
-          p["blsKeyName"] = blsKeyName;
-          p["ethKeyName"] = ethKeyName;
-          p["polyName"] = polyName;
-          p["secretShare"] = SecretShare;
-          p["n"] = n;
-          p["t"] = t;
-          Json::Value result = this->CallMethod("createBLSPrivateKey",p);
-          if (result.isObject())
-           return result;
-          else
-           throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value createBLSPrivateKey(const std::string &blsKeyName,
+                                  const std::string &ethKeyName,
+                                  const std::string &polyName,
+                                  const std::string &SecretShare, int t,
+                                  int n) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    p["ethKeyName"] = ethKeyName;
+    p["polyName"] = polyName;
+    p["secretShare"] = SecretShare;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("createBLSPrivateKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value createBLSPrivateKeyV2(const std::string& blsKeyName, const std::string& ethKeyName, const std::string& polyName, const std::string& SecretShare, int t, int n)
-        {
-          Json::Value p;
-          p["blsKeyName"] = blsKeyName;
-          p["ethKeyName"] = ethKeyName;
-          p["polyName"] = polyName;
-          p["secretShare"] = SecretShare;
-          p["n"] = n;
-          p["t"] = t;
-          Json::Value result = this->CallMethod("createBLSPrivateKeyV2",p);
-          if (result.isObject())
-           return result;
-          else
-           throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value createBLSPrivateKeyV2(const std::string &blsKeyName,
+                                    const std::string &ethKeyName,
+                                    const std::string &polyName,
+                                    const std::string &SecretShare, int t,
+                                    int n) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    p["ethKeyName"] = ethKeyName;
+    p["polyName"] = polyName;
+    p["secretShare"] = SecretShare;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("createBLSPrivateKeyV2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value generateBLSPrivateKey(const std::string& blsKeyName) {
-            Json::Value p;
-            p["blsKeyName"] = blsKeyName;
+  Json::Value generateBLSPrivateKey(const std::string &blsKeyName) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
 
-            Json::Value result = this->CallMethod("generateBLSPrivateKey", p);
-            if (result.isObject())
-              return result;
-            else
-              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("generateBLSPrivateKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getBLSPublicKeyShare(const std::string & blsKeyName) 
-        {
-            Json::Value p;
-            p["blsKeyName"] = blsKeyName;
+  Json::Value getBLSPublicKeyShare(const std::string &blsKeyName) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
 
-            Json::Value result = this->CallMethod("getBLSPublicKeyShare",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("getBLSPublicKeyShare", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getDecryptionShares(const std::string& blsKeyName, const Json::Value& publicDecryptionValues) 
-        {
-            Json::Value p;
-            p["blsKeyName"] = blsKeyName;
-            p["publicDecryptionValues"] = publicDecryptionValues["publicDecryptionValues"];
+  Json::Value getDecryptionShares(const std::string &blsKeyName,
+                                  const Json::Value &publicDecryptionValues) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    p["publicDecryptionValues"] =
+        publicDecryptionValues["publicDecryptionValues"];
 
-            Json::Value result = this->CallMethod("getDecryptionShares",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("getDecryptionShares", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value calculateAllBLSPublicKeys(const Json::Value& publicShares, int t, int n)
-        {
-            Json::Value p;
-            p["publicShares"] = publicShares["publicShares"];
-            p["t"] = t;
-            p["n"] = n;
+  Json::Value calculateAllBLSPublicKeys(const Json::Value &publicShares, int t,
+                                        int n) {
+    Json::Value p;
+    p["publicShares"] = publicShares["publicShares"];
+    p["t"] = t;
+    p["n"] = n;
 
-            Json::Value result = this->CallMethod("calculateAllBLSPublicKeys", p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("calculateAllBLSPublicKeys", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value complaintResponse(const std::string& polyName, int t, int n,int ind) 
-        {
-          Json::Value p;
-          p["polyName"] = polyName;
-          p["t"] = t;
-          p["n"] = n;
-          p["ind"] = ind;
-          Json::Value result = this->CallMethod("complaintResponse", p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value complaintResponse(const std::string &polyName, int t, int n,
+                                int ind) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["t"] = t;
+    p["n"] = n;
+    p["ind"] = ind;
+    Json::Value result = this->CallMethod("complaintResponse", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value popProve(const std::string& blsKeyName) {
-            Json::Value p;
-            p["blsKeyName"] = blsKeyName;
+  Json::Value popProve(const std::string &blsKeyName) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
 
-            Json::Value result = this->CallMethod("popProve", p);
-            if (result.isObject())
-              return result;
-            else
-              throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("popProve", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value multG2(const std::string & x) 
-        {
-            Json::Value p;
-            p["x"] = x;
+  Json::Value multG2(const std::string &x) {
+    Json::Value p;
+    p["x"] = x;
 
-            Json::Value result = this->CallMethod("multG2",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("multG2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value isPolyExists(const std::string & polyName) 
-        {
-            Json::Value p;
-            p["polyName"] = polyName;
+  Json::Value isPolyExists(const std::string &polyName) {
+    Json::Value p;
+    p["polyName"] = polyName;
 
-            Json::Value result = this->CallMethod("isPolyExists",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("isPolyExists", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value deleteBlsKey(const std::string & polyName)
-        {
-            Json::Value p;
-            p["blsKeyName"] = polyName;
+  Json::Value deleteBlsKey(const std::string &polyName) {
+    Json::Value p;
+    p["blsKeyName"] = polyName;
 
-            Json::Value result = this->CallMethod("deleteBlsKey",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+    Json::Value result = this->CallMethod("deleteBlsKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getServerStatus()
-        {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getServerStatus",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getServerStatus() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getServerStatus", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getServerVersion() {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getServerVersion",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getServerVersion() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getServerVersion", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
+  ////CSRManagerServer
 
-    ////CSRManagerServer
+  Json::Value getUnsignedCSRs() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getUnsignedCSRs", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getUnsignedCSRs()
-        {
-          Json::Value p;
-          p = Json::nullValue;
-          Json::Value result = this->CallMethod("getUnsignedCSRs",p);
-          if (result.isObject())
-            return result;
-          else
-            throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value signByHash(const std::string &hash, int status) {
+    Json::Value p;
+    p["hash"] = hash;
+    p["status"] = status;
+    Json::Value result = this->CallMethod("signByHash", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value signByHash(const std::string& hash, int status)
-        {
-            Json::Value p;
-            p["hash"] = hash;
-            p["status"] = status;
-            Json::Value result = this->CallMethod("signByHash",p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  /// InfoServer
 
+  Json::Value getAllKeysInfo() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getAllKeysInfo", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        /// InfoServer
+  Json::Value getLatestCreatedKey() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getLatestCreatedKey", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getAllKeysInfo()
-        {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getAllKeysInfo", p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
+  Json::Value getServerConfiguration() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getServerConfiguration", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 
-        Json::Value getLatestCreatedKey()
-        {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getLatestCreatedKey", p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value getServerConfiguration()
-        {
-            Json::Value p;
-            p = Json::nullValue;
-            Json::Value result = this->CallMethod("getServerConfiguration", p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
-        Json::Value isKeyExist(const std::string& key)
-        {
-            Json::Value p;
-            p["keyName"] = key;
-            Json::Value result = this->CallMethod("isKeyExist", p);
-            if (result.isObject())
-                return result;
-            else
-                throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-        }
-
+  Json::Value isKeyExist(const std::string &key) {
+    Json::Value p;
+    p["keyName"] = key;
+    Json::Value result = this->CallMethod("isKeyExist", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
 };
 
-#endif //JSONRPC_CPP_STUB_STUBCLIENT_H_
+#endif // JSONRPC_CPP_STUB_STUBCLIENT_H_

@@ -21,7 +21,6 @@
     @date 2019
 */
 
-
 #ifndef SGXD_CSRMANAGERSERVER_H
 #define SGXD_CSRMANAGERSERVER_H
 
@@ -29,8 +28,8 @@
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "abstractCSRManagerServer.h"
 #include "LevelDB.h"
+#include "abstractCSRManagerServer.h"
 
 using namespace jsonrpc;
 using namespace std;
@@ -42,20 +41,15 @@ class CSRManagerServer : public abstractCSRManagerServer {
 
   static shared_ptr<CSRManagerServer> cs;
 
-  public:
-
+public:
   CSRManagerServer(AbstractServerConnector &connector, serverVersion_t type);
 
   virtual Json::Value getUnsignedCSRs();
-  virtual Json::Value signByHash(const string& hash, int status);
+  virtual Json::Value signByHash(const string &hash, int status);
 
   static void initCSRManagerServer();
 
   static int exitServer();
 };
 
-
-
-
-
-#endif //SGXD_CSRMANAGERSERVER_H
+#endif // SGXD_CSRMANAGERSERVER_H

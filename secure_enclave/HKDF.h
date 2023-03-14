@@ -24,8 +24,8 @@
 #ifndef SGX_HKDF_H
 #define SGX_HKDF_H
 
-int hkdfExtract(char* salt, char* seed, char* prk);
+int hkdfExtract(char *salt, char *seed, char *prk);
 
-int hkdfExpand(char* prk, char* keyInfo, int length, char* okm);
+int hkdfExpand(char *prk, char *keyInfo, int length, char *okm);
 
 #endif // SGX_HKDF_H

@@ -27,10 +27,10 @@
 extern sgx_aes_gcm_128bit_key_t AES_key[1024];
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen,
-                unsigned char type, unsigned char exportable, uint64_t* resultLen);
-int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t msgLen,
-                uint8_t *type, uint8_t* exportable) ;
-
+                unsigned char type, unsigned char exportable,
+                uint64_t *resultLen);
+int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message,
+                uint64_t msgLen, uint8_t *type, uint8_t *exportable);
 
 #define ECDSA '1'
 #define BLS '2'
@@ -39,4 +39,4 @@ int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message, uint64_t 
 #define EXPORTABLE '1'
 #define NON_EXPORTABLE '2'
 
-#endif //SGXD_AESUTILS_H
+#endif // SGXD_AESUTILS_H

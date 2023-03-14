@@ -24,110 +24,117 @@
 #ifndef SGXWALLET_ZMQCLIENT_H
 #define SGXWALLET_ZMQCLIENT_H
 
-#include <openssl/pem.h>
-#include <openssl/evp.h>
 #include <openssl/err.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 #include <openssl/rand.h>
+#include <openssl/sha.h>
 
+#include "ZMQMessage.h"
 #include "third_party/spdlog/spdlog.h"
-#include <zmq.hpp>
 #include "zhelpers.hpp"
 #include <jsonrpccpp/client.h>
-#include "ZMQMessage.h"
+#include <zmq.hpp>
 
-#define REQUEST_TIMEOUT     10000    //  msecs, (> 1000!)
+#define REQUEST_TIMEOUT 10000 //  msecs, (> 1000!)
 
 class ZMQClient {
 private:
+  EVP_PKEY *pkey = 0;
+  EVP_PKEY *pubkey = 0;
+  X509 *x509Cert = 0;
 
-    EVP_PKEY* pkey = 0;
-    EVP_PKEY* pubkey = 0;
-    X509* x509Cert = 0;
+  bool sign = true;
+  string certFileName = "";
+  string certKeyName = "";
+  string certificate = "";
+  string key = "";
 
-    bool sign = true;
-    string certFileName = "";
-    string certKeyName = "";
-    string certificate = "";
-    string key = "";
+  recursive_mutex mutex;
 
-    recursive_mutex mutex;
+  zmq::context_t ctx;
 
-    zmq::context_t ctx;
+  string url;
 
-    string url;
+  // generate random identity
 
-    // generate random identity
+  map<uint64_t, shared_ptr<zmq::socket_t>> clientSockets;
 
-    map<uint64_t , shared_ptr <zmq::socket_t>> clientSockets;
+  shared_ptr<ZMQMessage> doRequestReply(Json::Value &_req);
 
-    shared_ptr <ZMQMessage> doRequestReply(Json::Value &_req);
+  string doZmqRequestReply(string &_req);
 
-    string doZmqRequestReply(string &_req);
+  uint64_t getProcessID();
 
-    uint64_t getProcessID();
-
-    static string readFileIntoString(const string& _fileName);
+  static string readFileIntoString(const string &_fileName);
 
 public:
+  ZMQClient(const string &ip, uint16_t port, bool _sign,
+            const string &_certPathName, const string &_certKeyName);
 
-    ZMQClient(const string &ip, uint16_t port, bool _sign, const string&  _certPathName,
-              const string& _certKeyName);
+  void reconnect();
 
-    void reconnect();
+  static pair<EVP_PKEY *, X509 *> readPublicKeyFromCertStr(const string &_cert);
 
-    static pair<EVP_PKEY*, X509*> readPublicKeyFromCertStr(const string& _cert);
+  static string signString(EVP_PKEY *_pkey, const string &_str);
 
-    static string signString(EVP_PKEY* _pkey, const string& _str);
+  static void verifySig(EVP_PKEY *_pubkey, const string &_str,
+                        const string &_sig);
 
-    static void verifySig(EVP_PKEY* _pubkey, const string& _str, const string& _sig);
+  string blsSignMessageHash(const std::string &keyShareName,
+                            const std::string &messageHash, int t, int n);
 
-    string blsSignMessageHash(const std::string &keyShareName, const std::string &messageHash, int t, int n);
+  string ecdsaSignMessageHash(int base, const std::string &keyName,
+                              const std::string &messageHash);
 
-    string ecdsaSignMessageHash(int base, const std::string &keyName, const std::string &messageHash);
+  bool importBLSKeyShare(const std::string &keyShare,
+                         const std::string &keyName);
 
-    bool importBLSKeyShare(const std::string& keyShare, const std::string& keyName);
+  string importECDSAKey(const std::string &keyShare,
+                        const std::string &keyName);
 
-    string importECDSAKey(const std::string& keyShare, const std::string& keyName);
+  pair<string, string> generateECDSAKey();
 
-    pair<string, string> generateECDSAKey();
+  string getECDSAPublicKey(const string &keyName);
 
-    string getECDSAPublicKey(const string& keyName);
+  bool generateDKGPoly(const string &polyName, int t);
 
-    bool generateDKGPoly(const string& polyName, int t);
+  Json::Value getVerificationVector(const string &polyName, int t);
 
-    Json::Value getVerificationVector(const string& polyName, int t);
+  string getSecretShare(const string &polyName, const Json::Value &pubKeys,
+                        int t, int n);
 
-    string getSecretShare(const string& polyName, const Json::Value& pubKeys, int t, int n);
+  bool dkgVerification(const string &publicShares, const string &ethKeyName,
+                       const string &secretShare, int t, int n, int idx);
 
-    bool dkgVerification(const string& publicShares, const string& ethKeyName,
-                        const string& secretShare, int t, int n, int idx);
+  bool createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName,
+                           const string &polyName, const string &secretShare,
+                           int t, int n);
 
-    bool createBLSPrivateKey(const string& blsKeyName, const string& ethKeyName, const string& polyName,
-                            const string& secretShare, int t, int n);
+  string popProve(const string &blsKeyName);
 
-    string popProve(const string& blsKeyName);
+  bool generateBLSPrivateKey(const string &blsKeyName);
 
-    bool generateBLSPrivateKey(const string& blsKeyName);
-    
-    Json::Value getBLSPublicKey(const string& blsKeyName);
+  Json::Value getBLSPublicKey(const string &blsKeyName);
 
-    Json::Value getAllBlsPublicKeys(const Json::Value& publicShares, int n, int t);
+  Json::Value getAllBlsPublicKeys(const Json::Value &publicShares, int n,
+                                  int t);
 
-    tuple<string, string, Json::Value> complaintResponse(const string& polyName, int t, int n, int idx);
+  tuple<string, string, Json::Value> complaintResponse(const string &polyName,
+                                                       int t, int n, int idx);
 
-    Json::Value multG2(const string& x);
+  Json::Value multG2(const string &x);
 
-    bool isPolyExists(const string& polyName);
+  bool isPolyExists(const string &polyName);
 
-    void getServerStatus();
+  void getServerStatus();
 
-    string getServerVersion();
+  string getServerVersion();
 
-    bool deleteBLSKey(const string& blsKeyName);
+  bool deleteBLSKey(const string &blsKeyName);
 
-    Json::Value getDecryptionShares(const string& blsKeyName, const Json::Value& publicDecryptionValues);
+  Json::Value getDecryptionShares(const string &blsKeyName,
+                                  const Json::Value &publicDecryptionValues);
 };
 
-
-#endif //SGXWALLET_ZMQCLIENT_H
+#endif // SGXWALLET_ZMQCLIENT_H

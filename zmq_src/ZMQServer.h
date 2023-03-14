@@ -21,17 +21,14 @@
     @date 2020
 */
 
-
 #ifndef SGXWALLET_ZMQServer_H
 #define SGXWALLET_ZMQServer_H
 
-
-#include "third_party/readerwriterqueue.h"
 #include "third_party/concurrentqueue.h"
+#include "third_party/readerwriterqueue.h"
 
-
-#include <zmq.hpp>
 #include "zhelpers.hpp"
+#include <zmq.hpp>
 
 #include "Agent.h"
 #include "WorkerThreadPool.h"
@@ -41,63 +38,64 @@ using namespace moodycamel;
 
 static const uint64_t NUM_ZMQ_WORKER_THREADS = 16;
 
+class ZMQServer : public Agent {
 
-class ZMQServer : public Agent{
+  uint64_t workerThreads;
 
-    uint64_t workerThreads;
+  string caCertFile;
+  string caCert;
 
-    string caCertFile;
-    string caCert;
+  ConcurrentQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
 
-    ConcurrentQueue<pair<Json::Value, shared_ptr<zmq::message_t>>> outgoingQueue;
+  vector<BlockingReaderWriterQueue<
+      pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>>
+      incomingQueue;
 
-    vector<BlockingReaderWriterQueue<pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>> incomingQueue;
+  bool checkKeyOwnership = true;
 
-    bool checkKeyOwnership = true;
+  shared_ptr<zmq::context_t> ctx;
+  shared_ptr<zmq::socket_t> socket;
 
-    shared_ptr<zmq::context_t> ctx;
-    shared_ptr<zmq::socket_t> socket;
+  static atomic<bool> isExitRequested;
 
-    static atomic<bool> isExitRequested;
-
-    void doOneServerLoop();
+  void doOneServerLoop();
 
 public:
+  bool checkSignature = false;
 
-    bool checkSignature = false;
+  static shared_ptr<ZMQServer> zmqServer;
 
-    static shared_ptr<ZMQServer> zmqServer;
+  shared_ptr<WorkerThreadPool> threadPool = nullptr;
 
-    shared_ptr<WorkerThreadPool> threadPool = nullptr;
+  static shared_ptr<std::thread> serverThread;
 
-    static shared_ptr<std::thread> serverThread;
+  ZMQServer(bool _checkSignature, bool _checkKeyOwnership,
+            const string &_caCertFile);
 
-    ZMQServer(bool _checkSignature, bool _checkKeyOwnership, const string& _caCertFile);
+  ~ZMQServer();
 
-    ~ZMQServer();
+  void run();
 
-    void run();
+  void initListenSocket();
 
-    void initListenSocket();
+  static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
+  static void exitZMQServer();
 
-    static void initZMQServer(bool _checkSignature, bool _checkKeyOwnership);
-    static void exitZMQServer();
+  static void workerThreadMessageProcessLoop(ZMQServer *agent,
+                                             uint64_t _threadNumber);
 
-    static void workerThreadMessageProcessLoop(ZMQServer* agent, uint64_t _threadNumber );
+  void workerThreadProcessNextMessage(uint64_t _threadNumber);
 
-    void workerThreadProcessNextMessage(uint64_t _threadNumber);
+  void checkForExit();
 
-    void checkForExit();
+  void waitForIncomingAndProcessOutgoingMessages();
 
-    void waitForIncomingAndProcessOutgoingMessages();
+  pair<string, shared_ptr<zmq::message_t>> receiveMessage();
 
-    pair<string, shared_ptr<zmq::message_t>>  receiveMessage();
+  void sendToClient(Json::Value &_result,
+                    shared_ptr<zmq::message_t> &_identity);
 
-    void sendToClient(Json::Value& _result,  shared_ptr<zmq::message_t>& _identity);
-
-    void sendMessagesInOutgoingMessageQueueIfAny();
-
+  void sendMessagesInOutgoingMessageQueueIfAny();
 };
 
-
-#endif //SGXWALLET_ZMQServer_H
+#endif // SGXWALLET_ZMQServer_H

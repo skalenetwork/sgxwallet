@@ -25,100 +25,56 @@
 
 #include "RspMessage.h"
 
-Json::Value ECDSASignRspMessage::process() {
-    assert(false);
-}
+Json::Value ECDSASignRspMessage::process() { assert(false); }
 
 string ECDSASignRspMessage::getSignature() {
-    string r = getStringRapid("signature_r");
-    string v = getStringRapid("signature_v");
-    string s = getStringRapid("signature_s");
+  string r = getStringRapid("signature_r");
+  string v = getStringRapid("signature_v");
+  string s = getStringRapid("signature_s");
 
-    auto ret = v + ":" + r.substr( 2 ) + ":" + s.substr( 2 );
+  auto ret = v + ":" + r.substr(2) + ":" + s.substr(2);
 
-    return ret;
+  return ret;
 }
 
-Json::Value BLSSignRspMessage::process() {
-    assert(false);
-}
+Json::Value BLSSignRspMessage::process() { assert(false); }
 
-Json::Value importBLSRspMessage::process() {
-    assert(false);
-}
+Json::Value importBLSRspMessage::process() { assert(false); }
 
-Json::Value importECDSARspMessage::process() {
-    assert(false);
-}
+Json::Value importECDSARspMessage::process() { assert(false); }
 
-Json::Value generateECDSARspMessage::process() {
-    assert(false);
-}
+Json::Value generateECDSARspMessage::process() { assert(false); }
 
-Json::Value getPublicECDSARspMessage::process() {
-    assert(false);
-}
+Json::Value getPublicECDSARspMessage::process() { assert(false); }
 
-Json::Value generateDKGPolyRspMessage::process() {
-    assert(false);
-}
+Json::Value generateDKGPolyRspMessage::process() { assert(false); }
 
-Json::Value getVerificationVectorRspMessage::process() {
-    assert(false);
-}
+Json::Value getVerificationVectorRspMessage::process() { assert(false); }
 
-Json::Value getSecretShareRspMessage::process() {
-    assert(false);
-}
+Json::Value getSecretShareRspMessage::process() { assert(false); }
 
-Json::Value dkgVerificationRspMessage::process() {
-    assert(false);
-}
+Json::Value dkgVerificationRspMessage::process() { assert(false); }
 
-Json::Value createBLSPrivateKeyRspMessage::process() {
-    assert(false);
-}
+Json::Value createBLSPrivateKeyRspMessage::process() { assert(false); }
 
-Json::Value getBLSPublicRspMessage::process() {
-    assert(false);
-}
+Json::Value getBLSPublicRspMessage::process() { assert(false); }
 
-Json::Value getAllBLSPublicKeysRspMessage::process() {
-    assert(false);
-}
+Json::Value getAllBLSPublicKeysRspMessage::process() { assert(false); }
 
-Json::Value complaintResponseRspMessage::process() {
-    assert(false);
-}
+Json::Value complaintResponseRspMessage::process() { assert(false); }
 
-Json::Value multG2RspMessage::process() {
-    assert(false);
-}
+Json::Value multG2RspMessage::process() { assert(false); }
 
-Json::Value isPolyExistsRspMessage::process() {
-    assert(false);
-}
+Json::Value isPolyExistsRspMessage::process() { assert(false); }
 
-Json::Value getServerStatusRspMessage::process() {
-    assert(false);
-}
+Json::Value getServerStatusRspMessage::process() { assert(false); }
 
-Json::Value getServerVersionRspMessage::process() {
-    assert(false);
-}
+Json::Value getServerVersionRspMessage::process() { assert(false); }
 
-Json::Value deleteBLSKeyRspMessage::process() {
-    assert(false);
-}
+Json::Value deleteBLSKeyRspMessage::process() { assert(false); }
 
-Json::Value GetDecryptionShareRspMessage::process() {
-    assert(false);
-}
+Json::Value GetDecryptionShareRspMessage::process() { assert(false); }
 
-Json::Value generateBLSPrivateKeyRspMessage::process() {
-    assert(false);
-}
+Json::Value generateBLSPrivateKeyRspMessage::process() { assert(false); }
 
-Json::Value popProveRspMessage::process() {
-    assert(false);
-}
+Json::Value popProveRspMessage::process() { assert(false); }

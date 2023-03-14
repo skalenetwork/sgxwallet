@@ -27,5 +27,5 @@
 
 class ExitRequestedException : public std::exception {
 public:
-    ExitRequestedException();
+  ExitRequestedException();
 };
