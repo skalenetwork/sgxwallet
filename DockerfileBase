@@ -23,7 +23,9 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     libcurl4 \
     make \
     unzip \
-    perl
+    perl \
+    pkg-config \
+    pkgconf
 
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
@@ -56,7 +58,8 @@ RUN apt update && \
     apt install -yq --no-install-recommends vim telnet git ca-certificates perl \
         reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
         yasm flex bison libprocps-dev ccache texinfo \
-        libjsonrpccpp-dev curl libjsonrpccpp-tools && \
+        libjsonrpccpp-dev curl libjsonrpccpp-tools \
+        libboost-dev libboost-system-dev libboost-thread-dev lsb-release libsystemd0 && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
     ln -s /usr/bin/ccache /usr/local/bin/gcc && \
