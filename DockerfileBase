@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     libssl1.1 \
     make \
     module-init-tools \
-    unzip /
+    unzip \
     perl
 
 RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
