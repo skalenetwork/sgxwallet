@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     wget \
     libcurl4 \
     make \
-    module-init-tools \
     unzip \
     perl
 
