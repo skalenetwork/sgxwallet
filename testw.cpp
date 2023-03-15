@@ -76,10 +76,10 @@ public:
     initAll(L_INFO, false, false, true, false, true);
   }
 
-    ~TestFixture() {
-//        ZMQServer::exitZMQServer();
-        TestUtils::destroyEnclave();
-    }
+  ~TestFixture() {
+    //        ZMQServer::exitZMQServer();
+    TestUtils::destroyEnclave();
+  }
 };
 
 class TestFixtureHTTPS {
@@ -90,10 +90,10 @@ public:
     initAll(L_INFO, false, true, true, false, true);
   }
 
-    ~TestFixtureHTTPS() {
-//        ZMQServer::exitZMQServer();
-        TestUtils::destroyEnclave();
-    }
+  ~TestFixtureHTTPS() {
+    //        ZMQServer::exitZMQServer();
+    TestUtils::destroyEnclave();
+  }
 };
 
 class TestFixtureZMQSign {
@@ -104,10 +104,10 @@ public:
     initAll(L_INFO, false, true, true, false, false);
   }
 
-    ~TestFixtureZMQSign() {
-//        ZMQServer::exitZMQServer();
-        TestUtils::destroyEnclave();
-    }
+  ~TestFixtureZMQSign() {
+    //        ZMQServer::exitZMQServer();
+    TestUtils::destroyEnclave();
+  }
 };
 
 class TestFixtureNoResetFromBackup {
@@ -117,11 +117,11 @@ public:
     initAll(L_INFO, false, false, true, false, true);
   }
 
-    ~TestFixtureNoResetFromBackup() {
-        sleep(3);
-//        ZMQServer::exitZMQServer();
-        TestUtils::destroyEnclave();
-    }
+  ~TestFixtureNoResetFromBackup() {
+    sleep(3);
+    //        ZMQServer::exitZMQServer();
+    TestUtils::destroyEnclave();
+  }
 };
 
 class TestFixtureNoReset {
@@ -131,10 +131,10 @@ public:
     initAll(L_INFO, false, false, true, false, true);
   }
 
-    ~TestFixtureNoReset() {
-//        ZMQServer::exitZMQServer();
-        TestUtils::destroyEnclave();
-    }
+  ~TestFixtureNoReset() {
+    //        ZMQServer::exitZMQServer();
+    TestUtils::destroyEnclave();
+  }
 };
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test",
@@ -1599,16 +1599,15 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
         auto hash = sh.substr(0, sh.size() - 8) + to_string(end + i);
 
-                auto sig = client->ecdsaSignMessageHash(16, keyName, hash);
-                REQUIRE(sig.size() > 10);
-            }
+        auto sig = client->ecdsaSignMessageHash(16, keyName, hash);
+        REQUIRE(sig.size() > 10);
+      }
+    }));
+  };
 
-        }));
-    };
-
-    std::for_each(workers.begin(), workers.end(), [](
-            std::thread &t) { t.join(); });
-    PRINT_SRC_LINE
+  std::for_each(workers.begin(), workers.end(),
+                [](std::thread &t) { t.join(); });
+  PRINT_SRC_LINE
 }
 
 TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore",

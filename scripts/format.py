@@ -15,4 +15,5 @@ for directory in src_dirs:
     for file in os.listdir(directory):
             if os.path.isfile(os.path.join(directory,file)) and file.endswith(cpp_extensions):
                 print(file)
-                os.system("clang-format-10 -i -style=file " + directory + "/" + file)
+                if file != "catch.hpp":
+                    os.system("clang-format-14 -i -style=file " + directory + "/" + file)
