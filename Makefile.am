@@ -109,7 +109,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -l:libbls.a -l:libleveldb.a \
    -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -l:libzmq.a \
-   -l:libjsonrpccpp-stub.a -l:libjsonrpccpp-server.a -l:libjsonrpccpp-client.a -l:libjsonrpccpp-common.a -l:libjsoncpp.a -lmicrohttpd \
+   -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
    -lboost_system -lboost_thread -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
@@ -126,5 +126,5 @@ sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/b
                    -Llibzmq/build/lib/ \
                    -l:libzmq.a \
                    -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp -l:libjsonrpccpp-stub.a -l:libjsonrpccpp-server.a -l:libjsonrpccpp-client.a -l:libjsonrpccpp-common.a \
-                   -l:libjsoncpp.a -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                   -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
+                   -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
