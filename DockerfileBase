@@ -57,7 +57,7 @@ RUN apt update && \
     apt install -yq --no-install-recommends vim telnet git ca-certificates perl \
         reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
         yasm flex bison libprocps-dev ccache texinfo \
-        graphviz doxygen libgnutls28-dev \
+        graphviz doxygen libgnutls28-dev glibc-tools \
         libboost-dev libboost-system-dev libboost-thread-dev lsb-release libsystemd0 && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
