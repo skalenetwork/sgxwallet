@@ -21,8 +21,8 @@
     @date 2020
 */
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -31,109 +31,121 @@
 
 #include "sgxwallet_common.h"
 
+#include "LevelDB.h"
 #include "SGXException.h"
-#include "LevelDB.h"
 
-#include "SGXInfoServer.h"
 #include "LevelDB.h"
+#include "SGXInfoServer.h"
 
 #include "Log.h"
 #include "common.h"
 
-shared_ptr <SGXInfoServer> SGXInfoServer::server = nullptr;
-shared_ptr <HttpServer> SGXInfoServer::httpServer = nullptr;
+shared_ptr<SGXInfoServer> SGXInfoServer::server = nullptr;
+shared_ptr<HttpServer> SGXInfoServer::httpServer = nullptr;
 
-SGXInfoServer::SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
-                             uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys)
-        : AbstractInfoServer(connector, type) {
-    logLevel_ = _logLevel;
-    autoSign_ = _autoSign;
-    checkCerts_ = _checkCerts;
-    generateTestKeys_ = _generateTestKeys;
+SGXInfoServer::SGXInfoServer(AbstractServerConnector &connector,
+                             serverVersion_t type, uint32_t _logLevel,
+                             bool _autoSign, bool _checkCerts,
+                             bool _generateTestKeys)
+    : AbstractInfoServer(connector, type) {
+  logLevel_ = _logLevel;
+  autoSign_ = _autoSign;
+  checkCerts_ = _checkCerts;
+  generateTestKeys_ = _generateTestKeys;
 }
 
 Json::Value SGXInfoServer::getAllKeysInfo() {
-    Json::Value result;
+  Json::Value result;
 
-    try {
-        auto allKeysInfo = LevelDB::getLevelDb()->getAllKeys();
-        result["allKeys"] = allKeysInfo.first.str();
-        result["keysNumber"] = std::to_string(allKeysInfo.second);
-    } HANDLE_SGX_EXCEPTION(result)
+  try {
+    auto allKeysInfo = LevelDB::getLevelDb()->getAllKeys();
+    result["allKeys"] = allKeysInfo.first.str();
+    result["keysNumber"] = std::to_string(allKeysInfo.second);
+  }
+  HANDLE_SGX_EXCEPTION(result)
 
-    RETURN_SUCCESS(result)
+  RETURN_SUCCESS(result)
 }
 
 Json::Value SGXInfoServer::getLatestCreatedKey() {
-    Json::Value result;
+  Json::Value result;
 
-    try {
-        pair<string, uint64_t> key = LevelDB::getLevelDb()->getLatestCreatedKey();
-        result["keyName"] = key.first;
-        result["creationTime"] = std::to_string(key.second);
-    } HANDLE_SGX_EXCEPTION(result)
+  try {
+    pair<string, uint64_t> key = LevelDB::getLevelDb()->getLatestCreatedKey();
+    result["keyName"] = key.first;
+    result["creationTime"] = std::to_string(key.second);
+  }
+  HANDLE_SGX_EXCEPTION(result)
 
-    RETURN_SUCCESS(result)
+  RETURN_SUCCESS(result)
 }
 
 Json::Value SGXInfoServer::getServerConfiguration() {
-    Json::Value result;
+  Json::Value result;
 
-    try {
-        result["autoConfirm"] = autoconfirm;
-        result["logLevel"] = logLevel_;
-        result["enterBackupKey"] = enterBackupKey;
-        result["useHTTPS"] = useHTTPS;
-        result["autoSign"] = autoSign_;
-        result["checkCerts"] = checkCerts_;
-        result["generateTestKeys"] = generateTestKeys_;
-    } HANDLE_SGX_EXCEPTION(result)
+  try {
+    result["autoConfirm"] = autoconfirm;
+    result["logLevel"] = logLevel_;
+    result["enterBackupKey"] = enterBackupKey;
+    result["useHTTPS"] = useHTTPS;
+    result["autoSign"] = autoSign_;
+    result["checkCerts"] = checkCerts_;
+    result["generateTestKeys"] = generateTestKeys_;
+  }
+  HANDLE_SGX_EXCEPTION(result)
 
-    RETURN_SUCCESS(result)
+  RETURN_SUCCESS(result)
 }
 
-Json::Value SGXInfoServer::isKeyExist(const string& key) {
-    Json::Value result;
+Json::Value SGXInfoServer::isKeyExist(const string &key) {
+  Json::Value result;
 
-    result["isExists"] = false;
-    try {
-        shared_ptr <string> keyPtr = LevelDB::getLevelDb()->readString(key);
+  result["isExists"] = false;
+  try {
+    shared_ptr<string> keyPtr = LevelDB::getLevelDb()->readString(key);
 
-        if (keyPtr != nullptr) {
-            result["IsExist"] = true;
-        }
-    } HANDLE_SGX_EXCEPTION(result)
-
-    RETURN_SUCCESS(result)
-}
-
-void SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys) {
-    httpServer = make_shared<HttpServer>(BASE_PORT + 4);
-    server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts, _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
-
-    spdlog::info("Starting info server on port {} ...", BASE_PORT + 4);
-
-    if (!server->StartListening()) {
-        spdlog::error("Info server could not start listening on port {}", BASE_PORT + 4);
-        throw SGXException(SGX_INFO_SERVER_FAILED_TO_START, "Info server could not start listening.");
-    } else {
-        spdlog::info("Info server started on port {}", BASE_PORT + 4);
+    if (keyPtr != nullptr) {
+      result["IsExist"] = true;
     }
+  }
+  HANDLE_SGX_EXCEPTION(result)
+
+  RETURN_SUCCESS(result)
+}
+
+void SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign,
+                                   bool _checkCerts, bool _generateTestKeys) {
+  httpServer = make_shared<HttpServer>(BASE_PORT + 4);
+  server = make_shared<SGXInfoServer>(
+      *httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts,
+      _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
+
+  spdlog::info("Starting info server on port {} ...", BASE_PORT + 4);
+
+  if (!server->StartListening()) {
+    spdlog::error("Info server could not start listening on port {}",
+                  BASE_PORT + 4);
+    throw SGXException(SGX_INFO_SERVER_FAILED_TO_START,
+                       "Info server could not start listening.");
+  } else {
+    spdlog::info("Info server started on port {}", BASE_PORT + 4);
+  }
 }
 
 int SGXInfoServer::exitServer() {
   spdlog::info("Stoping SGXInfo server");
 
   if (server && !server->StopListening()) {
-      spdlog::error("SGXInfo server could not be stopped. Will forcefully terminate the app");
+    spdlog::error("SGXInfo server could not be stopped. Will forcefully "
+                  "terminate the app");
   } else {
-      spdlog::info("SGXInfo server stopped");
+    spdlog::info("SGXInfo server stopped");
   }
 
   return 0;
 }
 
 shared_ptr<SGXInfoServer> SGXInfoServer::getServer() {
-    CHECK_STATE(server);
-    return server;
+  CHECK_STATE(server);
+  return server;
 }

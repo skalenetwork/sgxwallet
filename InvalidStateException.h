@@ -25,8 +25,8 @@
 
 #include "Exception.h"
 
-
 class InvalidStateException : public Exception {
 public:
-    InvalidStateException( const std::string& _message, const std::string& _className );
+  InvalidStateException(const std::string &_message,
+                        const std::string &_className);
 };

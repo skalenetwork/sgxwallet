@@ -35,7 +35,8 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string> calculateDecryptionShare(const std::string& encryptedKeyShare,
-                                                  const std::string& publicDecryptionValue);
+std::vector<std::string>
+calculateDecryptionShare(const std::string &encryptedKeyShare,
+                         const std::string &publicDecryptionValue);
 
 #endif // SGXWALLET_TECRYPTO_H

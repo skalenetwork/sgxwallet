@@ -38,14 +38,16 @@
 
 #include "bls.h"
 
-EXTERNC bool bls_sign(const char* encryptedKeyHex, const char* hashHex, size_t t, size_t n, char* _sig);
+EXTERNC bool bls_sign(const char *encryptedKeyHex, const char *hashHex,
+                      size_t t, size_t n, char *_sig);
 
-EXTERNC bool popProveSGX( const char* encryptedKeyHex, char* _prove );
+EXTERNC bool popProveSGX(const char *encryptedKeyHex, char *_prove);
 
-EXTERNC bool generateBLSPrivateKeyAggegated(const char* blsKeyName);
+EXTERNC bool generateBLSPrivateKeyAggegated(const char *blsKeyName);
 
 std::shared_ptr<std::string> FqToString(libff::alt_bn128_Fq *_fq);
 
-std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string, const char *_key);
+std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string,
+                                   const char *_key);
 
-#endif //SGXWALLET_BLSCRYPTO_H
+#endif // SGXWALLET_BLSCRYPTO_H

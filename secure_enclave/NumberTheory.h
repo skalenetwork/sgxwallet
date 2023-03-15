@@ -25,9 +25,8 @@
  *Handbook of applied cryptography: Algorithm 2.143. */
 void number_theory_exp_modp(mpz_t R, mpz_t a, mpz_t k, mpz_t P);
 
-
-/*Calculate the multiplicative inverse of a mod p, using the extended euclidean algorithm
- *Handbook of applied cryptography: Algorithm 2.107
+/*Calculate the multiplicative inverse of a mod p, using the extended euclidean
+ *algorithm Handbook of applied cryptography: Algorithm 2.107
  *http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm */
 void number_theory_inverse(mpz_t R, mpz_t A, mpz_t P);
 

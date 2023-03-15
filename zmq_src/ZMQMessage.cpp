@@ -23,352 +23,381 @@
 
 #include "common.h"
 #include "sgxwallet_common.h"
-#include <third_party/cryptlite/sha256.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <third_party/cryptlite/sha256.h>
 
-#include "ZMQClient.h"
 #include "LevelDB.h"
-#include "SGXWalletServer.hpp"
 #include "ReqMessage.h"
 #include "RspMessage.h"
+#include "SGXWalletServer.hpp"
+#include "ZMQClient.h"
 #include "ZMQMessage.h"
 
 uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
-    CHECK_STATE(_name);
-    CHECK_STATE(d->HasMember(_name));
-    const rapidjson::Value &a = (*d)[_name];
-    CHECK_STATE(a.IsInt64());
-    return a.GetInt64();
+  CHECK_STATE(_name);
+  CHECK_STATE(d->HasMember(_name));
+  const rapidjson::Value &a = (*d)[_name];
+  CHECK_STATE(a.IsInt64());
+  return a.GetInt64();
 };
 
 Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {
-    CHECK_STATE(_name);
-    CHECK_STATE(d->HasMember(_name));
-    const rapidjson::Value &a = (*d)[_name];
-    
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer< rapidjson::StringBuffer > writer(buffer);
-    a.Accept(writer);
-    std::string strRequest = buffer.GetString();
+  CHECK_STATE(_name);
+  CHECK_STATE(d->HasMember(_name));
+  const rapidjson::Value &a = (*d)[_name];
 
-    Json::Reader reader;
-    Json::Value root;
-    reader.parse(strRequest, root, false);
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  a.Accept(writer);
+  std::string strRequest = buffer.GetString();
 
-    return root;
+  Json::Reader reader;
+  Json::Value root;
+  reader.parse(strRequest, root, false);
+
+  return root;
 }
 
 bool ZMQMessage::getBoolRapid(const char *_name) {
-    CHECK_STATE(_name);
-    CHECK_STATE(d->HasMember(_name));
-    const rapidjson::Value &a = (*d)[_name];
-    CHECK_STATE(a.IsBool());
-    return a.GetBool();
+  CHECK_STATE(_name);
+  CHECK_STATE(d->HasMember(_name));
+  const rapidjson::Value &a = (*d)[_name];
+  CHECK_STATE(a.IsBool());
+  return a.GetBool();
 }
 
 string ZMQMessage::getStringRapid(const char *_name) {
-    CHECK_STATE(_name);
-    CHECK_STATE(d->HasMember(_name));
-    CHECK_STATE((*d)[_name].IsString());
-    return (*d)[_name].GetString();
+  CHECK_STATE(_name);
+  CHECK_STATE(d->HasMember(_name));
+  CHECK_STATE((*d)[_name].IsString());
+  return (*d)[_name].GetString();
 };
 
-shared_ptr <ZMQMessage> ZMQMessage::parse(const char *_msg,
-                                          size_t _size, bool _isRequest,
-                                          bool _verifySig, bool _checkKeyOwnership) {
-    CHECK_STATE(_msg);
-    CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
-    // CHECK NULL TERMINATED
-    CHECK_STATE(_msg[_size] == 0);
-    CHECK_STATE2(_msg[_size - 1] == '}', ZMQ_INVALID_MESSAGE);
-    CHECK_STATE2(_msg[0] == '{', ZMQ_INVALID_MESSAGE);
+shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
+                                         bool _isRequest, bool _verifySig,
+                                         bool _checkKeyOwnership) {
+  CHECK_STATE(_msg);
+  CHECK_STATE2(_size > 5, ZMQ_INVALID_MESSAGE_SIZE);
+  // CHECK NULL TERMINATED
+  CHECK_STATE(_msg[_size] == 0);
+  CHECK_STATE2(_msg[_size - 1] == '}', ZMQ_INVALID_MESSAGE);
+  CHECK_STATE2(_msg[0] == '{', ZMQ_INVALID_MESSAGE);
 
-    auto d = make_shared<rapidjson::Document>();
+  auto d = make_shared<rapidjson::Document>();
 
-    d->Parse(_msg);
+  d->Parse(_msg);
 
-    CHECK_STATE2(!d->HasParseError(), ZMQ_COULD_NOT_PARSE);
-    CHECK_STATE2(d->IsObject(), ZMQ_COULD_NOT_PARSE);
+  CHECK_STATE2(!d->HasParseError(), ZMQ_COULD_NOT_PARSE);
+  CHECK_STATE2(d->IsObject(), ZMQ_COULD_NOT_PARSE);
 
-    CHECK_STATE2(d->HasMember("type"), ZMQ_NO_TYPE_IN_MESSAGE);
-    CHECK_STATE2((*d)["type"].IsString(), ZMQ_NO_TYPE_IN_MESSAGE);
-    string type = (*d)["type"].GetString();
+  CHECK_STATE2(d->HasMember("type"), ZMQ_NO_TYPE_IN_MESSAGE);
+  CHECK_STATE2((*d)["type"].IsString(), ZMQ_NO_TYPE_IN_MESSAGE);
+  string type = (*d)["type"].GetString();
 
-    if (_verifySig) {
-        CHECK_STATE2(d->HasMember("cert"),ZMQ_NO_CERT_IN_MESSAGE);
-        CHECK_STATE2(d->HasMember("msgSig"), ZMQ_NO_SIG_IN_MESSAGE);
-        CHECK_STATE2((*d)["cert"].IsString(), ZMQ_NO_CERT_IN_MESSAGE);
-        CHECK_STATE2((*d)["msgSig"].IsString(), ZMQ_NO_SIG_IN_MESSAGE);
+  if (_verifySig) {
+    CHECK_STATE2(d->HasMember("cert"), ZMQ_NO_CERT_IN_MESSAGE);
+    CHECK_STATE2(d->HasMember("msgSig"), ZMQ_NO_SIG_IN_MESSAGE);
+    CHECK_STATE2((*d)["cert"].IsString(), ZMQ_NO_CERT_IN_MESSAGE);
+    CHECK_STATE2((*d)["msgSig"].IsString(), ZMQ_NO_SIG_IN_MESSAGE);
 
-        auto cert = make_shared<string>((*d)["cert"].GetString());
-        string hash = cryptlite::sha256::hash_hex(*cert);
+    auto cert = make_shared<string>((*d)["cert"].GetString());
+    string hash = cryptlite::sha256::hash_hex(*cert);
 
-        auto filepath = "/tmp/sgx_wallet_cert_hash_" + hash;
+    auto filepath = "/tmp/sgx_wallet_cert_hash_" + hash;
 
-        std::ofstream outFile(filepath);
+    std::ofstream outFile(filepath);
 
-        outFile << *cert;
+    outFile << *cert;
 
-        outFile.close();
+    outFile.close();
 
-        static recursive_mutex m;
+    static recursive_mutex m;
 
-        EVP_PKEY *publicKey = nullptr;
+    EVP_PKEY *publicKey = nullptr;
 
-        {
-            lock_guard <recursive_mutex> lock(m);
+    {
+      lock_guard<recursive_mutex> lock(m);
 
-            if (!verifiedCerts.exists(*cert)) {
-                CHECK_STATE(SGXWalletServer::verifyCert(filepath));
-                auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
-                CHECK_STATE(handles.first);
-                CHECK_STATE(handles.second);
-                verifiedCerts.put(*cert, handles);
-                remove(cert->c_str());
-            }
+      if (!verifiedCerts.exists(*cert)) {
+        CHECK_STATE(SGXWalletServer::verifyCert(filepath));
+        auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
+        CHECK_STATE(handles.first);
+        CHECK_STATE(handles.second);
+        verifiedCerts.put(*cert, handles);
+        remove(cert->c_str());
+      }
 
-            publicKey = verifiedCerts.get(*cert).first;
+      publicKey = verifiedCerts.get(*cert).first;
 
-            CHECK_STATE(publicKey);
+      CHECK_STATE(publicKey);
 
-            auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
+      auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
 
-            d->RemoveMember("msgSig");
+      d->RemoveMember("msgSig");
 
-            rapidjson::StringBuffer buffer;
+      rapidjson::StringBuffer buffer;
 
-            rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
+      rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
 
-            d->Accept(w);
+      d->Accept(w);
 
-            auto msgToVerify = buffer.GetString();
+      auto msgToVerify = buffer.GetString();
 
-            ZMQClient::verifySig(publicKey, msgToVerify, *msgSig );
-
-        }
+      ZMQClient::verifySig(publicKey, msgToVerify, *msgSig);
     }
+  }
 
-    if (_isRequest) {
-        return buildRequest(type, d, _checkKeyOwnership);
-    } else {
-        return buildResponse(type, d, _checkKeyOwnership);
-    }
+  if (_isRequest) {
+    return buildRequest(type, d, _checkKeyOwnership);
+  } else {
+    return buildResponse(type, d, _checkKeyOwnership);
+  }
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildRequest(string &_type, shared_ptr <rapidjson::Document> _d,
-                                                bool _checkKeyOwnership) {
-    Requests r;
-    try {
-        int t = requests.at( _type );
-        r = static_cast<Requests>(t);
-    } catch ( std::out_of_range& ) {
-        BOOST_THROW_EXCEPTION(SGXException(-301, "Incorrect zmq message type: " + string(_type)));
-    }
+shared_ptr<ZMQMessage>
+ZMQMessage::buildRequest(string &_type, shared_ptr<rapidjson::Document> _d,
+                         bool _checkKeyOwnership) {
+  Requests r;
+  try {
+    int t = requests.at(_type);
+    r = static_cast<Requests>(t);
+  } catch (std::out_of_range &) {
+    BOOST_THROW_EXCEPTION(
+        SGXException(-301, "Incorrect zmq message type: " + string(_type)));
+  }
 
-    shared_ptr<ZMQMessage> ret = nullptr;
+  shared_ptr<ZMQMessage> ret = nullptr;
 
-    switch (r) {
-        case ENUM_BLS_SIGN_REQ:
-            ret = make_shared<BLSSignReqMessage>(_d);
-            break;
-        case ENUM_ECDSA_SIGN_REQ:
-            ret = make_shared<ECDSASignReqMessage>(_d);
-            break;
-        case ENUM_IMPORT_BLS_REQ:
-            ret = make_shared<importBLSReqMessage>(_d);
-            break;
-        case ENUM_IMPORT_ECDSA_REQ:
-            ret = make_shared<importECDSAReqMessage>(_d);
-            break;
-        case ENUM_GENERATE_ECDSA_REQ:
-            ret = make_shared<generateECDSAReqMessage>(_d);
-            break;
-        case ENUM_GET_PUBLIC_ECDSA_REQ:
-            ret = make_shared<getPublicECDSAReqMessage>(_d);
-            break;
-        case ENUM_GENERATE_DKG_POLY_REQ:
-            ret = make_shared<generateDKGPolyReqMessage>(_d);
-            break;
-        case ENUM_GET_VV_REQ:
-            ret = make_shared<getVerificationVectorReqMessage>(_d);
-            break;
-        case ENUM_GET_SECRET_SHARE_REQ:
-            ret = make_shared<getSecretShareReqMessage>(_d);
-            break;
-        case ENUM_DKG_VERIFY_REQ:
-            ret = make_shared<dkgVerificationReqMessage>(_d);
-            break;
-        case ENUM_CREATE_BLS_PRIVATE_REQ:
-            ret = make_shared<createBLSPrivateKeyReqMessage>(_d);
-            break;
-        case ENUM_GET_BLS_PUBLIC_REQ:
-            ret = make_shared<getBLSPublicReqMessage>(_d);
-            break;
-        case ENUM_GET_ALL_BLS_PUBLIC_REQ:
-            ret = make_shared<getAllBLSPublicKeysReqMessage>(_d);
-            break;
-        case ENUM_COMPLAINT_RESPONSE_REQ:
-            ret = make_shared<complaintResponseReqMessage>(_d);
-            break;
-        case ENUM_MULT_G2_REQ:
-            ret = make_shared<multG2ReqMessage>(_d);
-            break;
-        case ENUM_IS_POLY_EXISTS_REQ:
-            ret = make_shared<isPolyExistsReqMessage>(_d);
-            break;
-        case ENUM_GET_SERVER_STATUS_REQ:
-            ret = make_shared<getServerStatusReqMessage>(_d);
-            break;
-        case ENUM_GET_SERVER_VERSION_REQ:
-            ret = make_shared<getServerVersionReqMessage>(_d);
-            break;
-        case ENUM_DELETE_BLS_KEY_REQ:
-            ret = make_shared<deleteBLSKeyReqMessage>(_d);
-            break;
-        case ENUM_GET_DECRYPTION_SHARE_REQ:
-            ret = make_shared<GetDecryptionShareReqMessage>(_d);
-            break;
-        case ENUM_GENERATE_BLS_PRIVATE_KEY_REQ:
-            ret = make_shared<generateBLSPrivateKeyReqMessage>(_d);
-            break;
-        case ENUM_POP_PROVE_REQ:
-            ret = make_shared<popProveReqMessage>(_d);
-            break;
-        default:
-            break;
-    }
+  switch (r) {
+  case ENUM_BLS_SIGN_REQ:
+    ret = make_shared<BLSSignReqMessage>(_d);
+    break;
+  case ENUM_ECDSA_SIGN_REQ:
+    ret = make_shared<ECDSASignReqMessage>(_d);
+    break;
+  case ENUM_IMPORT_BLS_REQ:
+    ret = make_shared<importBLSReqMessage>(_d);
+    break;
+  case ENUM_IMPORT_ECDSA_REQ:
+    ret = make_shared<importECDSAReqMessage>(_d);
+    break;
+  case ENUM_GENERATE_ECDSA_REQ:
+    ret = make_shared<generateECDSAReqMessage>(_d);
+    break;
+  case ENUM_GET_PUBLIC_ECDSA_REQ:
+    ret = make_shared<getPublicECDSAReqMessage>(_d);
+    break;
+  case ENUM_GENERATE_DKG_POLY_REQ:
+    ret = make_shared<generateDKGPolyReqMessage>(_d);
+    break;
+  case ENUM_GET_VV_REQ:
+    ret = make_shared<getVerificationVectorReqMessage>(_d);
+    break;
+  case ENUM_GET_SECRET_SHARE_REQ:
+    ret = make_shared<getSecretShareReqMessage>(_d);
+    break;
+  case ENUM_DKG_VERIFY_REQ:
+    ret = make_shared<dkgVerificationReqMessage>(_d);
+    break;
+  case ENUM_CREATE_BLS_PRIVATE_REQ:
+    ret = make_shared<createBLSPrivateKeyReqMessage>(_d);
+    break;
+  case ENUM_GET_BLS_PUBLIC_REQ:
+    ret = make_shared<getBLSPublicReqMessage>(_d);
+    break;
+  case ENUM_GET_ALL_BLS_PUBLIC_REQ:
+    ret = make_shared<getAllBLSPublicKeysReqMessage>(_d);
+    break;
+  case ENUM_COMPLAINT_RESPONSE_REQ:
+    ret = make_shared<complaintResponseReqMessage>(_d);
+    break;
+  case ENUM_MULT_G2_REQ:
+    ret = make_shared<multG2ReqMessage>(_d);
+    break;
+  case ENUM_IS_POLY_EXISTS_REQ:
+    ret = make_shared<isPolyExistsReqMessage>(_d);
+    break;
+  case ENUM_GET_SERVER_STATUS_REQ:
+    ret = make_shared<getServerStatusReqMessage>(_d);
+    break;
+  case ENUM_GET_SERVER_VERSION_REQ:
+    ret = make_shared<getServerVersionReqMessage>(_d);
+    break;
+  case ENUM_DELETE_BLS_KEY_REQ:
+    ret = make_shared<deleteBLSKeyReqMessage>(_d);
+    break;
+  case ENUM_GET_DECRYPTION_SHARE_REQ:
+    ret = make_shared<GetDecryptionShareReqMessage>(_d);
+    break;
+  case ENUM_GENERATE_BLS_PRIVATE_KEY_REQ:
+    ret = make_shared<generateBLSPrivateKeyReqMessage>(_d);
+    break;
+  case ENUM_POP_PROVE_REQ:
+    ret = make_shared<popProveReqMessage>(_d);
+    break;
+  default:
+    break;
+  }
 
-    ret->setCheckKeyOwnership(_checkKeyOwnership);
+  ret->setCheckKeyOwnership(_checkKeyOwnership);
 
-    return ret;
+  return ret;
 }
 
-shared_ptr <ZMQMessage> ZMQMessage::buildResponse(string &_type, shared_ptr <rapidjson::Document> _d,
-                                                bool _checkKeyOwnership) {
-    Responses r;
-    try {
-        int t = responses.at( _type );
-        r = static_cast<Responses>(t);
-    } catch ( std::out_of_range& ) {
-        BOOST_THROW_EXCEPTION(InvalidStateException("Incorrect zmq message request type: " + string(_type),
-                                                    __CLASS_NAME__)
-        );
-    }
+shared_ptr<ZMQMessage>
+ZMQMessage::buildResponse(string &_type, shared_ptr<rapidjson::Document> _d,
+                          bool _checkKeyOwnership) {
+  Responses r;
+  try {
+    int t = responses.at(_type);
+    r = static_cast<Responses>(t);
+  } catch (std::out_of_range &) {
+    BOOST_THROW_EXCEPTION(InvalidStateException(
+        "Incorrect zmq message request type: " + string(_type),
+        __CLASS_NAME__));
+  }
 
-    shared_ptr<ZMQMessage> ret = nullptr;
+  shared_ptr<ZMQMessage> ret = nullptr;
 
-    switch (r) {
-        case ENUM_BLS_SIGN_RSP:
-            ret = make_shared<BLSSignRspMessage>(_d);
-            break;
-        case ENUM_ECDSA_SIGN_RSP:
-            ret = make_shared<ECDSASignRspMessage>(_d);
-            break;
-        case ENUM_IMPORT_BLS_RSP:
-            ret = make_shared<importBLSRspMessage>(_d);
-            break;
-        case ENUM_IMPORT_ECDSA_RSP:
-            ret = make_shared<importECDSARspMessage>(_d);
-            break;
-        case ENUM_GENERATE_ECDSA_RSP:
-            ret = make_shared<generateECDSARspMessage>(_d);
-            break;
-        case ENUM_GET_PUBLIC_ECDSA_RSP:
-            ret = make_shared<getPublicECDSARspMessage>(_d);
-            break;
-        case ENUM_GENERATE_DKG_POLY_RSP:
-            ret = make_shared<generateDKGPolyRspMessage>(_d);
-            break;
-        case ENUM_GET_VV_RSP:
-            ret = make_shared<getVerificationVectorRspMessage>(_d);
-            break;
-        case ENUM_GET_SECRET_SHARE_RSP:
-            ret = make_shared<getSecretShareRspMessage>(_d);
-            break;
-        case ENUM_DKG_VERIFY_RSP:
-            ret = make_shared<dkgVerificationRspMessage>(_d);
-            break;
-        case ENUM_CREATE_BLS_PRIVATE_RSP:
-            ret = make_shared<createBLSPrivateKeyRspMessage>(_d);
-            break;
-        case ENUM_GET_BLS_PUBLIC_RSP:
-            ret = make_shared<getBLSPublicRspMessage>(_d);
-            break;
-        case ENUM_GET_ALL_BLS_PUBLIC_RSP:
-            ret = make_shared<getAllBLSPublicKeysRspMessage>(_d);
-            break;
-        case ENUM_COMPLAINT_RESPONSE_RSP:
-            ret = make_shared<complaintResponseRspMessage>(_d);
-            break;
-        case ENUM_MULT_G2_RSP:
-            ret = make_shared<multG2RspMessage>(_d);
-            break;
-        case ENUM_IS_POLY_EXISTS_RSP:
-            ret = make_shared<isPolyExistsRspMessage>(_d);
-            break;
-        case ENUM_GET_SERVER_STATUS_RSP:
-            ret = make_shared<getServerStatusRspMessage>(_d);
-            break;
-        case ENUM_GET_SERVER_VERSION_RSP:
-            ret = make_shared<getServerVersionRspMessage>(_d);
-            break;
-        case ENUM_DELETE_BLS_KEY_RSP:
-            ret = make_shared<deleteBLSKeyRspMessage>(_d);
-            break;
-        case ENUM_GET_DECRYPTION_SHARE_RSP:
-            ret = make_shared<GetDecryptionShareRspMessage>(_d);
-            break;
-        case ENUM_GENERATE_BLS_PRIVATE_KEY_RSP:
-            ret = make_shared<generateBLSPrivateKeyRspMessage>(_d);
-            break;
-        case ENUM_POP_PROVE_RSP:
-            ret = make_shared<popProveRspMessage>(_d);
-            break;
-        default:
-            break;
-    }
+  switch (r) {
+  case ENUM_BLS_SIGN_RSP:
+    ret = make_shared<BLSSignRspMessage>(_d);
+    break;
+  case ENUM_ECDSA_SIGN_RSP:
+    ret = make_shared<ECDSASignRspMessage>(_d);
+    break;
+  case ENUM_IMPORT_BLS_RSP:
+    ret = make_shared<importBLSRspMessage>(_d);
+    break;
+  case ENUM_IMPORT_ECDSA_RSP:
+    ret = make_shared<importECDSARspMessage>(_d);
+    break;
+  case ENUM_GENERATE_ECDSA_RSP:
+    ret = make_shared<generateECDSARspMessage>(_d);
+    break;
+  case ENUM_GET_PUBLIC_ECDSA_RSP:
+    ret = make_shared<getPublicECDSARspMessage>(_d);
+    break;
+  case ENUM_GENERATE_DKG_POLY_RSP:
+    ret = make_shared<generateDKGPolyRspMessage>(_d);
+    break;
+  case ENUM_GET_VV_RSP:
+    ret = make_shared<getVerificationVectorRspMessage>(_d);
+    break;
+  case ENUM_GET_SECRET_SHARE_RSP:
+    ret = make_shared<getSecretShareRspMessage>(_d);
+    break;
+  case ENUM_DKG_VERIFY_RSP:
+    ret = make_shared<dkgVerificationRspMessage>(_d);
+    break;
+  case ENUM_CREATE_BLS_PRIVATE_RSP:
+    ret = make_shared<createBLSPrivateKeyRspMessage>(_d);
+    break;
+  case ENUM_GET_BLS_PUBLIC_RSP:
+    ret = make_shared<getBLSPublicRspMessage>(_d);
+    break;
+  case ENUM_GET_ALL_BLS_PUBLIC_RSP:
+    ret = make_shared<getAllBLSPublicKeysRspMessage>(_d);
+    break;
+  case ENUM_COMPLAINT_RESPONSE_RSP:
+    ret = make_shared<complaintResponseRspMessage>(_d);
+    break;
+  case ENUM_MULT_G2_RSP:
+    ret = make_shared<multG2RspMessage>(_d);
+    break;
+  case ENUM_IS_POLY_EXISTS_RSP:
+    ret = make_shared<isPolyExistsRspMessage>(_d);
+    break;
+  case ENUM_GET_SERVER_STATUS_RSP:
+    ret = make_shared<getServerStatusRspMessage>(_d);
+    break;
+  case ENUM_GET_SERVER_VERSION_RSP:
+    ret = make_shared<getServerVersionRspMessage>(_d);
+    break;
+  case ENUM_DELETE_BLS_KEY_RSP:
+    ret = make_shared<deleteBLSKeyRspMessage>(_d);
+    break;
+  case ENUM_GET_DECRYPTION_SHARE_RSP:
+    ret = make_shared<GetDecryptionShareRspMessage>(_d);
+    break;
+  case ENUM_GENERATE_BLS_PRIVATE_KEY_RSP:
+    ret = make_shared<generateBLSPrivateKeyRspMessage>(_d);
+    break;
+  case ENUM_POP_PROVE_RSP:
+    ret = make_shared<popProveRspMessage>(_d);
+    break;
+  default:
+    break;
+  }
 
-    ret->setCheckKeyOwnership(_checkKeyOwnership);
+  ret->setCheckKeyOwnership(_checkKeyOwnership);
 
-    return ret;
+  return ret;
 }
 
 std::map<string, string> ZMQMessage::keysByOwners;
 
-bool ZMQMessage::isKeyByOwner(const string& keyName, const string& cert) {
-    auto value = LevelDB::getLevelDb()->readString(keyName  + ":OWNER");
-    return value && *value == cert;
+bool ZMQMessage::isKeyByOwner(const string &keyName, const string &cert) {
+  auto value = LevelDB::getLevelDb()->readString(keyName + ":OWNER");
+  return value && *value == cert;
 }
 
-void ZMQMessage::addKeyByOwner(const string& keyName, const string& cert) {
-    SGXWalletServer::writeDataToDB(keyName + ":OWNER", cert);
+void ZMQMessage::addKeyByOwner(const string &keyName, const string &cert) {
+  SGXWalletServer::writeDataToDB(keyName + ":OWNER", cert);
 }
 
-bool ZMQMessage::isKeyRegistered(const string& keyName) {
-    return LevelDB::getLevelDb()->readString(keyName  + ":OWNER") != nullptr;
+bool ZMQMessage::isKeyRegistered(const string &keyName) {
+  return LevelDB::getLevelDb()->readString(keyName + ":OWNER") != nullptr;
 }
 
-cache::lru_cache<string, pair < EVP_PKEY * , X509 *>> ZMQMessage::verifiedCerts(256);
+cache::lru_cache<string, pair<EVP_PKEY *, X509 *>>
+    ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{
-    {BLS_SIGN_REQ, 0}, {ECDSA_SIGN_REQ, 1}, {IMPORT_BLS_REQ, 2}, {IMPORT_ECDSA_REQ, 3},
-    {GENERATE_ECDSA_REQ, 4}, {GET_PUBLIC_ECDSA_REQ, 5}, {GENERATE_DKG_POLY_REQ, 6},
-    {GET_VV_REQ, 7}, {GET_SECRET_SHARE_REQ, 8}, {DKG_VERIFY_REQ, 9},
-    {CREATE_BLS_PRIVATE_REQ, 10}, {GET_BLS_PUBLIC_REQ, 11}, {GET_ALL_BLS_PUBLIC_REQ, 12},
-    {COMPLAINT_RESPONSE_REQ, 13}, {MULT_G2_REQ, 14}, {IS_POLY_EXISTS_REQ, 15},
-    {GET_SERVER_STATUS_REQ, 16}, {GET_SERVER_VERSION_REQ, 17}, {DELETE_BLS_KEY_REQ, 18},
-    {GET_DECRYPTION_SHARE_REQ, 19}, {GENERATE_BLS_PRIVATE_KEY_REQ, 20},
-    {POP_PROVE_REQ, 21}
-};
+    {BLS_SIGN_REQ, 0},
+    {ECDSA_SIGN_REQ, 1},
+    {IMPORT_BLS_REQ, 2},
+    {IMPORT_ECDSA_REQ, 3},
+    {GENERATE_ECDSA_REQ, 4},
+    {GET_PUBLIC_ECDSA_REQ, 5},
+    {GENERATE_DKG_POLY_REQ, 6},
+    {GET_VV_REQ, 7},
+    {GET_SECRET_SHARE_REQ, 8},
+    {DKG_VERIFY_REQ, 9},
+    {CREATE_BLS_PRIVATE_REQ, 10},
+    {GET_BLS_PUBLIC_REQ, 11},
+    {GET_ALL_BLS_PUBLIC_REQ, 12},
+    {COMPLAINT_RESPONSE_REQ, 13},
+    {MULT_G2_REQ, 14},
+    {IS_POLY_EXISTS_REQ, 15},
+    {GET_SERVER_STATUS_REQ, 16},
+    {GET_SERVER_VERSION_REQ, 17},
+    {DELETE_BLS_KEY_REQ, 18},
+    {GET_DECRYPTION_SHARE_REQ, 19},
+    {GENERATE_BLS_PRIVATE_KEY_REQ, 20},
+    {POP_PROVE_REQ, 21}};
 
-const std::map<string, int> ZMQMessage::responses {
-    {BLS_SIGN_RSP, 0}, {ECDSA_SIGN_RSP, 1}, {IMPORT_BLS_RSP, 2}, {IMPORT_ECDSA_RSP, 3},
-    {GENERATE_ECDSA_RSP, 4}, {GET_PUBLIC_ECDSA_RSP, 5}, {GENERATE_DKG_POLY_RSP, 6},
-    {GET_VV_RSP, 7}, {GET_SECRET_SHARE_RSP, 8}, {DKG_VERIFY_RSP, 9},
-    {CREATE_BLS_PRIVATE_RSP, 10}, {GET_BLS_PUBLIC_RSP, 11}, {GET_ALL_BLS_PUBLIC_RSP, 12},
-    {COMPLAINT_RESPONSE_RSP, 13}, {MULT_G2_RSP, 14}, {IS_POLY_EXISTS_RSP, 15},
-    {GET_SERVER_STATUS_RSP, 16}, {GET_SERVER_VERSION_RSP, 17}, {DELETE_BLS_KEY_RSP, 18},
-    {GET_DECRYPTION_SHARE_RSP, 19}, {GENERATE_BLS_PRIVATE_KEY_RSP, 20},
-    {POP_PROVE_RSP, 21}
-};
+const std::map<string, int> ZMQMessage::responses{
+    {BLS_SIGN_RSP, 0},
+    {ECDSA_SIGN_RSP, 1},
+    {IMPORT_BLS_RSP, 2},
+    {IMPORT_ECDSA_RSP, 3},
+    {GENERATE_ECDSA_RSP, 4},
+    {GET_PUBLIC_ECDSA_RSP, 5},
+    {GENERATE_DKG_POLY_RSP, 6},
+    {GET_VV_RSP, 7},
+    {GET_SECRET_SHARE_RSP, 8},
+    {DKG_VERIFY_RSP, 9},
+    {CREATE_BLS_PRIVATE_RSP, 10},
+    {GET_BLS_PUBLIC_RSP, 11},
+    {GET_ALL_BLS_PUBLIC_RSP, 12},
+    {COMPLAINT_RESPONSE_RSP, 13},
+    {MULT_G2_RSP, 14},
+    {IS_POLY_EXISTS_RSP, 15},
+    {GET_SERVER_STATUS_RSP, 16},
+    {GET_SERVER_VERSION_RSP, 17},
+    {DELETE_BLS_KEY_RSP, 18},
+    {GET_DECRYPTION_SHARE_RSP, 19},
+    {GENERATE_BLS_PRIVATE_KEY_RSP, 20},
+    {POP_PROVE_RSP, 21}};

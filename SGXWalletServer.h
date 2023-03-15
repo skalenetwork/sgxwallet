@@ -30,9 +30,9 @@
 #define EXTERNC
 #endif
 
-EXTERNC void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm, int _enterBackupKey);
-
+EXTERNC void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
+                            int _enterBackupKey);
 
 EXTERNC void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm);
 
-#endif //SGXWALLET_SGXWALLETSERVER_H
+#endif // SGXWALLET_SGXWALLETSERVER_H

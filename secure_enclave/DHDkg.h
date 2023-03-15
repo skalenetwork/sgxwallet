@@ -24,18 +24,19 @@
 #ifndef SGXD_DRIVE_KEY_DKG_H
 #define SGXD_DRIVE_KEY_DKG_H
 
-int gen_session_key(char* skey, char* pub_keyB, char* common_key);
+int gen_session_key(char *skey, char *pub_keyB, char *common_key);
 
-int session_key_recover(const char *skey_str, const char* sshare, char* common_key);
+int session_key_recover(const char *skey_str, const char *sshare,
+                        char *common_key);
 
-int xor_encrypt(char* key, char* message, char* cypher);
+int xor_encrypt(char *key, char *message, char *cypher);
 
-int xor_encrypt_v2(char* key, char* message, char* cypher);
+int xor_encrypt_v2(char *key, char *message, char *cypher);
 
-int xor_decrypt(char* key, char* cypher, char* message);
+int xor_decrypt(char *key, char *cypher, char *message);
 
-int xor_decrypt_v2(char* key, char* cypher, char* message);
+int xor_decrypt_v2(char *key, char *cypher, char *message);
 
-int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded);
+int hash_key(char *key, char *hashedKey, int length, bool isConvertNeeded);
 
-#endif //SGXD_DRIVE_KEY_DKG_H
+#endif // SGXD_DRIVE_KEY_DKG_H

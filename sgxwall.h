@@ -21,16 +21,14 @@
     @date 2020
 */
 
-
 class SGXWallet {
 
 public:
+  static void signalHandler(int signalNo);
 
-    static void signalHandler( int signalNo );
+  static void printUsage();
 
-    static void printUsage();
-
-    static void serializeKeys( const vector<string>& _ecdsaKeyNames,
-                               const vector<string>& _blsKeyNames, const string& _fileName);
-
+  static void serializeKeys(const vector<string> &_ecdsaKeyNames,
+                            const vector<string> &_blsKeyNames,
+                            const string &_fileName);
 };

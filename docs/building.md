@@ -67,6 +67,15 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 make
 ```
 
+## Format code
+
+To format code run 
+
+```bash
+cd scripts
+python3 format.py
+```
+
 ## Build base Docker container
 
 The base container includes software common to hardware mode and simulation mode.
