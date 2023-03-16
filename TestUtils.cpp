@@ -50,11 +50,11 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "TestUtils.h"
-#include "third_party/catch.hpp"
 #include "common.h"
 #include "sgxwallet.h"
 #include "stubclient.h"
 #include "testw.h"
+#include "third_party/catch.hpp"
 #include <thread>
 
 using namespace jsonrpc;
