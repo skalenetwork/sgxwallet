@@ -50,7 +50,7 @@
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "SEKManager.h"
-#include "catch.hpp"
+#include "third_party/catch.hpp"
 #include "common.h"
 #include "stubclient.h"
 #include <thread>

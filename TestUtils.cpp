@@ -50,7 +50,7 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "TestUtils.h"
-#include "catch.hpp"
+#include "third_party/catch.hpp"
 #include "common.h"
 #include "sgxwallet.h"
 #include "stubclient.h"

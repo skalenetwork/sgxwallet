@@ -9,6 +9,6 @@ jobs:
     - uses: DoozyX/clang-format-lint-action@v0.14
       with:
         source: '.'
-        exclude: './CMakeFiles ./cmake ./deps ./build ./cppzmq ./gmp-build ./intel-sgx-ssl ./jsonrpc ./leveldb ./libBLS ./libzmq ./linux-sgx-driver ./rapidjson ./sgx-gmp ./sgx-sdk-build ./sgx-software-enable ./tgmp-build ./third_party/* ./newer_lcov ./catch.hpp'
+        exclude: './CMakeFiles ./cmake ./deps ./build ./cppzmq ./gmp-build ./intel-sgx-ssl ./jsonrpc ./leveldb ./libBLS ./libzmq ./linux-sgx-driver ./rapidjson ./sgx-gmp ./sgx-sdk-build ./sgx-software-enable ./tgmp-build ./third_party/* ./newer_lcov'
         extensions: 'h,hpp,hxx,cpp,cxx,cc,ipp'
         clangFormatVersion: 14
