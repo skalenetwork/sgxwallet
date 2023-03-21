@@ -50,9 +50,9 @@
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
 #include "SEKManager.h"
+#include "catch.hpp"
 #include "common.h"
 #include "stubclient.h"
-#include "third_party/catch.hpp"
 #include <thread>
 
 #include "SGXRegistrationServer.h"
@@ -77,7 +77,7 @@ public:
   }
 
   ~TestFixture() {
-    //        ZMQServer::exitZMQServer();
+    ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -91,7 +91,7 @@ public:
   }
 
   ~TestFixtureHTTPS() {
-    //        ZMQServer::exitZMQServer();
+    ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -105,7 +105,7 @@ public:
   }
 
   ~TestFixtureZMQSign() {
-    //        ZMQServer::exitZMQServer();
+    ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -119,7 +119,7 @@ public:
 
   ~TestFixtureNoResetFromBackup() {
     sleep(3);
-    //        ZMQServer::exitZMQServer();
+    ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -132,7 +132,7 @@ public:
   }
 
   ~TestFixtureNoReset() {
-    //        ZMQServer::exitZMQServer();
+    ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
