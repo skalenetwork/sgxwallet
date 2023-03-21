@@ -44,7 +44,7 @@ add_executable(sgxwallet
         BLSCrypto.h
         BLSPrivateKeyShareSGX.cpp
         BLSPrivateKeyShareSGX.h
-        third_party/catch.hpp
+        catch.hpp
         cert_util.cpp
         common.h
         create_enclave.c

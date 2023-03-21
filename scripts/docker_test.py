@@ -31,7 +31,7 @@ print("Top directory is:" + topDir)
 
 DOCKER_FILE_NAME = sys.argv[1]
 IMAGE_NAME = sys.argv[2]
-TAG_POSTFIX = sys.argv[3]
+TAG_POSTFIX = "latest_commit"
 
 FULL_IMAGE_NAME = "skalenetwork/" + IMAGE_NAME +":" + TAG_POSTFIX
 

@@ -4,7 +4,7 @@ on:
   push:
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -21,7 +21,7 @@ jobs:
     - name: Build and publish container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: test
-      run: python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
+      run: python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim
     - name: build and deploy docker image
       if: |
             contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
