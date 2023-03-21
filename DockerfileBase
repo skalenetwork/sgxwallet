@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 RUN apt-get update && apt-get install software-properties-common -y && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && \
@@ -18,23 +18,18 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     ocaml \
     ocamlbuild \
     protobuf-compiler \
-    python \
+    python-is-python3 \
     wget \
     libcurl4 \
-    libprotobuf10 \
-    libssl1.1 \
     make \
-    module-init-tools \
     unzip \
-    gcc-9 g++-9
+    perl \
+    pkgconf
 
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9 && \
-    update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-9 9 && \
-    update-alternatives --install /usr/bin/gcov-dump gcov-dump /usr/bin/gcov-dump-9 9 && \
-    update-alternatives --install /usr/bin/gcov-tool gcov-tool /usr/bin/gcov-tool-9 9
+# RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+#     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-RUN git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
+RUN git clone -b sgx_2.19 --depth 1 https://github.com/intel/linux-sgx
 
 RUN cd linux-sgx && make preparation
 
@@ -59,11 +54,12 @@ WORKDIR /usr/src/sdk
 
 RUN apt update && \
     apt install -yq apt-utils && \
-    apt install -yq --no-install-recommends python-yaml vim \
-        telnet git ca-certificates perl \
+    apt install -yq --no-install-recommends vim telnet git ca-certificates perl \
         reprepro libboost-all-dev alien uuid-dev libxml2-dev ccache \
         yasm flex bison libprocps-dev ccache texinfo \
-        libjsonrpccpp-dev curl libjsonrpccpp-tools && \
+        graphviz doxygen libgnutls28-dev libgcrypt20-dev \
+        libboost-dev libboost-system-dev libboost-thread-dev lsb-release libsystemd0 && \
+        # glibc-tools
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
     ln -s /usr/bin/ccache /usr/local/bin/gcc && \
