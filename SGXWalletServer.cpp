@@ -339,7 +339,7 @@ Json::Value SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName,
       throw SGXException(INVALID_BLS_HEX,
                          string(__FUNCTION__) + ":Invalid bls hex");
     }
-    
+
     value = readFromDb(_keyShareName);
 
     if (!bls_sign(value->c_str(), hashTmp.c_str(), t, n, signature.data())) {

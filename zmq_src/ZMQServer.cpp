@@ -313,7 +313,7 @@ void ZMQServer::doOneServerLoop() {
           msg, identity);
 
       incomingQueue.at(index).enqueue(element);
-    } 
+    }
 
   } catch (ExitRequestedException &) {
     throw;
