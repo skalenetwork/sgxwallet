@@ -545,29 +545,16 @@ bool ZMQClient::generateBLSPrivateKey(const string &blsKeyName) {
       dynamic_pointer_cast<generateBLSPrivateKeyRspMessage>(doRequestReply(p));
   CHECK_STATE(result);
   return result->getStatus() == 0;
+}
 
-  Json::Value ZMQClient::getDecryptionShares(
-      const string &blsKeyName, const Json::Value &publicDecryptionValues) {
-    Json::Value p;
-    p["type"] = ZMQMessage::GET_DECRYPTION_SHARE_REQ;
-    p["blsKeyName"] = blsKeyName;
-    p["publicDecryptionValues"] =
-        publicDecryptionValues["publicDecryptionValues"];
-    auto result =
-        dynamic_pointer_cast<GetDecryptionShareRspMessage>(doRequestReply(p));
-    CHECK_STATE(result);
-    CHECK_STATE(result->getStatus() == 0);
-    return result->getShare();
-  }
+std::string ZMQClient::popProve(const string &blsKeyName) {
+  Json::Value p;
+  p["blsKeyName"] = blsKeyName;
+  p["type"] = ZMQMessage::POP_PROVE_REQ;
+  auto result = dynamic_pointer_cast<popProveRspMessage>(doRequestReply(p));
+  CHECK_STATE(result);
+  CHECK_STATE(result->getStatus() == 0);
+  return result->getPopProve();
+}
 
-  std::string ZMQClient::popProve(const string &blsKeyName) {
-    Json::Value p;
-    p["blsKeyName"] = blsKeyName;
-    p["type"] = ZMQMessage::POP_PROVE_REQ;
-    auto result = dynamic_pointer_cast<popProveRspMessage>(doRequestReply(p));
-    CHECK_STATE(result);
-    CHECK_STATE(result->getStatus() == 0);
-    return result->getPopProve();
-  }
-
-  uint64_t ZMQClient::getProcessID() { return syscall(__NR_gettid); }
+uint64_t ZMQClient::getProcessID() { return syscall(__NR_gettid); }
