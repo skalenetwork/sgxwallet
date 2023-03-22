@@ -600,7 +600,6 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
 void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey,
                           uint64_t enc_len, char *key) {
-
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 

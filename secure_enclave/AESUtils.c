@@ -107,6 +107,10 @@ int AES_decrypt(uint8_t *encrMessage, uint64_t length, char *message, uint64_t m
         return -4;
     }
 
+    if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
+        LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
+        return -5;
+    }
 
     if (length < SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE) {
         LOG_ERROR("length < SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE");
