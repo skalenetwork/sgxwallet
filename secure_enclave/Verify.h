@@ -25,9 +25,9 @@
 
 #define USER_SPACE 1
 
-#include "secure_enclave/Point.h"
+#include "secure_enclave/Curves.h"
 #include "secure_enclave/DomainParameters.h"
 #include "secure_enclave/NumberTheory.h"
+#include "secure_enclave/Point.h"
 #include "secure_enclave/Signature.h"
-#include "secure_enclave/Curves.h"
-#endif //SGXWALLET_VERIFY_H
+#endif // SGXWALLET_VERIFY_H

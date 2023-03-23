@@ -36,10 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SGXWALLET_SGXWALLET_H
 #define SGXWALLET_SGXWALLET_H
 
-
+#include "secure_enclave_u.h"
 #include "sgxwallet_common.h"
 #include "third_party/intel/create_enclave.h"
-#include "secure_enclave_u.h"
 #include "third_party/intel/sgx_detect.h"
 #include <gmp.h>
 #include <sgx_urts.h>
@@ -50,6 +49,12 @@ extern sgx_launch_token_t token;
 
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 
-enum log_level {L_TRACE = 0, L_DEBUG = 1, L_INFO = 2,L_WARNING = 3,  L_ERROR = 4 };
+enum log_level {
+  L_TRACE = 0,
+  L_DEBUG = 1,
+  L_INFO = 2,
+  L_WARNING = 3,
+  L_ERROR = 4
+};
 
-#endif //SGXWALLET_SGXWALLET_H
+#endif // SGXWALLET_SGXWALLET_H

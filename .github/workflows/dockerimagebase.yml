@@ -6,7 +6,7 @@ on:
       - build_base*
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       ACTIONS_ALLOW_UNSECURE_COMMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

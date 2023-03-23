@@ -46,7 +46,7 @@ echo "Test run requested"
 sleep 5
 ./testw.py
 else
-sleep 3
+/usr/src/sdk/check_firewall.py
 ./sgxwallet $1 $2 $3 $4 $5 $6
 fi
 

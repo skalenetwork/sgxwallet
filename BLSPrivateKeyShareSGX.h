@@ -25,8 +25,8 @@
 #define SGXWALLET_BLSPRIVATEKEYSHARESGX_H
 #define SGXWALLET_BLSPRIVATEKEYSHARESGX_H
 
-#include "BLSSigShare.h"
 #include "BLSPrivateKeyShare.h"
+#include "BLSSigShare.h"
 
 class BLSPrivateKeyShareSGX {
   size_t requiredSigners;
@@ -34,14 +34,15 @@ class BLSPrivateKeyShareSGX {
   size_t totalSigners;
 
   std::shared_ptr<std::string> encryptedKeyHex;
+
 public:
   std::shared_ptr<BLSSigShare>
-      signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash,
-                        size_t _signerIndex);
+  signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash,
+                    size_t _signerIndex);
 
-  std::string signWithHelperSGXstr(
-            std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
-            size_t _signerIndex);
+  std::string
+  signWithHelperSGXstr(std::shared_ptr<std::array<uint8_t, 32>> hash_byte_arr,
+                       size_t _signerIndex);
 
   BLSPrivateKeyShareSGX(std::shared_ptr<std::string> _encryptedKeyHex,
                         size_t _requiredSigners, size_t _totalSigners);

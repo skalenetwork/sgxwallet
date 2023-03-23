@@ -39,7 +39,9 @@ EXTERNC int char2int(char _input);
 
 EXTERNC std::vector<char> carray2Hex(const unsigned char *d, uint64_t _len);
 
-EXTERNC bool hex2carray(const char * _hex, uint64_t  *_bin_len,
-                 uint8_t* _bin, uint64_t _max_length );
+EXTERNC bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin,
+                        uint64_t _max_length);
+
+std::vector<std::string> splitString(const char *coeffs, const char symbol);
 
 #endif // SGXWALLET_CRYPTOTOOLS_H

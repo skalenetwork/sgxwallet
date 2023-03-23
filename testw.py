@@ -32,7 +32,7 @@ testList = [ "[zmq-ecdsa]",
              "[first-run]",
              "[second-run]",
              "[many-threads-crypto-v2]",
-             "[many-threads-crypto-v2-zmq]"
+             "[many-threads-crypto-v2-zmq]",
              "[backup-restore]",
              "[cert-sign]",
              "[get-server-status]",
@@ -64,7 +64,14 @@ testList = [ "[zmq-ecdsa]",
              "[aes-dkg-v2]",
              "[aes-dkg-v2-zmq]",
              "[te-decryption-share]",
-             "[te-decryption-share-zmq]"
+             "[te-decryption-share-zmq]",
+             "[bls-aggregated-key-decrypt]",
+             "[bls-aggregated-key-generation]",
+             "[bls-aggregated-key-generation-zmq]",
+             "[bls-aggregated-signing]",
+             "[bls-aggregated-signing-zmq]",
+             "[bls-aggregated-pop-prove]",
+             "[bls-aggregated-pop-prove-zmq]"
             ]
 
 

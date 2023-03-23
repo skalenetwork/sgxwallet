@@ -21,10 +21,11 @@
     @date 2018
 */
 
-#include "Log.h"
 #include "InvalidArgumentException.h"
+#include "Log.h"
 
-InvalidArgumentException::InvalidArgumentException(const std::string &_message, const string& _className) :
-                      Exception(_message, _className) {
-    fatal = false;
+InvalidArgumentException::InvalidArgumentException(const std::string &_message,
+                                                   const string &_className)
+    : Exception(_message, _className) {
+  fatal = false;
 }

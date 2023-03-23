@@ -2,7 +2,20 @@
 
 # Building SGX wallet from source
 
-## Build and install Intel SGX SDK
+#
+
+## Clone this repository and its submodules
+
+`git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
+
+## Install required debian packages
+
+```bash
+cd scripts; sudo ./install_packages.sh; cd ..
+```
+
+
+# Build and install Intel SGX SDK
 
 We are currently using SGX SDK version 2.13. 
 
@@ -15,20 +28,10 @@ cd linux-sgx
 make preparation
 sudo make sdk_install_pkg_no_mitigation
 cd /opt/intel
-sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin
+sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
 sudo make psw_install_pkg
 sudo cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
-```
-
-## Clone this repository and its submodules
-
-`git clone --recurse-submodules  https://github.com/skalenetwork/sgxwallet.git`
-
-## Install required debian packages
-
-```bash
-cd scripts; sudo ./install_packages.sh; cd ..
 ```
 
 ## Build dependencies
@@ -62,6 +65,15 @@ Note: to run in simulation mode, add --enable-sgx-simulation flag when you run c
 ./autoconf.bash
 ./configure --enable-sgx-simulation
 make
+```
+
+## Format code
+
+To format code run 
+
+```bash
+cd scripts
+python3 format.py
 ```
 
 ## Build base Docker container

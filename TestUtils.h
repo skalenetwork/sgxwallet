@@ -24,22 +24,21 @@
 #ifndef SGXWALLET_TESTUTILS_H
 #define SGXWALLET_TESTUTILS_H
 
-#include <dkg/dkg.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <dkg/dkg.h>
-#include "sgxwallet_common.h"
-#include "third_party/intel/create_enclave.h"
+#include "abstractstubserver.h"
 #include "secure_enclave_u.h"
+#include "sgxwallet_common.h"
+#include "stubclient.h"
+#include "third_party/intel/create_enclave.h"
 #include "third_party/intel/sgx_detect.h"
+#include "zmq_src/ZMQClient.h"
+#include <dkg/dkg.h>
 #include <gmp.h>
+#include <jsonrpccpp/client/connectors/httpclient.h>
+#include <jsonrpccpp/server/connectors/httpserver.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <sgx_tcrypto.h>
 #include <sgx_urts.h>
 #include <stdio.h>
-#include <jsonrpccpp/client/connectors/httpclient.h>
-#include <sgx_tcrypto.h>
-#include "stubclient.h"
-#include <jsonrpccpp/server/connectors/httpserver.h>
-#include "zmq_src/ZMQClient.h"
-#include "abstractstubserver.h"
 
 using namespace std;
 
@@ -48,50 +47,50 @@ using namespace jsonrpc;
 class TestUtils {
 
 public:
-    static default_random_engine randGen;
+  static default_random_engine randGen;
 
-    static string stringFromFr(libff::alt_bn128_Fr &el);
+  static string stringFromFr(libff::alt_bn128_Fr &el, size_t base = 10);
 
-    static string convertDecToHex(string dec, int numBytes = 32);
+  static string convertDecToHex(string dec, int numBytes = 32);
 
-    static void genTestKeys();
+  static void genTestKeys();
 
-    static void resetDB();
+  static void resetDB();
 
-    static shared_ptr<string> encryptTestKey();
+  static shared_ptr<string> encryptTestKey();
 
-    static vector <libff::alt_bn128_Fr> splitStringToFr(const char *coeffs, const char symbol);
+  static vector<libff::alt_bn128_Fr> splitStringToFr(const char *coeffs,
+                                                     const char symbol);
 
-    static vector <string> splitStringTest(const char *coeffs, const char symbol);
+  static vector<string> splitStringTest(const char *coeffs, const char symbol);
 
-    static libff::alt_bn128_G2 vectStringToG2(const vector <string> &G2_str_vect);
+  static libff::alt_bn128_G2 vectStringToG2(const vector<string> &G2_str_vect);
 
-    static void sendRPCRequest();
+  static void sendRPCRequest();
 
-    static void sendRPCRequestV2();
+  static void sendRPCRequestV2();
 
-    static void destroyEnclave();
+  static void destroyEnclave();
 
-    static void doDKG(StubClient &c, int n, int t,
-                                 vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
-                                 int schainID, int dkgID);
+  static void doDKG(StubClient &c, int n, int t, vector<string> &_ecdsaKeyNames,
+                    vector<string> &_blsKeyNames, int schainID, int dkgID);
 
-    static void doDKGV2(StubClient &c, int n, int t,
-                                 vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
-                                 int schainID, int dkgID);
+  static void doDKGV2(StubClient &c, int n, int t,
+                      vector<string> &_ecdsaKeyNames,
+                      vector<string> &_blsKeyNames, int schainID, int dkgID);
 
-    static void doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n, int t,
-                        vector<string>& _ecdsaKeyNames, vector<string>& _blsKeyNames,
-                        int schainID, int dkgID);
+  static void doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
+                       int t, vector<string> &_ecdsaKeyNames,
+                       vector<string> &_blsKeyNames, int schainID, int dkgID);
 
-    static void sendRPCRequestZMQ();
-
+  static void sendRPCRequestZMQ();
 };
 
-int sessionKeyRecoverDH(const char *skey_str, const char *sshare, char *common_key);
+int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
+                        char *common_key);
 
-int xorDecryptDH(char *key, const char *cypher, vector<char>& message);
+int xorDecryptDH(char *key, const char *cypher, vector<char> &message);
 
-int xorDecryptDHV2(char *key, const char *cypher, vector<char>& message);
+int xorDecryptDHV2(char *key, const char *cypher, vector<char> &message);
 
-#endif //SGXWALLET_TESTW_H
+#endif // SGXWALLET_TESTW_H

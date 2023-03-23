@@ -25,63 +25,56 @@
 #include "stringbuffer.h"
 #include "writer.h"
 
-
-
+#include "WorkerThreadPool.h"
+#include "ZMQServer.h"
 #include "common.h"
 #include "sgxwallet_common.h"
 #include "third_party/spdlog/spdlog.h"
-#include "ZMQServer.h"
-#include "WorkerThreadPool.h"
 
+WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent)
+    : joined(false) {
+  CHECK_STATE(_numThreads > 0);
+  CHECK_STATE(_agent);
 
-WorkerThreadPool::WorkerThreadPool(uint64_t _numThreads, ZMQServer *_agent) : joined(false) {
-    CHECK_STATE(_numThreads > 0);
-    CHECK_STATE(_agent);
+  spdlog::info("Creating thread pool. Threads count:" + to_string(_numThreads));
 
-    spdlog::info("Creating thread pool. Threads count:" + to_string(_numThreads));
+  this->agent = _agent;
+  this->numThreads = _numThreads;
+  ;
 
-    this->agent = _agent;
-    this->numThreads = _numThreads;;
+  for (uint64_t i = 0; i < (uint64_t)numThreads; i++) {
+    createThread(i);
+  }
 
-
-    for (uint64_t i = 0; i < (uint64_t) numThreads; i++) {
-        createThread(i);
-    }
-
-    spdlog::info("Created thread pool");
-
+  spdlog::info("Created thread pool");
 }
-
 
 void WorkerThreadPool::joinAll() {
 
-    spdlog::info("Joining worker threads ...");
+  spdlog::info("Joining worker threads ...");
 
-    if (joined.exchange(true))
-        return;
+  if (joined.exchange(true))
+    return;
 
-    for (auto &&thread : threadpool) {
-        if (thread->joinable())
-            thread->join();
-        CHECK_STATE(!thread->joinable());
-    }
+  for (auto &&thread : threadpool) {
+    if (thread->joinable())
+      thread->join();
+    CHECK_STATE(!thread->joinable());
+  }
 
-    spdlog::info("Joined worker threads.");
+  spdlog::info("Joined worker threads.");
 }
 
-bool WorkerThreadPool::isJoined() const {
-    return joined;
-}
+bool WorkerThreadPool::isJoined() const { return joined; }
 
-WorkerThreadPool::~WorkerThreadPool(){
-}
+WorkerThreadPool::~WorkerThreadPool() {}
 
 void WorkerThreadPool::createThread(uint64_t _threadNumber) {
 
-    spdlog::info("Starting ZMQ worker thread " + to_string(_threadNumber) );
+  spdlog::info("Starting ZMQ worker thread " + to_string(_threadNumber));
 
-    this->threadpool.push_back(
-            make_shared< thread >( ZMQServer::workerThreadMessageProcessLoop, agent, _threadNumber ) );
+  this->threadpool.push_back(make_shared<thread>(
+      ZMQServer::workerThreadMessageProcessLoop, agent, _threadNumber));
 
-    spdlog::info("Started ZMQ worker thread " + to_string(_threadNumber) );
+  spdlog::info("Started ZMQ worker thread " + to_string(_threadNumber));
 }
