@@ -37,20 +37,21 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
-EXTERNC int gen_dkg_poly( char* secret, unsigned _t);
+EXTERNC int gen_dkg_poly(char *secret, unsigned _t);
 
-EXTERNC void calc_secret_shares(const char* decrypted_coeffs, char * secret_shares,
-                        unsigned _t, unsigned _n);
+EXTERNC void calc_secret_shares(const char *decrypted_coeffs,
+                                char *secret_shares, unsigned _t, unsigned _n);
 
-EXTERNC int calc_secret_share(const char* decrypted_coeffs, char * s_share,
-                               unsigned _t, unsigned _n, unsigned ind);
+EXTERNC int calc_secret_share(const char *decrypted_coeffs, char *s_share,
+                              unsigned _t, unsigned _n, unsigned ind);
 
-EXTERNC int calc_public_shares(const char* decrypted_coeffs, char * public_shares, unsigned _t);
+EXTERNC int calc_public_shares(const char *decrypted_coeffs,
+                               char *public_shares, unsigned _t);
 
-EXTERNC int Verification ( char * public_shares, mpz_t decr_secret_share, int _t, int ind);
+EXTERNC int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
+                         int ind);
 
-EXTERNC int calc_bls_public_key(char* skey, char* pub_key);
+EXTERNC int calc_bls_public_key(char *skey, char *pub_key);
 
-EXTERNC int calc_secret_shareG2(const char* s_share, char * s_shareG2);
+EXTERNC int calc_secret_shareG2(const char *s_share, char *s_shareG2);
 #endif
-

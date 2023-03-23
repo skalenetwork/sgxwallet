@@ -23,8 +23,4 @@
 
 #include "SGXException.h"
 
-const char* SGXException::what()  const noexcept {
-    return errString.c_str();
-}
-
-
+const char *SGXException::what() const noexcept { return errString.c_str(); }

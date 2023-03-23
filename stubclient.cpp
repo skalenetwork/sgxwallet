@@ -30,15 +30,15 @@ using namespace jsonrpc;
 using namespace std;
 
 int init_client() {
-    HttpClient client("http://localhost:1025");
-    StubClient c(client, JSONRPC_CLIENT_V2);
+  HttpClient client("http://localhost:1025");
+  StubClient c(client, JSONRPC_CLIENT_V2);
 
-    Json::Value params;
+  Json::Value params;
 
-    try {
-        cout << c.generateECDSAKey() << endl;
-    } catch (JsonRpcException &e) {
-        cerr << e.what() << endl;
-    }
-    return 0;
+  try {
+    cout << c.generateECDSAKey() << endl;
+  } catch (JsonRpcException &e) {
+    cerr << e.what() << endl;
+  }
+  return 0;
 }

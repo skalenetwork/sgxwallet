@@ -21,47 +21,49 @@
     @date 2019
 */
 
-#include <vector>
 #include "ServerDataChecker.h"
 #include <gmp.h>
+#include <vector>
 
 #include <iostream>
 
-#include "third_party/spdlog/spdlog.h"
 #include "common.h"
+#include "third_party/spdlog/spdlog.h"
 
-vector<string> SplitString(const string& str, const string& delim = ":"){
-    vector<string> tokens;
-    size_t prev = 0, pos = 0;
-    do {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(token);
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
+vector<string> SplitString(const string &str, const string &delim = ":") {
+  vector<string> tokens;
+  size_t prev = 0, pos = 0;
+  do {
+    pos = str.find(delim, prev);
+    if (pos == string::npos)
+      pos = str.length();
+    string token = str.substr(prev, pos - prev);
+    if (!token.empty())
+      tokens.push_back(token);
+    prev = pos + delim.length();
+  } while (pos < str.length() && prev < str.length());
 
-    return tokens;
+  return tokens;
 }
 
-bool checkECDSAKeyName(const string& keyName) {
+bool checkECDSAKeyName(const string &keyName) {
   vector<string> parts = SplitString(keyName);
   if (parts.size() != 2) {
     spdlog::info("ECDSAKeyName num parts != 2");
     return false;
   }
   if (parts.at(0) != "NEK") {
-      spdlog::info("key doesn't start from NEK");
-      return false;
+    spdlog::info("key doesn't start from NEK");
+    return false;
   }
-  if ( parts.at(1).length() > 64 || parts.at(1).length() < 1){
-      spdlog::info("wrong key length");
-      return false;
+  if (parts.at(1).length() > 64 || parts.at(1).length() < 1) {
+    spdlog::info("wrong key length");
+    return false;
   }
 
   mpz_t num;
   mpz_init(num);
-  if ( mpz_set_str(num, parts.at(1).c_str(), 16) == -1){
+  if (mpz_set_str(num, parts.at(1).c_str(), 16) == -1) {
     mpz_clear(num);
     return false;
   }
@@ -70,8 +72,8 @@ bool checkECDSAKeyName(const string& keyName) {
   return true;
 }
 
-bool checkHex(const string& hex, const uint32_t sizeInBytes){
-  if ( hex.length() > sizeInBytes * 2 || hex.length() == 0){
+bool checkHex(const string &hex, const uint32_t sizeInBytes) {
+  if (hex.length() > sizeInBytes * 2 || hex.length() == 0) {
     spdlog::error("key is too long or zero {} ", hex.length());
     return false;
   }
@@ -89,85 +91,85 @@ bool checkHex(const string& hex, const uint32_t sizeInBytes){
   return true;
 }
 
-bool checkName (const string& Name, const string& prefix){
-    vector<string> parts = SplitString(Name);
-    if ( parts.size() != 7) {
-        spdlog::info("parts.size() != 7");
-        return false;
-    }
-    if ( parts.at(0) != prefix ) {
-        spdlog::info("parts.at(0) != prefix");
-        return false;
-    }
-    if ( parts.at(1) != "SCHAIN_ID"){
-        spdlog::info("parts.at(1) != SCHAIN_ID");
-        return false;
-    }
-    if ( parts.at(3) != "NODE_ID"){
-        spdlog::info("parts.at(3) != Node_ID");
-        return false;
-    }
-    if ( parts.at(5) != "DKG_ID"){
-        spdlog::info("parts.at(1) != DKG_ID");
-        return false;
-    }
+bool checkName(const string &Name, const string &prefix) {
+  vector<string> parts = SplitString(Name);
+  if (parts.size() != 7) {
+    spdlog::info("parts.size() != 7");
+    return false;
+  }
+  if (parts.at(0) != prefix) {
+    spdlog::info("parts.at(0) != prefix");
+    return false;
+  }
+  if (parts.at(1) != "SCHAIN_ID") {
+    spdlog::info("parts.at(1) != SCHAIN_ID");
+    return false;
+  }
+  if (parts.at(3) != "NODE_ID") {
+    spdlog::info("parts.at(3) != Node_ID");
+    return false;
+  }
+  if (parts.at(5) != "DKG_ID") {
+    spdlog::info("parts.at(1) != DKG_ID");
+    return false;
+  }
 
-    if ( parts.at(2).length() > 78 || parts.at(2).length() < 1){
-        spdlog::info("parts.at(2).length() > 78");
-        return false;
-    }
-    if (parts.at(4).length() > 5 || parts.at(4).length() < 1){
-        spdlog::info("parts.at(4).length() > 5");
-        return false;
-    }
-    if ( parts.at(6).length() > 78 || parts.at(6).length() < 1){
-        spdlog::info("parts.at(6).length() > 78");
-        return false;
-    }
+  if (parts.at(2).length() > 78 || parts.at(2).length() < 1) {
+    spdlog::info("parts.at(2).length() > 78");
+    return false;
+  }
+  if (parts.at(4).length() > 5 || parts.at(4).length() < 1) {
+    spdlog::info("parts.at(4).length() > 5");
+    return false;
+  }
+  if (parts.at(6).length() > 78 || parts.at(6).length() < 1) {
+    spdlog::info("parts.at(6).length() > 78");
+    return false;
+  }
 
-    mpz_t num;
-    mpz_init(num);
+  mpz_t num;
+  mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(2).c_str(), 10) == -1) {
-        mpz_clear(num);
-        spdlog::info("parts.at(2) is not decimal number");
-        return false;
-    }
+  if (mpz_set_str(num, parts.at(2).c_str(), 10) == -1) {
     mpz_clear(num);
-    mpz_init(num);
+    spdlog::info("parts.at(2) is not decimal number");
+    return false;
+  }
+  mpz_clear(num);
+  mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(4).c_str(), 10) == -1){
-        mpz_clear(num);
-        spdlog::info("parts.at(4) is not decimal number");
-        return false;
-    }
+  if (mpz_set_str(num, parts.at(4).c_str(), 10) == -1) {
     mpz_clear(num);
-    mpz_init(num);
+    spdlog::info("parts.at(4) is not decimal number");
+    return false;
+  }
+  mpz_clear(num);
+  mpz_init(num);
 
-    if ( mpz_set_str(num, parts.at(6).c_str(),10) == -1){
-        mpz_clear(num);
-        spdlog::info("parts.at(6) is not decimal number");
-        return false;
-    }
+  if (mpz_set_str(num, parts.at(6).c_str(), 10) == -1) {
     mpz_clear(num);
+    spdlog::info("parts.at(6) is not decimal number");
+    return false;
+  }
+  mpz_clear(num);
 
-    return true;
+  return true;
 }
 
-bool check_n_t ( const int t, const int n){
-  if (t > n){
+bool check_n_t(const int t, const int n) {
+  if (t > n) {
     return false;
   }
 
-  if ( t == 0 || n == 0){
+  if (t == 0 || n == 0) {
     return false;
   }
 
-  if (n > 32){
+  if (n > 32) {
     return false;
   }
 
-  if ( t < 0 || n < 0){
+  if (t < 0 || n < 0) {
     return false;
   }
 

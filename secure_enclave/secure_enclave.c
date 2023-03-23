@@ -53,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Signature.h"
 #include "Curves.h"
 #include "DHDkg.h"
+#include "HKDF.h"
 #include "AESUtils.h"
 #include "TEUtils.h"
 
@@ -912,52 +913,52 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 }
 
 void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
-                                      uint8_t *_encrypted_poly,  uint64_t _enc_len,
-                                      uint8_t *encrypted_skey, uint64_t *dec_len,
-                                      char *result_str, char *s_shareG2, char *pub_keyB, uint8_t _t, uint8_t _n,
+                                      uint8_t *_encryptedPoly,  uint64_t _encLen,
+                                      uint8_t *encryptedSkey, uint64_t *decLen,
+                                      char *resultStr, char *secretShareG2, char *pubKeyB, uint8_t _t, uint8_t _n,
                                       uint8_t ind) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
-    uint64_t enc_len;
+    uint64_t encLen;
     int status;
 
-    CHECK_STATE(encrypted_skey);
-    CHECK_STATE(result_str);
-    CHECK_STATE(s_shareG2);
-    CHECK_STATE(pub_keyB);
+    CHECK_STATE(encryptedSkey);
+    CHECK_STATE(resultStr);
+    CHECK_STATE(secretShareG2);
+    CHECK_STATE(pubKeyB);
 
     LOG_DEBUG(__FUNCTION__);
 
-    trustedSetEncryptedDkgPoly(&status, errString, _encrypted_poly, _enc_len);
+    trustedSetEncryptedDkgPoly(&status, errString, _encryptedPoly, _encLen);
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
 
     SAFE_CHAR_BUF(skey, BUF_LEN);
 
-    SAFE_CHAR_BUF(pub_key_x, BUF_LEN);
-    SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
+    SAFE_CHAR_BUF(pubKeyX, BUF_LEN);
+    SAFE_CHAR_BUF(pubKeyY, BUF_LEN);
 
     int is_exportable = 1;
 
-    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encrypted_skey, &enc_len, pub_key_x, pub_key_y);
+    trustedGenerateEcdsaKey(&status, errString, &is_exportable, encryptedSkey, &encLen, pubKeyX, pubKeyY);
 
     CHECK_STATUS("trustedGenerateEcdsaKey failed");
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    status = AES_decrypt(encrypted_skey, enc_len, skey, BUF_LEN, &type, &exportable);
+    status = AES_decrypt(encryptedSkey, encLen, skey, BUF_LEN, &type, &exportable);
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
     CHECK_STATUS2("AES_decrypt failed (in trustedGetEncryptedSecretShareAES) with status %d");
 
-    *dec_len = enc_len;
+    *decLen = encLen;
 
-    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    SAFE_CHAR_BUF(commonKey, BUF_LEN);
 
-    status = gen_session_key(skey, pub_keyB, common_key);
+    status = gen_session_key(skey, pubKeyB, commonKey);
 
     CHECK_STATUS("gen_session_key failed")
 
@@ -966,22 +967,22 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
 
-    status = calc_secret_shareG2(s_share, s_shareG2);
+    status = calc_secret_shareG2(s_share, secretShareG2);
     CHECK_STATUS("invalid decr secret share");
 
-    SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key);
+    SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+    status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
-    derived_key[ECDSA_BIN_LEN - 1] = 0;
+    derivedKey[ECDSA_BIN_LEN - 1] = 0;
 
     SAFE_CHAR_BUF(cypher, BUF_LEN);
-    status = xor_encrypt_v2(derived_key, s_share, cypher);
+    status = xor_encrypt_v2(derivedKey, s_share, cypher);
 
     CHECK_STATUS("xor_encrypt failed")
 
-    strncpy(result_str, cypher, strlen(cypher));
-    strncpy(result_str + strlen(cypher), pub_key_x, strlen(pub_key_x));
-    strncpy(result_str + strlen(pub_key_x) + strlen(pub_key_y), pub_key_y, strlen(pub_key_y));
+    strncpy(resultStr, cypher, strlen(cypher));
+    strncpy(resultStr + strlen(cypher), pubKeyX, strlen(pubKeyX));
+    strncpy(resultStr + strlen(pubKeyX) + strlen(pubKeyY), pubKeyY, strlen(pubKeyY));
 
     SET_SUCCESS
 
@@ -1074,14 +1075,14 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     LOG_INFO("SGX call completed");
 }
 
-void trustedDkgVerifyV2(int *errStatus, char *errString, const char *public_shares, const char *s_share,
-                         uint8_t *encryptedPrivateKey, uint64_t enc_len, unsigned _t, int _ind, int *result) {
+void trustedDkgVerifyV2(int *errStatus, char *errString, const char *publicShares, const char *secretShare,
+                         uint8_t *encryptedPrivateKey, uint64_t encLen, unsigned _t, int _ind, int *result) {
     LOG_INFO(__FUNCTION__);
 
     INIT_ERROR_STATE
 
-    CHECK_STATE(public_shares);
-    CHECK_STATE(s_share);
+    CHECK_STATE(publicShares);
+    CHECK_STATE(secretShare);
     CHECK_STATE(encryptedPrivateKey);
 
     SAFE_CHAR_BUF(skey,BUF_LEN);
@@ -1092,36 +1093,36 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *public_shar
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, encLen, skey, BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES_decrypt failed (in trustedDkgVerifyAES) with status %d");
 
-    SAFE_CHAR_BUF(encr_sshare, BUF_LEN);
+    SAFE_CHAR_BUF(encrSshare, BUF_LEN);
 
-    strncpy(encr_sshare, s_share, ECDSA_SKEY_LEN - 1);
+    strncpy(encrSshare, secretShare, ECDSA_SKEY_LEN - 1);
 
-    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    SAFE_CHAR_BUF(commonKey, BUF_LEN);
 
-    status = session_key_recover(skey, s_share, common_key);
+    status = session_key_recover(skey, secretShare, commonKey);
 
     CHECK_STATUS("session_key_recover failed");
 
-    SAFE_CHAR_BUF(derived_key, BUF_LEN);
-    status = hash_key(common_key, derived_key);
+    SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+    status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
-    derived_key[ECDSA_BIN_LEN - 1] = 0;
+    derivedKey[ECDSA_BIN_LEN - 1] = 0;
 
-    SAFE_CHAR_BUF(decr_sshare, BUF_LEN);
+    SAFE_CHAR_BUF(decrSshare, BUF_LEN);
 
-    status = xor_decrypt_v2(derived_key, encr_sshare, decr_sshare);
+    status = xor_decrypt_v2(derivedKey, encrSshare, decrSshare);
 
     CHECK_STATUS("xor_decrypt failed")
 
-    status = mpz_set_str(s, decr_sshare, 16);
+    status = mpz_set_str(s, decrSshare, 16);
     CHECK_STATUS("invalid decr secret share");
 
-    *result = Verification(public_shares, s, _t, _ind);
+    *result = Verification(publicShares, s, _t, _ind);
 
     SET_SUCCESS
     clean:
@@ -1234,17 +1235,17 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     LOG_INFO("SGX call completed");
 }
 
-void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares,
-                            uint8_t *encryptedPrivateKey, uint64_t key_len, uint8_t *encr_bls_key,
-                            uint64_t *enc_bls_key_len) {
+void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretShares,
+                            uint8_t *encryptedPrivateKey, uint64_t keyLen, uint8_t *encrBlsKey,
+                            uint64_t *encBlsKeyLen) {
 
     LOG_INFO(__FUNCTION__);
 
     INIT_ERROR_STATE
 
-    CHECK_STATE(s_shares);
+    CHECK_STATE(secretShares);
     CHECK_STATE(encryptedPrivateKey);
-    CHECK_STATE(encr_bls_key);
+    CHECK_STATE(encrBlsKey);
 
     SAFE_CHAR_BUF(skey, BUF_LEN);
 
@@ -1256,87 +1257,87 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *s_shares
     mpz_init(q);
     mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
 
-    mpz_t bls_key;
-    mpz_init(bls_key);
+    mpz_t blsKey;
+    mpz_init(blsKey);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, keyLen, skey, BUF_LEN,
                              &type, &exportable);
     CHECK_STATUS2("aes decrypt failed with status %d");
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
-    int num_shares = strlen(s_shares) / 192;
+    int numShares = strlen(secretShares) / 192;
 
-    for (int i = 0; i < num_shares; i++) {
-        SAFE_CHAR_BUF(encr_sshare, 65);
-        strncpy(encr_sshare, s_shares + 192 * i, 64);
-        encr_sshare[64] = 0;
+    for (int i = 0; i < numShares; i++) {
+        SAFE_CHAR_BUF(encrSecretShare, 65);
+        strncpy(encrSecretShare, secretShares + 192 * i, 64);
+        encrSecretShare[64] = 0;
 
-        SAFE_CHAR_BUF(s_share, 193);
-        strncpy(s_share, s_shares + 192 * i, 192);
-        s_share[192] = 0;
+        SAFE_CHAR_BUF(secretShare, 193);
+        strncpy(secretShare, secretShares + 192 * i, 192);
+        secretShare[192] = 0;
 
-        SAFE_CHAR_BUF(common_key, 65);
+        SAFE_CHAR_BUF(commonKey, 65);
 
-        status = session_key_recover(skey, s_share, common_key);
+        status = session_key_recover(skey, secretShare, commonKey);
 
         CHECK_STATUS("session_key_recover failed");
 
-        common_key[64] = 0;
+        commonKey[64] = 0;
 
-        SAFE_CHAR_BUF(derived_key, BUF_LEN);
-        status = hash_key(common_key, derived_key);
+        SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+        status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
         CHECK_STATUS("hash key failed")
-        derived_key[ECDSA_BIN_LEN - 1] = 0;
+        derivedKey[ECDSA_BIN_LEN - 1] = 0;
 
-        SAFE_CHAR_BUF(decr_sshare, 65);
+        SAFE_CHAR_BUF(decrSecretShare, 65);
 
-        status = xor_decrypt_v2(derived_key, encr_sshare, decr_sshare);
+        status = xor_decrypt_v2(derivedKey, encrSecretShare, decrSecretShare);
 
         CHECK_STATUS("xor_decrypt failed");
 
-        decr_sshare[64] = 0;
+        decrSecretShare[64] = 0;
 
-        mpz_t decr_secret_share;
-        mpz_init(decr_secret_share);
-        if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
+        mpz_t decryptedSecretShare;
+        mpz_init(decryptedSecretShare);
+        if (mpz_set_str(decryptedSecretShare, decrSecretShare, 16) == -1) {
             *errStatus = 111;
             snprintf(errString, BUF_LEN, "invalid decrypted secret share");
             LOG_ERROR(errString);
 
-            mpz_clear(decr_secret_share);
+            mpz_clear(decryptedSecretShare);
             goto clean;
         }
 
-        mpz_addmul_ui(sum, decr_secret_share, 1);
-        mpz_clear(decr_secret_share);
+        mpz_addmul_ui(sum, decryptedSecretShare, 1);
+        mpz_clear(decryptedSecretShare);
     }
 
-    mpz_mod(bls_key, sum, q);
+    mpz_mod(blsKey, sum, q);
 
-    SAFE_CHAR_BUF(key_share, BLS_KEY_LENGTH);
+    SAFE_CHAR_BUF(keyShare, BLS_KEY_LENGTH);
 
-    SAFE_CHAR_BUF(arr_skey_str, BUF_LEN);
+    SAFE_CHAR_BUF(arrSkeyStr, BUF_LEN);
 
-    mpz_get_str(arr_skey_str, 16, bls_key);
-    int n_zeroes = 64 - strlen(arr_skey_str);
-    for (int i = 0; i < n_zeroes; i++) {
-        key_share[i] = '0';
+    mpz_get_str(arrSkeyStr, 16, blsKey);
+    int nZeroes = 64 - strlen(arrSkeyStr);
+    for (int i = 0; i < nZeroes; i++) {
+        keyShare[i] = '0';
     }
-    strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
-    key_share[BLS_KEY_LENGTH - 1] = 0;
+    strncpy(keyShare + nZeroes, arrSkeyStr, 65 - nZeroes);
+    keyShare[BLS_KEY_LENGTH - 1] = 0;
 
-    status = AES_encrypt(key_share, encr_bls_key, BUF_LEN, BLS, NON_EXPORTABLE, enc_bls_key_len);
+    status = AES_encrypt(keyShare, encrBlsKey, BUF_LEN, BLS, NON_EXPORTABLE, encBlsKeyLen);
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
 
     SET_SUCCESS
     clean:
 
-    mpz_clear(bls_key);
+    mpz_clear(blsKey);
     mpz_clear(sum);
     mpz_clear(q);
     LOG_INFO(__FUNCTION__ );
@@ -1405,4 +1406,128 @@ void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryp
 
     clean:
     ;
+}
+
+void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
+                           uint8_t *encryptedPrivateKey, uint64_t *encLen) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encryptedPrivateKey);
+
+    RANDOM_CHAR_BUF(randChar, 32);
+
+    mpz_t seed;
+    mpz_init(seed);
+
+    mpz_import(seed, 32, 1, sizeof(randChar[0]), 0, 0, randChar);
+
+    SAFE_CHAR_BUF(ikm, mpz_sizeinbase(seed, 16) + 2);
+
+    mpz_get_str(ikm, 16, seed);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    mpz_t skey;
+    mpz_init(skey);
+
+    mpz_set_ui(skey, 0);
+
+    char salt[39] = "424c532d5349472d4b455947454e2d53414c54"; // "BLS-SIG-KEYGEN-SALT" hexademical
+
+    int L = 48; // math.ceil(3*math.ceil(math.log2(q))/16)
+    char l[2] = "30"; // octet L
+
+    int k = 0;
+    while (mpz_cmp_ui(skey, 0) == 0) {
+        SAFE_CHAR_BUF(saltHashed, BUF_LEN);
+        int len = strnlen(salt, 39);
+        int status;
+        if (len > ECDSA_BIN_LEN - 1)
+            status = hash_key(salt, saltHashed, len, true);
+        else
+            status = hash_key(salt, saltHashed, len, false);
+        CHECK_STATUS("hash key failed")
+
+        SAFE_CHAR_BUF(ikmConcat, BUF_LEN);
+        strncat(ikmConcat, ikm, ECDSA_BIN_LEN - 1);
+        ikmConcat[ECDSA_BIN_LEN - 1] = '\0';
+
+        SAFE_CHAR_BUF(octetStr0, 2);
+        octetStr0[0] = '0';
+        octetStr0[1] = '\0';
+
+        strncat(ikmConcat, octetStr0, 1);
+        ikmConcat[ECDSA_BIN_LEN] = '\0';
+
+        SAFE_CHAR_BUF(prk, BUF_LEN);
+        status = hkdfExtract(saltHashed, ikmConcat, prk);
+        CHECK_STATUS("hkdfExtract failed");
+        prk[ECDSA_BIN_LEN - 1] = '\0';
+
+        SAFE_CHAR_BUF(okm, BUF_LEN);
+        status = hkdfExpand(prk, l, L, okm);
+        CHECK_STATUS("hkdfExpand failed");
+
+        SAFE_CHAR_BUF(blsKey, BUF_LEN);
+        carray2Hex((unsigned char*)okm, ECDSA_BIN_LEN - 1, blsKey);
+
+        if (mpz_set_str(skey, blsKey, 16) == -1) {
+            *errStatus = 111;
+            snprintf(errString, BUF_LEN, "error in mpz_set_str");
+            LOG_ERROR(errString);
+
+            goto clean;
+        }
+
+        mpz_mod(skey, skey, q);
+
+        if (mpz_cmp_ui(skey, 0) == 0) {
+            for (int i = 0; i < ECDSA_BIN_LEN - 1; ++i) {
+                salt[i] = saltHashed[i];
+            }
+            salt[ECDSA_BIN_LEN - 1] = '\0';
+        }
+    }
+
+    mpz_mod(skey, seed, q);
+
+    SAFE_CHAR_BUF(blsKey, BLS_KEY_LENGTH);
+
+    SAFE_CHAR_BUF(arrSkeyStr, BUF_LEN);
+
+    if (mpz_get_str(arrSkeyStr, 16, skey) == -1) {
+        *errStatus = 111;
+        snprintf(errString, BUF_LEN, "error in mpz_get_str");
+        LOG_ERROR(errString);
+
+        goto clean;
+    }
+
+    int nZeroes = 64 - strlen(arrSkeyStr);
+    for (int i = 0; i < nZeroes; i++) {
+        blsKey[i] = '0';
+    }
+    strncpy(blsKey + nZeroes, arrSkeyStr, 65 - nZeroes);
+    blsKey[BLS_KEY_LENGTH - 1] = 0;
+
+    int status;
+    if (isExportable) {
+        status = AES_encrypt(blsKey, encryptedPrivateKey, BUF_LEN, BLS, EXPORTABLE, encLen);
+    } else {
+        status = AES_encrypt(blsKey, encryptedPrivateKey, BUF_LEN, BLS, NON_EXPORTABLE, encLen);
+    }
+
+    CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
+
+    SET_SUCCESS
+    clean:
+
+    mpz_clear(seed);
+    mpz_clear(skey);
+    mpz_clear(q);
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
 }

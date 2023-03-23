@@ -24,33 +24,29 @@
 #ifndef SGXD_SGXEXCEPTION_H
 #define SGXD_SGXEXCEPTION_H
 
-#include <string>
 #include <exception>
+#include <string>
 
 using namespace std;
 
 class SGXException : public exception {
 
-    const int32_t status;
-    const string errString;
+  const int32_t status;
+  const string errString;
 
 public:
+  SGXException(int32_t _status, const string &_errString)
+      : status(_status), errString(_errString) {}
 
-    SGXException(int32_t _status, const string& _errString) : status(_status), errString(_errString) {}
+  const string getMessage() const {
+    return "SGXException:status:" + to_string(status) + ":" + errString;
+  }
 
-    const string getMessage() const {
-        return "SGXException:status:" + to_string(status) + ":" + errString;
-    }
+  const string &getErrString() const { return errString; }
 
-    const string& getErrString() const  {
-        return errString;
-    }
+  const char *what() const noexcept override;
 
-    const char* what() const noexcept override;
-
-    const int32_t getStatus() const {
-        return status;
-    }
+  const int32_t getStatus() const { return status; }
 };
 
-#endif //SGXD_SGXEXCEPTION_H
+#endif // SGXD_SGXEXCEPTION_H

@@ -23,7 +23,4 @@
 
 #include "ExitRequestedException.h"
 
-
-ExitRequestedException::ExitRequestedException() {
-
-}
+ExitRequestedException::ExitRequestedException() {}

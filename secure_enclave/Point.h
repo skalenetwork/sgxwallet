@@ -21,12 +21,8 @@
     @date 2019
 */
 
-
 #ifndef SGXWALLET_POINT_H
 #define SGXWALLET_POINT_H
-
-
-
 
 #include "DomainParameters.h"
 
@@ -52,13 +48,16 @@ EXTERNC int point_set_hex(point p, const char *x, const char *y);
 EXTERNC void point_set_ui(point p, unsigned long int x, unsigned long int y);
 
 /*Addition of point P + Q = result*/
-EXTERNC void point_addition(point result, point P, point Q, domain_parameters curve);
+EXTERNC void point_addition(point result, point P, point Q,
+                            domain_parameters curve);
 
 /*Set point R = 2P*/
 EXTERNC void point_doubling(point R, point P, domain_parameters curve);
 
-/*Perform scalar multiplication to P, with the factor multiplier, over the curve curve*/
-EXTERNC void point_multiplication(point R, mpz_t multiplier, point P, domain_parameters curve);
+/*Perform scalar multiplication to P, with the factor multiplier, over the curve
+ * curve*/
+EXTERNC void point_multiplication(point R, mpz_t multiplier, point P,
+                                  domain_parameters curve);
 
 /*Set point from strings of a base from 2-62*/
 EXTERNC int point_set_str(point p, const char *x, const char *y, int base);
@@ -66,10 +65,10 @@ EXTERNC int point_set_str(point p, const char *x, const char *y, int base);
 /*Compare two points return 1 if not the same, returns 0 if they are the same*/
 EXTERNC bool point_cmp(point P, point Q);
 
-
 /*Compress a point to hexadecimal string
- *This function is implemented as specified in SEC 1: Elliptic Curve Cryptography, section 2.3.3.*/
-EXTERNC char* point_compress(point P);
+ *This function is implemented as specified in SEC 1: Elliptic Curve
+ *Cryptography, section 2.3.3.*/
+EXTERNC char *point_compress(point P);
 
 /*Make R a copy of P*/
 EXTERNC void point_copy(point R, point P);
