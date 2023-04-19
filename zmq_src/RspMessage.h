@@ -28,235 +28,218 @@
 
 class ECDSASignRspMessage : public ZMQMessage {
 public:
-    ECDSASignRspMessage(shared_ptr <rapidjson::Document> &_d) : ZMQMessage(_d) {};
+  ECDSASignRspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getSignature();
+  string getSignature();
 };
-
 
 class BLSSignRspMessage : public ZMQMessage {
 public:
-    BLSSignRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  BLSSignRspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getSigShare() {
-        return getStringRapid("signatureShare");
-    }
+  string getSigShare() { return getStringRapid("signatureShare"); }
 };
-
 
 class importBLSRspMessage : public ZMQMessage {
 public:
-    importBLSRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  importBLSRspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 };
-
 
 class importECDSARspMessage : public ZMQMessage {
 public:
-    importECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  importECDSARspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getECDSAPublicKey() {
-        return getStringRapid("publicKey");
-    }
+  string getECDSAPublicKey() { return getStringRapid("publicKey"); }
 };
-
 
 class generateECDSARspMessage : public ZMQMessage {
 public:
-    generateECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  generateECDSARspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getECDSAPublicKey() {
-        return getStringRapid("publicKey");
-    }
+  string getECDSAPublicKey() { return getStringRapid("publicKey"); }
 
-    string getKeyName() {
-        return getStringRapid("keyName");
-    }
+  string getKeyName() { return getStringRapid("keyName"); }
 };
-
 
 class getPublicECDSARspMessage : public ZMQMessage {
 public:
-    getPublicECDSARspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getPublicECDSARspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getECDSAPublicKey() {
-        return getStringRapid("publicKey");
-    }
+  string getECDSAPublicKey() { return getStringRapid("publicKey"); }
 };
-
 
 class generateDKGPolyRspMessage : public ZMQMessage {
 public:
-    generateDKGPolyRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  generateDKGPolyRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 };
-
 
 class getVerificationVectorRspMessage : public ZMQMessage {
 public:
-    getVerificationVectorRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getVerificationVectorRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    Json::Value getVerificationVector() {
-        return getJsonValueRapid("verificationVector");
-    }
+  Json::Value getVerificationVector() {
+    return getJsonValueRapid("verificationVector");
+  }
 };
-
 
 class getSecretShareRspMessage : public ZMQMessage {
 public:
-    getSecretShareRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getSecretShareRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getSecretShare() {
-        return getStringRapid("secretShare");
-    }
+  string getSecretShare() { return getStringRapid("secretShare"); }
 };
-
 
 class dkgVerificationRspMessage : public ZMQMessage {
 public:
-    dkgVerificationRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  dkgVerificationRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    bool isCorrect() {
-        return getBoolRapid("result");
-    }
+  bool isCorrect() { return getBoolRapid("result"); }
 };
-
 
 class createBLSPrivateKeyRspMessage : public ZMQMessage {
 public:
-    createBLSPrivateKeyRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  createBLSPrivateKeyRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 };
-
 
 class getBLSPublicRspMessage : public ZMQMessage {
 public:
-    getBLSPublicRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getBLSPublicRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    Json::Value getBLSPublicKey() {
-        return getJsonValueRapid("blsPublicKeyShare");
-    }
+  Json::Value getBLSPublicKey() {
+    return getJsonValueRapid("blsPublicKeyShare");
+  }
 };
-
 
 class getAllBLSPublicKeysRspMessage : public ZMQMessage {
 public:
-    getAllBLSPublicKeysRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getAllBLSPublicKeysRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    Json::Value getPublicKeys() {
-        return getJsonValueRapid("publicKeys");
-    }
+  Json::Value getPublicKeys() { return getJsonValueRapid("publicKeys"); }
 };
-
 
 class complaintResponseRspMessage : public ZMQMessage {
 public:
-    complaintResponseRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  complaintResponseRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getDHKey() {
-        return getStringRapid("dhKey");
-    }
+  string getDHKey() { return getStringRapid("dhKey"); }
 
-    string getShare() {
-        return getStringRapid("share*G2");
-    }
+  string getShare() { return getStringRapid("share*G2"); }
 
-    Json::Value getVerificationVectorMult() {
-        return getJsonValueRapid("verificationVectorMult");
-    }
+  Json::Value getVerificationVectorMult() {
+    return getJsonValueRapid("verificationVectorMult");
+  }
 };
-
 
 class multG2RspMessage : public ZMQMessage {
 public:
-    multG2RspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  multG2RspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    Json::Value getResult() {
-        return getJsonValueRapid("x*G2");
-    }
+  Json::Value getResult() { return getJsonValueRapid("x*G2"); }
 };
-
 
 class isPolyExistsRspMessage : public ZMQMessage {
 public:
-    isPolyExistsRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  isPolyExistsRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    bool isExists() {
-        return getBoolRapid("IsExist");
-    }
+  bool isExists() { return getBoolRapid("IsExist"); }
 };
-
 
 class getServerStatusRspMessage : public ZMQMessage {
 public:
-    getServerStatusRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getServerStatusRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 };
-
 
 class getServerVersionRspMessage : public ZMQMessage {
 public:
-    getServerVersionRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  getServerVersionRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    string getVersion() {
-        return getStringRapid("version");
-    }
+  string getVersion() { return getStringRapid("version"); }
 };
-
 
 class deleteBLSKeyRspMessage : public ZMQMessage {
 public:
-    deleteBLSKeyRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  deleteBLSKeyRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    bool isSuccessful() {
-        return getBoolRapid("deleted");
-    }
+  bool isSuccessful() { return getBoolRapid("deleted"); }
 };
-
 
 class GetDecryptionShareRspMessage : public ZMQMessage {
 public:
-    GetDecryptionShareRspMessage(shared_ptr<rapidjson::Document>& _d) : ZMQMessage(_d) {};
+  GetDecryptionShareRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
 
-    virtual Json::Value process();
+  virtual Json::Value process();
 
-    Json::Value getShare() {
-        return getJsonValueRapid("decryptionShares");
-    }
+  Json::Value getShare() { return getJsonValueRapid("decryptionShares"); }
 };
 
-#endif //SGXWALLET_RSPMESSAGE_H
+class generateBLSPrivateKeyRspMessage : public ZMQMessage {
+public:
+  generateBLSPrivateKeyRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
+
+  virtual Json::Value process();
+};
+
+class popProveRspMessage : public ZMQMessage {
+public:
+  popProveRspMessage(shared_ptr<rapidjson::Document> &_d) : ZMQMessage(_d){};
+
+  virtual Json::Value process();
+
+  std::string getPopProve() { return getStringRapid("popProve"); }
+};
+
+#endif // SGXWALLET_RSPMESSAGE_H

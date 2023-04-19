@@ -21,12 +21,12 @@
     @date 2018
 */
 
-#include "common.h"
-#include "Log.h"
 #include "InvalidStateException.h"
+#include "Log.h"
+#include "common.h"
 
-
-InvalidStateException::InvalidStateException(const std::string &_message, const string& _className) :
-                      Exception(_message, _className) {
-    fatal = false;
+InvalidStateException::InvalidStateException(const std::string &_message,
+                                             const string &_className)
+    : Exception(_message, _className) {
+  fatal = false;
 }

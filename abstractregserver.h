@@ -24,32 +24,38 @@
 #ifndef SGXD_ABSTRACTREGSERVER_H
 #define SGXD_ABSTRACTREGSERVER_H
 
-#include <jsonrpccpp/server.h>
 #include <iostream>
+#include <jsonrpccpp/server.h>
 
-class AbstractRegServer : public jsonrpc::AbstractServer<AbstractRegServer>
-{
+class AbstractRegServer : public jsonrpc::AbstractServer<AbstractRegServer> {
 public:
-  AbstractRegServer(jsonrpc::AbstractServerConnector &conn, jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2) : jsonrpc::AbstractServer<AbstractRegServer>(conn, type)
-  {
-    this->bindAndAddMethod(jsonrpc::Procedure("signCertificate", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"certificate",jsonrpc::JSON_STRING, NULL), &AbstractRegServer::signCertificateI);
-    this->bindAndAddMethod(jsonrpc::Procedure("getCertificate", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,"hash",jsonrpc::JSON_STRING, NULL), &AbstractRegServer::getCertificateI);
+  AbstractRegServer(jsonrpc::AbstractServerConnector &conn,
+                    jsonrpc::serverVersion_t type = jsonrpc::JSONRPC_SERVER_V2)
+      : jsonrpc::AbstractServer<AbstractRegServer>(conn, type) {
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("signCertificate", jsonrpc::PARAMS_BY_NAME,
+                           jsonrpc::JSON_OBJECT, "certificate",
+                           jsonrpc::JSON_STRING, NULL),
+        &AbstractRegServer::signCertificateI);
+    this->bindAndAddMethod(jsonrpc::Procedure("getCertificate",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, "hash",
+                                              jsonrpc::JSON_STRING, NULL),
+                           &AbstractRegServer::getCertificateI);
   }
 
-  inline virtual void signCertificateI(const Json::Value &request, Json::Value &response)
-  {
-      std::cerr << "signCertificateI in abstr server " << std::endl;
-      response = this->SignCertificate(request["certificate"].asString());
+  inline virtual void signCertificateI(const Json::Value &request,
+                                       Json::Value &response) {
+    std::cerr << "signCertificateI in abstr server " << std::endl;
+    response = this->SignCertificate(request["certificate"].asString());
   }
-  inline virtual void getCertificateI(const Json::Value &request, Json::Value &response)
-  {
+  inline virtual void getCertificateI(const Json::Value &request,
+                                      Json::Value &response) {
     response = this->GetCertificate(request["hash"].asString());
   }
 
-
-  virtual Json::Value SignCertificate(const std::string& cert) = 0;
-  virtual Json::Value GetCertificate(const std::string& hash) = 0;
-
+  virtual Json::Value SignCertificate(const std::string &cert) = 0;
+  virtual Json::Value GetCertificate(const std::string &hash) = 0;
 };
 
 #endif // SGXD_ABSTRACTREGSERVER_H

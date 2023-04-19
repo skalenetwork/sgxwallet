@@ -21,91 +21,85 @@
     @date 2019
 */
 
-
 #ifndef SGXWALLET_LEVELDB_H
 #define SGXWALLET_LEVELDB_H
 
+#include "common.h"
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
-#include <mutex>
 #include <vector>
-#include "common.h"
 
 namespace leveldb {
-    class DB;
-    class Status;
-    class Slice;
-}
+class DB;
+class Status;
+class Slice;
+} // namespace leveldb
 
 class LevelDB {
 
-    recursive_mutex mutex;
+  recursive_mutex mutex;
 
-    shared_ptr<leveldb::DB> db;
+  shared_ptr<leveldb::DB> db;
 
-    static bool isInited;
+  static bool isInited;
 
-    static shared_ptr<LevelDB> levelDb;
+  static shared_ptr<LevelDB> levelDb;
 
-    static shared_ptr<LevelDB> csrDb;
+  static shared_ptr<LevelDB> csrDb;
 
-    static shared_ptr<LevelDB> csrStatusDb;
+  static shared_ptr<LevelDB> csrStatusDb;
 
-    static string sgx_data_folder;
-
-public:
-
-    static void initDataFolderAndDBs();
-
-    static const shared_ptr<LevelDB> &getLevelDb();
-
-    static const shared_ptr<LevelDB> &getCsrDb();
-
-    static const shared_ptr<LevelDB> &getCsrStatusDb();
+  static string sgx_data_folder;
 
 public:
+  static void initDataFolderAndDBs();
 
-    shared_ptr<string> readString(const string& _key);
+  static const shared_ptr<LevelDB> &getLevelDb();
 
-    shared_ptr<string> readNewStyleValue(const string& value);
+  static const shared_ptr<LevelDB> &getCsrDb();
 
-    pair<stringstream, uint64_t> getAllKeys();
-
-    pair<string, uint64_t> getLatestCreatedKey();
-
-    void writeString(const string &key1, const string &value1);
-
-    void writeDataUnique(const string & Name, const string &value);
-
-    void deleteDHDKGKey (const string &_key);
-
-    void deleteTempNEK (const string &_key);
-
-    void deleteKey(const string &_key);
+  static const shared_ptr<LevelDB> &getCsrStatusDb();
 
 public:
+  shared_ptr<string> readString(const string &_key);
 
-    void throwExceptionOnError(leveldb::Status result);
+  shared_ptr<string> readNewStyleValue(const string &value);
 
-    LevelDB(string& filename);
+  pair<stringstream, uint64_t> getAllKeys();
 
-    class KeyVisitor {
-    public:
-        virtual void visitDBKey(const char* _data) = 0;
-        virtual void writeDBKeysToVector(const char* _data, vector<const char*> & keys_vect) {}
-    };
+  pair<string, uint64_t> getLatestCreatedKey();
 
-    uint64_t visitKeys(KeyVisitor* _visitor, uint64_t _maxKeysToVisit);
+  void writeString(const string &key1, const string &value1);
 
-    vector<string> writeKeysToVector1(uint64_t _maxKeysToVisit);
+  void writeDataUnique(const string &Name, const string &value);
 
-    virtual ~LevelDB();
+  void deleteDHDKGKey(const string &_key);
 
-    static const string &getSgxDataFolder();
+  void deleteTempNEK(const string &_key);
+
+  void deleteKey(const string &_key);
+
+public:
+  void throwExceptionOnError(leveldb::Status result);
+
+  LevelDB(string &filename);
+
+  class KeyVisitor {
+  public:
+    virtual void visitDBKey(const char *_data) = 0;
+    virtual void writeDBKeysToVector(const char *_data,
+                                     vector<const char *> &keys_vect) {}
+  };
+
+  uint64_t visitKeys(KeyVisitor *_visitor, uint64_t _maxKeysToVisit);
+
+  vector<string> writeKeysToVector1(uint64_t _maxKeysToVisit);
+
+  virtual ~LevelDB();
+
+  static const string &getSgxDataFolder();
 };
-
-
-
 
 #endif

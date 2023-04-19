@@ -25,8 +25,8 @@
 #define SGXD_SEKMANAGER_H
 
 #ifdef __cplusplus
-#include <string>
 #include <memory>
+#include <string>
 #endif
 
 void gen_SEK();
@@ -47,8 +47,4 @@ EXTERNC void initSEK();
 
 EXTERNC void setSEK();
 
-
-
-
-
-#endif //SGXD_SEKMANAGER_H
+#endif // SGXD_SEKMANAGER_H

@@ -28,5 +28,6 @@
 
 class InvalidArgumentException : public Exception {
 public:
-    InvalidArgumentException( const std::string& _message, const std::string& _className );
+  InvalidArgumentException(const std::string &_message,
+                           const std::string &_className);
 };

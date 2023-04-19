@@ -33,36 +33,36 @@ using namespace jsonrpc;
 using namespace std;
 
 class SGXInfoServer : public AbstractInfoServer {
-    recursive_mutex m;
+  recursive_mutex m;
 
-    uint32_t logLevel_;
-    bool autoSign_;
-    bool checkCerts_;
-    bool generateTestKeys_;
+  uint32_t logLevel_;
+  bool autoSign_;
+  bool checkCerts_;
+  bool generateTestKeys_;
 
-    static shared_ptr <HttpServer> httpServer;
+  static shared_ptr<HttpServer> httpServer;
 
-    static shared_ptr <SGXInfoServer> server;
+  static shared_ptr<SGXInfoServer> server;
 
 public:
+  static shared_ptr<SGXInfoServer> getServer();
 
-    static shared_ptr <SGXInfoServer> getServer();
+  SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
+                uint32_t _logLevel, bool _autoSign, bool _checkCerts,
+                bool _generateTestKeys);
 
-    SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
-                  uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
+  virtual Json::Value getAllKeysInfo();
 
-    virtual Json::Value getAllKeysInfo();
+  virtual Json::Value getLatestCreatedKey();
 
-    virtual Json::Value getLatestCreatedKey();
+  virtual Json::Value getServerConfiguration();
 
-    virtual Json::Value getServerConfiguration();
+  virtual Json::Value isKeyExist(const string &key);
 
-    virtual Json::Value isKeyExist(const string& key);
+  static void initInfoServer(uint32_t _logLevel, bool _autoSign,
+                             bool _checkCerts, bool _generateTestKeys);
 
-    static void initInfoServer(uint32_t _logLevel, bool _autoSign, bool _checkCerts, bool _generateTestKeys);
-
-    static int exitServer();
-
+  static int exitServer();
 };
 
 #endif // SGXINFOSERVER_H
