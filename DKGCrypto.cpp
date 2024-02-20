@@ -474,7 +474,7 @@ vector<string> getBLSPubKey(const char *encryptedKeyHex) {
   spdlog::debug("Encrypted key length: {}", decKeyLen);
   spdlog::debug("Encrypted key is:");
   for (size_t i = 0; i < decKeyLen; ++i) {
-    std::cout << encrKey[i] << ' ';
+    std::cout << (int)encrKey[i] << ' ';
   }
 
   SAFE_CHAR_BUF(pubKey, 320)

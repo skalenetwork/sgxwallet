@@ -1366,7 +1366,7 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     LOG_DEBUG("Decrypted secret key");
     LOG_DEBUG(skey_hex);
 
-    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
+    skey_hex[BLS_KEY_LENGTH - 1] = 0;
 
     status = calc_bls_public_key(skey_hex, bls_pub_key);
 
