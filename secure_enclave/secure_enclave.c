@@ -1363,6 +1363,8 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
                              &type, &exportable);
 
     CHECK_STATUS2("AES decrypt failed %d");
+    LOG_DEBUG("Decrypted secret key");
+    LOG_DEBUG(skey_hex);
 
     skey_hex[ECDSA_SKEY_LEN - 1] = 0;
 
