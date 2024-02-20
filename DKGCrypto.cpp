@@ -471,6 +471,11 @@ vector<string> getBLSPubKey(const char *encryptedKeyHex) {
     throw SGXException(GET_BLS_PUBKEY_INVALID_KEY_HEX,
                        string(__FUNCTION__) + ":Invalid encryptedKeyHex");
   }
+  spdlog::debug("Encrypted key length: {}", decKeyLen);
+  spdlog::debug("Encrypted key is:");
+  for (size_t i = 0; i < decKeyLen; ++i) {
+    std::cout << encrKey[i] << ' ';
+  }
 
   SAFE_CHAR_BUF(pubKey, 320)
 
