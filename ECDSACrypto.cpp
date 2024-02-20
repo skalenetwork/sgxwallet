@@ -99,6 +99,7 @@ string getECDSAPubKey(const std::string &_encryptedKeyHex) {
     throw SGXException(GET_ECDSA_PUB_KEY_INVALID_KEY_HEX,
                        "Invalid encryptedKeyHex");
   }
+  spdlog::debug("Encrypted ECDSA key length: {}", enc_len);
 
   sgx_status_t status = SGX_SUCCESS;
 
