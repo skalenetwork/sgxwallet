@@ -813,7 +813,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   for (int i = 0; i < n; i++) {
     vector<string> pubKeyVect;
     for (uint8_t j = 0; j < 4; j++) {
-      pubKeyVect.push_back(allPubKeysJson["result"][i][j].asString());
+      pubKeyVect.push_back(allPubKeysJson["result"]["publicKeys"][i][j].asString());
     }
     BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
 
