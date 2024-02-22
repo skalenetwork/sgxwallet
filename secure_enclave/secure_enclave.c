@@ -459,6 +459,8 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
                              &type, &exportable);
+    LOG_DEBUG("Decrypted ECDSA secret key");
+    LOG_DEBUG(skey);                         
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
     skey[enc_len - SGX_AESGCM_MAC_SIZE - SGX_AESGCM_IV_SIZE] = '\0';
