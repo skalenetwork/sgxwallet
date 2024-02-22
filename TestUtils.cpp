@@ -57,6 +57,8 @@
 #include <thread>
 #include "third_party/catch.hpp"
 
+#include <iostream>
+
 
 using namespace jsonrpc;
 using namespace std;
@@ -812,7 +814,11 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   std::vector<std::shared_ptr< BLSPublicKeyShare> > allPubKeysFromServer(n);
   for (int i = 0; i < n; i++) {
     std::string publicKeyStr = allPubKeysJson["result"]["publicKeys"][i].asString();
+    std::cout << "PK: " << publicKeyStr << '\n';
     vector<string> pubKeyVect = splitString( publicKeyStr.c_str(), ':' );
+    for (size_t j = 0; j < pubKeyVect.size(); ++j) {
+      std::cout << pubKeyVect[j] << ' ';
+    }
     CHECK_STATE(pubKeyVect.size() == 4);
     BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
 
