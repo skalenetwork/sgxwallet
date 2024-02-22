@@ -808,7 +808,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   }
 
   auto allPubKeysJson = c.calculateAllBLSPublicKeys(publicSharesJson, t, n);
-  std::vector<BLSPublicKeyShare> allPubKeysFromServer(n);
+  std::vector<std::shared_ptr< BLSPublicKeyShare> > allPubKeysFromServer(n);
   for (int i = 0; i < n; i++) {
     vector<string> pubKeyVect;
     for (uint8_t j = 0; j < 4; j++) {
