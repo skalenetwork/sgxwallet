@@ -792,7 +792,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     CHECK_STATE(pubBLSKeys[i]["status"] == 0);
   }
 
-  for (int i = 0; i < t; i++) {
+  for (int i = 0; i < n; i++) {
     vector<string> pubKeyVect;
     for (uint8_t j = 0; j < 4; j++) {
       pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
@@ -800,6 +800,27 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
 
     pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+  }
+
+  Json::Value publicSharesJson;
+  for (int i = 0; i < n; ++i) {
+    publicSharesJson["publicShares"][i] = pubShares[i];
+  }
+
+  auto allPubKeysJson = c.calculateAllBLSPublicKeys(publicSharesJson, t, n);
+  std::vector<BLSPublicKeyShare> allPubKeysFromServer(n);
+  for (int i = 0; i < n; i++) {
+    vector<string> pubKeyVect;
+    for (uint8_t j = 0; j < 4; j++) {
+      pubKeyVect.push_back(allPubKeysJson[i][j].asString());
+    }
+    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
+
+    allPubKeysFromServer[i] = make_shared<BLSPublicKeyShare>(pubKey);
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    BOOST_REQUIRE( allPubKeysFromServer[i] == pubKeyShares[i + 1] );
   }
 
   // create pub key
