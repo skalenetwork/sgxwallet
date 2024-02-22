@@ -1166,3 +1166,5 @@ int xorDecryptDHV2(char *key, const char *cypher, vector<char> &message) {
 
   return ret;
 }
+
+#undef CATCH_CONFIG_MAIN
