@@ -823,7 +823,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   }
 
   for (size_t i = 0; i < n; ++i) {
-    REQUIRE( allPubKeysFromServer[i] == pubKeyShares[i + 1] );
+    CHECK_STATE( allPubKeysFromServer[i] == pubKeyShares[i + 1] );
   }
 
   // create pub key
