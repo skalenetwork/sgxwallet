@@ -54,8 +54,11 @@
 #include "sgxwallet.h"
 #include "stubclient.h"
 #include "testw.h"
-#include "third_party/catch.hpp"
 #include <thread>
+
+#define CATCH_CONFIG_MAIN
+#include "third_party/catch.hpp"
+
 
 using namespace jsonrpc;
 using namespace std;
