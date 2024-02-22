@@ -811,6 +811,9 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   }
 
   auto allPubKeysJson = c.calculateAllBLSPublicKeys(publicSharesJson, t, n);
+  Json::FastWriter fastWriter;
+  std::string output = fastWriter.write(allPubKeysJson);
+  std::cout << "ALL PUBLIC KEYS: " << output << '\n';
   std::vector<std::shared_ptr< BLSPublicKeyShare> > allPubKeysFromServer(n);
   for (int i = 0; i < n; i++) {
     std::string publicKeyStr = allPubKeysJson["result"]["publicKeys"][i].asString();
