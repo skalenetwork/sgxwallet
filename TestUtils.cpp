@@ -55,8 +55,6 @@
 #include "stubclient.h"
 #include "testw.h"
 #include <thread>
-
-#define CATCH_CONFIG_MAIN
 #include "third_party/catch.hpp"
 
 
@@ -1166,5 +1164,3 @@ int xorDecryptDHV2(char *key, const char *cypher, vector<char> &message) {
 
   return ret;
 }
-
-#undef CATCH_CONFIG_MAIN
