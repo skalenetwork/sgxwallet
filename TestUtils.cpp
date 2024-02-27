@@ -811,25 +811,18 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
   }
 
   auto allPubKeysJson = c.calculateAllBLSPublicKeys(publicSharesJson, t, n);
-  Json::FastWriter fastWriter;
-  std::string output = fastWriter.write(allPubKeysJson);
-  std::cout << "ALL PUBLIC KEYS: " << output << '\n';
   std::vector<std::shared_ptr< BLSPublicKeyShare> > allPubKeysFromServer(n);
   for (int i = 0; i < n; i++) {
     std::string publicKeyStr = allPubKeysJson["publicKeys"][i].asString();
-    std::cout << "PK: " << publicKeyStr << '\n';
     vector<string> pubKeyVect = splitString( publicKeyStr.c_str(), ':' );
-    for (size_t j = 0; j < pubKeyVect.size(); ++j) {
-      std::cout << pubKeyVect[j] << ' ';
-    }
     CHECK_STATE(pubKeyVect.size() == 4);
     BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
-
+    
     allPubKeysFromServer[i] = make_shared<BLSPublicKeyShare>(pubKey);
   }
 
   for (size_t i = 0; i < n; ++i) {
-    CHECK_STATE( allPubKeysFromServer[i] == pubKeyShares[i + 1] );
+    CHECK_STATE( *(allPubKeysFromServer[i]->getPublicKey()) == *(pubKeyShares[i + 1]->getPublicKey()) );
   }
 
   // create pub key
