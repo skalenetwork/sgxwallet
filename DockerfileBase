@@ -59,7 +59,6 @@ RUN apt update && \
         yasm flex bison libprocps-dev ccache texinfo \
         graphviz doxygen libgnutls28-dev libgcrypt20-dev \
         libboost-dev libboost-system-dev libboost-thread-dev lsb-release libsystemd0 && \
-        # glibc-tools
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
     ln -s /usr/bin/ccache /usr/local/bin/gcc && \
