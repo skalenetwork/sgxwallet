@@ -7,9 +7,6 @@ RUN apt update && apt install -y curl secure-delete python3-pip
 RUN pip3 install --upgrade pip
 RUN pip3 install requests torpy
 
-
-
-
 RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure
