@@ -23,7 +23,7 @@ Below is a sequence of commands that builds SDK and installs it into /opt/intel 
 
 
 ```bash
-git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
+git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
 cd linux-sgx
 make preparation
 sudo make sdk_install_pkg_no_mitigation
