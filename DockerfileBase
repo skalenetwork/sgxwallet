@@ -29,8 +29,8 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     libsystemd0
 
 
-# RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-#     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
 
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
 
@@ -77,14 +77,3 @@ WORKDIR /usr/src/sdk/scripts
 RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 WORKDIR /usr/src/sdk
 RUN ./autoconf.bash && ./configure && bash -c "make -j$(nproc)"
-
-# RUN    cd scripts && ./build_deps.py && \
-#        wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
-#        cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-#        cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && \
-#        make install && \
-#        cd .. && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-#        cd /usr/src/sdk && \
-#        ./autoconf.bash && \
-#        ./configure && \
-#        bash -c "make -j$(nproc)"
