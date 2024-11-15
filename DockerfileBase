@@ -75,4 +75,4 @@ RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
 WORKDIR /usr/src/sdk/scripts
 RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 WORKDIR /usr/src/sdk
-RUN ./autoconf.bash && ./configure && bash -c "make -j$(nproc)"
+RUN ./autoconf.bash
