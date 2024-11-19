@@ -9,12 +9,12 @@ RUN pip3 install requests torpy
 
 RUN touch /var/hwmode
 RUN ./autoconf.bash
-RUN ./configure
+RUN ./configure --enable-sgx
 RUN bash -c "make -j$(nproc)"
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 COPY docker/check_firewall.py ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
-RUN rm  /opt/intel/sgxsdk/lib64/*_sim.so
+RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
