@@ -203,7 +203,7 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-volatile uint64_t counter;
+volatile uint64_t counter = 0;
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     char errString[BUF_LEN];
