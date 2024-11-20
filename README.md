@@ -16,7 +16,7 @@ leave the enclave unencrypted.
 The server provides an initial registration service to issue client certificates to the clients.
 The administrator manually approves each registration.
 
-**sgxwallet** has been tested on **Ubuntu Linux 18.04**.
+**sgxwallet** has been tested on **Ubuntu Linux 20.04**.
 
 ## An important note about production readiness
 

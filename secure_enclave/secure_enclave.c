@@ -203,7 +203,7 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-volatile uint64_t counter;
+volatile uint64_t counter = 0;
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     char errString[BUF_LEN];
@@ -220,10 +220,11 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(&counter, sizeof(counter), shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)globalRandom) == SGX_SUCCESS);
+    unsigned char tmpBuffer[32];
+    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)tmpBuffer) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
-
-    memcpy(_randBuff, globalRandom, _size);
+    
+    memcpy(_randBuff, tmpBuffer, _size);
 }
 
 void sealHexSEK(int *errStatus, char *errString,
