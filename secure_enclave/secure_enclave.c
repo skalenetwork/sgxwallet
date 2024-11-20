@@ -220,10 +220,11 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(&counter, sizeof(counter), shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)globalRandom) == SGX_SUCCESS);
+    unsigned char tmpBuffer[32];
+    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)tmpBuffer) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
-
-    memcpy(_randBuff, globalRandom, _size);
+    
+    memcpy(_randBuff, tmpBuffer, _size);
 }
 
 void sealHexSEK(int *errStatus, char *errString,
