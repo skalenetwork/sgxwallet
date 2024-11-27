@@ -14,7 +14,7 @@ RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure --with-sgx-build=prerelease
 RUN bash -c "make -j$(nproc)"
-COPY -f secure_enclave/secure_enclave.so secure_enclave.signed.so
+RUN cp -f secure_enclave/secure_enclave.so secure_enclave.signed.so
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
