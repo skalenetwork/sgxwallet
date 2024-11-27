@@ -13,7 +13,7 @@ RUN cd scripts && ./generate_signing_key.bash
 RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure --with-sgx-build=release
-RUN cd secure_enclave && bash -c "make secure_enclave.so -j$(nproc)"
+RUN cd secure_enclave && bash -c "make secure_enclave.signed.so -j$(nproc)"
 RUN bash -c "make -j$(nproc)"
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
