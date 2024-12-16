@@ -9,7 +9,7 @@ RUN pip3 install requests torpy
 
 RUN touch /var/hwmode
 RUN ./autoconf.bash
-RUN ./configure --enable-sgx
+RUN ./configure
 RUN bash -c "make -j$(nproc)"
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
