@@ -4,7 +4,7 @@ on:
   push:
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -14,7 +14,7 @@ jobs:
         run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: submodule update
         run: git submodule update --init --recursive
       - name: build and deploy test image

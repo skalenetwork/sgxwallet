@@ -23,13 +23,13 @@ Below is a sequence of commands that builds SDK and installs it into /opt/intel 
 
 
 ```bash
-git clone -b sgx_2.13 --depth 1 https://github.com/intel/linux-sgx
+git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
 cd linux-sgx
 make preparation
 sudo make sdk_install_pkg_no_mitigation
+sudo make psw_install_pkg
 cd /opt/intel
 sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
-sudo make psw_install_pkg
 sudo cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
 ```
