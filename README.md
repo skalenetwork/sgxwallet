@@ -2,7 +2,7 @@
 
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3581/badge)](https://bestpractices.coreinfrastructure.org/projects/3581)
+[![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.com/invite/gM5XBy6) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3581/badge)](https://bestpractices.coreinfrastructure.org/projects/3581)
 
 ## Intro
 
