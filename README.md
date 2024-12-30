@@ -8,10 +8,10 @@
 
 **sgxwallet** is a next generation hardware secure crypto wallet that is based on **Intel SGX** technology. It currently supports **Ethereum** and **SKALE**, and will support **Bitcoin** in the future.
 
-**sgxwallet** runs as a network server.  Clients connect to the server, authenticate to it using 
+**sgxwallet** runs as a network server. Clients connect to the server, authenticate to it using 
 TLS 1.0 protocol with client certificates, and then issue requests to the server to generate crypto 
 keys and perform cryptographic operations. The keys are generated inside the secure SGX enclave and never
-leave the enclave unencrypted.  
+leave the enclave unencrypted.
 
 The server provides an initial registration service to issue client certificates to the clients.
 The administrator manually approves each registration.
@@ -20,7 +20,7 @@ The administrator manually approves each registration.
 
 ## An important note about production readiness
 
-The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.  **This server has not yet been reviewed or audited for security.**  Please see [SECURITY.md](SECURITY.md) for reporting policies.
+The sgxwallet server is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes. **This server has not yet been reviewed or audited for security.** Please see [SECURITY.md](SECURITY.md) for reporting policies.
 
 ![](https://github.com/skalenetwork/sgxwallet/workflows/Build,%20test%20and%20push%20sim%20mode%20container/badge.svg)
 
@@ -28,7 +28,7 @@ The sgxwallet server is still in active development and therefore should be rega
 
 ### Clone this repo
 
-As you probably suspect, the first thing to do is to clone this repository and all it is sub-repositories. 
+As you probably suspect, the first thing to do is to clone this repository and all its sub-repositories. 
 
 ```bash
 git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
@@ -38,7 +38,7 @@ git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
 
 The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
 
-First install docker-compose if you dont have it
+First install docker-compose if you don't have it
 
 ```bash
 sudo apt-get install docker.io docker-compose
@@ -50,7 +50,7 @@ Then run sgxwallet using docker-compose
 cd run_sgx_sim; sudo docker-compose up
 ```
 
-Note: you need a machine that supports Intel AVX512 instruction set.  Most modern Intel CPUs support it. To verify you machine supports AVX512, run
+Note: you need a machine that supports Intel AVX512 instruction set. Most modern Intel CPUs support it. To verify your machine supports AVX512, run
 
 
 ```
@@ -63,7 +63,7 @@ docker-compose and avoid using raw docker tools.
 
 Note: simulation mode is only to try sgxwallet. 
 In production, you need to run sgxwallet on a server that supports SGX.
-Never run a production sgxserver in simulation mode.  
+Never run a production sgxserver in simulation mode.
 
 ## Admin guide
 
