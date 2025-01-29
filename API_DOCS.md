@@ -604,5 +604,5 @@ curl -X POST --data '{
 
 
 #### 5) Threshold Encryption Parameters
-`n` - Number of total nodes participating in the threshold encryption network.
+`n` - Number of total nodes participating in the threshold encryption network.  
 `t` - The **threshold value**. At least `t` participants must collaborate to reconstruct the secret or perform operations (e.g., signing). Requirement: \(t < n\).
