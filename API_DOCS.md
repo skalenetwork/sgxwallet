@@ -12,8 +12,10 @@
 >   2. [getBLSPublicKeyShare](#getblspublickeyshare) (TODO - complete description)
 >   3. [blsSignMessageHash](#blssignmessagehash)
 >   4. [createBLSPrivateKey](#createblsprivatekey) (TODO - complete & test)
+>   4. [deleteBlsKey](#deleteblskey)
 > ##### 3) DKG calls
 >   1. [generateDKGPoly](#generatedkgpoly) 
+>   2. [isPolyExists](#ispolyexists) 
 > ##### [4) Common Parameter Descriptions](#common-parameters-descriptions)
 > ---
 
@@ -26,14 +28,12 @@
 > - calculateAllBLSPublicKeys
 > - complaintResponse
 > - multG2
-> - isPolyExists
 > - getServerStatus
 > - getServerVersion
-> - deleteBlsKey
+> - generateBLSPrivateKey
 > - createBLSPrivateKeyV2
 > - getDecryptionShares
 > - popProve
-> - generateBLSPrivateKey
 
 ---
 
@@ -62,7 +62,7 @@ curl -X POST --data '{
 | **Parameter** | **Type**   | **Description**                          |
 |---------------|------------|------------------------------------------|
 | `PublicKey`   | `String`   | Public ECDSA key created                 |
-| `keyName`     | `String`   | [See ECDSA Key Name](#ecdsa-ley-name)    |
+| `keyName`     | `String`   | [See ECDSA Key Name](#2-ecdsa-ley-name)    |
 |`encryptedKey` | `String`   | TODO    |
 
 #### Example Response
@@ -95,8 +95,8 @@ Imports a previously generated key into the SGX, and associates it to the passed
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `key`    | `String`  | Encrypted key in hexadecimal format - [See Message Hash](#message-hash) | TODO  |
-| `keyName`    | `String`  | [See ECDSA Key Name](#ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
+| `key`    | `String`  | Encrypted key in hexadecimal format - [See Message Hash](#4-message-hash) | TODO  |
+| `keyName`    | `String`  | [See ECDSA Key Name](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
 
 #### Example Request
 ```bash
@@ -143,7 +143,7 @@ Get the ECDSA public key given the key name. A key with the specified name must 
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `keyName`    | `String`  | [See ECDSA Key Name](#ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
+| `keyName`    | `String`  | [See ECDSA Key Name](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
 
 #### Example Request
 ```bash
@@ -188,8 +188,8 @@ Creates a signature for the passed hash using the key associated with the passed
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `keyName`    | `String`  | [See ECDSA Key Name](#ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
-| `messageHash` | `String` | [See Message Hash](#message-hash) | `a65b656fd41907d71ea762` |
+| `keyName`    | `String`  | [See ECDSA Key Name](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
+| `messageHash` | `String` | [See Message Hash](#4-message-hash) | `a65b656fd41907d71ea762` |
 | `base` | `Unsigned Int` | Must be an integer value in the interval \([1, 32]\). If value is `16`, then the returned signature values are prefixed with `0x`. | 16
 
 #### Example Request
@@ -243,7 +243,7 @@ TODO
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `keyShareName`    | `String`  | [See BLS Key Name](#bls-key-name) | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1234`  |
+| `keyShareName`    | `String`  | [See BLS Key Name](#1-bls-key-name) | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1234`  |
 | `keyShare`   | `String`    |  Any string of 64 hexadecimal characters (32-bytes total) | `4e9178241af6f1ecda046da2e3b03db893adb34f2d033a2f96e5a7b79a952f1d` |
 
 #### Example Request
@@ -290,7 +290,7 @@ Returns 4 key shares for the specified key name. The BLS key must have been crea
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `blsKeyName`    | `String`  | [See BLS Key Name](#bls-key-name) | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1234`  |
+| `blsKeyName`    | `String`  | [See BLS Key Name](#1-bls-key-name) | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1234`  |
 
 #### Example Request
 ```bash
@@ -340,10 +340,10 @@ Creates a partial signature using the node's BLS key share
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**                          | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `keyShareName`| `String`   | [See BLS Key Name](#bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4`  |
-| `messageHash` | `String`   | [See Message Hash](#message-hash) | `a65b656fd41907d71ea76a`  |
-| `n`           |`Unsigned Int`| [See Threshold Encryption parameter n](#threshold-encryption-parameters)          | 8            |
-| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#threshold-encryption-parameters)  | 5  |
+| `keyShareName`| `String`   | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4`  |
+| `messageHash` | `String`   | [See Message Hash](#4-message-hash) | `a65b656fd41907d71ea76a`  |
+| `n`           |`Unsigned Int`| [See Threshold Encryption parameter n](#5-threshold-encryption-parameters)          | 8            |
+| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#5-threshold-encryption-parameters)  | 5  |
 
 #### Example Request
 ```bash
@@ -392,10 +392,10 @@ curl -X POST --data '{
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `blsKeyName`| `String`     | [See BLS Key Name](#bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
-| `ethKeyName` | `String`    | [See ECDSA Key Hash](#ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
+| `blsKeyName`| `String`     | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
+| `ethKeyName` | `String`    | [See ECDSA Key Hash](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
 | `secretShare` | `String`     | -         | -  |
-| `polyName`    | `String`     | [See Poly Name](#poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
+| `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
 | `n`           |`Unsigned Int`| number of nodes in the network         | 8            |
 | `t`           |`Unsigned Int`| threshold value - number signature shares that are required to reconstruct the full BLS signature. \(t < n\) | 5  |
 
@@ -413,7 +413,7 @@ curl -X POST --data '{
         "t": 5,
         "n": 8
     } 
-}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -kclear
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
 
 ```
 
@@ -436,6 +436,54 @@ None
 
 ---
 
+
+## `deleteBlsKey`
+
+#### Description
+Deletes BLS key from database given the key name.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `blsKeyName`| `String`     | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "deleteBlsKey", 
+    "params": {
+        "blsKeyName":"BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4"
+    } 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`deleted`      | `boolean`  | `True` if the key was deleted. `False` otherwise.|
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "deleted": true,
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+
+
+
 # 3) DKG Calls
 
 ## `generateDKGPoly`
@@ -446,8 +494,8 @@ Creates a polynomial of degree `t-1` (where `t` is the threshold parameter).
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `polyName`    | `String`     | [See Poly Name](#poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
-| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#threshold-encryption-parameters) | 5  |
+| `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
+| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#5-threshold-encryption-parameters) | 5  |
 
 #### Example Request
 ```bash
@@ -482,6 +530,51 @@ None
 
 ---
 
+## `isPolyExists`
+
+#### Description
+Checks for existence of polinomial with the name passed as argument.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
+
+#### Example Request
+```bash
+curl -X POST --data '{
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "isPolyExists", 
+    "params": {
+        "polyName":"POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1"
+    } 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`IsExist`      | `boolean`  | `True` if key with the passed name exists. `False` otherwise.|
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "IsExist": true,
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
 
 
 # Common Parameters Descriptions
@@ -501,7 +594,7 @@ None
 #### 3) Poly Name
 - **Type**: String  
 - **Description**: Unique identifier for a DKG polinomial. Must follow a specific format: `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`
-  - [See 1) - BLS Key Name description of each of the fields](#bls-key-name)
+  - [See 1) - BLS Key Name description of each of the fields](#1-bls-key-name)
 
 
 #### 4) Message Hash
