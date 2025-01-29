@@ -12,11 +12,15 @@
 >   2. [getBLSPublicKeyShare](#getblspublickeyshare) (TODO - complete description)
 >   3. [blsSignMessageHash](#blssignmessagehash)
 >   4. [createBLSPrivateKey](#createblsprivatekey) (TODO - complete & test)
->   4. [deleteBlsKey](#deleteblskey)
+>   5. [popProve](#popprove) (TODO - add description & parameter description)
+>   6. [deleteBlsKey](#deleteblskey)
 > ##### 3) DKG calls
 >   1. [generateDKGPoly](#generatedkgpoly) 
 >   2. [isPolyExists](#ispolyexists) 
-> ##### [4) Common Parameter Descriptions](#common-parameters-descriptions)
+> ##### 4) Server calls
+>   1. [getServerStatus](#getservert«status)
+>   2. [getServerVersion](#getserverversion)
+> ##### [5) Common Parameter Descriptions](#common-parameters-descriptions)
 > ---
 
 
@@ -28,12 +32,9 @@
 > - calculateAllBLSPublicKeys
 > - complaintResponse
 > - multG2
-> - getServerStatus
-> - getServerVersion
 > - generateBLSPrivateKey
 > - createBLSPrivateKeyV2
 > - getDecryptionShares
-> - popProve
 
 ---
 
@@ -62,7 +63,7 @@ curl -X POST --data '{
 | **Parameter** | **Type**   | **Description**                          |
 |---------------|------------|------------------------------------------|
 | `PublicKey`   | `String`   | Public ECDSA key created                 |
-| `keyName`     | `String`   | [See ECDSA Key Name](#2-ecdsa-ley-name)    |
+| `keyName`     | `String`   | [See ECDSA Key Name](#2-ecdsa-key-name)    |
 |`encryptedKey` | `String`   | TODO    |
 
 #### Example Response
@@ -437,6 +438,55 @@ None
 ---
 
 
+## `popProve`
+
+#### Description
+TODO
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `blsKeyName`| `String`     | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "popProve", 
+    "params": {
+        "blsKeyName":"BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4"
+    } 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`popProve`      | `String`  | TODO |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "popProve": "7712004107626570830897885890446468859243922502105843477977107344257047197123:21825471235559662680802288068137317483581335125829352970956762476209081500057:12565777799784373616163068232947461672358328512399717157386114163224678064265:3",
+        "status": 0
+    }
+}
+```
+
+---
+
+
+
+
+
+
 ## `deleteBlsKey`
 
 #### Description
@@ -569,6 +619,92 @@ curl -X POST --data '{
         "IsExist": true,
         "errorMessage": "",
         "status": 0
+    }
+}
+```
+
+---
+
+
+# 4) Server Calls
+
+
+## `getServerStatus`
+
+#### Description
+Returns the current server status.
+
+#### Request Parameters
+None
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "getServerStatus", 
+    "params": null 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`status`      | `Int`  | `0` if the server is good. If uknown error, the error is `10000 + line number`. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+
+## `getServerVersion`
+
+#### Description
+Returns the current SgxWallet server version.
+
+#### Request Parameters
+None
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "getServerVersion", 
+    "params": null 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`version`      | `Int`  | `0` if the server is good. If uknown error, the error is `10000 + line number`. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "status": 0,
+        "version": "1.9.0"
     }
 }
 ```
