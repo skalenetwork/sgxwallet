@@ -4,7 +4,7 @@ on:
   push:
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -15,13 +15,15 @@ jobs:
       run: ls /dev/urandom
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build and publish container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: test
       run: python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
+    - name: cleanup
+      run: sudo rm -rf sgx_data
     - name: build and deploy docker image
       if: |
             contains(github.ref, 'develop') || contains(github.ref, 'beta') ||

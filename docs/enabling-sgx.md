@@ -26,7 +26,7 @@ This repo includes the **_sgx_enable_** utility. To enable SGX run:
 sudo ./sgx_enable
 ```
 
-Note: if you are not using Ubuntu 18.04 (Not recommended!), you may need
+Note: if you are not using Ubuntu 20.04 (Not recommended!), you may need
 to rebuild the sgx-software-enable utility before use by typing:
 
 ```bash
@@ -39,19 +39,19 @@ make
 Install make and gcc if you do not have it:
 
 ```bash
-apt-get install  build-essential
+apt-get install build-essential
 ```
 
 Run the following command:
 
 ```bash
-cd scripts; sudo ./sgx_linux_x64_driver_2.11.0_0373e2e.bin; cd ..
+cd scripts; sudo ./sgx_linux_x64_driver_2.11.b6f5b4a.bin; cd ..
 ```
 
 Alternatively, other driver versions may be downloaded from Intel.
-Please note that version `2.11.0_0373e2e` is what is currently supported.
+Please note that version `2.11.b6f5b4a` is what is currently supported.
 
-Reboot you machine after driver install.  Do `ls /dev/isgx` to check that `isgx` device is properly installed.
+Reboot you machine after driver install. Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
 If driver installation fails, you can also try installing driver from the 
@@ -65,7 +65,7 @@ And then follow instructions in README.md
 
 ## Troubleshooting Installation
 
--   If the message  `intel_sgx: SGX is not enabled` appears in `/var/log/syslog`
+-   If the message `intel_sgx: SGX is not enabled` appears in `/var/log/syslog`
     Intel SGX needs to be enabled in BIOS.
 
 -   If you are running in Intel SGX hardware mode, make sure you have device

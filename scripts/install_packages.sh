@@ -1,5 +1,26 @@
 #!/bin/bash
 sudo apt update
-sudo apt install -y build-essential make gcc g++ yasm python flex bison automake
-sudo apt install -y ccache cmake ccache autoconf texinfo libgcrypt20-dev libgnutls28-dev libtool pkg-config glibc-tools
-sudo apt install -y ocaml ocamlbuild
+sudo apt install -y build-essential \
+    ocaml \
+    ocamlbuild \
+    automake \
+    autoconf \
+    libtool \
+    wget \
+    python-is-python3 \
+    libssl-dev \
+    git \
+    cmake \
+    perl \
+    libcurl4-openssl-dev \
+    protobuf-compiler \
+    libprotobuf-dev \
+    debhelper \
+    reprepro \
+    unzip \
+    pkgconf \
+    libboost-dev \
+    libboost-system-dev \
+    libboost-thread-dev \
+    lsb-release \
+    libsystemd0

@@ -6,7 +6,7 @@ on:
       - stable
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -16,7 +16,7 @@ jobs:
         run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Submodule update
         run: git submodule update --init --recursive
       - name: Create dir for signing enclave
