@@ -6,7 +6,7 @@
 >   1. [generateECDSAKey](#generateecdsakey) (TODO - complete)
 >   2. [importECDSAKey](#importecdsakey) (TODO - complete & test)
 >   3. [getPublicECDSAKey](#getpublicecdsakey)
->   4. [ecdsaSignMessageHash](#ecdsaSignMessageHash)
+>   4. [ecdsaSignMessageHash](#ecdsasignmessagehash)
 > ##### 2) BLS calls
 >   1. [importBLSKeyShare](#importblskeyshare)
 >   2. [getBLSPublicKeyShare](#getblspublickeyshare) (TODO - complete description)
@@ -18,7 +18,7 @@
 >   1. [generateDKGPoly](#generatedkgpoly) 
 >   2. [isPolyExists](#ispolyexists) 
 > ##### 4) Server calls
->   1. [getServerStatus](#getservert«status)
+>   1. [getServerStatus](#getserverstatus)
 >   2. [getServerVersion](#getserverversion)
 > ##### [5) Common Parameter Descriptions](#common-parameters-descriptions)
 > ---
@@ -302,7 +302,7 @@ curl -X POST --data '{
     "params": { 
         "blsKeyName": "BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1234" 
     } 
-}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -kclear
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
 ```
 
 #### Return Values
@@ -740,5 +740,5 @@ curl -X POST --data '{
 
 
 #### 5) Threshold Encryption Parameters
-`n` - Number of total nodes participating in the threshold encryption network.
+`n` - Number of total nodes participating in the threshold encryption network.  
 `t` - The **threshold value**. At least `t` participants must collaborate to reconstruct the secret or perform operations (e.g., signing). Requirement: \(t < n\).
