@@ -15,7 +15,7 @@ services:
       options:
         max-size: "10m"
         max-file: "4"
-    command: -y -d -e
+    command: -y -d
     healthcheck:
       test: ["CMD", "ls", "/dev/isgx", "/dev/mei0"]
 
