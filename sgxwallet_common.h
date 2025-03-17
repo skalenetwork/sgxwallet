@@ -50,6 +50,11 @@ extern bool autoconfirm;
 
 #define BUF_LEN 4096
 
+#define MAX_BATCH_SIZE 100
+#define CIPHERTEXT_LEN 256
+// +1 for null terminator
+#define MAX_BATCH_BUF_SIZE  MAX_BATCH_SIZE * CIPHERTEXT_LEN + 1
+
 #define MAX_KEY_LENGTH 128
 #define MAX_COMPONENT_LENGTH 80
 #define MAX_COMPONENT_HEX_LENGTH MAX_COMPONENT_LENGTH * 2

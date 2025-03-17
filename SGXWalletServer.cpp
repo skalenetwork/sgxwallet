@@ -1112,23 +1112,29 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
                              ":Public decryption values should be an array");
     }
 
+    shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+
+    // validate & concatenate ciphertexts
+    std::string concatenatedCiphertexts;
+    concatenatedCiphertexts.reserve(1000 * 256 + 1);
     for (int i = 0; i < publicDecryptionValues.size(); ++i) {
       std::string publicDecryptionValue = publicDecryptionValues[i].asString();
-      if (publicDecryptionValue.length() < 7 ||
-          publicDecryptionValue.length() > 78 * 4) {
+      if (publicDecryptionValue.length() != 256) {
         throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
                            string(__FUNCTION__) +
                                ":Invalid publicDecryptionValue format");
       }
-
-      shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
-
-      vector<string> decryptionValueVector = calculateDecryptionShare(
-          encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
-      for (uint8_t j = 0; j < 4; ++j) {
-        result["decryptionShares"][i][j] = decryptionValueVector.at(j);
-      }
+      concatenatedCiphertexts += publicDecryptionValue;
     }
+
+
+    std::vector<std::string> decryptionShares = calculateDecryptionShares(
+          encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts);
+
+    for (uint8_t i = 0; i < decryptionShares.size(); i++) {
+      result["decryptionShares"][i] = decryptionShares[i];
+    }
+      
   }
   HANDLE_SGX_EXCEPTION(result)
 
