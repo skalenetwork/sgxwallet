@@ -258,7 +258,6 @@ string getSecretShares(const string &_polyName, const char *_encryptedPolyHex,
   return result;
 }
 
-
 string getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex,
                          const vector<string> &_publicKeys, int _t, int _n) {
   CHECK_STATE(_encryptedPolyHex);
@@ -355,19 +354,20 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
 
 /**
  * @brief Verifies DKG shares using version 2 of the verification algorithm
- * 
+ *
  * @param publicShares String containing the public shares to verify
  * @param encr_sshare Encrypted secret share data
  * @param encryptedKeyHex Encrypted key in hexadecimal format
  * @param t Threshold value for the DKG scheme
  * @param n Total number of participants
  * @param ind Index of the participant
- * 
- * @throws SGXException if encryptedKeyHex is invalid or if public shares are invalid
+ *
+ * @throws SGXException if encryptedKeyHex is invalid or if public shares are
+ * invalid
  * @throws SGXException if trusted function call fails
- * 
+ *
  * @return bool True if verification succeeds, false otherwise
- * 
+ *
  * @details This function performs verification of DKG shares by:
  *          1. Converting encrypted key from hex to byte array
  *          2. Copying public shares to a safe buffer

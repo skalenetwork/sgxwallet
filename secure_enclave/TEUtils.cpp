@@ -54,10 +54,11 @@
 
 /**
  * Converts a field to hexadecimal format.
- * By default, output a 64-character string (32 bytes - 2 hexadecimal characters per byte)
+ * By default, output a 64-character string (32 bytes - 2 hexadecimal characters
+ * per byte)
  */
-template < class T >
-std::string fieldElementToString( const T& field_elem, int numBytes = 32) {
+template <class T>
+std::string fieldElementToString(const T &field_elem, int numBytes = 32) {
   std::string ret;
 
   mpz_t t;
@@ -69,13 +70,13 @@ std::string fieldElementToString( const T& field_elem, int numBytes = 32) {
 
     SAFE_CHAR_BUF(arr, BUF_LEN);
 
-    char* hex = mpz_get_str(arr, 16, t);
+    char *hex = mpz_get_str(arr, 16, t);
 
     ret = hex;
 
     int n_zeroes = numBytes * 2 - ret.length();
     if (n_zeroes > 0) {
-        ret.insert(0, n_zeroes, '0');
+      ret.insert(0, n_zeroes, '0');
     }
 
   } catch (std::exception &e) {
@@ -94,66 +95,61 @@ std::string fieldElementToString( const T& field_elem, int numBytes = 32) {
  * Total size will always be 256 (64 * 4)
  */
 std::string G2ToString(libff::alt_bn128_G2 elem) {
-    std::string pkey_str;
+  std::string pkey_str;
 
-    elem.to_affine_coordinates();
+  elem.to_affine_coordinates();
 
-    pkey_str += fieldElementToString( elem.X.c0 );
-    pkey_str += fieldElementToString( elem.X.c1 );
-    pkey_str += fieldElementToString( elem.Y.c0 );
-    pkey_str += fieldElementToString( elem.Y.c1 );
+  pkey_str += fieldElementToString(elem.X.c0);
+  pkey_str += fieldElementToString(elem.X.c1);
+  pkey_str += fieldElementToString(elem.Y.c0);
+  pkey_str += fieldElementToString(elem.Y.c1);
 
-    return pkey_str;
+  return pkey_str;
 }
 
-std::string convertHexToDec( char* hex_str ) {
-    mpz_t dec;
-    mpz_init( dec );
+std::string convertHexToDec(char *hex_str) {
+  mpz_t dec;
+  mpz_init(dec);
 
-    std::string output;
+  std::string output;
 
-    try {
-      std::string hex(hex_str, 64);
-      if ( mpz_set_str( dec, hex.c_str(), 16 ) == -1 ) {
-          mpz_clear( dec );
-          LOG_ERROR( "Bad formatted hex string provided" );
-          return output;
-      }
-
-      char arr[mpz_sizeinbase( dec, 10 ) + 2];
-      char* tmp = mpz_get_str( arr, 10, dec );
-
-      output = tmp;
-    } catch ( std::exception& e ) {
-        LOG_ERROR( e.what() );
-    } catch ( ... ) {
-        LOG_ERROR( "Exception in convert hex to dec" );
+  try {
+    std::string hex(hex_str, 64);
+    if (mpz_set_str(dec, hex.c_str(), 16) == -1) {
+      mpz_clear(dec);
+      LOG_ERROR("Bad formatted hex string provided");
+      return output;
     }
 
-    mpz_clear( dec );
-    return output;
+    char arr[mpz_sizeinbase(dec, 10) + 2];
+    char *tmp = mpz_get_str(arr, 10, dec);
+
+    output = tmp;
+  } catch (std::exception &e) {
+    LOG_ERROR(e.what());
+  } catch (...) {
+    LOG_ERROR("Exception in convert hex to dec");
+  }
+
+  mpz_clear(dec);
+  return output;
 }
 
+libff::alt_bn128_G2 stringToG2(char *str) {
+  // if ( str.size() != 256 ) {
+  //   LOG_ERROR("Wrong string size to convert to G2");
+  // }
 
-libff::alt_bn128_G2 stringToG2( char* str ) {
-    // if ( str.size() != 256 ) {
-    //   LOG_ERROR("Wrong string size to convert to G2");
-    // }
+  libff::alt_bn128_G2 ret;
 
-    libff::alt_bn128_G2 ret;
+  ret.Z = libff::alt_bn128_Fq2::one();
 
-    ret.Z = libff::alt_bn128_Fq2::one();
+  ret.X.c0 = libff::alt_bn128_Fq(convertHexToDec(str).c_str());
+  ret.X.c1 = libff::alt_bn128_Fq(convertHexToDec(str + 64).c_str());
+  ret.Y.c0 = libff::alt_bn128_Fq(convertHexToDec(str + 128).c_str());
+  ret.Y.c1 = libff::alt_bn128_Fq(convertHexToDec(str + 192).c_str());
 
-    ret.X.c0 =
-        libff::alt_bn128_Fq( convertHexToDec( str ).c_str() );
-    ret.X.c1 =
-        libff::alt_bn128_Fq( convertHexToDec( str + 64 ).c_str() );
-    ret.Y.c0 =
-        libff::alt_bn128_Fq( convertHexToDec( str + 128 ).c_str() );
-    ret.Y.c1 = libff::alt_bn128_Fq(
-        convertHexToDec( str + 192 ).c_str() );
-
-    return ret;
+  return ret;
 }
 
 EXTERNC int keyHexToDecimal(char *skey_hex) {
@@ -181,9 +177,9 @@ EXTERNC int keyHexToDecimal(char *skey_hex) {
     return 1;
   }
 
-  clean:
-    mpz_clear(skey);
-    return 0;
+clean:
+  mpz_clear(skey);
+  return 0;
 }
 
 EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
@@ -196,7 +192,7 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
 
   {
     libff::alt_bn128_Fr bls_skey(skey_dec);
-    
+
     // TODO - currently copies the string. try optimize
     libff::alt_bn128_G2 decryption_value = stringToG2(decryptionValue);
 
@@ -213,8 +209,8 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     strncpy(decryption_share, result.data(), CIPHERTEXT_LEN);
   }
 
-  clean:
-    return 0;
+clean:
+  return 0;
 }
 
 #endif
