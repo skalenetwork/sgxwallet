@@ -50,7 +50,7 @@ template <class T> string ConvertToString(T field_elem, int base = 10) {
   if (base == 16) {
     // 64-characters long - fill 0's if needed
     int n_zeroes = 64 - result.length();
-    result.insert( 0, n_zeroes, '0' );
+    result.insert(0, n_zeroes, '0');
   }
 
   mpz_clear(t);
@@ -113,23 +113,21 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base,
 }
 
 // TODO - we should use libBLS functions instead - these are repeated
-libff::alt_bn128_G2 convertStringToG2(const std::string& str) {
-  if ( str.size() != 256 ) {
-      throw SGXException( EXCEPTION_IN_CONVERT_G2_STRING, "Wrong string size to convert to G2" );
+libff::alt_bn128_G2 convertStringToG2(const std::string &str) {
+  if (str.size() != 256) {
+    throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
+                       "Wrong string size to convert to G2");
   }
 
   libff::alt_bn128_G2 ret;
 
   ret.Z = libff::alt_bn128_Fq2::one();
 
-  ret.X.c0 =
-      libff::alt_bn128_Fq( convertHexToDec( str.substr( 0, 64 ) ).c_str() );
-  ret.X.c1 =
-      libff::alt_bn128_Fq( convertHexToDec( str.substr( 64, 64 ) ).c_str() );
-  ret.Y.c0 =
-      libff::alt_bn128_Fq( convertHexToDec( str.substr( 128, 64 ) ).c_str() );
+  ret.X.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(0, 64)).c_str());
+  ret.X.c1 = libff::alt_bn128_Fq(convertHexToDec(str.substr(64, 64)).c_str());
+  ret.Y.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(128, 64)).c_str());
   ret.Y.c1 = libff::alt_bn128_Fq(
-      convertHexToDec( str.substr( 192, std::string::npos ) ).c_str() );
+      convertHexToDec(str.substr(192, std::string::npos)).c_str());
 
   return ret;
 }

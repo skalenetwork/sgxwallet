@@ -68,7 +68,7 @@ string convertHexToDec(const string &hex_str);
 string convertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10,
                          const string &delim = ":");
 
-libff::alt_bn128_G2 convertStringToG2(const std::string& str);
+libff::alt_bn128_G2 convertStringToG2(const std::string &str);
 
 vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares);
 
