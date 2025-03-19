@@ -71,11 +71,11 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
 
   std::vector<string> decryptedBatches;
 
-  const char *current_batch = decryptionValueBatches.data();
+  const char *currentBatch = decryptionValueBatches.data();
   // If we cant have at least 1 batch - set batch length to whatever number of
   // cyphertexts we have. Else, set batch length to BATCH_SIZE (the last batch
   // may not be full)
-  size_t current_batch_length =
+  size_t currentBatchLength =
       firstBatchIsFull ? BATCH_SIZE_BYTES : lastBatchRemainderBytes;
   size_t currentBatchOffset = 0;
 
@@ -87,8 +87,8 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
   while (numBatchesRemaining > 0) {
 
     status = trustedGetDecryptionShares(
-        eid, &errStatus, errMsg.data(), encryptedKey, current_batch,
-        current_batch_length, sz, decryptionShares);
+        eid, &errStatus, errMsg.data(), encryptedKey, currentBatch,
+        currentBatchLength, sz, decryptionShares);
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -102,12 +102,12 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
 
     --numBatchesRemaining;
     // advance batch
-    current_batch += BATCH_SIZE_BYTES;
+    currentBatch += BATCH_SIZE_BYTES;
     currentBatchOffset += BATCH_SIZE_BYTES;
     // If we are at the last batch, & there is a remainder, then the last batch
     // size will be different
     if (numBatchesRemaining == 1 && lastBatchRemainderBytes > 0) {
-      current_batch_length = lastBatchRemainderBytes;
+      currentBatchLength = lastBatchRemainderBytes;
     }
   }
 

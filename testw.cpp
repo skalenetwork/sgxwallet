@@ -1293,9 +1293,23 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
   }
 }
 
+
+const std::vector<int> BATCH_TEST_VALUES = {
+  1, 
+  MAX_BATCH_SIZE / 2, 
+  MAX_BATCH_SIZE - 1, 
+  MAX_BATCH_SIZE, 
+  MAX_BATCH_SIZE + 1,
+  MAX_BATCH_SIZE + MAX_BATCH_SIZE / 2,
+  2 * MAX_BATCH_SIZE,
+  3 * MAX_BATCH_SIZE
+};
+
+
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
                  "[te-decryption-share]") {
   HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
   std::string key_str =
@@ -1308,29 +1322,26 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
       libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
                           "438182864059942098934847");
 
-  libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
-  libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
+  for (int num_requests : BATCH_TEST_VALUES) {
+    Json::Value publicDecryptionValues;
 
-  decryption_value1.to_affine_coordinates();
-  decryption_value2.to_affine_coordinates();
+    std::vector<libff::alt_bn128_G2> decryption_values;
+    for (int i = 0; i < num_requests ; i++ ) {
+      libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+      decryption_values.push_back(decryption_value);
+      decryption_value.to_affine_coordinates();
+      auto decrytion_value_str = convertG2ToString(decryption_value, 16, "");
+      publicDecryptionValues["publicDecryptionValues"][i] = decrytion_value_str;
+    }
 
-  auto decrytion_value_str1 = convertG2ToString(decryption_value1, 16, "");
-  auto decrytion_value_str2 = convertG2ToString(decryption_value2, 16, "");
+    auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
 
-  Json::Value publicDecryptionValues;
-  publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
-  publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
-
-  auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
-
-  auto decryption_share1 = decryptionShares["decryptionShares"][0].asString();
-  auto decryption_share2 = decryptionShares["decryptionShares"][1].asString();
-
-  libff::alt_bn128_G2 share1 = convertStringToG2(decryption_share1);
-  REQUIRE(share1 == key * decryption_value1);
-
-  libff::alt_bn128_G2 share2 = convertStringToG2(decryption_share2);
-  REQUIRE(share2 == key * decryption_value2);
+    for (int i = 0; i < num_requests ; i++ ) {
+      auto decryption_share = decryptionShares["decryptionShares"][i].asString();
+      libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
+      REQUIRE(share == key * decryption_values[i]);
+    }
+  }
 }
 
 TEST_CASE_METHOD(TestFixture,
@@ -1350,30 +1361,27 @@ TEST_CASE_METHOD(TestFixture,
       libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
                           "438182864059942098934847");
 
-  libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
-  libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
 
-  decryption_value1.to_affine_coordinates();
-  decryption_value2.to_affine_coordinates();
+  for (int num_requests : BATCH_TEST_VALUES) {
+    Json::Value publicDecryptionValues;
 
-  auto decrytion_value_str1 = convertG2ToString(decryption_value1, 16, "");
-  auto decrytion_value_str2 = convertG2ToString(decryption_value2, 16, "");
+    std::vector<libff::alt_bn128_G2> decryption_values;
+    for (int i = 0; i < num_requests ; i++ ) {
+      libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+      decryption_values.push_back(decryption_value);
+      decryption_value.to_affine_coordinates();
+      auto decrytion_value_str = convertG2ToString(decryption_value, 16, "");
+      publicDecryptionValues["publicDecryptionValues"][i] = decrytion_value_str;
+    }
 
-  Json::Value publicDecryptionValues;
-  publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
-  publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
+    auto decryptionShares = client->getDecryptionShares(name, publicDecryptionValues);
 
-  auto decryptionShares =
-      client->getDecryptionShares(name, publicDecryptionValues);
-
-  auto decryption_share1 = decryptionShares[0].asString();
-  auto decryption_share2 = decryptionShares[1].asString();
-
-  libff::alt_bn128_G2 share1 = convertStringToG2(decryption_share1);
-  REQUIRE(share1 == key * decryption_value1);
-
-  libff::alt_bn128_G2 share2 = convertStringToG2(decryption_share2);
-  REQUIRE(share2 == key * decryption_value2);
+    for (int i = 0; i < num_requests ; i++ ) {
+      auto decryption_share = decryptionShares[i].asString();
+      libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
+      REQUIRE(share == key * decryption_values[i]);
+    }
+  }
 }
 
 TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
