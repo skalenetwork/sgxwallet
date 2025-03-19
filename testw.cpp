@@ -1293,18 +1293,14 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
   }
 }
 
-
-const std::vector<int> BATCH_TEST_VALUES = {
-  1, 
-  MAX_BATCH_SIZE / 2, 
-  MAX_BATCH_SIZE - 1, 
-  MAX_BATCH_SIZE, 
-  MAX_BATCH_SIZE + 1,
-  MAX_BATCH_SIZE + MAX_BATCH_SIZE / 2,
-  2 * MAX_BATCH_SIZE,
-  3 * MAX_BATCH_SIZE
-};
-
+const std::vector<int> BATCH_TEST_VALUES = {1,
+                                            MAX_BATCH_SIZE / 2,
+                                            MAX_BATCH_SIZE - 1,
+                                            MAX_BATCH_SIZE,
+                                            MAX_BATCH_SIZE + 1,
+                                            MAX_BATCH_SIZE + MAX_BATCH_SIZE / 2,
+                                            2 * MAX_BATCH_SIZE,
+                                            3 * MAX_BATCH_SIZE};
 
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
                  "[te-decryption-share]") {
@@ -1326,8 +1322,9 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
     Json::Value publicDecryptionValues;
 
     std::vector<libff::alt_bn128_G2> decryption_values;
-    for (int i = 0; i < num_requests ; i++ ) {
-      libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+    for (int i = 0; i < num_requests; i++) {
+      libff::alt_bn128_G2 decryption_value =
+          libff::alt_bn128_G2::random_element();
       decryption_values.push_back(decryption_value);
       decryption_value.to_affine_coordinates();
       auto decrytion_value_str = convertG2ToString(decryption_value, 16, "");
@@ -1336,8 +1333,9 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
 
     auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
 
-    for (int i = 0; i < num_requests ; i++ ) {
-      auto decryption_share = decryptionShares["decryptionShares"][i].asString();
+    for (int i = 0; i < num_requests; i++) {
+      auto decryption_share =
+          decryptionShares["decryptionShares"][i].asString();
       libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
       REQUIRE(share == key * decryption_values[i]);
     }
@@ -1361,22 +1359,23 @@ TEST_CASE_METHOD(TestFixture,
       libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
                           "438182864059942098934847");
 
-
   for (int num_requests : BATCH_TEST_VALUES) {
     Json::Value publicDecryptionValues;
 
     std::vector<libff::alt_bn128_G2> decryption_values;
-    for (int i = 0; i < num_requests ; i++ ) {
-      libff::alt_bn128_G2 decryption_value = libff::alt_bn128_G2::random_element();
+    for (int i = 0; i < num_requests; i++) {
+      libff::alt_bn128_G2 decryption_value =
+          libff::alt_bn128_G2::random_element();
       decryption_values.push_back(decryption_value);
       decryption_value.to_affine_coordinates();
       auto decrytion_value_str = convertG2ToString(decryption_value, 16, "");
       publicDecryptionValues["publicDecryptionValues"][i] = decrytion_value_str;
     }
 
-    auto decryptionShares = client->getDecryptionShares(name, publicDecryptionValues);
+    auto decryptionShares =
+        client->getDecryptionShares(name, publicDecryptionValues);
 
-    for (int i = 0; i < num_requests ; i++ ) {
+    for (int i = 0; i < num_requests; i++) {
       auto decryption_share = decryptionShares[i].asString();
       libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
       REQUIRE(share == key * decryption_values[i]);
