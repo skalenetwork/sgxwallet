@@ -1113,7 +1113,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     }
 
     if (publicDecryptionValues.size() > INT_MAX) {
-      throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
+      throw SGXException(TOO_MANY_DECRYPTION_VALUES,
                          string(__FUNCTION__) +
                              ":Public decryption values array is too large");
     }
