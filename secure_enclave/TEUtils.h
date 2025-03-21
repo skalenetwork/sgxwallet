@@ -38,6 +38,6 @@
 #endif
 
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
-                               char *decryption_share);
+                               size_t decryptionSize, char *decryption_share);
 
 #endif

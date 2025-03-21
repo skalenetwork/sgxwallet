@@ -58,7 +58,7 @@
  * per byte)
  */
 template <class T>
-std::string fieldElementToString(const T &field_elem, int numBytes = 32) {
+std::string fieldElementToHex(const T &field_elem, int numBytes = 32) {
   std::string ret;
 
   mpz_t t;
@@ -99,10 +99,10 @@ std::string G2ToString(libff::alt_bn128_G2 elem) {
 
   elem.to_affine_coordinates();
 
-  pkey_str += fieldElementToString(elem.X.c0);
-  pkey_str += fieldElementToString(elem.X.c1);
-  pkey_str += fieldElementToString(elem.Y.c0);
-  pkey_str += fieldElementToString(elem.Y.c1);
+  pkey_str += fieldElementToHex(elem.X.c0);
+  pkey_str += fieldElementToHex(elem.X.c1);
+  pkey_str += fieldElementToHex(elem.Y.c0);
+  pkey_str += fieldElementToHex(elem.Y.c1);
 
   return pkey_str;
 }
@@ -135,10 +135,10 @@ std::string convertHexToDec(char *hex_str) {
   return output;
 }
 
-libff::alt_bn128_G2 stringToG2(char *str) {
-  // if ( str.size() != 256 ) {
-  //   LOG_ERROR("Wrong string size to convert to G2");
-  // }
+libff::alt_bn128_G2 stringToG2(char *str, size_t size) {
+  if (size != CIPHERTEXT_CHARACTER_LENGTH) {
+    LOG_ERROR("Wrong string size to convert to G2");
+  }
 
   libff::alt_bn128_G2 ret;
 
@@ -152,7 +152,7 @@ libff::alt_bn128_G2 stringToG2(char *str) {
   return ret;
 }
 
-EXTERNC int keyHexToDecimal(char *skey_hex) {
+EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   mpz_t skey;
   mpz_init(skey);
   try {
@@ -165,7 +165,7 @@ EXTERNC int keyHexToDecimal(char *skey_hex) {
 
     char skey_dec[mpz_sizeinbase(skey, 10) + 2];
     mpz_get_str(skey_dec, 10, skey);
-    strncpy(skey_hex, skey_dec, sizeof(skey_dec));
+    strncpy(skey_dec_out, skey_dec, sizeof(skey_dec));
 
   } catch (std::exception &e) {
     LOG_ERROR(e.what());
@@ -183,7 +183,7 @@ clean:
 }
 
 EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
-                               char *decryption_share) {
+                               size_t decryptionSize, char *decryption_share) {
 
   int ret = 1;
   CHECK_ARG_CLEAN(skey_dec);
@@ -194,7 +194,8 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     libff::alt_bn128_Fr bls_skey(skey_dec);
 
     // TODO - currently copies the string. try optimize
-    libff::alt_bn128_G2 decryption_value = stringToG2(decryptionValue);
+    libff::alt_bn128_G2 decryption_value =
+        stringToG2(decryptionValue, decryptionSize);
 
     if (!decryption_value.is_well_formed()) {
       LOG_ERROR("Decryption value is not well formed");
@@ -206,7 +207,7 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
 
     std::string result = G2ToString(decryption_share_point);
 
-    strncpy(decryption_share, result.data(), CIPHERTEXT_LEN);
+    strncpy(decryption_share, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
   }
 
 clean:

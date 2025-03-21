@@ -1293,14 +1293,15 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
   }
 }
 
-const std::vector<int> BATCH_TEST_VALUES = {1,
-                                            MAX_BATCH_SIZE / 2,
-                                            MAX_BATCH_SIZE - 1,
-                                            MAX_BATCH_SIZE,
-                                            MAX_BATCH_SIZE + 1,
-                                            MAX_BATCH_SIZE + MAX_BATCH_SIZE / 2,
-                                            2 * MAX_BATCH_SIZE,
-                                            3 * MAX_BATCH_SIZE};
+const std::vector<int> BATCH_TEST_VALUES = {
+    1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH / 2,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH - 1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH + 1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH + ENCLAVE_MAX_CIPHERTEXT_BATCH / 2,
+    2 * ENCLAVE_MAX_CIPHERTEXT_BATCH,
+    3 * ENCLAVE_MAX_CIPHERTEXT_BATCH};
 
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
                  "[te-decryption-share]") {
@@ -1380,6 +1381,68 @@ TEST_CASE_METHOD(TestFixture,
       libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
       REQUIRE(share == key * decryption_values[i]);
     }
+  }
+}
+
+// create random 64-character hexadecimal string
+std::string generateHexString(size_t length) {
+  const char hexChars[] = "0123456789ABCDEF";
+  std::string hexString;
+  hexString.reserve(64);
+
+  std::srand(std::time(nullptr));
+
+  for (size_t i = 0; i < length; ++i) {
+    hexString += hexChars[std::rand() % 16];
+  }
+
+  return hexString;
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
+                 "[te-decryption-share-wrong-inputs]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
+
+  // the same key writtn in decimal
+  libff::alt_bn128_Fr key =
+      libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
+                          "438182864059942098934847");
+
+  // Invalid bls key name
+  Json::Value publicDecryptionValues;
+  REQUIRE_THROWS(c.getDecryptionShares(
+      "BLS_KY:SCHAI_ID:123456789:NOD_ID:0:DG_I:0", publicDecryptionValues));
+
+  // invalid decryption shares format
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+
+  publicDecryptionValues[0] = "invalid";
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+
+  // share has wrong size
+  publicDecryptionValues.clear();
+
+  publicDecryptionValues[0] =
+      generateHexString(CIPHERTEXT_CHARACTER_LENGTH - 1);
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+
+  publicDecryptionValues[0] =
+      generateHexString(CIPHERTEXT_CHARACTER_LENGTH + 1);
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+
+  // share is not in hexadecimal format
+  for (int i = 0; i < CIPHERTEXT_CHARACTER_LENGTH; i++) {
+    std::string value = generateHexString(CIPHERTEXT_CHARACTER_LENGTH);
+    value[i] = 'G';
+    publicDecryptionValues[0] = value;
+    REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
   }
 }
 

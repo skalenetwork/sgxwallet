@@ -1122,10 +1122,10 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
 
     // validate & concatenate ciphertexts
     std::string concatenatedCiphertexts;
-    concatenatedCiphertexts.reserve(MAX_BATCH_SIZE * 256 + 1);
+    concatenatedCiphertexts.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
     for (int i = 0; i < publicDecryptionValues.size(); ++i) {
       std::string publicDecryptionValue = publicDecryptionValues[i].asString();
-      if (publicDecryptionValue.length() != 256) {
+      if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
         throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
                            string(__FUNCTION__) +
                                ":Invalid publicDecryptionValue format");

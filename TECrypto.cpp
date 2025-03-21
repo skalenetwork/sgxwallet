@@ -40,23 +40,18 @@
 #include <tools/utils.h>
 
 // ignore null terminator
-#define BATCH_SIZE_BYTES (MAX_BATCH_BUF_SIZE - 1)
+#define BATCH_SIZE_BYTES (ENCLAVE_MAX_BATCH_BUFFER_SIZE - 1)
 
 vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
                                          const string &decryptionValueBatches) {
   size_t sz = 0;
 
   // calculate number of batches needed
-  size_t numBatchesRemaining = decryptionValueBatches.size() / BATCH_SIZE_BYTES;
-  size_t lastBatchRemainderBytes = 0;
+  size_t numBatchesRemaining =
+      (decryptionValueBatches.size() + BATCH_SIZE_BYTES - 1) / BATCH_SIZE_BYTES;
+  size_t lastBatchRemainderBytes =
+      decryptionValueBatches.size() % BATCH_SIZE_BYTES;
   bool firstBatchIsFull = decryptionValueBatches.size() >= BATCH_SIZE_BYTES;
-  // There is at least +1 cyphertext that does not fit in the batch count we
-  // currently have - increase batch count
-  if (decryptionValueBatches.size() % BATCH_SIZE_BYTES != 0) {
-    numBatchesRemaining++;
-    lastBatchRemainderBytes = (decryptionValueBatches.size() -
-                               (numBatchesRemaining - 1) * BATCH_SIZE_BYTES);
-  }
 
   SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
 
@@ -67,17 +62,17 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
     BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
   }
 
-  SAFE_CHAR_BUF(decryptionShares, MAX_BATCH_BUF_SIZE);
+  SAFE_CHAR_BUF(decryptionShares, ENCLAVE_MAX_BATCH_BUFFER_SIZE);
 
   std::vector<string> decryptedBatches;
 
   const char *currentBatch = decryptionValueBatches.data();
+  const char *end = currentBatch + decryptionValueBatches.size();
   // If we cant have at least 1 batch - set batch length to whatever number of
   // cyphertexts we have. Else, set batch length to BATCH_SIZE (the last batch
   // may not be full)
   size_t currentBatchLength =
       firstBatchIsFull ? BATCH_SIZE_BYTES : lastBatchRemainderBytes;
-  size_t currentBatchOffset = 0;
 
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
@@ -95,19 +90,25 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
     std::string decr_shares(decryptionShares);
 
     // split the decrypted shares into individual shares
-    for (size_t i = 0; (i < MAX_BATCH_BUF_SIZE) && (i < decr_shares.length());
-         i += CIPHERTEXT_LEN) {
-      decryptedBatches.push_back(decr_shares.substr(i, CIPHERTEXT_LEN));
+    for (size_t i = 0;
+         (i < ENCLAVE_MAX_BATCH_BUFFER_SIZE) && (i < decr_shares.length());
+         i += CIPHERTEXT_CHARACTER_LENGTH) {
+      decryptedBatches.push_back(
+          decr_shares.substr(i, CIPHERTEXT_CHARACTER_LENGTH));
     }
 
-    --numBatchesRemaining;
-    // advance batch
-    currentBatch += BATCH_SIZE_BYTES;
-    currentBatchOffset += BATCH_SIZE_BYTES;
-    // If we are at the last batch, & there is a remainder, then the last batch
-    // size will be different
-    if (numBatchesRemaining == 1 && lastBatchRemainderBytes > 0) {
-      currentBatchLength = lastBatchRemainderBytes;
+    // only increment pointer if there are more batches to process
+    if (--numBatchesRemaining) {
+      // advance batch
+      currentBatch += BATCH_SIZE_BYTES;
+      if (currentBatch > end) {
+        BOOST_THROW_EXCEPTION(std::overflow_error("Out of bounds"));
+      }
+      // If we are at the last batch, & there is a remainder, then the last
+      // batch size will be different
+      if (numBatchesRemaining == 1 && lastBatchRemainderBytes > 0) {
+        currentBatchLength = lastBatchRemainderBytes;
+      }
     }
   }
 

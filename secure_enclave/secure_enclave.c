@@ -1388,21 +1388,23 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
     CHECK_STATE(decryption_shares);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+    SAFE_CHAR_BUF(skey_dec, BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
     // Key comes in hexadecimal
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES decrypt failed %d");
 
-    skey[ECDSA_SKEY_LEN - 1] = 0;
+    skey_hex[ECDSA_SKEY_LEN - 1] = 0;
 
     // convert to decimal
-    int stat = keyHexToDecimal(skey);
+    int stat = keyHexToDecimal(skey_hex, skey_dec);
+    
     status = status || stat;
 
     char* current_input_ciphertext = public_decryption_value;
@@ -1411,14 +1413,14 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
     size_t current_ciphertext = 0;
     // assumes the input vectors have been correctly allocated with a size of BATCH_SIZE * CIPHERTEXT_LEN + 1
     // /                                    Available data may be less than batch size
-    for (uint8_t i = 0; (i < BATCH_SIZE) && (current_ciphertext < public_decryption_value_len); ++i) {
-        status = getDecryptionShare(skey, current_input_ciphertext, current_output_decryption_share);
+    for (uint8_t i = 0; (i < ENCLAVE_MAX_CIPHERTEXT_BATCH) && (current_ciphertext < public_decryption_value_len); ++i) {
+        status = getDecryptionShare(skey_dec, current_input_ciphertext, CIPHERTEXT_CHARACTER_LENGTH, current_output_decryption_share);
         
         CHECK_STATUS("could not calculate decryption share");
 
-        current_input_ciphertext += CIPHERTEXT_LEN;
-        current_output_decryption_share += CIPHERTEXT_LEN;
-        current_ciphertext += CIPHERTEXT_LEN;
+        current_input_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
+        current_output_decryption_share += CIPHERTEXT_CHARACTER_LENGTH;
+        current_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
     }
 
     SET_SUCCESS
