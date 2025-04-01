@@ -1133,11 +1133,16 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
       concatenatedCiphertexts += publicDecryptionValue;
     }
 
-    std::vector<std::string> decryptionShares = calculateDecryptionShares(
+    std::pair< std::vector< std::string >, std::vector<int> > decryptionShares = calculateDecryptionShares(
         encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts);
+    
+    size_t sharesAmount = decryptionShares.first.size();  
 
-    for (int i = 0; i < decryptionShares.size(); i++) {
-      result["decryptionShares"][i] = decryptionShares[i];
+    for (int i = 0; i < sharesAmount; i++) {
+      result["decryptionShares"][i] = decryptionShares.first[i];
+      if (decryptionShares.second[i] > 0) {
+        result["failedRequests"][std::to_string(i)] = decryptionShares.second[i];
+      }
     }
   }
   HANDLE_SGX_EXCEPTION(result)

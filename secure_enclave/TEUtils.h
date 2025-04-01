@@ -21,8 +21,8 @@
     @date 2021
 */
 
-#ifndef SGXWALLET_DKGUTILS_H
-#define SGXWALLET_DKGUTILS_H
+#ifndef SGXWALLET_TEUTILS_H
+#define SGXWALLET_TEUTILS_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -36,6 +36,8 @@
 #else
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
+
+#define DECRYPTION_SHARE_IS_NOT_WELL_FORMED 1
 
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);

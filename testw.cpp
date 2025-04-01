@@ -58,6 +58,7 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "TestUtils.h"
+#include "secure_enclave/TEUtils.h"
 #include "sgxwallet.h"
 #include "testw.h"
 #include "zmq_src/ZMQClient.h"
@@ -1443,6 +1444,98 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
     value[i] = 'G';
     publicDecryptionValues[0] = value;
     REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+  }
+
+  // share is not well formed
+  std::string zeroG2String = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+  libff::alt_bn128_Fq2 invalid_x(
+    libff::alt_bn128_Fq("1"),
+    libff::alt_bn128_Fq("1")
+  );
+
+  libff::alt_bn128_Fq2 invalid_y(
+    libff::alt_bn128_Fq("1"),
+    libff::alt_bn128_Fq("1")
+  );
+
+  libff::alt_bn128_Fq2 invalid_z(
+    libff::alt_bn128_Fq("0"),
+    libff::alt_bn128_Fq("0")
+  );
+  libff::alt_bn128_G2 invalid_g2(invalid_x, invalid_y, invalid_z);
+  invalid_g2.to_affine_coordinates();
+
+  Json::Value decriptionValues;
+  std::string value;
+  std::vector<int> corruptedIdx;
+
+  // tamper random requests at random indices
+  for (int i = 0; i < 50; i++) {
+    int random = rand() % 3 + 1;
+    if (i % random == 1) {
+      // corrupted
+      value = convertG2ToString(invalid_g2, 16, "");
+      corruptedIdx.push_back(i);
+    }
+    else {
+      libff::alt_bn128_G2 decryption_value =
+          libff::alt_bn128_G2::random_element();
+      decryption_value.to_affine_coordinates();
+      value = convertG2ToString(decryption_value, 16, "");
+      
+    }
+    decriptionValues["publicDecryptionValues"][i] = value;
+  }
+  
+  Json::Value resp = c.getDecryptionShares(name, decriptionValues);
+
+  REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
+
+  for (int i = 0; i < corruptedIdx.size(); i++) {
+    std::string decryptionShares =
+        resp["decryptionShares"][corruptedIdx[i]].asString();
+    REQUIRE(decryptionShares == zeroG2String);
+    int idx = corruptedIdx[i];
+    std::string corruptedIdxStr = std::to_string(idx);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] == DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
+  }
+  
+  // share is zero
+  invalid_g2 = libff::alt_bn128_G2::zero();
+  invalid_g2.to_affine_coordinates();
+  
+  // clear from previous test
+  corruptedIdx.clear();
+  decriptionValues.clear();
+
+  // tamper random requests at random indices
+  for (int i = 0; i < 50; i++) {
+    int random = rand() % 3 + 1;
+    if (i % random == 1) {
+      // corrupted
+      value = convertG2ToString(invalid_g2, 16, "");
+      corruptedIdx.push_back(i);
+    }
+    else {
+      libff::alt_bn128_G2 decryption_value =
+          libff::alt_bn128_G2::random_element();
+          decryption_value.to_affine_coordinates();
+      value = convertG2ToString(decryption_value, 16, "");
+    }
+    decriptionValues["publicDecryptionValues"][i] = value;
+  }
+
+  resp = c.getDecryptionShares(name, decriptionValues);
+
+  REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
+
+  for (int i = 0; i < corruptedIdx.size(); i++) {
+    std::string decryptionShares =
+        resp["decryptionShares"][corruptedIdx[i]].asString();
+    REQUIRE(decryptionShares == zeroG2String);
+    int idx = corruptedIdx[i];
+    std::string corruptedIdxStr = std::to_string(idx);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] == DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
   }
 }
 

@@ -6,6 +6,8 @@
 #define VERY_SMALL_BUF_SIZE 512
 #define TINY_BUF_SIZE 256
 
+
+#define MAX_REQUESTS_PER_BATCH 100
 // 100 * 256 + 1 for the null terminator
 #define MAX_BATCH_BUF_SIZE 25601
 
@@ -190,7 +192,8 @@ enclave {
                                 [in, count = MAX_BATCH_BUF_SIZE] const char* public_decryption_value,
                                 uint64_t public_decryption_value_size,
                                 uint64_t key_len,
-                                [out, count = MAX_BATCH_BUF_SIZE] char* decryption_shares);
+                                [out, count = MAX_BATCH_BUF_SIZE] char* decryption_shares,
+                                [out, count = MAX_REQUESTS_PER_BATCH] int* decryption_shares_status);
 
         public void trustedGenerateBLSKey(
                                 [out] int *errStatus,

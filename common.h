@@ -149,6 +149,10 @@ inline int getValue() { // Note: this value is in KB!
   ;                                                                            \
   uint8_t __X__[__Y__];                                                        \
   memset(__X__, 0, __Y__);
+#define SAFE_INT_BUF(__X__, __Y__)                                             \
+  ;                                                                            \
+  int __X__[__Y__];                                                            \
+  memset(__X__, 0, __Y__);
 
 // Copy from libconsensus
 

@@ -42,7 +42,7 @@
 // ignore null terminator
 #define BATCH_SIZE_BYTES (ENCLAVE_MAX_BATCH_BUFFER_SIZE - 1)
 
-vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
+std::pair< vector<string>, vector<int> > calculateDecryptionShares(const string &encryptedKeyShare,
                                          const string &decryptionValueBatches) {
   size_t sz = 0;
 
@@ -61,10 +61,16 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
   if (!result) {
     BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
   }
-
+  // will store the decriptions
   SAFE_CHAR_BUF(decryptionShares, ENCLAVE_MAX_BATCH_BUFFER_SIZE);
+  // will store the error codes if any, for each message for each batch
+  SAFE_INT_BUF(decryptionSharesStatus, ENCLAVE_MAX_CIPHERTEXT_BATCH);
 
+  size_t numRequests = decryptionValueBatches.size() / CIPHERTEXT_CHARACTER_LENGTH;
   std::vector<string> decryptedBatches;
+  decryptedBatches.reserve(numRequests);
+  std::vector<int> errorCodesVector;
+  errorCodesVector.reserve(numRequests);
 
   const char *currentBatch = decryptionValueBatches.data();
   const char *end = currentBatch + decryptionValueBatches.size();
@@ -83,18 +89,19 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
 
     status = trustedGetDecryptionShares(
         eid, &errStatus, errMsg.data(), encryptedKey, currentBatch,
-        currentBatchLength, sz, decryptionShares);
-
+        currentBatchLength, sz, decryptionShares, decryptionSharesStatus);
+    
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     std::string decr_shares(decryptionShares);
 
     // split the decrypted shares into individual shares
-    for (size_t i = 0;
+    for (size_t i = 0, idx = 0;
          (i < ENCLAVE_MAX_BATCH_BUFFER_SIZE) && (i < decr_shares.length());
-         i += CIPHERTEXT_CHARACTER_LENGTH) {
+         i += CIPHERTEXT_CHARACTER_LENGTH, ++idx) {
       decryptedBatches.push_back(
           decr_shares.substr(i, CIPHERTEXT_CHARACTER_LENGTH));
+      errorCodesVector.push_back(decryptionSharesStatus[idx]);
     }
 
     // only increment pointer if there are more batches to process
@@ -112,5 +119,5 @@ vector<string> calculateDecryptionShares(const string &encryptedKeyShare,
     }
   }
 
-  return decryptedBatches;
+  return std::make_pair(decryptedBatches, errorCodesVector);
 }

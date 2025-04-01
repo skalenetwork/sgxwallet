@@ -193,13 +193,15 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
   {
     libff::alt_bn128_Fr bls_skey(skey_dec);
 
-    // TODO - currently copies the string. try optimize
     libff::alt_bn128_G2 decryption_value =
         stringToG2(decryptionValue, decryptionSize);
 
-    if (!decryption_value.is_well_formed()) {
+    if (!decryption_value.is_well_formed() || decryption_value.is_zero()) {
       LOG_ERROR("Decryption value is not well formed");
-      return 1;
+      // must be '0' -> not 0. 0 is null terminator & string  parsing by the caller
+      // will fail
+      memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
+      return DECRYPTION_SHARE_IS_NOT_WELL_FORMED;
     }
 
     libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
