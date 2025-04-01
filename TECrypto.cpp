@@ -42,8 +42,9 @@
 // ignore null terminator
 #define BATCH_SIZE_BYTES (ENCLAVE_MAX_BATCH_BUFFER_SIZE - 1)
 
-std::pair< vector<string>, vector<int> > calculateDecryptionShares(const string &encryptedKeyShare,
-                                         const string &decryptionValueBatches) {
+std::pair<vector<string>, vector<int>>
+calculateDecryptionShares(const string &encryptedKeyShare,
+                          const string &decryptionValueBatches) {
   size_t sz = 0;
 
   // calculate number of batches needed
@@ -66,7 +67,8 @@ std::pair< vector<string>, vector<int> > calculateDecryptionShares(const string 
   // will store the error codes if any, for each message for each batch
   SAFE_INT_BUF(decryptionSharesStatus, ENCLAVE_MAX_CIPHERTEXT_BATCH);
 
-  size_t numRequests = decryptionValueBatches.size() / CIPHERTEXT_CHARACTER_LENGTH;
+  size_t numRequests =
+      decryptionValueBatches.size() / CIPHERTEXT_CHARACTER_LENGTH;
   std::vector<string> decryptedBatches;
   decryptedBatches.reserve(numRequests);
   std::vector<int> errorCodesVector;
@@ -90,7 +92,7 @@ std::pair< vector<string>, vector<int> > calculateDecryptionShares(const string 
     status = trustedGetDecryptionShares(
         eid, &errStatus, errMsg.data(), encryptedKey, currentBatch,
         currentBatchLength, sz, decryptionShares, decryptionSharesStatus);
-    
+
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     std::string decr_shares(decryptionShares);

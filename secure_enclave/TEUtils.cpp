@@ -198,8 +198,8 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
 
     if (!decryption_value.is_well_formed() || decryption_value.is_zero()) {
       LOG_ERROR("Decryption value is not well formed");
-      // must be '0' -> not 0. 0 is null terminator & string  parsing by the caller
-      // will fail
+      // must be '0' -> not 0. 0 is null terminator & string  parsing by the
+      // caller will fail
       memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
       return DECRYPTION_SHARE_IS_NOT_WELL_FORMED;
     }

@@ -1447,21 +1447,19 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
   }
 
   // share is not well formed
-  std::string zeroG2String = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-  libff::alt_bn128_Fq2 invalid_x(
-    libff::alt_bn128_Fq("1"),
-    libff::alt_bn128_Fq("1")
-  );
+  std::string zeroG2String =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
+  libff::alt_bn128_Fq2 invalid_x(libff::alt_bn128_Fq("1"),
+                                 libff::alt_bn128_Fq("1"));
 
-  libff::alt_bn128_Fq2 invalid_y(
-    libff::alt_bn128_Fq("1"),
-    libff::alt_bn128_Fq("1")
-  );
+  libff::alt_bn128_Fq2 invalid_y(libff::alt_bn128_Fq("1"),
+                                 libff::alt_bn128_Fq("1"));
 
-  libff::alt_bn128_Fq2 invalid_z(
-    libff::alt_bn128_Fq("0"),
-    libff::alt_bn128_Fq("0")
-  );
+  libff::alt_bn128_Fq2 invalid_z(libff::alt_bn128_Fq("0"),
+                                 libff::alt_bn128_Fq("0"));
   libff::alt_bn128_G2 invalid_g2(invalid_x, invalid_y, invalid_z);
   invalid_g2.to_affine_coordinates();
 
@@ -1476,17 +1474,15 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
       // corrupted
       value = convertG2ToString(invalid_g2, 16, "");
       corruptedIdx.push_back(i);
-    }
-    else {
+    } else {
       libff::alt_bn128_G2 decryption_value =
           libff::alt_bn128_G2::random_element();
       decryption_value.to_affine_coordinates();
       value = convertG2ToString(decryption_value, 16, "");
-      
     }
     decriptionValues["publicDecryptionValues"][i] = value;
   }
-  
+
   Json::Value resp = c.getDecryptionShares(name, decriptionValues);
 
   REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
@@ -1497,13 +1493,14 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
     REQUIRE(decryptionShares == zeroG2String);
     int idx = corruptedIdx[i];
     std::string corruptedIdxStr = std::to_string(idx);
-    REQUIRE(resp["failedRequests"][corruptedIdxStr] == DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
+            DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
   }
-  
+
   // share is zero
   invalid_g2 = libff::alt_bn128_G2::zero();
   invalid_g2.to_affine_coordinates();
-  
+
   // clear from previous test
   corruptedIdx.clear();
   decriptionValues.clear();
@@ -1515,11 +1512,10 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
       // corrupted
       value = convertG2ToString(invalid_g2, 16, "");
       corruptedIdx.push_back(i);
-    }
-    else {
+    } else {
       libff::alt_bn128_G2 decryption_value =
           libff::alt_bn128_G2::random_element();
-          decryption_value.to_affine_coordinates();
+      decryption_value.to_affine_coordinates();
       value = convertG2ToString(decryption_value, 16, "");
     }
     decriptionValues["publicDecryptionValues"][i] = value;
@@ -1535,7 +1531,8 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
     REQUIRE(decryptionShares == zeroG2String);
     int idx = corruptedIdx[i];
     std::string corruptedIdxStr = std::to_string(idx);
-    REQUIRE(resp["failedRequests"][corruptedIdxStr] == DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
+            DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
   }
 }
 
