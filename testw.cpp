@@ -1487,14 +1487,14 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
 
   REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
 
-  for (int i = 0; i < corruptedIdx.size(); i++) {
+  for (size_t i = 0; i < corruptedIdx.size(); i++) {
     std::string decryptionShares =
         resp["decryptionShares"][corruptedIdx[i]].asString();
     REQUIRE(decryptionShares == zeroG2String);
     int idx = corruptedIdx[i];
     std::string corruptedIdxStr = std::to_string(idx);
     REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
-            DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
+            STATUS_G2_NOT_WELL_FORMED);
   }
 
   // share is zero
@@ -1525,14 +1525,14 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
 
   REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
 
-  for (int i = 0; i < corruptedIdx.size(); i++) {
+  for (size_t i = 0; i < corruptedIdx.size(); i++) {
     std::string decryptionShares =
         resp["decryptionShares"][corruptedIdx[i]].asString();
     REQUIRE(decryptionShares == zeroG2String);
     int idx = corruptedIdx[i];
     std::string corruptedIdxStr = std::to_string(idx);
     REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
-            DECRYPTION_SHARE_IS_NOT_WELL_FORMED);
+            STATUS_G2_NOT_WELL_FORMED);
   }
 }
 

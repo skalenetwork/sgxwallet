@@ -68,8 +68,6 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin,
 
   CHECK_STATE(len != max_length_2 + 1);
 
-  CHECK_STATE(len <= max_length_2);
-
   if (len % 2 == 1)
     return false;
 

@@ -39,22 +39,40 @@ template <class T> string ConvertToString(T field_elem, int base = 10) {
   mpz_init(t);
   string result;
 
-  field_elem.as_bigint().to_mpz(t);
+  try {
+    field_elem.as_bigint().to_mpz(t);
 
-  SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
+    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
-  mpz_get_str(arr, base, t);
+    mpz_get_str(arr, base, t);
 
-  result = arr;
+    result = arr;
 
-  if (base == 16) {
-    // 64-characters long - fill 0's if needed
-    int n_zeroes = 64 - result.length();
-    result.insert(0, n_zeroes, '0');
+    if (base == 16) {
+      if (result.length() > 64) {
+        throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                           "Hex string is too long");
+      }
+      // 64-characters long - fill 0's if needed
+      int n_zeroes = 64 - result.length();
+      result.insert(0, n_zeroes, '0');
+    }
+
+    mpz_clear(t);
+    return result;
+
+  } catch (SGXException &e) {
+    mpz_clear(t);
+    throw;
+  } catch (exception &e) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
+  } catch (...) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
   }
-
-  mpz_clear(t);
-  return result;
 }
 
 string convertHexToDec(const string &hex_str) {
@@ -63,14 +81,17 @@ string convertHexToDec(const string &hex_str) {
 
   string ret = "";
 
+  if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  }
+
   try {
-    if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-      goto clean;
-    }
 
     SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
     mpz_get_str(arr, 10, dec);
     ret = arr;
+
   } catch (exception &e) {
     mpz_clear(dec);
     throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
@@ -80,7 +101,6 @@ string convertHexToDec(const string &hex_str) {
                        "Exception in convert hex to dec");
   }
 
-clean:
   mpz_clear(dec);
   return ret;
 }
@@ -100,16 +120,14 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base,
 
     return result;
 
+  } catch (SGXException &e) {
+    throw;
   } catch (exception &e) {
     throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
-    return result;
   } catch (...) {
     throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
                        "Exception in convert G2 to string");
-    return result;
   }
-
-  return result;
 }
 
 // TODO - we should use libBLS functions instead - these are repeated

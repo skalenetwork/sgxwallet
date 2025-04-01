@@ -47,6 +47,8 @@
 
 #include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
+#include "../SGXException.h"
+#include "../sgxwallet_common.h"
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
 #include "TEUtils.h"
@@ -79,14 +81,20 @@ std::string fieldElementToHex(const T &field_elem, int numBytes = 32) {
       ret.insert(0, n_zeroes, '0');
     }
 
+    mpz_clear(t);
+    return ret;
+
   } catch (std::exception &e) {
     LOG_ERROR(e.what());
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to hex");
   } catch (...) {
     LOG_ERROR("Unknown throwable");
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to hex");
   }
-
-  mpz_clear(t);
-  return ret;
 }
 
 /**
@@ -115,24 +123,34 @@ std::string convertHexToDec(char *hex_str) {
 
   try {
     std::string hex(hex_str, 64);
+
     if (mpz_set_str(dec, hex.c_str(), 16) == -1) {
-      mpz_clear(dec);
-      LOG_ERROR("Bad formatted hex string provided");
-      return output;
+      throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                         "Bad formatted hex string provided");
     }
 
     char arr[mpz_sizeinbase(dec, 10) + 2];
     char *tmp = mpz_get_str(arr, 10, dec);
 
     output = tmp;
-  } catch (std::exception &e) {
-    LOG_ERROR(e.what());
-  } catch (...) {
-    LOG_ERROR("Exception in convert hex to dec");
-  }
+    mpz_clear(dec);
+    return output;
 
-  mpz_clear(dec);
-  return output;
+  } catch (SGXException &e) {
+    mpz_clear(dec);
+    LOG_ERROR(e.what());
+    throw;
+  } catch (std::exception &e) {
+    mpz_clear(dec);
+    LOG_ERROR(e.what());
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  } catch (...) {
+    mpz_clear(dec);
+    LOG_ERROR("Exception in convert hex to dec");
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  }
 }
 
 libff::alt_bn128_G2 stringToG2(char *str, size_t size) {
@@ -160,37 +178,35 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
     if (mpz_set_str(skey, skey_hex, 16) == -1) {
       mpz_clear(skey);
       LOG_ERROR("Could not convert hexadecimal into number");
-      return 1;
+      return FAILURE;
     }
 
     char skey_dec[mpz_sizeinbase(skey, 10) + 2];
     mpz_get_str(skey_dec, 10, skey);
     strncpy(skey_dec_out, skey_dec, sizeof(skey_dec));
 
+    mpz_clear(skey);
+    return SUCCESS;
+
   } catch (std::exception &e) {
     LOG_ERROR(e.what());
     mpz_clear(skey);
-    return 1;
+    return FAILURE;
   } catch (...) {
     LOG_ERROR("Unknown throwable");
     mpz_clear(skey);
-    return 1;
+    return FAILURE;
   }
-
-clean:
-  mpz_clear(skey);
-  return 0;
 }
 
 EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share) {
 
-  int ret = 1;
   CHECK_ARG_CLEAN(skey_dec);
   CHECK_ARG_CLEAN(decryptionValue);
   CHECK_ARG_CLEAN(decryption_share);
 
-  {
+  try {
     libff::alt_bn128_Fr bls_skey(skey_dec);
 
     libff::alt_bn128_G2 decryption_value =
@@ -201,7 +217,7 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
       // must be '0' -> not 0. 0 is null terminator & string  parsing by the
       // caller will fail
       memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
-      return DECRYPTION_SHARE_IS_NOT_WELL_FORMED;
+      return STATUS_G2_NOT_WELL_FORMED;
     }
 
     libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
@@ -210,10 +226,19 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     std::string result = G2ToString(decryption_share_point);
 
     strncpy(decryption_share, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
+  } catch (SGXException &e) {
+    LOG_ERROR(e.what());
+    return STATUS_G2_SERIALIZATION_FAILED;
+  } catch (std::exception &e) {
+    LOG_ERROR(e.what());
+    return STATUS_INTERNAL_ERROR;
+  } catch (...) {
+    LOG_ERROR("Unknown throwable");
+    return STATUS_UNKNOWN_ERROR;
   }
 
 clean:
-  return 0;
+  return SUCCESS;
 }
 
 #endif

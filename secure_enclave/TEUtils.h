@@ -37,7 +37,15 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
-#define DECRYPTION_SHARE_IS_NOT_WELL_FORMED 1
+#define SUCCESS 0
+#define FAILURE 1
+
+#define STATUS_G2_NOT_WELL_FORMED 1
+#define STATUS_G2_SERIALIZATION_FAILED 2
+#define STATUS_INTERNAL_ERROR 3
+#define STATUS_UNKNOWN_ERROR 4
+
+EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
 
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);

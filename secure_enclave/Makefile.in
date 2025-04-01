@@ -110,10 +110,10 @@ am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) Curves.$(OBJEXT) \
 	NumberTheory.$(OBJEXT) Point.$(OBJEXT) Signature.$(OBJEXT) \
 	DHDkg.$(OBJEXT) HKDF.$(OBJEXT) AESUtils.$(OBJEXT) \
-	DKGUtils.$(OBJEXT) TEUtils.$(OBJEXT) EnclaveCommon.$(OBJEXT) \
-	DomainParameters.$(OBJEXT) alt_bn128_init.$(OBJEXT) \
-	alt_bn128_g2.$(OBJEXT) alt_bn128_g1.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_1)
+	SGXException.$(OBJEXT) DKGUtils.$(OBJEXT) TEUtils.$(OBJEXT) \
+	EnclaveCommon.$(OBJEXT) DomainParameters.$(OBJEXT) \
+	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
+	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
 secure_enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -143,10 +143,11 @@ am__depfiles_remade = ./$(DEPDIR)/AESUtils.Po ./$(DEPDIR)/Curves.Po \
 	./$(DEPDIR)/DHDkg.Po ./$(DEPDIR)/DKGUtils.Po \
 	./$(DEPDIR)/DomainParameters.Po ./$(DEPDIR)/EnclaveCommon.Po \
 	./$(DEPDIR)/HKDF.Po ./$(DEPDIR)/NumberTheory.Po \
-	./$(DEPDIR)/Point.Po ./$(DEPDIR)/Signature.Po \
-	./$(DEPDIR)/TEUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
-	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
-	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
+	./$(DEPDIR)/Point.Po ./$(DEPDIR)/SGXException.Po \
+	./$(DEPDIR)/Signature.Po ./$(DEPDIR)/TEUtils.Po \
+	./$(DEPDIR)/alt_bn128_g1.Po ./$(DEPDIR)/alt_bn128_g2.Po \
+	./$(DEPDIR)/alt_bn128_init.Po ./$(DEPDIR)/secure_enclave.Po \
+	./$(DEPDIR)/secure_enclave_t.Po \
 	./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
@@ -349,7 +350,7 @@ ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c \
+        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c ../SGXException.cpp \
         DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
         ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
         ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
@@ -452,6 +453,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HKDF.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NumberTheory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Point.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGXException.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Signature.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TEUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
@@ -495,6 +497,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+SGXException.o: ../SGXException.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SGXException.o -MD -MP -MF $(DEPDIR)/SGXException.Tpo -c -o SGXException.o `test -f '../SGXException.cpp' || echo '$(srcdir)/'`../SGXException.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/SGXException.Tpo $(DEPDIR)/SGXException.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../SGXException.cpp' object='SGXException.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SGXException.o `test -f '../SGXException.cpp' || echo '$(srcdir)/'`../SGXException.cpp
+
+SGXException.obj: ../SGXException.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SGXException.obj -MD -MP -MF $(DEPDIR)/SGXException.Tpo -c -o SGXException.obj `if test -f '../SGXException.cpp'; then $(CYGPATH_W) '../SGXException.cpp'; else $(CYGPATH_W) '$(srcdir)/../SGXException.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/SGXException.Tpo $(DEPDIR)/SGXException.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../SGXException.cpp' object='SGXException.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SGXException.obj `if test -f '../SGXException.cpp'; then $(CYGPATH_W) '../SGXException.cpp'; else $(CYGPATH_W) '$(srcdir)/../SGXException.cpp'; fi`
 
 alt_bn128_init.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
@@ -674,6 +690,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/HKDF.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
+	-rm -f ./$(DEPDIR)/SGXException.Po
 	-rm -f ./$(DEPDIR)/Signature.Po
 	-rm -f ./$(DEPDIR)/TEUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
@@ -737,6 +754,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/HKDF.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
+	-rm -f ./$(DEPDIR)/SGXException.Po
 	-rm -f ./$(DEPDIR)/Signature.Po
 	-rm -f ./$(DEPDIR)/TEUtils.Po
 	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
