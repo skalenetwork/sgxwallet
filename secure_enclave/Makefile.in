@@ -110,10 +110,11 @@ am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) Curves.$(OBJEXT) \
 	NumberTheory.$(OBJEXT) Point.$(OBJEXT) Signature.$(OBJEXT) \
 	DHDkg.$(OBJEXT) HKDF.$(OBJEXT) AESUtils.$(OBJEXT) \
-	SGXException.$(OBJEXT) DKGUtils.$(OBJEXT) TEUtils.$(OBJEXT) \
-	EnclaveCommon.$(OBJEXT) DomainParameters.$(OBJEXT) \
-	alt_bn128_init.$(OBJEXT) alt_bn128_g2.$(OBJEXT) \
-	alt_bn128_g1.$(OBJEXT) $(am__objects_1) $(am__objects_1)
+	SGXException.$(OBJEXT) LibffUtils.$(OBJEXT) DKGUtils.$(OBJEXT) \
+	TEUtils.$(OBJEXT) EnclaveCommon.$(OBJEXT) \
+	DomainParameters.$(OBJEXT) alt_bn128_init.$(OBJEXT) \
+	alt_bn128_g2.$(OBJEXT) alt_bn128_g1.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
 secure_enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -142,12 +143,12 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/AESUtils.Po ./$(DEPDIR)/Curves.Po \
 	./$(DEPDIR)/DHDkg.Po ./$(DEPDIR)/DKGUtils.Po \
 	./$(DEPDIR)/DomainParameters.Po ./$(DEPDIR)/EnclaveCommon.Po \
-	./$(DEPDIR)/HKDF.Po ./$(DEPDIR)/NumberTheory.Po \
-	./$(DEPDIR)/Point.Po ./$(DEPDIR)/SGXException.Po \
-	./$(DEPDIR)/Signature.Po ./$(DEPDIR)/TEUtils.Po \
-	./$(DEPDIR)/alt_bn128_g1.Po ./$(DEPDIR)/alt_bn128_g2.Po \
-	./$(DEPDIR)/alt_bn128_init.Po ./$(DEPDIR)/secure_enclave.Po \
-	./$(DEPDIR)/secure_enclave_t.Po \
+	./$(DEPDIR)/HKDF.Po ./$(DEPDIR)/LibffUtils.Po \
+	./$(DEPDIR)/NumberTheory.Po ./$(DEPDIR)/Point.Po \
+	./$(DEPDIR)/SGXException.Po ./$(DEPDIR)/Signature.Po \
+	./$(DEPDIR)/TEUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
+	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
+	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
 	./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
@@ -351,7 +352,7 @@ ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
         Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c ../SGXException.cpp \
-        DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
+        LibffUtils.cpp DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
         ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
         ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
@@ -451,6 +452,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DomainParameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveCommon.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HKDF.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LibffUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NumberTheory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Point.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGXException.Po@am__quote@ # am--include-marker
@@ -688,6 +690,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/DomainParameters.Po
 	-rm -f ./$(DEPDIR)/EnclaveCommon.Po
 	-rm -f ./$(DEPDIR)/HKDF.Po
+	-rm -f ./$(DEPDIR)/LibffUtils.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
 	-rm -f ./$(DEPDIR)/SGXException.Po
@@ -752,6 +755,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/DomainParameters.Po
 	-rm -f ./$(DEPDIR)/EnclaveCommon.Po
 	-rm -f ./$(DEPDIR)/HKDF.Po
+	-rm -f ./$(DEPDIR)/LibffUtils.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
 	-rm -f ./$(DEPDIR)/SGXException.Po

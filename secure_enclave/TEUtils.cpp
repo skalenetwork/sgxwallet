@@ -51,6 +51,7 @@
 #include "../sgxwallet_common.h"
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
+#include "LibffUtils.h"
 #include "TEUtils.h"
 #include <cstring>
 
@@ -153,6 +154,11 @@ std::string convertHexToDec(char *hex_str) {
   }
 }
 
+/**
+ * Converts a string to G2 element.
+ * May return an invalid G2 element.
+ * Caller should check if the element is well formed if needed.
+ */
 libff::alt_bn128_G2 stringToG2(char *str, size_t size) {
   if (size != CIPHERTEXT_CHARACTER_LENGTH) {
     LOG_ERROR("Wrong string size to convert to G2");
@@ -212,7 +218,7 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     libff::alt_bn128_G2 decryption_value =
         stringToG2(decryptionValue, decryptionSize);
 
-    if (!decryption_value.is_well_formed() || decryption_value.is_zero()) {
+    if (!isG2(decryption_value)) {
       LOG_ERROR("Decryption value is not well formed");
       // must be '0' -> not 0. 0 is null terminator & string  parsing by the
       // caller will fail
@@ -221,6 +227,13 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     }
 
     libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
+    
+    if (!isG2(decryption_share_point)) {
+      LOG_ERROR("Decryption share point is not well formed");
+      memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
+      return STATUS_G2_NOT_WELL_FORMED;
+    }
+
     decryption_share_point.to_affine_coordinates();
 
     std::string result = G2ToString(decryption_share_point);
