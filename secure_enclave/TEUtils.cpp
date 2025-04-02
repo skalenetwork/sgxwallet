@@ -227,7 +227,7 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     }
 
     libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
-    
+
     if (!isG2(decryption_share_point)) {
       LOG_ERROR("Decryption share point is not well formed");
       memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
