@@ -1112,21 +1112,38 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
                              ":Public decryption values should be an array");
     }
 
+    if (publicDecryptionValues.size() > INT_MAX) {
+      throw SGXException(TOO_MANY_DECRYPTION_VALUES,
+                         string(__FUNCTION__) +
+                             ":Public decryption values array is too large");
+    }
+
+    shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+
+    // validate & concatenate ciphertexts
+    std::string concatenatedCiphertexts;
+    concatenatedCiphertexts.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
     for (int i = 0; i < publicDecryptionValues.size(); ++i) {
       std::string publicDecryptionValue = publicDecryptionValues[i].asString();
-      if (publicDecryptionValue.length() < 7 ||
-          publicDecryptionValue.length() > 78 * 4) {
+      if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
         throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
                            string(__FUNCTION__) +
                                ":Invalid publicDecryptionValue format");
       }
+      concatenatedCiphertexts += publicDecryptionValue;
+    }
 
-      shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+    std::pair<std::vector<std::string>, std::vector<int>> decryptionShares =
+        calculateDecryptionShares(encryptedKeyHex_ptr->c_str(),
+                                  concatenatedCiphertexts);
 
-      vector<string> decryptionValueVector = calculateDecryptionShare(
-          encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
-      for (uint8_t j = 0; j < 4; ++j) {
-        result["decryptionShares"][i][j] = decryptionValueVector.at(j);
+    size_t sharesAmount = decryptionShares.first.size();
+
+    for (int i = 0; i < sharesAmount; i++) {
+      result["decryptionShares"][i] = decryptionShares.first[i];
+      if (decryptionShares.second[i] > 0) {
+        result["failedRequests"][std::to_string(i)] =
+            decryptionShares.second[i];
       }
     }
   }

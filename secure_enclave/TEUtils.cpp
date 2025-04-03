@@ -47,13 +47,21 @@
 
 #include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
+#include "../SGXException.h"
+#include "../sgxwallet_common.h"
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
+#include "LibffUtils.h"
 #include "TEUtils.h"
+#include <cstring>
 
+/**
+ * Converts a field to hexadecimal format.
+ * By default, output a 64-character string (32 bytes - 2 hexadecimal characters
+ * per byte)
+ */
 template <class T>
-std::string fieldElementToString(const T &field_elem, int base = 10) {
-
+std::string fieldElementToHex(const T &field_elem, int numBytes = 32) {
   std::string ret;
 
   mpz_t t;
@@ -65,152 +73,185 @@ std::string fieldElementToString(const T &field_elem, int base = 10) {
 
     SAFE_CHAR_BUF(arr, BUF_LEN);
 
-    char *tmp = mpz_get_str(arr, base, t);
+    char *hex = mpz_get_str(arr, 16, t);
 
-    ret = std::string(tmp);
+    ret = hex;
 
-    goto clean;
+    int n_zeroes = numBytes * 2 - ret.length();
+    if (n_zeroes > 0) {
+      ret.insert(0, n_zeroes, '0');
+    }
+
+    mpz_clear(t);
+    return ret;
 
   } catch (std::exception &e) {
     LOG_ERROR(e.what());
-    goto clean;
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to hex");
   } catch (...) {
     LOG_ERROR("Unknown throwable");
-    goto clean;
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to hex");
+  }
+}
+
+/**
+ * Converts G2 element to string.
+ * Converts inidivudally each field element to string, and concatenates them.
+ * Total size will always be 256 (64 * 4)
+ */
+std::string G2ToString(libff::alt_bn128_G2 elem) {
+  std::string pkey_str;
+
+  elem.to_affine_coordinates();
+
+  pkey_str += fieldElementToHex(elem.X.c0);
+  pkey_str += fieldElementToHex(elem.X.c1);
+  pkey_str += fieldElementToHex(elem.Y.c0);
+  pkey_str += fieldElementToHex(elem.Y.c1);
+
+  return pkey_str;
+}
+
+std::string convertHexToDec(char *hex_str) {
+  mpz_t dec;
+  mpz_init(dec);
+
+  std::string output;
+
+  try {
+    std::string hex(hex_str, 64);
+
+    if (mpz_set_str(dec, hex.c_str(), 16) == -1) {
+      throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                         "Bad formatted hex string provided");
+    }
+
+    char arr[mpz_sizeinbase(dec, 10) + 2];
+    char *tmp = mpz_get_str(arr, 10, dec);
+
+    output = tmp;
+    mpz_clear(dec);
+    return output;
+
+  } catch (SGXException &e) {
+    mpz_clear(dec);
+    LOG_ERROR(e.what());
+    throw;
+  } catch (std::exception &e) {
+    mpz_clear(dec);
+    LOG_ERROR(e.what());
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  } catch (...) {
+    mpz_clear(dec);
+    LOG_ERROR("Exception in convert hex to dec");
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  }
+}
+
+/**
+ * Converts a string to G2 element.
+ * May return an invalid G2 element.
+ * Caller should check if the element is well formed if needed.
+ */
+libff::alt_bn128_G2 stringToG2(char *str, size_t size) {
+  if (size != CIPHERTEXT_CHARACTER_LENGTH) {
+    LOG_ERROR("Wrong string size to convert to G2");
   }
 
-clean:
-  mpz_clear(t);
+  libff::alt_bn128_G2 ret;
+
+  ret.Z = libff::alt_bn128_Fq2::one();
+
+  ret.X.c0 = libff::alt_bn128_Fq(convertHexToDec(str).c_str());
+  ret.X.c1 = libff::alt_bn128_Fq(convertHexToDec(str + 64).c_str());
+  ret.Y.c0 = libff::alt_bn128_Fq(convertHexToDec(str + 128).c_str());
+  ret.Y.c1 = libff::alt_bn128_Fq(convertHexToDec(str + 192).c_str());
+
   return ret;
 }
 
-std::string ConvertG2ElementToString(const libff::alt_bn128_G2 &elem,
-                                     int base = 10,
-                                     const std::string &delim = ":") {
-
-  std::string result = "";
-
-  try {
-
-    result += fieldElementToString(elem.X.c0);
-    result += delim;
-    result += fieldElementToString(elem.X.c1);
-    result += delim;
-    result += fieldElementToString(elem.Y.c0);
-    result += delim;
-    result += fieldElementToString(elem.Y.c1);
-
-    return result;
-
-  } catch (std::exception &e) {
-    LOG_ERROR(e.what());
-    return result;
-  } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
-  }
-
-  return result;
-}
-
-std::vector<libff::alt_bn128_Fq> SplitStringToFq(const char *coords,
-                                                 const char symbol) {
-  std::vector<libff::alt_bn128_Fq> result;
-  std::string str(coords);
-  std::string delim;
-
-  CHECK_ARG_CLEAN(coords);
-
-  try {
-
-    delim.push_back(symbol);
-
-    size_t prev = 0, pos = 0;
-    do {
-      pos = str.find(delim, prev);
-      if (pos == std::string::npos)
-        pos = str.length();
-      std::string token = str.substr(prev, pos - prev);
-      if (!token.empty()) {
-        libff::alt_bn128_Fq coeff(token.c_str());
-        result.push_back(coeff);
-      }
-      prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-
-    return result;
-
-  } catch (std::exception &e) {
-    LOG_ERROR(e.what());
-    return result;
-  } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
-  }
-
-clean:
-  return result;
-}
-
-EXTERNC int getDecryptionShare(char *skey_hex, char *decryptionValue,
-                               char *decryption_share) {
+EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   mpz_t skey;
   mpz_init(skey);
-
-  int ret = 1;
-
-  CHECK_ARG_CLEAN(skey_hex);
-  CHECK_ARG_CLEAN(decryptionValue);
-  CHECK_ARG_CLEAN(decryption_share);
-
   try {
+
     if (mpz_set_str(skey, skey_hex, 16) == -1) {
       mpz_clear(skey);
-      return 1;
+      LOG_ERROR("Could not convert hexadecimal into number");
+      return FAILURE;
     }
 
     char skey_dec[mpz_sizeinbase(skey, 10) + 2];
     mpz_get_str(skey_dec, 10, skey);
-
-    libff::alt_bn128_Fr bls_skey(skey_dec);
-
-    auto splitted_decryption_value = SplitStringToFq(decryptionValue, ':');
-
-    libff::alt_bn128_G2 decryption_value;
-    decryption_value.Z = libff::alt_bn128_Fq2::one();
-
-    decryption_value.X.c0 = splitted_decryption_value[0];
-    decryption_value.X.c1 = splitted_decryption_value[1];
-    decryption_value.Y.c0 = splitted_decryption_value[2];
-    decryption_value.Y.c1 = splitted_decryption_value[3];
-
-    if (!decryption_value.is_well_formed()) {
-      mpz_clear(skey);
-      return 1;
-    }
-
-    libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
-    decryption_share_point.to_affine_coordinates();
-
-    std::string result = ConvertG2ElementToString(decryption_share_point);
-
-    strncpy(decryption_share, result.c_str(), result.length());
+    strncpy(skey_dec_out, skey_dec, sizeof(skey_dec));
 
     mpz_clear(skey);
-
-    return 0;
+    return SUCCESS;
 
   } catch (std::exception &e) {
     LOG_ERROR(e.what());
-    return 1;
+    mpz_clear(skey);
+    return FAILURE;
   } catch (...) {
     LOG_ERROR("Unknown throwable");
-    return 1;
+    mpz_clear(skey);
+    return FAILURE;
+  }
+}
+
+EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
+                               size_t decryptionSize, char *decryption_share) {
+
+  CHECK_ARG_CLEAN(skey_dec);
+  CHECK_ARG_CLEAN(decryptionValue);
+  CHECK_ARG_CLEAN(decryption_share);
+
+  try {
+    libff::alt_bn128_Fr bls_skey(skey_dec);
+
+    libff::alt_bn128_G2 decryption_value =
+        stringToG2(decryptionValue, decryptionSize);
+
+    if (!isG2(decryption_value)) {
+      LOG_ERROR("Decryption value is not well formed");
+      // must be '0' -> not 0. 0 is null terminator & string  parsing by the
+      // caller will fail
+      memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
+      return STATUS_G2_NOT_WELL_FORMED;
+    }
+
+    libff::alt_bn128_G2 decryption_share_point = bls_skey * decryption_value;
+
+    if (!isG2(decryption_share_point)) {
+      LOG_ERROR("Decryption share point is not well formed");
+      memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
+      return STATUS_G2_NOT_WELL_FORMED;
+    }
+
+    decryption_share_point.to_affine_coordinates();
+
+    std::string result = G2ToString(decryption_share_point);
+
+    strncpy(decryption_share, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
+  } catch (SGXException &e) {
+    LOG_ERROR(e.what());
+    return STATUS_G2_SERIALIZATION_FAILED;
+  } catch (std::exception &e) {
+    LOG_ERROR(e.what());
+    return STATUS_INTERNAL_ERROR;
+  } catch (...) {
+    LOG_ERROR("Unknown throwable");
+    return STATUS_UNKNOWN_ERROR;
   }
 
 clean:
-  mpz_clear(skey);
-  return ret;
+  return SUCCESS;
 }
 
 #endif

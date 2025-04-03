@@ -37,16 +37,42 @@
 template <class T> string ConvertToString(T field_elem, int base = 10) {
   mpz_t t;
   mpz_init(t);
+  string result;
 
-  field_elem.as_bigint().to_mpz(t);
+  try {
+    field_elem.as_bigint().to_mpz(t);
 
-  SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
+    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
-  mpz_get_str(arr, base, t);
+    mpz_get_str(arr, base, t);
 
-  mpz_clear(t);
-  string output = arr;
-  return output;
+    result = arr;
+
+    if (base == 16) {
+      if (result.length() > 64) {
+        throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                           "Hex string is too long");
+      }
+      // 64-characters long - fill 0's if needed
+      int n_zeroes = 64 - result.length();
+      result.insert(0, n_zeroes, '0');
+    }
+
+    mpz_clear(t);
+    return result;
+
+  } catch (SGXException &e) {
+    mpz_clear(t);
+    throw;
+  } catch (exception &e) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
+  } catch (...) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
+  }
 }
 
 string convertHexToDec(const string &hex_str) {
@@ -55,14 +81,17 @@ string convertHexToDec(const string &hex_str) {
 
   string ret = "";
 
+  if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  }
+
   try {
-    if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-      goto clean;
-    }
 
     SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
     mpz_get_str(arr, 10, dec);
     ret = arr;
+
   } catch (exception &e) {
     mpz_clear(dec);
     throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
@@ -72,10 +101,7 @@ string convertHexToDec(const string &hex_str) {
                        "Exception in convert hex to dec");
   }
 
-clean:
-
   mpz_clear(dec);
-
   return ret;
 }
 
@@ -84,26 +110,44 @@ string convertG2ToString(const libff::alt_bn128_G2 &elem, int base,
   string result = "";
 
   try {
-    result += ConvertToString(elem.X.c0);
+    result += ConvertToString(elem.X.c0, base);
     result += delim;
-    result += ConvertToString(elem.X.c1);
+    result += ConvertToString(elem.X.c1, base);
     result += delim;
-    result += ConvertToString(elem.Y.c0);
+    result += ConvertToString(elem.Y.c0, base);
     result += delim;
-    result += ConvertToString(elem.Y.c1);
+    result += ConvertToString(elem.Y.c1, base);
 
     return result;
 
+  } catch (SGXException &e) {
+    throw;
   } catch (exception &e) {
     throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
-    return result;
   } catch (...) {
     throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
                        "Exception in convert G2 to string");
-    return result;
+  }
+}
+
+// TODO - we should use libBLS functions instead - these are repeated
+libff::alt_bn128_G2 convertStringToG2(const std::string &str) {
+  if (str.size() != 256) {
+    throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
+                       "Wrong string size to convert to G2");
   }
 
-  return result;
+  libff::alt_bn128_G2 ret;
+
+  ret.Z = libff::alt_bn128_Fq2::one();
+
+  ret.X.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(0, 64)).c_str());
+  ret.X.c1 = libff::alt_bn128_Fq(convertHexToDec(str.substr(64, 64)).c_str());
+  ret.Y.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(128, 64)).c_str());
+  ret.Y.c1 = libff::alt_bn128_Fq(
+      convertHexToDec(str.substr(192, std::string::npos)).c_str());
+
+  return ret;
 }
 
 string gen_dkg_poly(int _t) {
@@ -352,6 +396,28 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   return result;
 }
 
+/**
+ * @brief Verifies DKG shares using version 2 of the verification algorithm
+ *
+ * @param publicShares String containing the public shares to verify
+ * @param encr_sshare Encrypted secret share data
+ * @param encryptedKeyHex Encrypted key in hexadecimal format
+ * @param t Threshold value for the DKG scheme
+ * @param n Total number of participants
+ * @param ind Index of the participant
+ *
+ * @throws SGXException if encryptedKeyHex is invalid or if public shares are
+ * invalid
+ * @throws SGXException if trusted function call fails
+ *
+ * @return bool True if verification succeeds, false otherwise
+ *
+ * @details This function performs verification of DKG shares by:
+ *          1. Converting encrypted key from hex to byte array
+ *          2. Copying public shares to a safe buffer
+ *          3. Calling trusted enclave function for verification
+ *          4. Handling any errors from the verification process
+ */
 bool verifySharesV2(const char *publicShares, const char *encr_sshare,
                     const char *encryptedKeyHex, int t, int n, int ind) {
 
