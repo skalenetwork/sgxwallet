@@ -78,7 +78,6 @@ public:
   }
 
   ~TestFixture() {
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -92,7 +91,6 @@ public:
   }
 
   ~TestFixtureHTTPS() {
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -106,7 +104,6 @@ public:
   }
 
   ~TestFixtureZMQSign() {
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -120,7 +117,6 @@ public:
 
   ~TestFixtureNoResetFromBackup() {
     sleep(3);
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -133,7 +129,6 @@ public:
   }
 
   ~TestFixtureNoReset() {
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
