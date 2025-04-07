@@ -128,7 +128,7 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor,
 
   uint64_t readCounter = 0;
 
-  shared_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     _visitor->visitDBKey(it->key().data());
     readCounter++;
@@ -144,7 +144,7 @@ std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit) {
   uint64_t readCounter = 0;
   std::vector<string> keys;
 
-  shared_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     string cur_key(it->key().data(), it->key().size());
     keys.push_back(cur_key);
@@ -170,7 +170,7 @@ void LevelDB::writeDataUnique(const string &name, const string &value) {
 pair<stringstream, uint64_t> LevelDB::getAllKeys() {
   stringstream keysInfo;
 
-  leveldb::Iterator *it = db->NewIterator(readOptions);
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   uint64_t counter = 0;
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     ++counter;
@@ -197,7 +197,7 @@ pair<stringstream, uint64_t> LevelDB::getAllKeys() {
 }
 
 pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
-  leveldb::Iterator *it = db->NewIterator(readOptions);
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
 
   int64_t latest_timestamp = 0;
   string latest_created_key_name = "";
@@ -226,13 +226,16 @@ LevelDB::LevelDB(string &filename) {
   leveldb::Options options;
   options.create_if_missing = true;
 
-  if (!leveldb::DB::Open(options, filename, (leveldb::DB **)&db).ok()) {
+  leveldb::DB *raw_db = nullptr;
+  if (!leveldb::DB::Open(options, filename, &raw_db).ok()) {
     throw std::runtime_error("Unable to open levelDB database");
   }
 
-  if (db == nullptr) {
+  if (raw_db == nullptr) {
     throw std::runtime_error("Null levelDB object");
   }
+
+  db = shared_ptr<leveldb::DB>(raw_db);
 }
 
 LevelDB::~LevelDB() {}

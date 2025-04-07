@@ -77,10 +77,7 @@ public:
     initAll(L_INFO, false, false, true, false, true);
   }
 
-  ~TestFixture() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixture() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureHTTPS {
@@ -91,10 +88,7 @@ public:
     initAll(L_INFO, false, true, true, false, true);
   }
 
-  ~TestFixtureHTTPS() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureHTTPS() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureZMQSign {
@@ -105,10 +99,7 @@ public:
     initAll(L_INFO, false, true, true, false, false);
   }
 
-  ~TestFixtureZMQSign() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureZMQSign() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureNoResetFromBackup {
@@ -120,7 +111,6 @@ public:
 
   ~TestFixtureNoResetFromBackup() {
     sleep(3);
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -132,10 +122,7 @@ public:
     initAll(L_INFO, false, false, true, false, true);
   }
 
-  ~TestFixtureNoReset() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureNoReset() { TestUtils::destroyEnclave(); }
 };
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test",
