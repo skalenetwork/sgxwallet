@@ -38,7 +38,7 @@ git clone https://github.com/skalenetwork/sgxwallet.git --recurse-submodules
 
 The easiest way to try the sgxwallet server is to run a docker container in insecure simulation mode that emulates an SGX processor. Once you are familiar with the server, you can enable sgx on your machine and run it in secure production mode.
 
-First install docker-compose if you dont have it
+First install docker-compose if you don't have it
 
 ```bash
 sudo apt-get install docker.io docker-compose
