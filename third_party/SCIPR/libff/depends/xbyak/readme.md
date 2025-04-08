@@ -169,7 +169,7 @@ Remark
 
 #### 2. localization of label by calling inLocalLabel(), outLocallabel().
 
-labels begining of period between inLocalLabel() and outLocalLabel()
+labels beginning of period between inLocalLabel() and outLocalLabel()
 are dealed with local label.
 inLocalLabel() and outLocalLabel() can be nested.
 
@@ -257,7 +257,7 @@ The default max code size is 4096 bytes. Please set it in constructor of CodeGen
 
 ### use user allocated memory
 
-You can make jit code on prepaired memory.
+You can make jit code on prepared memory.
 
     class Sample : public Xbyak::CodeGenerator {
     public:
