@@ -76,7 +76,8 @@ public:
 
   void reconnect();
 
-  static pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>> readPublicKeyFromCertStr(const string &_cert);
+  static pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>
+  readPublicKeyFromCertStr(const string &_cert);
 
   static string signString(EVP_PKEY *_pkey, const string &_str);
 
