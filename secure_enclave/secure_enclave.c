@@ -145,7 +145,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
     globalRandom = calloc(32,1);
 
-    int ret = sgx_read_rand(globalRandom, 32);
+    int ret = sgx_read_rand(globalRandom, 32); // TODO_HERE
 
     if(ret != SGX_SUCCESS)
     {
@@ -166,6 +166,10 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
 #endif
 
+}
+
+void trustedEnclaveClear() {
+    enclave_clear();
 }
 
 void free_function(void *ptr, size_t sz) {

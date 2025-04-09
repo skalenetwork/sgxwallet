@@ -182,12 +182,23 @@ void enclave_init() {
   } catch (exception &e) {
     LOG_ERROR("Exception in libff init");
     LOG_ERROR(e.what());
+    domain_parameters_clear(curve);
     abort();
   } catch (...) {
     LOG_ERROR("Unknown exception in libff");
+    domain_parameters_clear(curve);
     abort();
   }
   LOG_INFO("Inited libff");
+}
+
+void enclave_clear() {
+  LOG_INFO(__FUNCTION__);
+  if (inited == 0)
+    return;
+  inited = 0;
+
+  domain_parameters_clear(curve);
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString,

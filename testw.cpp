@@ -1576,6 +1576,10 @@ TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
   mpz_init(blsKeySecond);
   mpz_set_str(blsKeySecond, decrKeySecond.data(), 16);
 
+  mpz_clear(q);
+  mpz_clear(blsKey);
+  mpz_clear(blsKeySecond);
+
   REQUIRE(mpz_cmp(blsKey, blsKeySecond) != 0);
 }
 

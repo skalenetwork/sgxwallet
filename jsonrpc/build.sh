@@ -93,7 +93,7 @@ cd ..
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout develop
+git checkout sgxwallet-432-memory-leaks
 git pull
 rm -rf build || true
 mkdir -p build
