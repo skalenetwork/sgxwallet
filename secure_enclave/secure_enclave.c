@@ -145,7 +145,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
     globalRandom = calloc(32,1);
 
-    int ret = sgx_read_rand(globalRandom, 32); // TODO_HERE
+    int ret = sgx_read_rand(globalRandom, 32);
 
     if(ret != SGX_SUCCESS)
     {
@@ -169,6 +169,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 }
 
 void trustedEnclaveClear() {
+    free(globalRandom);
     enclave_clear();
 }
 

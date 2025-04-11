@@ -26,9 +26,7 @@ AM_CXXFLAGS = -fsanitize=address -g ${AM_CPPFLAGS} -O0 -rdynamic -Wl,--no-as-nee
 After having modified the automake file, recompile the project.
 
 ```bash
-cd scripts
-
-python3 build deps.py
+make clean
 
 ./autoconf.bash
 
