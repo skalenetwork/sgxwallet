@@ -11,10 +11,9 @@ RUN pip3 install requests torpy
 RUN touch /var/hwmode
 RUN ./autoconf.bash
 RUN ./configure --with-sgx-build=release
-RUN cd secure_enclave && bash -c "make secure_enclave.so -j$(nproc)"
-RUN cd scripts && ./sign_enclave.bash
 RUN bash -c "make -j$(nproc)"
 RUN ccache -sz
+RUN cd scripts && ./sign_enclave.bash
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
 COPY docker/check_firewall.py ./
