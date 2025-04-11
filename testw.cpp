@@ -263,8 +263,6 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS wrong certificate",
       httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
                    expectedError, keyFile, certFile);
 
-  std::cerr << "Curl response: " << resp << std::endl;
-
   REQUIRE(resp.find("curl: (") != std::string::npos);
 }
 
