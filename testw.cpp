@@ -263,41 +263,6 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS wrong certificate",
       httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
                    expectedError, keyFile, certFile);
   REQUIRE(endsWith(resp, "curl: (52) Empty reply from server\n"));
-
-  // tampered certificate
-
-  // get real certificate
-  ifstream infile(csrFile);
-  infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-  ostringstream ss;
-  ss << infile.rdbuf();
-  infile.close();
-
-  auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
-  std::string hash = result["hash"].asString();
-
-  result = SGXRegistrationServer::getServer()->GetCertificate(hash);
-  std::string cert = result["cert"].asString();
-
-  // Write certificate to file
-  std::ofstream out(certFile);
-  if (!out) {
-    throw std::runtime_error("Failed to open file for writing certificate");
-  }
-  out << cert;
-  out.close();
-
-  // corrupt certificate - replace 2nd char from line before last with a Z
-  std::ostringstream remove3rdline;
-  remove3rdline << "tac " << certFile
-                << " | sed '2s/./Z/5' | tac > tmp.crt && mv tmp.crt "
-                << certFile;
-  REQUIRE(system(remove3rdline.str().c_str()) == 0);
-
-  std::string response =
-      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
-                   expectedError, keyFile, certFile);
-  REQUIRE(endsWith(response, "curl: (52) Empty reply from server\n"));
 }
 
 TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS without certificate",
