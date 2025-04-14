@@ -93,7 +93,7 @@ cd ..
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout b547a27
+git checkout develop
 git pull
 rm -rf build || true
 mkdir -p build
