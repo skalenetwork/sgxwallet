@@ -2,8 +2,8 @@
 
 ## Running SGX in secure mode
 
--   [Verify that your hardware and software can run SGX](prerequisites.md)
--   [Enable SGX](enabling-sgx.md)
+-   [Verify that your hardware and software can run SGX](../common/prerequisites.md)
+-   [Enable SGX](../common/enabling-sgx.md)
 -   [Start, stop and upgrade sgxwallet](run-in-hardware-mode.md)
     -   [Increase max process limit](run-in-hardware-mode.md#increase-max-process-limit)
     -   [Docker Compose configuration](run-in-hardware-mode.md#docker-compose-configuration)
@@ -16,4 +16,4 @@
 ## Community
 
 -   [SKALE Discord](http://skale.chat)
--   [Security Bug Reporting](../SECURITY.md)
+-   [Security Bug Reporting](../../SECURITY.md)

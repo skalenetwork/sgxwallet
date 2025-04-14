@@ -168,6 +168,11 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
 }
 
+void trustedEnclaveClear() {
+    free(globalRandom);
+    enclave_clear();
+}
+
 void free_function(void *ptr, size_t sz) {
     if (sgx_is_within_enclave(ptr, sz))
         gmp_free_func(ptr, sz);

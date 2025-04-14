@@ -69,6 +69,63 @@
 using namespace jsonrpc;
 using namespace std;
 
+/**
+ * @brief Sends a curl request with the provided jsonData to the specified url
+ * If keyPath and certPath are provided, they are used for the request
+ * @return the response as a string
+ * @note Needed since current `HttpClient` class does not allow to use
+ * self-signed certificates
+ */
+std::string httpsRequest(const std::string &url, const std::string &jsonData,
+                         bool expectedError, const std::string &keyPath = "",
+                         const std::string &certPath = "") {
+  std::ostringstream command;
+  command << "curl -X POST --data '" << jsonData << "' "
+          << "-H 'content-type:application/json;' -v ";
+
+  // If keyPath and certPath are provided, add them to the command
+  if (!keyPath.empty() && !certPath.empty()) {
+    command << "--key " << keyPath << " "
+            << "--key " << keyPath << " --cert " << certPath << " ";
+  }
+
+  command << url << " -k ";
+  if (expectedError) {
+    //            vv--redirect stderr to stdout
+    command << "2>&1";
+  }
+
+  // Open a pipe to read the command's standard output.
+  FILE *fp = popen(command.str().c_str(), "r");
+  if (fp == nullptr) {
+    std::cerr << "Error opening pipe for curl command." << std::endl;
+    return "";
+  }
+
+  // Read the output of the curl command in chunks.
+  constexpr size_t bufferSize = 128;
+  char buffer[bufferSize];
+  std::string response;
+  while (fgets(buffer, bufferSize, fp) != nullptr) {
+    response += buffer;
+  }
+
+  // Close the pipe.
+  pclose(fp);
+  return response;
+}
+
+/**
+ * @brief Check if a string ends with a given suffix
+ */
+bool endsWith(const std::string &str, const std::string &suffix) {
+  if (suffix.size() > str.size())
+    return false;
+  return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
+// Test Fixtures
+
 class TestFixture {
 public:
   TestFixture() {
@@ -85,10 +142,17 @@ public:
   TestFixtureHTTPS() {
     TestUtils::resetDB();
     setOptions(L_INFO, true, true);
-    initAll(L_INFO, false, true, true, false, true);
+    initAll(L_INFO, true, true, true, false, true);
   }
 
   ~TestFixtureHTTPS() { TestUtils::destroyEnclave(); }
+
+  // Used for all HTTPS requests - simplest request possible
+  // Any request would do - this is only used for heatlhchecks &
+  // checking for errors on malformed https requests
+  static constexpr const char *REQUEST_DATA =
+      "{\"jsonrpc\":\"2.0\",\"method\":\"getServerVersion\",\"params\":[],"
+      "\"id\":1}";
 };
 
 class TestFixtureZMQSign {
@@ -124,6 +188,139 @@ public:
 
   ~TestFixtureNoReset() { TestUtils::destroyEnclave(); }
 };
+
+TEST_CASE_METHOD(TestFixture, "HTTP Healthcheck", "[http-healthcheck]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
+  sleep(3);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS Healthcheck", "[https-healthcheck]") {
+  REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  ifstream infile(csrFile);
+  infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  ostringstream ss;
+  ss << infile.rdbuf();
+  infile.close();
+
+  auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
+  std::string hash = result["hash"].asString();
+
+  result = SGXRegistrationServer::getServer()->GetCertificate(hash);
+  std::string cert = result["cert"].asString();
+
+  // Write certificate to file
+  std::ofstream out(certFile);
+  if (!out) {
+    throw std::runtime_error("Failed to open file for writing certificate");
+  }
+  out << cert;
+  out.close();
+
+  // make the request
+  bool expectedError = false;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+
+  Json::Value json;
+  Json::CharReaderBuilder reader;
+  std::istringstream iss(resp);
+  std::string errs;
+  if (!Json::parseFromStream(reader, iss, &json, &errs)) {
+    std::cerr << "Failed to parse JSON: " << errs << std::endl;
+    throw std::runtime_error("Failed to parse JSON response");
+  }
+
+  REQUIRE(json.isObject());
+  REQUIRE(json["jsonrpc"] == "2.0");
+  REQUIRE(json["id"] == 1);
+  REQUIRE(json["result"].isObject());
+  REQUIRE(json["result"]["version"].asString() ==
+          SGXWalletServer::getVersion());
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS wrong certificate",
+                 "[https-wrong-ssl-certificate]") {
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  // signed with wrong key
+  std::ostringstream selfSign;
+  selfSign << "openssl x509 -req -in " << csrFile << " -signkey " << keyFile
+           << " -out " << certFile;
+  REQUIRE(system(selfSign.str().c_str()) == 0);
+
+  bool expectedError = true;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS without certificate",
+                 "[https-without-certificate]") {
+  // request with no certificate / key
+  bool expectedError = true;
+  std::string resp = httpsRequest(
+      RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA, expectedError);
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS certificate not in database",
+                 "[https-certificate-not-in-db]") {
+  REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  // sign certificate
+  ifstream infile(csrFile);
+  infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  ostringstream ss;
+  ss << infile.rdbuf();
+  infile.close();
+
+  auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
+  std::string hash = result["hash"].asString();
+
+  result = SGXRegistrationServer::getServer()->GetCertificate(hash);
+  std::string cert = result["cert"].asString();
+
+  // Write certificate to file
+  std::ofstream out(certFile);
+  if (!out) {
+    throw std::runtime_error("Failed to open file for writing certificate");
+  }
+  out << cert;
+  out.close();
+
+  // kill enclave
+  TestUtils::destroyEnclave();
+
+  // reset db & init enclave again
+  TestUtils::resetDB();
+  setOptions(L_INFO, true, true);
+  initAll(L_INFO, true, true, true, false, true);
+
+  // make the request
+  bool expectedError = true;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+/// Functionality tests
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test",
                  "[ecdsa-aes-key-sig-gen]") {
@@ -1575,6 +1772,10 @@ TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
   mpz_t blsKeySecond;
   mpz_init(blsKeySecond);
   mpz_set_str(blsKeySecond, decrKeySecond.data(), 16);
+
+  mpz_clear(q);
+  mpz_clear(blsKey);
+  mpz_clear(blsKeySecond);
 
   REQUIRE(mpz_cmp(blsKey, blsKeySecond) != 0);
 }

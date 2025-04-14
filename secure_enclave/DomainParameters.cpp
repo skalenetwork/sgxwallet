@@ -83,6 +83,12 @@ void domain_parameters_set_name(domain_parameters curve, char *name) {
 
   CHECK_ARG_ABORT(name);
   int len = strlen(name);
+
+  // free any previously allocated name
+  if (curve->name) {
+    free(curve->name);
+  }
+
   curve->name = (char *)calloc(sizeof(char) * (len + 1), 1);
   curve->name[len] = '\0';
   strncpy(curve->name, name, len + 1);
