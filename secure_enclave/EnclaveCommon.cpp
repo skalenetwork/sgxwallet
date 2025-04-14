@@ -195,9 +195,9 @@ void enclave_init() {
   LOG_INFO("Inited libff");
   return;
 
-  fail:
-    domain_parameters_clear(curve);
-    abort();
+fail:
+  domain_parameters_clear(curve);
+  abort();
 }
 
 void enclave_clear() {
