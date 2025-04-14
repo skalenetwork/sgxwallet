@@ -40,9 +40,9 @@
 
 class ZMQClient {
 private:
-  shared_ptr<EVP_PKEY> pkey = NULL;
-  shared_ptr<EVP_PKEY> pubkey = NULL;
-  shared_ptr<X509> x509Cert = NULL;
+  shared_ptr<EVP_PKEY> pkey = nullptr;
+  shared_ptr<EVP_PKEY> pubkey = nullptr;
+  shared_ptr<X509> x509Cert = nullptr;
 
   bool sign = true;
   string certFileName = "";
