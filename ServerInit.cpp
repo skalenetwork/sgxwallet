@@ -238,4 +238,5 @@ void exitAll() {
   CSRManagerServer::exitServer();
   SGXInfoServer::exitServer();
   ZMQServer::exitZMQServer();
+  trustedEnclaveClear(eid);
 }

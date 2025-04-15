@@ -1041,6 +1041,10 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
   domain_parameters_load_curve(curve, secp256k1);
 
   if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+    domain_parameters_clear(curve);
     return ret;
   }
 
@@ -1060,6 +1064,7 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
   mpz_clear(skey);
   point_clear(pub_keyB);
   point_clear(session_key);
+  domain_parameters_clear(curve);
 
   return ret;
 }

@@ -177,17 +177,36 @@ void enclave_init() {
 
     LOG_INFO("Initing curve");
     curve = domain_parameters_init();
+    if (!curve) {
+      LOG_ERROR("Failed to init curve");
+      goto fail;
+    }
+
     LOG_INFO("Initing curve domain");
     domain_parameters_load_curve(curve, secp256k1);
   } catch (exception &e) {
     LOG_ERROR("Exception in libff init");
     LOG_ERROR(e.what());
-    abort();
+    goto fail;
   } catch (...) {
     LOG_ERROR("Unknown exception in libff");
-    abort();
+    goto fail;
   }
   LOG_INFO("Inited libff");
+  return;
+
+fail:
+  domain_parameters_clear(curve);
+  abort();
+}
+
+void enclave_clear() {
+  LOG_INFO(__FUNCTION__);
+  if (inited == 0)
+    return;
+  inited = 0;
+
+  domain_parameters_clear(curve);
 }
 
 bool enclave_sign(const char *_keyString, const char *_hashXString,

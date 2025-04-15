@@ -114,8 +114,6 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
 
     static recursive_mutex m;
 
-    EVP_PKEY *publicKey = nullptr;
-
     {
       lock_guard<recursive_mutex> lock(m);
 
@@ -128,7 +126,7 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
         remove(cert->c_str());
       }
 
-      publicKey = verifiedCerts.get(*cert).first;
+      shared_ptr<EVP_PKEY> publicKey = verifiedCerts.get(*cert).first;
 
       CHECK_STATE(publicKey);
 
@@ -144,7 +142,7 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
 
       auto msgToVerify = buffer.GetString();
 
-      ZMQClient::verifySig(publicKey, msgToVerify, *msgSig);
+      ZMQClient::verifySig(publicKey.get(), msgToVerify, *msgSig);
     }
   }
 
@@ -351,7 +349,7 @@ bool ZMQMessage::isKeyRegistered(const string &keyName) {
   return LevelDB::getLevelDb()->readString(keyName + ":OWNER") != nullptr;
 }
 
-cache::lru_cache<string, pair<EVP_PKEY *, X509 *>>
+cache::lru_cache<string, pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>>
     ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{
