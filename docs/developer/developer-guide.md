@@ -8,6 +8,7 @@
 -   [Sgxwallet example usage](examples.md)
 -   [Contributing source code](../../.github/CONTRIBUTING.md)
 -   [Security bug reporting](../../SECURITY.md)
+-   [API Message Format Specification](api-format-spec.md)
 
 ## Testing
 -   [Running Tests](testing.md)

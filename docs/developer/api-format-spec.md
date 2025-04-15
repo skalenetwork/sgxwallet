@@ -17,10 +17,12 @@
 > ##### 3) DKG calls
 >   1. [generateDKGPoly](#generatedkgpoly) 
 >   2. [isPolyExists](#ispolyexists) 
-> ##### 4) Server calls
+> ##### 4) Threshold Encryption Calls
+>   1. [getDecryptionShares](#getdecryptionshares)
+> ##### 5) Server calls
 >   1. [getServerStatus](#getserverstatus)
 >   2. [getServerVersion](#getserverversion)
-> ##### [5) Common Parameter Descriptions](#common-parameters-descriptions)
+> ##### [6) Common Parameter Descriptions](#common-parameters-descriptions)
 > ---
 
 
@@ -34,7 +36,6 @@
 > - multG2
 > - generateBLSPrivateKey
 > - createBLSPrivateKeyV2
-> - getDecryptionShares
 
 ---
 
@@ -625,8 +626,68 @@ curl -X POST --data '{
 
 ---
 
+# 4) Threshold Encryption Calls
 
-# 4) Server Calls
+## `getDecryptionShares`
+
+#### Description
+Returns the current server status.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `publicDecryptionValues`    | `Array`     | Array of elements, where each element represents the U component (G2 point) from the ciphertext, encoded as a [string encoded point](#6-string-encoded-point). The array can be of any size (up to MAX_INT size) | `ABC12345667ADAF...` up to 256 characters (only hexadecimal)  |
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "getServerStatus", 
+    "params": {
+        "publicDecryptionValues": [
+            "9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f",
+            "9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f"
+        ]
+    }
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`decryptionShares`      | `Array`  | An array of equal length to the input array sent on the request. Each element corresponds to the decrypted share for the corresponding element from input, and represents a [string encoded point](#6-string-encodeed-point). If decryption of element `i` failed for some reason, this element is set to all `0`s in the `decryptionShares` field of the response, and its index `i` will appear under `failedRequests` |
+| `failedRequests`  | `Map` | This field is optional. Only appears if at least one share could not be successfully decrypted. It is a map, where Keys represent the index of the element from `decryptionShares` that failed, and the value will be an `integer` representing the error code.
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "status": 0,
+        "decryptionShares": [
+            "9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f",
+            "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "failedRequests": {
+            "1": 102,
+        }
+    }
+}
+```
+
+
+
+
+---
+
+
+# 5) Server Calls
 
 
 ## `getServerStatus`
@@ -742,3 +803,8 @@ curl -X POST --data '{
 #### 5) Threshold Encryption Parameters
 `n` - Number of total nodes participating in the threshold encryption network.  
 `t` - The **threshold value**. At least `t` participants must collaborate to reconstruct the secret or perform operations (e.g., signing). Requirement: \(t < n\).
+
+
+#### 6) String encoded point
+- **Type**: String
+- **Description**: 256-hexadecimal character representing a point in elliptic curve
