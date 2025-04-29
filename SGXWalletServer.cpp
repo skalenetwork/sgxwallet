@@ -1097,7 +1097,7 @@ SGXWalletServer::generateBLSPrivateKeyImpl(const string &blsKeyName) {
 
 Json::Value SGXWalletServer::getDecryptionSharesImpl(
     const std::string &blsKeyName, const Json::Value &publicDecryptionValues) {
-  spdlog::info("Entering {}", __FUNCTION__);
+  spdlog::debug("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
 
   try {
