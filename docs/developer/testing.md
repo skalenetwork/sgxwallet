@@ -20,4 +20,4 @@ To run an individual test named `[test_ex]`:
 ./testw [test_ex]
 ```
 
-We follow the convention of naming tests like `[test-name}]`.
+We follow the convention of naming tests like `[test-name]`.
