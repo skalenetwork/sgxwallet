@@ -2,24 +2,30 @@
 
 # SKALE sgxwallet Prerequisites
 
-sgxwallet depends on several freely available
-software components. These must be installed and configured before
-running sgxwallet.
+SGXWallet depends on several freely available software components. These must be installed and configured before running sgxwallet.
 This document describes how to install and configure these required components.
 
-## Recommended host system
+> ---
+> Table of contents:
+> 1. [Recommended host system](#1-recommended-host-system)
+> 2. [Docker engine & Docker Compose](#2-install-docker-engine)
+> 3. [Internet connection](#3-verify-internet-connection)
+> 4. [SGX support](#4-verify-sgx-support)
+> ---
 
-sgxwallet has been tested and should be run on Ubuntu 18.04.
+---
 
-Sgxwallet may run on other Linux distributions, 
-but the installation process is likely to be more complicated, 
-and the use of other distributions is not supported by their respective communities at this time.
+### 1. Recommended host system
 
+SGXWallet has been tested and should be run on Ubuntu 18.04.
 
-### Install Docker engine
+Sgxwallet may run on other Linux distributions, but the installation process is likely to be more complicated, and the use of other distributions is not supported by their respective communities at this time.
 
-Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as 
-described below
+---
+
+### 2. Install Docker engine
+
+Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as described below
 
 ```bash
 sudo apt-get install -y docker.io
@@ -27,7 +33,7 @@ sudo apt-get install -y docker.io
 
 To verify a correct installation, run `sudo docker run hello-world`
 
-### Install Docker Compose
+### 2.1 Install Docker Compose
 
 ```bash
 sudo apt-get install -y docker-compose
@@ -37,7 +43,9 @@ To verify a correct installation, run `docker-compose version`
 
 For details on Docker installation, see <https://docs.docker.com/engine/installation/linux/ubuntu> and <https://docs.docker.com/compose/install/#install-compose>
 
-### Verify Internet connection
+---
+
+### 3. Verify Internet connection
 
 Intel SGX automatically downloads enclave whitelist updates from
 
@@ -55,7 +63,9 @@ curl  -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_lis
  If you need to set advanced options, such as outgoing network proxy, edit "/etc/aesmd.conf" file in
  the sgxwallet docker container.  
 
-### Verify SGX support
+---
+
+### 4. Verify SGX support
 
 Install cpuid and libelf-dev packages:
 
