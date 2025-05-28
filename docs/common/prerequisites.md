@@ -17,7 +17,7 @@ This document describes how to install and configure these required components.
 
 ### 1. Recommended host system
 
-SGXWallet has been tested and should be run on Ubuntu 18.04.
+SGXWallet has been tested and should be run on Ubuntu 22.04.
 
 Sgxwallet may run on other Linux distributions, but the installation process is likely to be more complicated, and the use of other distributions is not supported by their respective communities at this time.
 
@@ -25,7 +25,7 @@ Sgxwallet may run on other Linux distributions, but the installation process is 
 
 ### 2. Install Docker engine
 
-Docker engine is pre-installed on Ubuntu 18.04.  You can re-install it as described below
+Docker engine is pre-installed on Ubuntu 22.04.  You can re-install it as described below
 
 ```bash
 sudo apt-get install -y docker.io
