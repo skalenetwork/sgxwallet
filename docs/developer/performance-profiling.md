@@ -40,7 +40,7 @@ AM_CPPFLAGS += -g -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./
 
 Compile the project.
 
-#### C. Run SGX
+#### D. Run SGX
 
 ```bash
 ./sgxwallet -s -y -d -V -b &
@@ -58,7 +58,7 @@ We will need this PID later on to attach VTune to the process.
 
 #### A. Install & launch VTune GUI
 
-Refer to 1.B - You can use the same isntructions.
+Refer to 1.B - You can use the same instructions. 
 Launch VTune GUI:
 
 ```bash
@@ -82,7 +82,7 @@ Which should return something like this. We can then extract the installation di
 
 Insert your data like so:
 
-![](./prints/image.png)
+![](./prints/VTune.png)
 
 And start the analysis.
 
