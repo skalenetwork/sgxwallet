@@ -4,8 +4,8 @@ import os
 import json
 from sgx import SgxClient
 
-def provision_keys(sgx_url: str, cert_path: str, dkg_id: int = None) -> dict:
-    sgx = SgxClient(sgx_url, path_to_cert=cert_path)
+def provision_keys(sgx_url: str, dkg_id: int = None) -> dict:
+    sgx = SgxClient(sgx_url)
 
     if dkg_id is None:
         dkg_id = random.randint(0, 10**50)

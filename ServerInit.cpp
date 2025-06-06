@@ -62,6 +62,8 @@
 
 uint32_t enclaveLogLevel = 0;
 
+constexpr size_t NUM_THREADS = 16;
+
 using namespace std;
 
 void systemHealthCheck() {
@@ -199,6 +201,7 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
     initSEK();
 
     SGXWalletServer::createCertsIfNeeded();
+    SGXWalletServer::initThreadPool(NUM_THREADS);
 
     if (useHTTPS) {
       spdlog::info("Initing JSON-RPC server over HTTPS");

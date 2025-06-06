@@ -28,6 +28,7 @@
 #include "mutex"
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <tbb/task_arena.h>
 
 #include "abstractstubserver.h"
 
@@ -38,6 +39,25 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
+
+  // Thread pool for parallel processing of tasks
+  struct thread_pool {
+    size_t size;
+
+    void initialize(size_t _size) {
+      size = _size;
+      arena.initialize(_size);
+    }
+
+    // delegate task execution to TBB task arena
+    void execute(function<void()> task) {
+      arena.execute(task);
+    }
+
+  private:
+    tbb::task_arena arena;
+  };
+
   static shared_ptr<SGXWalletServer> server;
   static shared_ptr<HttpServer> httpServer;
 
@@ -45,6 +65,13 @@ class SGXWalletServer : public AbstractStubServer {
   static recursive_mutex blsRequestsLock;
   static map<string, string> ecdsaRequests;
   static recursive_mutex ecdsaRequestsLock;
+
+  // Task arena for parallel processing
+  // Can be used by each of SGXWalletServer calls to create tasks
+  // to be executed in parallel by this thread pool
+  // Must be initialized before any calls to the server
+  static thread_pool threadPool;
+  
 
   static void checkForDuplicate(map<string, string> &_map, recursive_mutex &_m,
                                 const string &_key, const string &_value);
@@ -227,6 +254,11 @@ public:
   static void initHttpServer();
 
   static void initHttpsServer(bool _checkCerts);
+
+  /**
+   * @brief Initializes `taskArena` field
+   */
+  static void initThreadPool(size_t _numThreads);
 
   static int exitServer();
 

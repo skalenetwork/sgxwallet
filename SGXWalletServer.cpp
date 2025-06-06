@@ -28,6 +28,7 @@
 #include "abstractstubserver.h"
 #include <algorithm>
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <tbb/task_group.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -61,6 +62,8 @@ using namespace std;
 std::shared_timed_mutex sgxInitMutex;
 
 uint64_t initTime;
+
+SGXWalletServer::thread_pool SGXWalletServer::threadPool;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
                     int _enterBackupKey) {
@@ -171,6 +174,10 @@ void SGXWalletServer::createCertsIfNeeded() {
     throw SGXException(FAIL_TO_VERIFY_CERTIFICATE,
                        "SERVER CERTIFICATE VERIFICATION FAILED");
   }
+}
+
+void SGXWalletServer::initThreadPool(size_t _numThreads) {
+    threadPool.initialize(_numThreads);
 }
 
 void SGXWalletServer::initHttpsServer(bool _checkCerts) {
@@ -1101,49 +1108,78 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
   INIT_RESULT(result)
 
   try {
-    if (!checkName(blsKeyName, "BLS_KEY")) {
-      throw SGXException(BLS_SIGN_INVALID_KS_NAME,
-                         string(__FUNCTION__) + ":Invalid BLSKey name");
-    }
-
-    if (!publicDecryptionValues.isArray()) {
-      throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
-                         string(__FUNCTION__) +
-                             ":Public decryption values should be an array");
-    }
-
-    if (publicDecryptionValues.size() > INT_MAX) {
-      throw SGXException(TOO_MANY_DECRYPTION_VALUES,
-                         string(__FUNCTION__) +
-                             ":Public decryption values array is too large");
-    }
-
+    CHECK_STATE(checkName(blsKeyName, "BLS_KEY"));
+    CHECK_STATE(publicDecryptionValues.isArray());
+    CHECK_STATE(publicDecryptionValues.size() <= INT_MAX);
+    
     shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+    CHECK_STATE(encryptedKeyHex_ptr != nullptr);
 
-    // validate & concatenate ciphertexts
-    std::string concatenatedCiphertexts;
-    concatenatedCiphertexts.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
-    for (int i = 0; i < publicDecryptionValues.size(); ++i) {
-      std::string publicDecryptionValue = publicDecryptionValues[i].asString();
-      if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
-        throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
-                           string(__FUNCTION__) +
-                               ":Invalid publicDecryptionValue format");
-      }
-      concatenatedCiphertexts += publicDecryptionValue;
+    int batchSize = publicDecryptionValues.size();
+    int threadBatch = batchSize / threadPool.size;
+    int numThreads = threadPool.size;
+    int threadRemainder = 0;
+
+    // More threads than items - use one item per thread
+    if (threadBatch == 0) {
+      threadBatch = 1;
+      numThreads = batchSize;
+    }
+    else {
+      threadRemainder = batchSize % threadPool.size;
     }
 
-    std::pair<std::vector<std::string>, std::vector<int>> decryptionShares =
-        calculateDecryptionShares(encryptedKeyHex_ptr->c_str(),
-                                  concatenatedCiphertexts);
+    // validate inputs
+    std::vector<std::string> concatenatedCiphertexts(numThreads); // will hold inputs to each thread
 
-    size_t sharesAmount = decryptionShares.first.size();
+    for (size_t i = 0; i < numThreads; ++i) {
+      concatenatedCiphertexts[i].reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
+    }
 
-    for (int i = 0; i < sharesAmount; i++) {
-      result["decryptionShares"][i] = decryptionShares.first[i];
-      if (decryptionShares.second[i] > 0) {
-        result["failedRequests"][std::to_string(i)] =
-            decryptionShares.second[i];
+    int startingIdx = 0;
+    for (int i = 0; i < numThreads; ++i, --threadRemainder) {
+      // number of items for current thread
+      int count = threadBatch + ( threadRemainder > 0 ? 1 : 0 );
+      int endingIdx = std::min(startingIdx + count, batchSize);
+
+      for (int j = startingIdx; j < endingIdx; ++j) {
+        CHECK_STATE(j < batchSize);
+        std::string publicDecryptionValue = publicDecryptionValues[j].asString();
+        CHECK_STATE(publicDecryptionValue.length() == CIPHERTEXT_CHARACTER_LENGTH);
+        concatenatedCiphertexts[i] += publicDecryptionValue;
+      }
+      startingIdx += count;
+    }
+
+    // holds results for each thread
+    std::vector<std::pair<std::vector<std::string>, std::vector<int>>> decryptionSharesByThread(numThreads);
+
+    // compute decryption shares in parallel
+    threadPool.execute([&]() {
+      tbb::task_group group;
+
+      for (int i = 0; i < numThreads; ++i) {
+        // pass 'i' by copy to each thread
+        group.run([&, i]() {
+          decryptionSharesByThread[i] = calculateDecryptionShares(
+              encryptedKeyHex_ptr->c_str(),
+              concatenatedCiphertexts[i]);
+        });
+      }
+      group.wait(); // wait for all threads to finish
+    });
+
+    // Build response
+    int idx = 0;
+    for (auto &decryptionShares : decryptionSharesByThread) {
+      size_t sharesAmount = decryptionShares.first.size();
+      for (int i = 0; i < sharesAmount; i++) {
+        result["decryptionShares"][idx] = decryptionShares.first[i];
+        if (decryptionShares.second[i] > 0) {
+          result["failedRequests"][std::to_string(idx)] =
+              decryptionShares.second[i];
+        }
+        idx++;
       }
     }
   }

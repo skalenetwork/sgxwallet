@@ -22,5 +22,6 @@ sudo apt install -y build-essential \
     libboost-dev \
     libboost-system-dev \
     libboost-thread-dev \
+    libtbb-dev \
     lsb-release \
     libsystemd0

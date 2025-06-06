@@ -1,7 +1,6 @@
 import time
 import asyncio
 import aiohttp
-import ssl
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
@@ -12,11 +11,9 @@ class PerformanceTest(ABC):
     """Base class for performance tests"""
     
     def __init__(self, ip: str):
-        self.endpoint = "https://" + ip + ":1026"
-        self.cert_path = "."
+        self.endpoint = "http://" + ip + ":1029"
 
         # Initialized on 'create' method
-        self.ssl_context = None
         self.keys = None
         self.rtt = None
 
@@ -29,27 +26,17 @@ class PerformanceTest(ABC):
     
     async def initialize(self):
         """Initialize async components like RTT measurement"""
-        self.ssl_context = self._create_ssl_context()
-
         if self.rtt is None:
             self.rtt = await self._measure_rtt()
 
         print("Generating keys...")
-        self.keys = provision_keys(self.endpoint, self.cert_path)
-    
-    def _create_ssl_context(self):
-        """Create SSL context with client certificates"""
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
-        ssl_context.load_cert_chain(f"{self.cert_path}/sgx.crt", f"{self.cert_path}/sgx.key")
-        return ssl_context
+        self.keys = provision_keys(self.endpoint)
     
     async def _measure_rtt(self, num_samples: int = 10) -> float:
         """Measure round-trip time with invalid requests"""
         print("Measuring RTT...")
         
-        connector = aiohttp.TCPConnector(ssl=self.ssl_context)  
+        connector = aiohttp.TCPConnector(ssl=None)  
         async with aiohttp.ClientSession(connector = connector) as session:
             times = []
             for _ in range(num_samples):
@@ -99,7 +86,7 @@ class PerformanceTest(ABC):
         print("Running parallel throughput test...")
         results = {}
         
-        connector = aiohttp.TCPConnector(ssl=self.ssl_context)
+        connector = aiohttp.TCPConnector(ssl=None)
         async with aiohttp.ClientSession(connector=connector) as session:
             
             for threads in num_threads:
@@ -122,7 +109,7 @@ class PerformanceTest(ABC):
         print("Running single-threaded variable test...")
         results = {}
         
-        connector = aiohttp.TCPConnector(ssl=self.ssl_context)
+        connector = aiohttp.TCPConnector(ssl=None)
         async with aiohttp.ClientSession(connector=connector) as session:
             
             for var in variable:

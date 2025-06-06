@@ -1390,8 +1390,9 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     INIT_ERROR_STATE
 
-    CHECK_STATE(decryption_shares);
     CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(public_decryption_value);
+    CHECK_STATE(decryption_shares);
     CHECK_STATE(decryption_shares_status);
 
     SAFE_CHAR_BUF(skey_hex, BUF_LEN);
