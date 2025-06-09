@@ -3,8 +3,8 @@
 # This script is also used by docker files to install
 # the required packages for building the project.
 
-sudo apt update
-sudo apt install -y build-essential \
+apt update
+apt install -y build-essential \
     ocaml \
     ocamlbuild \
     automake \
