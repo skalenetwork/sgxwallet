@@ -27,9 +27,9 @@
 #include "memory"
 #include "mutex"
 
+#include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <tbb/task_arena.h>
-#include <functional>
 
 #include "abstractstubserver.h"
 
@@ -51,9 +51,7 @@ class SGXWalletServer : public AbstractStubServer {
     }
 
     // delegate task execution to TBB task arena
-    void execute(function<void()> task) {
-      arena.execute(task);
-    }
+    void execute(function<void()> task) { arena.execute(task); }
 
   private:
     tbb::task_arena arena;
@@ -72,7 +70,7 @@ class SGXWalletServer : public AbstractStubServer {
   // to be executed in parallel by this thread pool
   // Must be initialized before any calls to the server
   static thread_pool threadPool;
-  
+
   static void checkForDuplicate(map<string, string> &_map, recursive_mutex &_m,
                                 const string &_key, const string &_value);
 

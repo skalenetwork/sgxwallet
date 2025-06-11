@@ -28,9 +28,9 @@
 #include "abstractstubserver.h"
 #include <algorithm>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <tbb/task_group.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tbb/task_group.h>
 #include <unistd.h>
 
 #include "sgxwallet.h"
@@ -177,7 +177,7 @@ void SGXWalletServer::createCertsIfNeeded() {
 }
 
 void SGXWalletServer::initThreadPool(size_t _numThreads) {
-    threadPool.initialize(_numThreads);
+  threadPool.initialize(_numThreads);
 }
 
 void SGXWalletServer::initHttpsServer(bool _checkCerts) {
@@ -1111,7 +1111,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     CHECK_STATE(checkName(blsKeyName, "BLS_KEY"));
     CHECK_STATE(publicDecryptionValues.isArray());
     CHECK_STATE(publicDecryptionValues.size() <= INT_MAX);
-    
+
     shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
     CHECK_STATE(encryptedKeyHex_ptr != nullptr);
 
@@ -1124,8 +1124,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     if (threadBatch == 0) {
       threadBatch = 1;
       numThreads = batchSize;
-    }
-    else {
+    } else {
       threadRemainder = batchSize % threadPool.size;
     }
 
@@ -1173,12 +1172,13 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
           int startingIdx = startIndices[i];
           int endingIdx = endIndices[i];
           for (int j = startingIdx; j < endingIdx; ++j) {
-            
+
             if (j >= batchSize) {
               batchSizeError.store(true);
               return;
             }
-            std::string publicDecryptionValue = publicDecryptionValues[j].asString();
+            std::string publicDecryptionValue =
+                publicDecryptionValues[j].asString();
             if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
               shareSizeError.store(true);
               return;
@@ -1198,7 +1198,8 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     //                  Execute decryption
     // -----------------------------------------------------------
     // holds results for each thread
-    std::vector<std::pair<std::vector<std::string>, std::vector<int>>> decryptionSharesByThread(numThreads);
+    std::vector<std::pair<std::vector<std::string>, std::vector<int>>>
+        decryptionSharesByThread(numThreads);
 
     // compute decryption shares in parallel
     threadPool.execute([&]() {
@@ -1208,8 +1209,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
         // pass 'i' by copy to each thread
         group.run([&, i]() {
           decryptionSharesByThread[i] = calculateDecryptionShares(
-              encryptedKeyHex_ptr->c_str(),
-              concatenatedCiphertexts[i]);
+              encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts[i]);
         });
       }
       group.wait(); // wait for all threads to finish
