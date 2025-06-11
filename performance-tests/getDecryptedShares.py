@@ -27,10 +27,10 @@ class DecryptSharesTest(PerformanceTest):
             "1167e1f5c133ec7f90856379036269cfbb4301088e845be781c9fca33d7147ce07e2568d1dd7d91792c57b81a5180f734148885651fc9bfba6d8e462ca46f6e306b773010b64df82f927d75780ba8a660ad450fd0a6a5cee3e0d0d7862b2b4d51a90e322711fefbf690fa062e983f301f02a82a1274d067c1c0d853444519ff7",
         ]
 
-        self.num_batches_each = 30
+        self.num_batches_each = 50
 
         # single request data
-        self.batch_sizes = [100, 200, 500, 1000, 2000]
+        self.batch_sizes = [2, 4, 8, 16, 32, 64, 128]
 
         # parallel test data
         self.parallel_threads = [ 1, 2, 4, 8, 16]

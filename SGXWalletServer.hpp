@@ -29,6 +29,7 @@
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <tbb/task_arena.h>
+#include <functional>
 
 #include "abstractstubserver.h"
 
@@ -72,11 +73,12 @@ class SGXWalletServer : public AbstractStubServer {
   // Must be initialized before any calls to the server
   static thread_pool threadPool;
   
-
   static void checkForDuplicate(map<string, string> &_map, recursive_mutex &_m,
                                 const string &_key, const string &_value);
 
 public:
+  static const size_t DEFAULT_NUM_THREADS_SGX = 16;
+
   static bool verifyCert(string &_certFileName);
 
   static const char *getVersion() { return TOSTRING(SGXWALLET_VERSION); }

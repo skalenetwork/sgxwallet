@@ -1129,28 +1129,74 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
       threadRemainder = batchSize % threadPool.size;
     }
 
-    // validate inputs
-    std::vector<std::string> concatenatedCiphertexts(numThreads); // will hold inputs to each thread
+    // -----------------------------------------------------------
+    //      Populate start and end indices for each thread
+    // -----------------------------------------------------------
+    std::array<int, DEFAULT_NUM_THREADS_SGX> startIndices;
+    std::array<int, DEFAULT_NUM_THREADS_SGX> endIndices;
 
-    for (size_t i = 0; i < numThreads; ++i) {
-      concatenatedCiphertexts[i].reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
+    int thread = 0;
+    int startIdx = 0;
+    int plusOneBatch = threadBatch + 1;
+    // populate the threads that will have +1 items
+    while (threadRemainder > 0) {
+      startIndices[thread] = startIdx;
+      startIdx += plusOneBatch;
+      endIndices[thread] = startIdx;
+      ++thread;
+      --threadRemainder;
+    }
+    // populate the rest
+    while (thread < numThreads) {
+      startIndices[thread] = startIdx;
+      startIdx += threadBatch;
+      endIndices[thread] = startIdx;
+      ++thread;
     }
 
-    int startingIdx = 0;
-    for (int i = 0; i < numThreads; ++i, --threadRemainder) {
-      // number of items for current thread
-      int count = threadBatch + ( threadRemainder > 0 ? 1 : 0 );
-      int endingIdx = std::min(startingIdx + count, batchSize);
+    // -----------------------------------------------------------
+    //                        Parse input
+    // -----------------------------------------------------------
+    std::vector<std::string> concatenatedCiphertexts(numThreads);
+    std::atomic<bool> batchSizeError(false);
+    std::atomic<bool> shareSizeError(false);
 
-      for (int j = startingIdx; j < endingIdx; ++j) {
-        CHECK_STATE(j < batchSize);
-        std::string publicDecryptionValue = publicDecryptionValues[j].asString();
-        CHECK_STATE(publicDecryptionValue.length() == CIPHERTEXT_CHARACTER_LENGTH);
-        concatenatedCiphertexts[i] += publicDecryptionValue;
+    // evaluate inputs in parallel
+    threadPool.execute([&]() {
+      tbb::task_group group;
+
+      for (int i = 0; i < numThreads; ++i) {
+        // pass 'i' by copy to each thread
+        group.run([&, i]() {
+          std::string local; // will hold inputs to each thread
+          local.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
+          int startingIdx = startIndices[i];
+          int endingIdx = endIndices[i];
+          for (int j = startingIdx; j < endingIdx; ++j) {
+            
+            if (j >= batchSize) {
+              batchSizeError.store(true);
+              return;
+            }
+            std::string publicDecryptionValue = publicDecryptionValues[j].asString();
+            if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
+              shareSizeError.store(true);
+              return;
+            }
+            local += publicDecryptionValue;
+          }
+          concatenatedCiphertexts[i] = std::move(local);
+        });
       }
-      startingIdx += count;
-    }
+      group.wait(); // wait for all threads to finish
+    });
 
+    CHECK_STATE(!batchSizeError.load());
+    CHECK_STATE(!shareSizeError.load());
+
+    // -----------------------------------------------------------
+    //                  Execute decryption
+    // -----------------------------------------------------------
     // holds results for each thread
     std::vector<std::pair<std::vector<std::string>, std::vector<int>>> decryptionSharesByThread(numThreads);
 
@@ -1169,7 +1215,9 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
       group.wait(); // wait for all threads to finish
     });
 
-    // Build response
+    // -----------------------------------------------------------
+    //                  Build Response
+    // -----------------------------------------------------------
     int idx = 0;
     for (auto &decryptionShares : decryptionSharesByThread) {
       size_t sharesAmount = decryptionShares.first.size();
