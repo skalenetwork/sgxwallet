@@ -75,7 +75,7 @@ class SGXWalletServer : public AbstractStubServer {
                                 const string &_key, const string &_value);
 
 public:
-  static const size_t DEFAULT_NUM_THREADS_SGX = 16;
+  static const size_t DEFAULT_NUM_THREADS_SGX = 32;
 
   static bool verifyCert(string &_certFileName);
 
