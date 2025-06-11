@@ -11,5 +11,4 @@
  <DisableDebug>0</DisableDebug>
  <MiscSelect>0</MiscSelect>
  <MiscMask>0xFFFFFFFF</MiscMask>
- <XFRM>0x07</XFRM>
  </EnclaveConfiguration>
