@@ -35,6 +35,7 @@ class DecryptSharesTest(PerformanceTest):
         # parallel test data
         self.parallel_threads = [ 1, 2, 4, 8, 16]
         self.parallel_batch_size = 2000
+
     
     # Send by default batch of size 1000 - for parallel tests
     def create_payload(self, var: int = 1000, **kwargs) -> Dict[str, Any]:
@@ -52,11 +53,13 @@ class DecryptSharesTest(PerformanceTest):
 
 async def main(args):
     test = await DecryptSharesTest.create(args.ip)
+
     results = await test.run_serial_test(test.batch_sizes, test.num_batches_each)
     test.plot_results(results, "Batch size", "Time (ms)", "DecryptShares Performance Test", "getDecryptionShares-single-thread")
 
-    # resutls = await test.run_parallel_test(test.parallel_threads, test.parallel_batch_size, test.num_batches_each)
-    # test.plot_results(resutls, "Number of Threads", "Trhoughput", "DecryptShares Performance Test", "getDecryptionShares-parallel")
+    resutls = await test.run_parallel_test(test.parallel_threads, test.parallel_batch_size, test.num_batches_each)
+    test.plot_results(resutls, "Number of Threads", "Trhoughput", "DecryptShares Performance Test", "getDecryptionShares-parallel")
+
 
 
 
