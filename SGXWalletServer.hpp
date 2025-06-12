@@ -30,6 +30,7 @@
 #include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <tbb/task_arena.h>
+#include <tbb/global_control.h>
 
 #include "abstractstubserver.h"
 
@@ -40,6 +41,9 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
+  // used to control number of max allowed parallel tasks
+  // Else, default policy can limit to number of CPU cores
+  static std::unique_ptr<tbb::global_control> globalSGXThreadpoolControl;
 
   // Thread pool for parallel processing of tasks
   struct thread_pool {
@@ -75,6 +79,8 @@ class SGXWalletServer : public AbstractStubServer {
                                 const string &_key, const string &_value);
 
 public:
+  /// Defines number of threads to be used by SGX on each call (for the ones with 
+  /// thread pool support)
   static const size_t DEFAULT_NUM_THREADS_SGX = 32;
 
   static bool verifyCert(string &_certFileName);

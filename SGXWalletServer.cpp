@@ -64,6 +64,7 @@ std::shared_timed_mutex sgxInitMutex;
 uint64_t initTime;
 
 SGXWalletServer::thread_pool SGXWalletServer::threadPool;
+std::unique_ptr<tbb::global_control> SGXWalletServer::globalSGXThreadpoolControl = nullptr;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
                     int _enterBackupKey) {
@@ -177,6 +178,14 @@ void SGXWalletServer::createCertsIfNeeded() {
 }
 
 void SGXWalletServer::initThreadPool(size_t _numThreads) {
+  if (!globalSGXThreadpoolControl) {
+      // Set global max threads once
+      globalSGXThreadpoolControl = std::make_unique<tbb::global_control>(
+          tbb::global_control::max_allowed_parallelism,
+          _numThreads
+      );
+  }
+
   threadPool.initialize(_numThreads);
 }
 
