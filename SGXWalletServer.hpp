@@ -29,8 +29,8 @@
 
 #include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <tbb/task_arena.h>
 #include <tbb/global_control.h>
+#include <tbb/task_arena.h>
 
 #include "abstractstubserver.h"
 
@@ -79,8 +79,8 @@ class SGXWalletServer : public AbstractStubServer {
                                 const string &_key, const string &_value);
 
 public:
-  /// Defines number of threads to be used by SGX on each call (for the ones with 
-  /// thread pool support)
+  /// Defines number of threads to be used by SGX on each call (for the ones
+  /// with thread pool support)
   static const size_t DEFAULT_NUM_THREADS_SGX = 32;
 
   static bool verifyCert(string &_certFileName);
