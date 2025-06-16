@@ -33,16 +33,16 @@
 #endif
 
 struct initConfig {
-    uint32_t logLevel;
-    bool checkCert;
-    bool checkZMQSig;
-    bool autoSign;
-    bool generateTestKeys;
-    bool checkKeyOwnership;
-    int threadPoolSize;
+  uint32_t logLevel;
+  bool checkCert;
+  bool checkZMQSig;
+  bool autoSign;
+  bool generateTestKeys;
+  bool checkKeyOwnership;
+  int threadPoolSize;
 };
 
-EXTERNC void initAll(initConfig& config);
+EXTERNC void initAll(initConfig &config);
 
 void exitAll();
 

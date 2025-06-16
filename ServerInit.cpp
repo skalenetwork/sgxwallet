@@ -163,7 +163,7 @@ uint64_t initEnclave() {
   return SGX_SUCCESS;
 }
 
-void initAll(initConfig& _config) {
+void initAll(initConfig &_config) {
 
   static atomic<bool> sgxServerInited(false);
   static mutex initMutex;
@@ -213,8 +213,8 @@ void initAll(initConfig& _config) {
 
     SGXRegistrationServer::initRegistrationServer(_config.autoSign);
     CSRManagerServer::initCSRManagerServer();
-    SGXInfoServer::initInfoServer(_config.logLevel, _config.checkCert, _config.autoSign,
-                                  _config.generateTestKeys);
+    SGXInfoServer::initInfoServer(_config.logLevel, _config.checkCert,
+                                  _config.autoSign, _config.generateTestKeys);
     ZMQServer::initZMQServer(_config.checkZMQSig, _config.checkKeyOwnership);
 
     sgxServerInited = true;

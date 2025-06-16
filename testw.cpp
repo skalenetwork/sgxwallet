@@ -132,15 +132,14 @@ public:
     TestUtils::resetDB();
     setOptions(L_INFO, false, true);
 
-    initConfig config {
-      .logLevel = L_INFO,
-      .checkCert = false,
-      .checkZMQSig = false,
-      .autoSign = true,
-      .generateTestKeys = false,
-      .checkKeyOwnership = true,
-      .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-    };
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
     initAll(config);
   }
@@ -154,15 +153,14 @@ public:
     TestUtils::resetDB();
     setOptions(L_INFO, true, true);
 
-    initConfig config {
-      .logLevel = L_INFO,
-      .checkCert = true,
-      .checkZMQSig = true,
-      .autoSign = true,
-      .generateTestKeys = false,
-      .checkKeyOwnership = true,
-      .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-    };
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = true,
+                      .checkZMQSig = true,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
     initAll(config);
   }
@@ -183,15 +181,14 @@ public:
     TestUtils::resetDB();
     setOptions(L_INFO, false, true);
 
-    initConfig config {
-      .logLevel = L_INFO,
-      .checkCert = false,
-      .checkZMQSig = true,
-      .autoSign = true,
-      .generateTestKeys = false,
-      .checkKeyOwnership = false,
-      .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-    };
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = true,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = false,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
     initAll(config);
   }
@@ -204,15 +201,14 @@ public:
   TestFixtureNoResetFromBackup() {
     setFullOptions(L_INFO, false, true, true);
 
-    initConfig config {
-      .logLevel = L_INFO,
-      .checkCert = false,
-      .checkZMQSig = false,
-      .autoSign = true,
-      .generateTestKeys = false,
-      .checkKeyOwnership = true,
-      .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-    };
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
     initAll(config);
   }
@@ -228,15 +224,14 @@ public:
   TestFixtureNoReset() {
     setOptions(L_INFO, false, true);
 
-    initConfig config {
-      .logLevel = L_INFO,
-      .checkCert = false,
-      .checkZMQSig = false,
-      .autoSign = true,
-      .generateTestKeys = false,
-      .checkKeyOwnership = true,
-      .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-    };
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
     initAll(config);
   }
@@ -366,15 +361,13 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS certificate not in database",
   TestUtils::resetDB();
   setOptions(L_INFO, true, true);
 
-  initConfig config {
-    .logLevel = L_INFO,
-    .checkCert = true,
-    .checkZMQSig = true,
-    .autoSign = true,
-    .generateTestKeys = false,
-    .checkKeyOwnership = true,
-    .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-  };
+  initConfig config{.logLevel = L_INFO,
+                    .checkCert = true,
+                    .checkZMQSig = true,
+                    .autoSign = true,
+                    .generateTestKeys = false,
+                    .checkKeyOwnership = true,
+                    .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
 
   initAll(config);
 

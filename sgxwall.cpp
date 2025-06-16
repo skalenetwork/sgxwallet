@@ -61,8 +61,9 @@ void SGXWallet::printUsage() {
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
   cerr << "\nConfiguration flags:\n\n";
-  cerr << "   -t  Set thread pool size. Default is " << SGXWalletServer::DEFAULT_NUM_THREADS_SGX
-       << ". Must be > 0 and < " << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ".\n";
+  cerr << "   -t  Set thread pool size. Default is "
+       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ". Must be > 0 and < "
+       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ".\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -168,8 +169,7 @@ int main(int argc, char *argv[]) {
         threadPoolSize = std::stoi(optarg); // Convert argument to integer
         if (threadPoolSize <= 0) {
           throw std::invalid_argument("Thread pool size must be positive");
-        }
-        else if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
+        } else if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
           throw std::invalid_argument(
               "Thread pool size must not exceed " +
               std::to_string(SGXWalletServer::DEFAULT_NUM_THREADS_SGX));
@@ -212,15 +212,13 @@ int main(int argc, char *argv[]) {
   }
 
   cerr << "Calling initAll ..." << endl;
-  initConfig initConfig {
-      .logLevel = enclaveLogLevel,
-      .checkCert = checkClientCertOption,
-      .checkZMQSig = checkKeyOwnership,
-      .autoSign = autoSignClientCertOption,
-      .generateTestKeys = generateTestKeys,
-      .checkKeyOwnership = checkKeyOwnership,
-      .threadPoolSize = threadPoolSize
-  };
+  initConfig initConfig{.logLevel = enclaveLogLevel,
+                        .checkCert = checkClientCertOption,
+                        .checkZMQSig = checkKeyOwnership,
+                        .autoSign = autoSignClientCertOption,
+                        .generateTestKeys = generateTestKeys,
+                        .checkKeyOwnership = checkKeyOwnership,
+                        .threadPoolSize = threadPoolSize};
 
   initAll(initConfig);
   cerr << "Completed initAll." << endl;
