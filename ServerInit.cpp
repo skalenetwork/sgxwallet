@@ -163,12 +163,11 @@ uint64_t initEnclave() {
   return SGX_SUCCESS;
 }
 
-void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
-             bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership) {
+void initAll(initConfig& _config) {
 
   static atomic<bool> sgxServerInited(false);
   static mutex initMutex;
-  enclaveLogLevel = _logLevel;
+  enclaveLogLevel = _config.logLevel;
 
   lock_guard<mutex> lock(initMutex);
 
@@ -199,12 +198,12 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
     initSEK();
 
     SGXWalletServer::createCertsIfNeeded();
-    SGXWalletServer::initThreadPool(SGXWalletServer::DEFAULT_NUM_THREADS_SGX);
+    SGXWalletServer::initThreadPool(_config.threadPoolSize);
 
     if (useHTTPS) {
       spdlog::info("Initing JSON-RPC server over HTTPS");
-      spdlog::info("Check client cert: {}", _checkCert);
-      SGXWalletServer::initHttpsServer(_checkCert);
+      spdlog::info("Check client cert: {}", _config.checkCert);
+      SGXWalletServer::initHttpsServer(_config.checkCert);
       spdlog::info("Inited JSON-RPC server over HTTPS");
     } else {
       spdlog::info("Initing JSON-RPC server over HTTP");
@@ -212,11 +211,11 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
       spdlog::info("Inited JSON-RPC server over HTTP");
     }
 
-    SGXRegistrationServer::initRegistrationServer(_autoSign);
+    SGXRegistrationServer::initRegistrationServer(_config.autoSign);
     CSRManagerServer::initCSRManagerServer();
-    SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign,
-                                  _generateTestKeys);
-    ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
+    SGXInfoServer::initInfoServer(_config.logLevel, _config.checkCert, _config.autoSign,
+                                  _config.generateTestKeys);
+    ZMQServer::initZMQServer(_config.checkZMQSig, _config.checkKeyOwnership);
 
     sgxServerInited = true;
   } catch (SGXException &_e) {

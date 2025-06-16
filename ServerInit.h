@@ -32,9 +32,17 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
-                     bool _autoSign, bool _generateTestKeys,
-                     bool _checkKeyOwnership);
+struct initConfig {
+    uint32_t logLevel;
+    bool checkCert;
+    bool checkZMQSig;
+    bool autoSign;
+    bool generateTestKeys;
+    bool checkKeyOwnership;
+    int threadPoolSize;
+};
+
+EXTERNC void initAll(initConfig& config);
 
 void exitAll();
 

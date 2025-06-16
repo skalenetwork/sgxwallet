@@ -33,6 +33,7 @@
 #include <tbb/task_arena.h>
 
 #include "abstractstubserver.h"
+#include "common.h"
 
 using namespace jsonrpc;
 using namespace std;
@@ -49,15 +50,23 @@ class SGXWalletServer : public AbstractStubServer {
   struct thread_pool {
     size_t size;
 
-    void initialize(size_t _size) {
-      size = _size;
-      arena.initialize(_size);
+    void initialize(size_t _size = DEFAULT_NUM_THREADS_SGX) {
+      CHECK_STATE(_size > 0);
+
+      if (!initialized) {
+        arena.initialize(_size);
+        size = _size;
+        initialized = true;
+      }
     }
+
+    bool isInitialized() const { return initialized; }
 
     // delegate task execution to TBB task arena
     void execute(function<void()> task) { arena.execute(task); }
 
   private:
+    bool initialized = false;
     tbb::task_arena arena;
   };
 
