@@ -131,7 +131,17 @@ public:
   TestFixture() {
     TestUtils::resetDB();
     setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, false, true, false, true);
+
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+    initAll(config);
   }
 
   ~TestFixture() { TestUtils::destroyEnclave(); }
@@ -142,7 +152,17 @@ public:
   TestFixtureHTTPS() {
     TestUtils::resetDB();
     setOptions(L_INFO, true, true);
-    initAll(L_INFO, true, true, true, false, true);
+
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = true,
+                      .checkZMQSig = true,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+    initAll(config);
   }
 
   ~TestFixtureHTTPS() { TestUtils::destroyEnclave(); }
@@ -160,7 +180,17 @@ public:
   TestFixtureZMQSign() {
     TestUtils::resetDB();
     setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, true, true, false, false);
+
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = true,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = false,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+    initAll(config);
   }
 
   ~TestFixtureZMQSign() { TestUtils::destroyEnclave(); }
@@ -170,7 +200,17 @@ class TestFixtureNoResetFromBackup {
 public:
   TestFixtureNoResetFromBackup() {
     setFullOptions(L_INFO, false, true, true);
-    initAll(L_INFO, false, false, true, false, true);
+
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+    initAll(config);
   }
 
   ~TestFixtureNoResetFromBackup() {
@@ -183,7 +223,17 @@ class TestFixtureNoReset {
 public:
   TestFixtureNoReset() {
     setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, false, true, false, true);
+
+    initConfig config{.logLevel = L_INFO,
+                      .checkCert = false,
+                      .checkZMQSig = false,
+                      .autoSign = true,
+                      .generateTestKeys = false,
+                      .checkKeyOwnership = true,
+                      .threadPoolSize =
+                          SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+    initAll(config);
   }
 
   ~TestFixtureNoReset() { TestUtils::destroyEnclave(); }
@@ -310,7 +360,16 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS certificate not in database",
   // reset db & init enclave again
   TestUtils::resetDB();
   setOptions(L_INFO, true, true);
-  initAll(L_INFO, true, true, true, false, true);
+
+  initConfig config{.logLevel = L_INFO,
+                    .checkCert = true,
+                    .checkZMQSig = true,
+                    .autoSign = true,
+                    .generateTestKeys = false,
+                    .checkKeyOwnership = true,
+                    .threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+
+  initAll(config);
 
   // make the request
   bool expectedError = true;

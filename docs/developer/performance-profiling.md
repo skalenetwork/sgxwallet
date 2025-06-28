@@ -40,7 +40,9 @@ AM_CPPFLAGS += -g -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./
 
 Compile the project.
 
+
 #### D. Run SGX
+
 
 ```bash
 ./sgxwallet -s -y -d -V -b &
@@ -58,7 +60,8 @@ We will need this PID later on to attach VTune to the process.
 
 #### A. Install & launch VTune GUI
 
-Refer to 1.B - You can use the same instructions. 
+Refer to 1.B - You can use the same isntructions.
+
 Launch VTune GUI:
 
 ```bash

@@ -89,6 +89,14 @@ calculateDecryptionShares(const string &encryptedKeyShare,
   // decypher each batch size at a time
   while (numBatchesRemaining > 0) {
 
+    CHECK_STATE(&errStatus);
+    CHECK_STATE(errMsg.data());
+    CHECK_STATE(encryptedKey);
+    CHECK_STATE(currentBatch);
+    CHECK_STATE(decryptionShares);
+    CHECK_STATE(decryptionSharesStatus);
+    CHECK_STATE(currentBatchLength <= BATCH_SIZE_BYTES);
+
     status = trustedGetDecryptionShares(
         eid, &errStatus, errMsg.data(), encryptedKey, currentBatch,
         currentBatchLength, sz, decryptionShares, decryptionSharesStatus);

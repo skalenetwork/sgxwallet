@@ -1,32 +1,7 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install software-properties-common -y && \
-    add-apt-repository ppa:ubuntu-toolchain-r/test && \
-    apt-get update && apt-get install -y \
-    build-essential \
-    ocaml \
-    ocamlbuild \
-    automake \
-    autoconf \
-    libtool \
-    wget \
-    python-is-python3 \
-    libssl-dev \
-    git \
-    cmake \
-    perl \
-    libcurl4-openssl-dev \
-    protobuf-compiler \
-    libprotobuf-dev \
-    debhelper \
-    reprepro \
-    unzip \
-    pkgconf \
-    libboost-dev \
-    libboost-system-dev \
-    libboost-thread-dev \
-    lsb-release \
-    libsystemd0
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
 
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
