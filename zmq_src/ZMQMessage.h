@@ -178,6 +178,14 @@ public:
 
   Json::Value getJsonValueRapid(const char *_name);
 
+  /**
+   * Builds a Json::Value from the rapidjson::Document.
+   * Fetches the value of the given name from the document and returns it as a
+   * Json::Value. If field is optional, may return an empty Json::Value if the
+   * field is not present.
+   */
+  Json::Value getJsonValueRapid(const char *_name, bool optional);
+
   bool getBoolRapid(const char *_name);
 
   uint64_t getStatus() { return getInt64Rapid("status"); }

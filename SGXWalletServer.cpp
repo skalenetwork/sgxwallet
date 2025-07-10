@@ -1114,6 +1114,8 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     const std::string &blsKeyName, const Json::Value &publicDecryptionValues) {
   spdlog::trace("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
+  // init as empty array
+  result["decryptionShares"] = Json::Value(Json::arrayValue);
 
   try {
     CHECK_STATE(checkName(blsKeyName, "BLS_KEY"));

@@ -43,18 +43,29 @@ uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
 };
 
 Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {
+  return getJsonValueRapid(_name, false);
+}
+
+Json::Value ZMQMessage::getJsonValueRapid(const char *_name, bool optional) {
   CHECK_STATE(_name);
-  CHECK_STATE(d->HasMember(_name));
-  const rapidjson::Value &a = (*d)[_name];
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  a.Accept(writer);
-  std::string strRequest = buffer.GetString();
-
-  Json::Reader reader;
   Json::Value root;
-  reader.parse(strRequest, root, false);
+  bool fieldIsPresent = d->HasMember(_name);
+
+  if (!optional) {
+    CHECK_STATE(fieldIsPresent);
+  }
+
+  if (fieldIsPresent) {
+    const rapidjson::Value &a = (*d)[_name];
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    a.Accept(writer);
+    std::string strRequest = buffer.GetString();
+
+    Json::Reader reader;
+    reader.parse(strRequest, root, false);
+  }
 
   return root;
 }
