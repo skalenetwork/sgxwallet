@@ -647,7 +647,7 @@ Returns an empty array in case the request has no shares to decrypt.
 curl -X POST --data '{ 
     "jsonrpc": "2.0", 
     "id": 1, 
-    "method": "getServerStatus", 
+    "method": "getDecryptionShares", 
     "params": {
         "blsKeyName": "BLS_KEY:SCHAIN_ID:85648391426096427994207177239552943688036003763889870037478700400929584288519:NODE_ID:1:DKG_ID:0",
         "publicDecryptionValues": [
