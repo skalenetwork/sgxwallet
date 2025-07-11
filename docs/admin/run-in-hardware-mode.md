@@ -72,7 +72,7 @@ If operating with a firewall, please make sure these ports are open so clients a
 | `-y`     | Do not ask user to acknowledge receipt of backup key. |
 | `-e`     | Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!) |
 | `-T`     | Generate test keys. |
-| `-t<N>`  | Set the thread pool size (`<N>`) for intra-request parallelization in SGX operations that support it (e.g., `getDecryptionShares`). <br>**Example:** `-t8` for 8 threads, `-t16` for 16 threads. | 
+| `-t<N>`  | Set the thread pool size (`<N>`) for intra-request parallelization in SGX operations that support it (e.g., `getDecryptionShares`). `N` must be an integer within the range \([1, 32]\) <br>**Example:** `-t8` for 8 threads, `-t16` for 16 threads. | 
 
 ### Healthcheck
 
