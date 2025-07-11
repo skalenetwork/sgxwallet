@@ -222,7 +222,20 @@ public:
 
   virtual Json::Value process();
 
-  Json::Value getShare() { return getJsonValueRapid("decryptionShares"); }
+  Json::Value getResponse() {
+    auto decryptionShares = getJsonValueRapid("decryptionShares");
+    auto failedRequests =
+        getJsonValueRapid("failedRequests", /* optional = */ true);
+
+    Json::Value result(Json::objectValue);
+    result["decryptionShares"] = decryptionShares;
+    if (!failedRequests.isNull()) {
+      result["failedRequests"] = failedRequests;
+    }
+    return result;
+  }
+
+  Json::Value getFailedRequests() {}
 };
 
 class generateBLSPrivateKeyRspMessage : public ZMQMessage {

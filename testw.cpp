@@ -1547,6 +1547,28 @@ const std::vector<int> BATCH_TEST_VALUES = {
     2 * ENCLAVE_MAX_CIPHERTEXT_BATCH,
     3 * ENCLAVE_MAX_CIPHERTEXT_BATCH};
 
+TEST_CASE_METHOD(TestFixture,
+                 "Test decryption share for empty threshold encryption",
+                 "[te-empty-decryption-share]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues;
+  publicDecryptionValues["publicDecryptionValues"] = Json::arrayValue;
+  auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  REQUIRE(decryptionShares["decryptionShares"].empty());
+}
+
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
                  "[te-decryption-share]") {
   HttpClient client(RPC_ENDPOINT);
@@ -1578,6 +1600,10 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
 
     auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
 
+    REQUIRE(decryptionShares.isObject());
+    // should have no failed requests
+    REQUIRE(!decryptionShares.isMember("failedRequests"));
+
     for (int i = 0; i < num_requests; i++) {
       auto decryption_share =
           decryptionShares["decryptionShares"][i].asString();
@@ -1585,6 +1611,100 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
       REQUIRE(share == key * decryption_values[i]);
     }
   }
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share for faulty shares",
+                 "[te-decryption-share-error]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues;
+  publicDecryptionValues["publicDecryptionValues"][0] =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
+  auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  // response should also be all 0's
+  REQUIRE(decryptionShares["decryptionShares"][0] ==
+          publicDecryptionValues["publicDecryptionValues"][0]);
+
+  // check for failed requests status code
+  REQUIRE(decryptionShares.isMember("failedRequests"));
+  REQUIRE(decryptionShares["failedRequests"].isObject());
+  REQUIRE(decryptionShares["failedRequests"].isMember("0"));
+  REQUIRE(decryptionShares["failedRequests"]["0"].isInt());
+  REQUIRE(decryptionShares["failedRequests"]["0"].asInt() ==
+          STATUS_G2_NOT_WELL_FORMED);
+}
+
+TEST_CASE_METHOD(TestFixture,
+                 "Test decryption share for empty threshold encryption via zmq",
+                 "[te-empty-decryption-share-zmq]") {
+  auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
+                                       "./sgx_data/cert_data/rootCA.pem",
+                                       "./sgx_data/cert_data/rootCA.key");
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  client->importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues(Json::objectValue);
+  publicDecryptionValues["publicDecryptionValues"] = Json::arrayValue;
+  Json::Value decryptionShares =
+      client->getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  REQUIRE(decryptionShares["decryptionShares"].empty());
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share for faulty shares via zmq",
+                 "[te-decryption-share-error-zmq]") {
+  auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
+                                       "./sgx_data/cert_data/rootCA.pem",
+                                       "./sgx_data/cert_data/rootCA.key");
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  client->importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues;
+  publicDecryptionValues["publicDecryptionValues"][0] =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
+  auto decryptionShares =
+      client->getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  // response should also be all 0's
+  REQUIRE(decryptionShares["decryptionShares"][0] ==
+          publicDecryptionValues["publicDecryptionValues"][0]);
+
+  // check for failed requests status code
+  REQUIRE(decryptionShares.isMember("failedRequests"));
+  REQUIRE(decryptionShares["failedRequests"].isObject());
+  REQUIRE(decryptionShares["failedRequests"].isMember("0"));
+  REQUIRE(decryptionShares["failedRequests"]["0"].isInt());
+  REQUIRE(decryptionShares["failedRequests"]["0"].asInt() ==
+          STATUS_G2_NOT_WELL_FORMED);
 }
 
 TEST_CASE_METHOD(TestFixture,
@@ -1620,8 +1740,13 @@ TEST_CASE_METHOD(TestFixture,
     auto decryptionShares =
         client->getDecryptionShares(name, publicDecryptionValues);
 
+    REQUIRE(decryptionShares.isObject());
+    // should have no failed requests
+    REQUIRE(!decryptionShares.isMember("failedRequests"));
+
     for (int i = 0; i < num_requests; i++) {
-      auto decryption_share = decryptionShares[i].asString();
+      auto decryption_share =
+          decryptionShares["decryptionShares"][i].asString();
       libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
       REQUIRE(share == key * decryption_values[i]);
     }

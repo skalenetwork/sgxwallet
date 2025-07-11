@@ -537,7 +537,7 @@ ZMQClient::getDecryptionShares(const string &blsKeyName,
       dynamic_pointer_cast<GetDecryptionShareRspMessage>(doRequestReply(p));
   CHECK_STATE(result);
   CHECK_STATE(result->getStatus() == 0);
-  return result->getShare();
+  return result->getResponse();
 }
 
 bool ZMQClient::generateBLSPrivateKey(const string &blsKeyName) {

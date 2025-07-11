@@ -631,20 +631,25 @@ curl -X POST --data '{
 ## `getDecryptionShares`
 
 #### Description
-Returns the current server status.
+
+Decrypts each encoded G2 point sent within the `publicDecryptionValues` array, using the key associated with the name passed by `blsKeyName`. Returns a new array with all the decription shares.
+
+Returns an empty array in case the request has no shares to decrypt.
 
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
-| `publicDecryptionValues`    | `Array`     | Array of elements, where each element represents the U component (G2 point) from the ciphertext, encoded as a [string encoded point](#6-string-encoded-point). The array can be of any size (up to MAX_INT size) | `ABC12345667ADAF...` up to 256 characters (only hexadecimal)  |
+| `blsKeyName`    | `String`     | [See BLS Key Name](#1-bls-key-name)  | `BLS_KEY:SCHAIN_ID:8564839...` |
+| `publicDecryptionValues`    | `Array<String>`     | Array of elements, where each element represents the U component (G2 point) from the ciphertext, encoded as a [string encoded point](#6-string-encoded-point). The array can be of any size (up to MAX_INT size) | `ABC12345667ADAF...` up to 256 characters (only hexadecimal)  |
 
 #### Example Request
 ```bash
 curl -X POST --data '{ 
     "jsonrpc": "2.0", 
     "id": 1, 
-    "method": "getServerStatus", 
+    "method": "getDecryptionShares", 
     "params": {
+        "blsKeyName": "BLS_KEY:SCHAIN_ID:85648391426096427994207177239552943688036003763889870037478700400929584288519:NODE_ID:1:DKG_ID:0",
         "publicDecryptionValues": [
             "9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f",
             "9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f9f3a7d1cbe84f2a6d5e091b8c74e3a5f"
@@ -675,7 +680,7 @@ curl -X POST --data '{
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
         ],
         "failedRequests": {
-            "1": 102,
+            "1": 1, // idx 1 has status code 1 -> bad point
         }
     }
 }
