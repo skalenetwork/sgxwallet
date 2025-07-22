@@ -229,7 +229,7 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     unsigned char tmpBuffer[32];
     CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)tmpBuffer) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
-    
+
     memcpy(_randBuff, tmpBuffer, _size);
 }
 
@@ -244,7 +244,7 @@ void sealHexSEK(int *errStatus, char *errString,
     CHECK_STATE(strnlen(sek_hex, 33) == 32)
 
     uint64_t plaintextLen = strlen(sek_hex) + 1;
-    
+
     uint64_t sealedLen = sgx_calc_sealed_data_size(0, plaintextLen);
 
     sgx_attributes_t attribute_mask;
@@ -724,6 +724,8 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
 
     CHECK_STATUS("AES decrypt failed")
 
+    LOG_ERROR("PRIVATE KEY");
+    LOG_ERROR(key);
     if (!enclave_sign(key, _hashX, _hashY, sig)) {
         strncpy(errString, "Enclave failed to create bls signature", BUF_LEN);
         LOG_ERROR(errString);
@@ -1411,7 +1413,7 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     // convert to decimal
     int stat = keyHexToDecimal(skey_hex, skey_dec);
-    
+
     status = stat;
 
     CHECK_STATUS2("HexToDecimal failed %d");
@@ -1427,7 +1429,7 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
         // array of status is sent to caller
         decryption_shares_status[i] = status;
-        
+
         current_input_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
         current_output_decryption_share += CIPHERTEXT_CHARACTER_LENGTH;
         current_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
