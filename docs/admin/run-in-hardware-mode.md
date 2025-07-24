@@ -59,17 +59,20 @@ If operating with a firewall, please make sure these ports are open so clients a
 
 ### Command Flags
 
--   \-h     Display available flags
--   \-c     Do not verify client certificate
--   \-s     Sign client certificate without human confirmation
--   \-d     Turn on debug output
--   \-v     Verbose mode: turn on debug output
--   \-V    Detailed verbose mode: turn on debug and trace outputs
--   \-n     Launch SGXWalletServer using http (not https)
--   \-b     Restore from back up (you will need to enter backup key) 
--   \-y     Do not ask user to acknowledge receipt of backup key 
--   \-e     Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!)
--   \-T     Generate test keys     
+| Flag     | Description |
+|----------|-------------|
+| `-h`     | Display help message with available flags. |
+| `-c`     | Skip client certificate verification. |
+| `-s`     | Automatically sign client certificates without requiring human confirmation. |
+| `-d`     | Enable debug-level output. |
+| `-v`     | Enable verbose mode: turn on debug output |
+| `-V`     | Enable detailed verbose mode (includes both debug and trace-level output). |
+| `-n`     | Start the SGXWalletServer using HTTP instead of HTTPS. |
+| `-b`     | Restore from a backup. Requires entry of the backup key. |
+| `-y`     | Do not ask user to acknowledge receipt of backup key. |
+| `-e`     | Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!) |
+| `-T`     | Generate test keys. |
+| `-t<N>`  | Set the thread pool size (`<N>`) for intra-request parallelization in SGX operations that support it (e.g., `getDecryptionShares`). `N` must be an integer within the range \([1, 32]\) <br>**Example:** `-t8` for 8 threads, `-t16` for 16 threads. | 
 
 ### Healthcheck
 
