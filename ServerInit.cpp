@@ -211,11 +211,11 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
       spdlog::info("Inited JSON-RPC server over HTTP");
     }
 
-    SGXRegistrationServer::initRegistrationServer(_autoSign);
-    CSRManagerServer::initCSRManagerServer();
-    SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign,
-                                  _generateTestKeys);
-    ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
+    // SGXRegistrationServer::initRegistrationServer(_autoSign);
+    // CSRManagerServer::initCSRManagerServer();
+    // SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign,
+    //                               _generateTestKeys);
+    // ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
 
     sgxServerInited = true;
   } catch (SGXException &_e) {
