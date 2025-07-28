@@ -119,7 +119,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DARGTABLE_LIBRARY=$INSTALL_ROOT/lib/libargtable2${DEBUG_D}.a \
 	-DCURL_INCLUDE_DIR=$INSTALL_ROOT/include \
 	-DJSONCPP_INCLUDE_DIR=$INSTALL_ROOT/include \
-	-DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address"
 	..
 make
 make install
