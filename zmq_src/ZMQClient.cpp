@@ -47,7 +47,7 @@ shared_ptr<ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     string msgToSign = fastWriter.write(_req);
 
-    _req["msgSig"] = signString(pkey, msgToSign);
+    _req["msgSig"] = signString(pkey.get(), msgToSign);
   }
 
   string reqStr = fastWriter.write(_req);
@@ -202,7 +202,7 @@ string ZMQClient::signString(EVP_PKEY *_pkey, const string &_str) {
   return hexStringSig;
 }
 
-pair<EVP_PKEY *, X509 *>
+pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>
 ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
   CHECK_STATE(!_certStr.empty())
 
@@ -216,7 +216,7 @@ ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
   auto key = X509_get_pubkey(cert);
   BIO_free(bo);
   CHECK_STATE(key);
-  return {key, cert};
+  return {make_shared_evp_pkey(key), make_shared_x509(cert)};
 };
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
@@ -239,8 +239,11 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
     CHECK_STATE(bo);
     BIO_write(bo, key.c_str(), key.size());
 
-    PEM_read_bio_PrivateKey(bo, &pkey, 0, 0);
-    CHECK_STATE(pkey);
+    EVP_PKEY *tmpKey = nullptr;
+    PEM_read_bio_PrivateKey(bo, &tmpKey, 0, 0);
+    CHECK_STATE(tmpKey);
+    pkey = make_shared_evp_pkey(tmpKey);
+
     BIO_free(bo);
 
     auto pubKeyStr = readFileIntoString(_certFileName);
@@ -248,8 +251,8 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
 
     tie(pubkey, x509Cert) = readPublicKeyFromCertStr(pubKeyStr);
 
-    auto sig = signString(pkey, "sample");
-    verifySig(pubkey, "sample", sig);
+    auto sig = signString(pkey.get(), "sample");
+    verifySig(pubkey.get(), "sample", sig);
 
   } else {
     CHECK_STATE(_certFileName.empty());
@@ -534,7 +537,7 @@ ZMQClient::getDecryptionShares(const string &blsKeyName,
       dynamic_pointer_cast<GetDecryptionShareRspMessage>(doRequestReply(p));
   CHECK_STATE(result);
   CHECK_STATE(result->getStatus() == 0);
-  return result->getShare();
+  return result->getResponse();
 }
 
 bool ZMQClient::generateBLSPrivateKey(const string &blsKeyName) {

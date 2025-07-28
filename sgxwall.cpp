@@ -31,6 +31,7 @@
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
+#include "SGXWalletServer.hpp"
 
 #include <fstream>
 
@@ -59,6 +60,10 @@ void SGXWallet::printUsage() {
   cerr << "   -s  Sign client certificates without human confirmation. "
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
+  cerr << "\nConfiguration flags:\n\n";
+  cerr << "   -t  Set thread pool size. Default is "
+       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ". Must be > 0 and < "
+       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ".\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -105,6 +110,7 @@ int main(int argc, char *argv[]) {
   bool autoSignClientCertOption = false;
   bool generateTestKeys = false;
   bool checkKeyOwnership = false;
+  int threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
 
   std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -115,7 +121,7 @@ int main(int argc, char *argv[]) {
     exit(-21);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0abyvVneT")) != -1) {
+  while ((opt = getopt(argc, argv, "cshd0abyvVneTt:")) != -1) {
     switch (opt) {
     case 'h':
       SGXWallet::printUsage();
@@ -158,6 +164,23 @@ int main(int argc, char *argv[]) {
     case 'T':
       generateTestKeys = true;
       break;
+    case 't': {
+      try {
+        threadPoolSize = std::stoi(optarg); // Convert argument to integer
+        if (threadPoolSize <= 0) {
+          throw std::invalid_argument("Thread pool size must be positive");
+        } else if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
+          throw std::invalid_argument(
+              "Thread pool size must not exceed " +
+              std::to_string(SGXWalletServer::DEFAULT_NUM_THREADS_SGX));
+        }
+      } catch (const std::exception &e) {
+        std::cerr << "Invalid thread pool size: " << optarg << "\n";
+        SGXWallet::printUsage();
+        exit(-24);
+      }
+      break;
+    }
     default:
       SGXWallet::printUsage();
       exit(-23);
@@ -189,8 +212,15 @@ int main(int argc, char *argv[]) {
   }
 
   cerr << "Calling initAll ..." << endl;
-  initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption,
-          autoSignClientCertOption, generateTestKeys, checkKeyOwnership);
+  initConfig initConfig{.logLevel = enclaveLogLevel,
+                        .checkCert = checkClientCertOption,
+                        .checkZMQSig = checkKeyOwnership,
+                        .autoSign = autoSignClientCertOption,
+                        .generateTestKeys = generateTestKeys,
+                        .checkKeyOwnership = checkKeyOwnership,
+                        .threadPoolSize = threadPoolSize};
+
+  initAll(initConfig);
   cerr << "Completed initAll." << endl;
 
   // check if test keys already exist

@@ -40,9 +40,9 @@
 
 class ZMQClient {
 private:
-  EVP_PKEY *pkey = 0;
-  EVP_PKEY *pubkey = 0;
-  X509 *x509Cert = 0;
+  shared_ptr<EVP_PKEY> pkey = nullptr;
+  shared_ptr<EVP_PKEY> pubkey = nullptr;
+  shared_ptr<X509> x509Cert = nullptr;
 
   bool sign = true;
   string certFileName = "";
@@ -72,9 +72,12 @@ public:
   ZMQClient(const string &ip, uint16_t port, bool _sign,
             const string &_certPathName, const string &_certKeyName);
 
+  ~ZMQClient() = default;
+
   void reconnect();
 
-  static pair<EVP_PKEY *, X509 *> readPublicKeyFromCertStr(const string &_cert);
+  static pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>
+  readPublicKeyFromCertStr(const string &_cert);
 
   static string signString(EVP_PKEY *_pkey, const string &_str);
 

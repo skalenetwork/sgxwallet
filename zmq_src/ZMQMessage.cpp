@@ -43,18 +43,29 @@ uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
 };
 
 Json::Value ZMQMessage::getJsonValueRapid(const char *_name) {
+  return getJsonValueRapid(_name, false);
+}
+
+Json::Value ZMQMessage::getJsonValueRapid(const char *_name, bool optional) {
   CHECK_STATE(_name);
-  CHECK_STATE(d->HasMember(_name));
-  const rapidjson::Value &a = (*d)[_name];
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  a.Accept(writer);
-  std::string strRequest = buffer.GetString();
-
-  Json::Reader reader;
   Json::Value root;
-  reader.parse(strRequest, root, false);
+  bool fieldIsPresent = d->HasMember(_name);
+
+  if (!optional) {
+    CHECK_STATE(fieldIsPresent);
+  }
+
+  if (fieldIsPresent) {
+    const rapidjson::Value &a = (*d)[_name];
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    a.Accept(writer);
+    std::string strRequest = buffer.GetString();
+
+    Json::Reader reader;
+    reader.parse(strRequest, root, false);
+  }
 
   return root;
 }
@@ -114,8 +125,6 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
 
     static recursive_mutex m;
 
-    EVP_PKEY *publicKey = nullptr;
-
     {
       lock_guard<recursive_mutex> lock(m);
 
@@ -128,7 +137,7 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
         remove(cert->c_str());
       }
 
-      publicKey = verifiedCerts.get(*cert).first;
+      shared_ptr<EVP_PKEY> publicKey = verifiedCerts.get(*cert).first;
 
       CHECK_STATE(publicKey);
 
@@ -144,7 +153,7 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
 
       auto msgToVerify = buffer.GetString();
 
-      ZMQClient::verifySig(publicKey, msgToVerify, *msgSig);
+      ZMQClient::verifySig(publicKey.get(), msgToVerify, *msgSig);
     }
   }
 
@@ -351,7 +360,7 @@ bool ZMQMessage::isKeyRegistered(const string &keyName) {
   return LevelDB::getLevelDb()->readString(keyName + ":OWNER") != nullptr;
 }
 
-cache::lru_cache<string, pair<EVP_PKEY *, X509 *>>
+cache::lru_cache<string, pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>>
     ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{

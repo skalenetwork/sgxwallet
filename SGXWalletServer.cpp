@@ -30,6 +30,7 @@
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tbb/task_group.h>
 #include <unistd.h>
 
 #include "sgxwallet.h"
@@ -61,6 +62,10 @@ using namespace std;
 std::shared_timed_mutex sgxInitMutex;
 
 uint64_t initTime;
+
+SGXWalletServer::thread_pool SGXWalletServer::threadPool;
+std::unique_ptr<tbb::global_control>
+    SGXWalletServer::globalSGXThreadpoolControl = nullptr;
 
 void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
                     int _enterBackupKey) {
@@ -170,6 +175,16 @@ void SGXWalletServer::createCertsIfNeeded() {
     spdlog::info("SERVER CERTIFICATE VERIFICATION FAILED");
     throw SGXException(FAIL_TO_VERIFY_CERTIFICATE,
                        "SERVER CERTIFICATE VERIFICATION FAILED");
+  }
+}
+
+void SGXWalletServer::initThreadPool(size_t _numThreads) {
+  static atomic_bool threadPoolInited(false);
+  if (!threadPoolInited.exchange(true)) {
+    // Set global max threads once
+    globalSGXThreadpoolControl = std::make_unique<tbb::global_control>(
+        tbb::global_control::max_allowed_parallelism, _numThreads);
+    threadPool.initialize(_numThreads);
   }
 }
 
@@ -1097,36 +1112,133 @@ SGXWalletServer::generateBLSPrivateKeyImpl(const string &blsKeyName) {
 
 Json::Value SGXWalletServer::getDecryptionSharesImpl(
     const std::string &blsKeyName, const Json::Value &publicDecryptionValues) {
-  spdlog::info("Entering {}", __FUNCTION__);
+  spdlog::trace("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
+  // init as empty array
+  result["decryptionShares"] = Json::Value(Json::arrayValue);
 
   try {
-    if (!checkName(blsKeyName, "BLS_KEY")) {
-      throw SGXException(BLS_SIGN_INVALID_KS_NAME,
-                         string(__FUNCTION__) + ":Invalid BLSKey name");
+    CHECK_STATE(checkName(blsKeyName, "BLS_KEY"));
+    CHECK_STATE(publicDecryptionValues.isArray());
+    CHECK_STATE(publicDecryptionValues.size() <= INT_MAX);
+
+    shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+    CHECK_STATE(encryptedKeyHex_ptr != nullptr);
+    CHECK_STATE(threadPool.isInitialized());
+
+    int batchSize = publicDecryptionValues.size();
+    int threadBatch = batchSize / threadPool.size;
+    int numThreads = threadPool.size;
+    int threadRemainder = 0;
+
+    // More threads than items - use one item per thread
+    if (threadBatch == 0) {
+      threadBatch = 1;
+      numThreads = batchSize;
+    } else {
+      threadRemainder = batchSize % threadPool.size;
     }
 
-    if (!publicDecryptionValues.isArray()) {
-      throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
-                         string(__FUNCTION__) +
-                             ":Public decryption values should be an array");
+    // -----------------------------------------------------------
+    //      Populate start and end indices for each thread
+    // -----------------------------------------------------------
+    std::vector<int> startIndices(numThreads);
+    std::vector<int> endIndices(numThreads);
+
+    int thread = 0;
+    int startIdx = 0;
+    int plusOneBatch = threadBatch + 1;
+    // populate the threads that will have +1 items
+    while (threadRemainder > 0) {
+      startIndices.at(thread) = startIdx;
+      startIdx += plusOneBatch;
+      endIndices.at(thread) = startIdx;
+      ++thread;
+      --threadRemainder;
+    }
+    // populate the rest
+    while (thread < numThreads) {
+      startIndices.at(thread) = startIdx;
+      startIdx += threadBatch;
+      endIndices.at(thread) = startIdx;
+      ++thread;
     }
 
-    for (int i = 0; i < publicDecryptionValues.size(); ++i) {
-      std::string publicDecryptionValue = publicDecryptionValues[i].asString();
-      if (publicDecryptionValue.length() < 7 ||
-          publicDecryptionValue.length() > 78 * 4) {
-        throw SGXException(INVALID_DECRYPTION_VALUE_FORMAT,
-                           string(__FUNCTION__) +
-                               ":Invalid publicDecryptionValue format");
+    // -----------------------------------------------------------
+    //                        Parse input
+    // -----------------------------------------------------------
+    std::vector<std::string> concatenatedCiphertexts(numThreads);
+    std::atomic<bool> batchSizeError(false);
+    std::atomic<bool> shareSizeError(false);
+
+    // evaluate inputs in parallel
+    threadPool.execute([&]() {
+      tbb::task_group group;
+
+      for (int i = 0; i < numThreads; ++i) {
+        // pass 'i' by copy to each thread
+        group.run([&, i]() {
+          std::string local; // will hold inputs to each thread
+          local.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
+          int startingIdx = startIndices.at(i);
+          int endingIdx = endIndices.at(i);
+          for (int j = startingIdx; j < endingIdx; ++j) {
+
+            if (j >= batchSize) {
+              batchSizeError.store(true);
+              return;
+            }
+            std::string publicDecryptionValue =
+                publicDecryptionValues[j].asString();
+            if (publicDecryptionValue.length() != CIPHERTEXT_CHARACTER_LENGTH) {
+              shareSizeError.store(true);
+              return;
+            }
+            local += publicDecryptionValue;
+          }
+          concatenatedCiphertexts.at(i) = std::move(local);
+        });
       }
+      group.wait(); // wait for all threads to finish
+    });
 
-      shared_ptr<string> encryptedKeyHex_ptr = readFromDb(blsKeyName);
+    CHECK_STATE(!batchSizeError.load());
+    CHECK_STATE(!shareSizeError.load());
 
-      vector<string> decryptionValueVector = calculateDecryptionShare(
-          encryptedKeyHex_ptr->c_str(), publicDecryptionValue);
-      for (uint8_t j = 0; j < 4; ++j) {
-        result["decryptionShares"][i][j] = decryptionValueVector.at(j);
+    // -----------------------------------------------------------
+    //                  Execute decryption
+    // -----------------------------------------------------------
+    // holds results for each thread
+    std::vector<std::pair<std::vector<std::string>, std::vector<int>>>
+        decryptionSharesByThread(numThreads);
+
+    // compute decryption shares in parallel
+    threadPool.execute([&]() {
+      tbb::task_group group;
+
+      for (int i = 0; i < numThreads; ++i) {
+        // pass 'i' by copy to each thread
+        group.run([&, i]() {
+          decryptionSharesByThread.at(i) = calculateDecryptionShares(
+              encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts.at(i));
+        });
+      }
+      group.wait(); // wait for all threads to finish
+    });
+
+    // -----------------------------------------------------------
+    //                  Build Response
+    // -----------------------------------------------------------
+    int idx = 0;
+    for (auto &decryptionShares : decryptionSharesByThread) {
+      size_t sharesAmount = decryptionShares.first.size();
+      for (int i = 0; i < sharesAmount; i++) {
+        result["decryptionShares"][idx] = decryptionShares.first.at(i);
+        if (decryptionShares.second.at(i) > 0) {
+          result["failedRequests"][std::to_string(idx)] =
+              decryptionShares.second.at(i);
+        }
+        idx++;
       }
     }
   }

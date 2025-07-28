@@ -35,18 +35,17 @@ class SGXException : public exception {
   const string errString;
 
 public:
-  SGXException(int32_t _status, const string &_errString)
-      : status(_status), errString(_errString) {}
+  SGXException(int32_t _status, const string &_errString);
 
-  const string getMessage() const {
-    return "SGXException:status:" + to_string(status) + ":" + errString;
-  }
+  virtual ~SGXException();
 
-  const string &getErrString() const { return errString; }
+  const string getMessage() const;
+
+  const string &getErrString() const;
 
   const char *what() const noexcept override;
 
-  const int32_t getStatus() const { return status; }
+  const int32_t getStatus() const;
 };
 
 #endif // SGXD_SGXEXCEPTION_H

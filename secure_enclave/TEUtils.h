@@ -21,8 +21,8 @@
     @date 2021
 */
 
-#ifndef SGXWALLET_DKGUTILS_H
-#define SGXWALLET_DKGUTILS_H
+#ifndef SGXWALLET_TEUTILS_H
+#define SGXWALLET_TEUTILS_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -37,7 +37,17 @@
 #include <../tgmp-build/include/sgx_tgmp.h>
 #endif
 
+#define SUCCESS 0
+#define FAILURE 1
+
+#define STATUS_G2_NOT_WELL_FORMED 1
+#define STATUS_G2_SERIALIZATION_FAILED 2
+#define STATUS_INTERNAL_ERROR 3
+#define STATUS_UNKNOWN_ERROR 4
+
+EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
+
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
-                               char *decryption_share);
+                               size_t decryptionSize, char *decryption_share);
 
 #endif

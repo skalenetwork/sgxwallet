@@ -64,6 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define INIT_ERROR_STATE *errString = 0; *errStatus = UNKNOWN_ERROR;
 #define SET_SUCCESS *errStatus = 0;
@@ -165,6 +166,11 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     LOG_INFO("SECURITY WARNING: sgxwallet is running in INSECURE SIMULATION MODE! NEVER USE IN PRODUCTION!");
 #endif
 
+}
+
+void trustedEnclaveClear() {
+    free(globalRandom);
+    enclave_clear();
 }
 
 void free_function(void *ptr, size_t sz) {
@@ -1377,21 +1383,25 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     ;
 }
 
-void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryptedPrivateKey,
-                                const char* public_decryption_value, uint64_t key_len,
-                                char* decryption_share ) {
+void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encryptedPrivateKey,
+                                const char* public_decryption_value, uint64_t public_decryption_value_len,
+                                uint64_t key_len, char* decryption_shares, int* decryption_shares_status ) {
     LOG_DEBUG(__FUNCTION__);
 
     INIT_ERROR_STATE
 
-    CHECK_STATE(decryption_share);
     CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(public_decryption_value);
+    CHECK_STATE(decryption_shares);
+    CHECK_STATE(decryption_shares_status);
 
     SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+    SAFE_CHAR_BUF(skey_dec, BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
+    // Key comes in hexadecimal
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
                              &type, &exportable);
 
@@ -1399,9 +1409,29 @@ void trustedGetDecryptionShare( int *errStatus, char* errString, uint8_t* encryp
 
     skey_hex[ECDSA_SKEY_LEN - 1] = 0;
 
-    status = getDecryptionShare(skey_hex, public_decryption_value, decryption_share);
+    // convert to decimal
+    int stat = keyHexToDecimal(skey_hex, skey_dec);
+    
+    status = stat;
 
-    CHECK_STATUS("could not calculate decryption share");
+    CHECK_STATUS2("HexToDecimal failed %d");
+
+    char* current_input_ciphertext = public_decryption_value;
+    char* current_output_decryption_share = decryption_shares;
+
+    size_t current_ciphertext = 0;
+    // assumes the input vectors have been correctly allocated with a size of BATCH_SIZE * CIPHERTEXT_LEN + 1
+    // /                                    Available data may be less than batch size
+    for (uint8_t i = 0; (i < ENCLAVE_MAX_CIPHERTEXT_BATCH) && (current_ciphertext < public_decryption_value_len); ++i) {
+        status = getDecryptionShare(skey_dec, current_input_ciphertext, CIPHERTEXT_CHARACTER_LENGTH, current_output_decryption_share);
+
+        // array of status is sent to caller
+        decryption_shares_status[i] = status;
+        
+        current_input_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
+        current_output_decryption_share += CIPHERTEXT_CHARACTER_LENGTH;
+        current_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
+    }
 
     SET_SUCCESS
 

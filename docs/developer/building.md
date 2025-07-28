@@ -27,10 +27,12 @@ git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
 cd linux-sgx
 make preparation
 sudo make sdk_install_pkg_no_mitigation
+cd /opt/intel
+sudo sh -c 'echo yes | <sgx-repo-dir>/linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+cd <sgx-repo-dir>/linux-sgx
 sudo make psw_install_pkg
 cd /opt/intel
-sudo sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
-sudo cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+sudo cp <sgx-repo-dir>/linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
 ```
 

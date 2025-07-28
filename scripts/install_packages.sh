@@ -1,6 +1,10 @@
 #!/bin/bash
-sudo apt update
-sudo apt install -y build-essential \
+
+# This script is also used by docker files to install
+# the required packages for building the project.
+
+apt update
+apt install -y build-essential \
     ocaml \
     ocamlbuild \
     automake \
@@ -22,5 +26,6 @@ sudo apt install -y build-essential \
     libboost-dev \
     libboost-system-dev \
     libboost-thread-dev \
+    libtbb-dev \
     lsb-release \
     libsystemd0

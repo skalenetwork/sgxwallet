@@ -39,6 +39,7 @@
 #include "DHDkg.h"
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
+#include "LibffUtils.h"
 #include <cstdio>
 #include <stdio.h>
 
@@ -222,11 +223,6 @@ vector<libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs,
 
 clean:
   return result;
-}
-
-bool isG2(const libff::alt_bn128_G2 &point) {
-  return point.is_well_formed() &&
-         libff::alt_bn128_G2::order() * point == libff::alt_bn128_G2::zero();
 }
 
 int gen_dkg_poly(char *secret, unsigned _t) {
