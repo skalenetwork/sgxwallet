@@ -35,7 +35,10 @@ pid=$!
 sleep 2
 echo "Checking that sgxwallet can connect to SGX whitelist update server whitelist.trustedservices.intel.com "
 echo "If this test fails, you need to update your network config or firewall to allow this connection"
-curl -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin
+if ! curl -I http://whitelist.trustedservices.intel.com/SGX/LCWL/Linux/sgx_white_list_cert.bin; then
+    echo "WARNING: Failed to connect to SGX whitelist update server. This may affect SGX functionality."
+    echo "Please check your network configuration or firewall settings."
+fi
 else
 echo "Running in SGX simulation mode"
 fi
