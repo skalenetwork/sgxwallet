@@ -19,6 +19,18 @@ jobs:
         run: git submodule update --init --recursive
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
+      - name: Update VERSION file
+        if: |
+          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+          contains(github.ref, 'stable')
+        run : |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export VERSION=$(cat VERSION)
+          echo "Current Version $VERSION"
+          export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
+          echo "New Version $NEW_VERSION"
+          echo "$NEW_VERSION" > VERSION
       - name: deploy docker image
         if: |
           contains(github.ref, 'develop') || contains(github.ref, 'beta') ||

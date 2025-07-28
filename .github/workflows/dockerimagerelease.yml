@@ -26,6 +26,15 @@ jobs:
         shell: bash
       - name: Generate public key
         run: openssl rsa -in signed_enclaves/skale_sgx_private_key0.pem -pubout -out signed_enclaves/skale_sgx_public_key0.pem
+      - name: Update VERSION file
+        run : |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export VERSION=$(cat VERSION)
+          echo "Current Version $VERSION"
+          export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
+          echo "New Version $NEW_VERSION"
+          echo "$NEW_VERSION" > VERSION
       - name: Build and deploy docker image
         run : |
           export BRANCH=${GITHUB_REF##*/}
