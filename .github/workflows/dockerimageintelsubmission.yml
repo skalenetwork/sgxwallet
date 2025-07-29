@@ -18,22 +18,41 @@ jobs:
         run: git submodule update --init --recursive
       - name: build and deploy test image
         run: python3 scripts/docker_build.py DockerfileIntelSubmission sgxwallet_intelsubmission ${GITHUB_SHA}
-      - name: build and deploy docker image
+      - name: Calculate and cache VERSION
         if: |    
-          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-          contains(github.ref, 'master') || contains(github.ref, 'stable') ||
-          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
+          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
-          export VERSION=$(cat VERSION)
-          echo "Version $VERSION"
-          export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
-          echo "::set-env name=VERSION::$VERSION"
-          echo "Version $VERSION"
+          export CURRENT_VERSION=$(cat VERSION)
+          echo "Current Version $CURRENT_VERSION"
+          export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $CURRENT_VERSION)
+          echo "New Version $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+      - name: Update VERSION file
+        if: |    
+          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
+          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+        run : |
+          echo "Updating VERSION file with $VERSION"
+          echo "$VERSION" > VERSION
+      - name: build and deploy docker image
+        env:
+          VERSION: ${{ env.VERSION }}
+          BRANCH: ${{ env.BRANCH }}
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        if: |    
+          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
+          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+        run : |
+          echo "Branch $BRANCH"
+          echo "Using cached version $VERSION"
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
           bash ./scripts/publish_image.sh sgxwallet_intelsubmission
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
