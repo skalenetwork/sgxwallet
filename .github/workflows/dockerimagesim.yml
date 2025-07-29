@@ -26,9 +26,9 @@ jobs:
       run: sudo rm -rf sgx_data
     - name: Calculate and cache VERSION
       if: |
-            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-            contains(github.ref, 'master') ||
-            contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
       run : |
             export BRANCH=${GITHUB_REF##*/}
             echo "Branch $BRANCH"
@@ -40,9 +40,9 @@ jobs:
             echo "BRANCH=$BRANCH" >> $GITHUB_ENV
     - name: Update VERSION file
       if: |
-            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-            contains(github.ref, 'master') ||
-            contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
       run : |
             echo "Updating VERSION file with $VERSION"
             echo "$VERSION" > VERSION
@@ -52,9 +52,9 @@ jobs:
           BRANCH: ${{ env.BRANCH }}
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       if: |
-            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-            contains(github.ref, 'master') ||
-            contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
+            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
       run : |
             sudo rm -rf /home/runner/work/sgxwallet/sgxwallet/sgx_data
             echo "Branch $BRANCH"
