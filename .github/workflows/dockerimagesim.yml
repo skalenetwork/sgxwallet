@@ -45,6 +45,7 @@ jobs:
       env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       if: |
             contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
             contains(github.ref, 'master') ||
@@ -57,8 +58,6 @@ jobs:
             echo "::set-env name=RELEASE::$RELEASE"
             bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
             bash ./scripts/publish_image.sh sgxwallet_sim
-      env:
-            ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
 
 

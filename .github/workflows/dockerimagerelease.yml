@@ -47,6 +47,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run : |
           echo "Branch $BRANCH"
           echo "Using cached version $VERSION"
@@ -54,8 +55,6 @@ jobs:
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileRelease sgxwallet_release
           bash ./scripts/publish_image.sh sgxwallet_release
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       - name: Delete secrets
         run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
       - name: Copy secure_enclave.signed.so
