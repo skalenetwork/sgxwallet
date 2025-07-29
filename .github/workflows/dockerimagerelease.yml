@@ -37,9 +37,6 @@ jobs:
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
       - name: Update VERSION file
-        if: |
-            contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-            contains(github.ref, 'stable')
         run : |
           echo "Updating VERSION file with $VERSION"
           echo "$VERSION" > VERSION

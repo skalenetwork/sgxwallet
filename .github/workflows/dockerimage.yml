@@ -20,6 +20,10 @@ jobs:
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
       - name: Calculate and cache VERSION
+        if: |
+          contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
+          contains(github.ref, 'master') ||
+          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
@@ -32,7 +36,8 @@ jobs:
       - name: Update VERSION file
         if: |
           contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
-          contains(github.ref, 'stable')
+          contains(github.ref, 'master') ||
+          contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
         run : |
           echo "Updating VERSION file with $VERSION"
           echo "$VERSION" > VERSION
