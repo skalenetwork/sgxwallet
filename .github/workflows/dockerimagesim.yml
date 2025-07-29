@@ -24,32 +24,35 @@ jobs:
       run: python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: cleanup
       run: sudo rm -rf sgx_data
+    - name: Calculate and cache VERSION
+      run : |
+            export BRANCH=${GITHUB_REF##*/}
+            echo "Branch $BRANCH"
+            export CURRENT_VERSION=$(cat VERSION)
+            echo "Current Version $CURRENT_VERSION"
+            export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $CURRENT_VERSION)
+            echo "New Version $NEW_VERSION"
+            echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+            echo "BRANCH=$BRANCH" >> $GITHUB_ENV
     - name: Update VERSION file
       if: |
             contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
             contains(github.ref, 'stable')
       run : |
-            export BRANCH=${GITHUB_REF##*/}
-            echo "Branch $BRANCH"
-            export VERSION=$(cat VERSION)
-            echo "Current Version $VERSION"
-            export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
-            echo "New Version $NEW_VERSION"
-            echo "$NEW_VERSION" > VERSION
+            echo "Updating VERSION file with $VERSION"
+            echo "$VERSION" > VERSION
     - name: build and deploy docker image
+      env:
+          VERSION: ${{ env.VERSION }}
+          BRANCH: ${{ env.BRANCH }}
       if: |
             contains(github.ref, 'develop') || contains(github.ref, 'beta') ||
             contains(github.ref, 'master') ||
             contains(github.ref, 'SECURE_ENCLAVE_CHANGES')
       run : |
             sudo rm -rf /home/runner/work/sgxwallet/sgxwallet/sgx_data
-            export BRANCH=${GITHUB_REF##*/}
             echo "Branch $BRANCH"
-            export VERSION=$(cat VERSION)
-            echo "Version $VERSION"
-            export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
-            echo "::set-env name=VERSION::$VERSION"
-            echo "Version $VERSION"
+            echo "Using cached version $VERSION"
             export RELEASE=true
             echo "::set-env name=RELEASE::$RELEASE"
             bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
