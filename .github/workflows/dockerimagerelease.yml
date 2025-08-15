@@ -26,21 +26,32 @@ jobs:
         shell: bash
       - name: Generate public key
         run: openssl rsa -in signed_enclaves/skale_sgx_private_key0.pem -pubout -out signed_enclaves/skale_sgx_public_key0.pem
-      - name: Build and deploy docker image
+      - name: Calculate and cache VERSION
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
-          export VERSION=$(cat VERSION)
-          echo "Version $VERSION"
-          export VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $VERSION)
-          echo "::set-env name=VERSION::$VERSION"
-          echo "Version $VERSION"
+          export CURRENT_VERSION=$(cat VERSION)
+          echo "Current Version $CURRENT_VERSION"
+          export NEW_VERSION=$(bash ./scripts/calculate_version.sh $BRANCH $CURRENT_VERSION)
+          echo "New Version $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+      - name: Update VERSION file
+        run : |
+          echo "Updating VERSION file with $VERSION"
+          echo "$VERSION" > VERSION
+      - name: Build and deploy docker image
+        env:
+          VERSION: ${{ env.VERSION }}
+          BRANCH: ${{ env.BRANCH }}
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        run : |
+          echo "Branch $BRANCH"
+          echo "Using cached version $VERSION"
           export RELEASE=true
           echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileRelease sgxwallet_release
           bash ./scripts/publish_image.sh sgxwallet_release
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       - name: Delete secrets
         run: rm -f signed_enclaves/skale_sgx_private_key0.pem signed_enclaves/skale_sgx_public_key0.pem
       - name: Copy secure_enclave.signed.so
