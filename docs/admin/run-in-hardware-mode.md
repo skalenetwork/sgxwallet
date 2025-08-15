@@ -42,7 +42,7 @@ Edit `docker-compose.yml` as needed with the appropriate devices, ports, command
 
 On Linux kernel >= 5.11, the device name should be /sgx/enclave
 
-Otherwise it usually set to `/dev/mei0`.
+Otherwise, it is usually set to `/dev/mei0`.
 Please make sure to specify the correct device in `docker-compose.yml` .
 
 ### Ports
