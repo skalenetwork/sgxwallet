@@ -18,7 +18,7 @@ To enable:
 
 ## Enable "software-controlled" SGX
 
-Software-controlled means that SGX needs to be enabled by running a utility. 
+Software-controlled means that SGX needs to be enabled by running a utility.
 
 This repo includes the **_sgx_enable_** utility. To enable SGX run:
 
@@ -34,7 +34,7 @@ cd sgx-software-enable;
 make
 ```
 
-## Install SGX driver
+## Install SGX driver (for Linux kernel < 5.11)
 
 Install make and gcc if you do not have it:
 
@@ -54,8 +54,8 @@ Please note that version `2.11.b6f5b4a` is what is currently supported.
 Reboot you machine after driver install. Do `ls /dev/isgx` to check that `isgx` device is properly installed.
 If you do not see the `isgx` device, you need to troubleshoot your driver installation.
 
-If driver installation fails, you can also try installing driver from the 
-Intel github repository. Do 
+If driver installation fails, you can also try installing driver from the
+Intel github repository. Do
 
 ```bash
 git clone https://github.com/intel/linux-sgx-driver
