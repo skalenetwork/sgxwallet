@@ -84,6 +84,25 @@ public:
                        vector<string> &_blsKeyNames, int schainID, int dkgID);
 
   static void sendRPCRequestZMQ();
+
+  // Simple start barrier - used by multi-threaded load tests
+  struct start_barrier {
+      explicit start_barrier(int count) : count(count) {}
+      void wait() {
+          std::unique_lock<std::mutex> lock(m);
+          if (--count == 0) {
+              cv.notify_all();
+          } else {
+              cv.wait(lock, [&] { return count == 0; });
+          }
+      }
+
+  private:
+      int count;
+      std::mutex m;
+      std::condition_variable cv;
+  };
+
 };
 
 int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
