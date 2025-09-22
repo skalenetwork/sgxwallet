@@ -3,10 +3,12 @@
  <ISVSVN>4</ISVSVN>
  <StackMaxSize>0x1000000</StackMaxSize>
  <HeapMaxSize>0x10000000</HeapMaxSize>
- <TCSNum>128</TCSNum> <!-- starting number of TCSs -->
+ <!-- starting number of TCSs -->
+ <TCSNum>64</TCSNum>
  <TCSMaxNum>256</TCSMaxNum>
- <TCSMinPool>128</TCSMinPool>
- <TCSPolicy>1</TCSPolicy> <!-- 1: Make TCS Allocation dynamic. If set to 0, then num of TCS = TCSNum for whole run -->
+ <TCSMinPool>64</TCSMinPool>
+ <!-- 1: Make TCS Allocation dynamic. If set to 0, then num of TCS = TCSNum for whole run -->
+ <TCSPolicy>1</TCSPolicy>
  <!-- Recommend changing 'DisableDebug' to 1 to make the enclave undebuggable for enclave release -->
  <DisableDebug>0</DisableDebug>
  <MiscSelect>0</MiscSelect>
