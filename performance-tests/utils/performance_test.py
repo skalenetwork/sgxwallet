@@ -127,10 +127,7 @@ class PerformanceTest(ABC):
         start = time.perf_counter()
         async with session.post(self.endpoint, json=payload) as response:
             result = await response.json()
-            print("RESPONSE: ", result.get("result", {}).get("errorMessage"))
-
             end = time.perf_counter()
-
             
         return result, (end - start) * 1000 # Convert to ms
     
