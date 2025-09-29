@@ -79,5 +79,4 @@ RUN ./autoconf.bash
 
 # Final cleanup to reduce base image size
 RUN find /usr/src/sdk -name "*.o" -type f -delete \
-    && find /usr/src/sdk -type f \( -name "*.a" -o -name "*.la" \) -delete \
     && ccache -C
