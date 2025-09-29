@@ -43,9 +43,9 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-JSON_LIBS_DIR = topDir +  "/jsonrpc"
+JSON_LIBS_DIR = topDir + "/jsonrpc"
 
-BLS_DIR = topDir +  "/libBLS"
+BLS_DIR = topDir + "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
@@ -111,6 +111,10 @@ assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)
 assert subprocess.call(["cp", "third_party/gmp/sgx_tgmp.h.fixed", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) ==  0  
+
+print("Cleanup")
+os.chdir(BLS_DIR + "/deps")
+assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type d ! -name '.' ! -name 'deps_inst' -exec rm -rf {} +"]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
