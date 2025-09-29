@@ -125,4 +125,4 @@ assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type d ! -name '.' ! 
 assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type f \\( -name '*.tar.gz' -o -name '*.tar.bz2' -o -name '*.tar.xz' -o -name '*.zip' -o -name '*.tgz' -o -name '*.tbz2' \\) -delete"]) == 0
 
 os.chdir(topDir)
-print("Build successfull.")
+print("Build successful.")
