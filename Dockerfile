@@ -17,4 +17,5 @@ COPY docker/start.sh ./
 COPY docker/check_firewall.py ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/
 RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+RUN find /usr/src/sdk -name "*.o" -type f -delete
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
