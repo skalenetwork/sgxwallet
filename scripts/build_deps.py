@@ -122,6 +122,7 @@ assert subprocess.call(["cp", "third_party/gmp/sgx_tgmp.h.fixed", TGMP_BUILD_DIR
 print("Cleanup")
 os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type d ! -name '.' ! -name 'deps_inst' -exec rm -rf {} +"]) == 0
+assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type f \\( -name '*.tar.gz' -o -name '*.tar.bz2' -o -name '*.tar.xz' -o -name '*.zip' -o -name '*.tgz' -o -name '*.tbz2' \\) -delete"]) == 0
 
 os.chdir(topDir)
 print("Build successfull.")
