@@ -73,7 +73,7 @@ assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh CMAKE_BUILD_TYPE=Release"]) == 0
+assert subprocess.call(["bash", "-c", "export CMAKE_BUILD_TYPE=Release && ./build.sh"]) == 0
 os.chdir(BLS_DIR)
 assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo"]) == 0
 os.chdir(BLS_DIR + "/build")
