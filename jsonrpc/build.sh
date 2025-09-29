@@ -3,7 +3,6 @@
 export UNIX_SYSTEM_NAME=$(uname -s)
 export NUMBER_OF_CPU_CORES=$(grep -c ^processor /proc/cpuinfo)
 export READLINK=readlink
-export SO_EXT=so
 
 INSTALL_ROOT_RELATIVE="../libBLS/deps/deps_inst/x86_or_x64/"
 INSTALL_ROOT=$($READLINK -f $INSTALL_ROOT_RELATIVE)
@@ -40,6 +39,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DCURL_INCLUDE_DIR=$INSTALL_ROOT/include \
 	-DJSONCPP_INCLUDE_DIR=$INSTALL_ROOT/include \
 	..
-make
-make install
+make -j $NUMBER_OF_CPU_CORES
+make -j $NUMBER_OF_CPU_CORES install
 cd ../..
