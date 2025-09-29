@@ -39,6 +39,7 @@ COPY docker/check_firewall.py ./
 RUN rm -rf /usr/src/sdk/sgx-sdk-build/ \
     && rm -f /opt/intel/sgxsdk/lib64/*_sim.so \
     && find /usr/src/sdk -name "*.o" -type f -delete \
+    && find /usr/src/sdk -type f \( -name "*.a" -o -name "*.la" \) -delete \
     && ccache -C
 
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
