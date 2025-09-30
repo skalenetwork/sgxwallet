@@ -1,9 +1,6 @@
-FROM skalenetwork/sgxwallet_base:latest
+FROM ubuntu:22.04
 
-COPY . /usr/src/sdk
-WORKDIR /usr/src/sdk
-
-# Install dependencies and Python packages in one layer
+# Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     secure-delete \
@@ -13,23 +10,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Build application
-RUN touch /var/hwmode \
-    && ./autoconf.bash \
-    && ./configure \
-    && make -j$(nproc) \
-    && ccache -sz \
-    && mkdir -p /usr/src/sdk/sgx_data
+# Install libssl1.1 dependency
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-# Copy runtime scripts
-COPY docker/start.sh ./
-COPY docker/check_firewall.py ./
+# Copy pre-built SGX wallet binary and runtime files
+COPY sgxwallet /usr/src/sdk/sgxwallet
+COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave/secure_enclave.signed.so
+COPY docker/start.sh /usr/src/sdk/start.sh
+COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
 
-# Cleanup to reduce image size
-RUN rm -rf /usr/src/sdk/sgx-sdk-build/ \
-    && rm -f /opt/intel/sgxsdk/lib64/*_sim.so \
-    && find /usr/src/sdk -name "*.o" -type f -delete \
-    && find /usr/src/sdk -type f \( -name "*.a" -o -name "*.la" \) -delete \
-    && ccache -C
+# Create required directories
+RUN mkdir -p /usr/src/sdk/sgx_data
+
+WORKDIR /usr/src/sdk
+
+# Mark as hardware mode
+RUN touch /var/hwmode
 
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

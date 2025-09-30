@@ -17,8 +17,94 @@ jobs:
       - uses: actions/checkout@v2
       - name: submodule update
         run: git submodule update --init --recursive
+      
+      # Host build steps (moved from DockerfileBase)
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -yq --no-install-recommends \
+            wget \
+            curl \
+            git \
+            build-essential \
+            cmake \
+            apt-utils \
+            vim \
+            telnet \
+            ca-certificates \
+            perl \
+            alien \
+            uuid-dev \
+            libxml2-dev \
+            ccache \
+            yasm \
+            libprocps-dev \
+            texinfo \
+            graphviz \
+            doxygen \
+            libgnutls28-dev \
+            libgcrypt20-dev
+      
+      - name: Install libssl1.1 dependency
+        run: |
+          wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+      
+      - name: Install Intel SGX SDK and PSW
+        run: |
+          git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
+          cd linux-sgx
+          make preparation
+          make sdk_install_pkg_no_mitigation
+          cd /opt/intel
+          sudo sh -c 'echo yes | $(pwd)/../*/linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+          cd $(pwd)/../*/linux-sgx
+          make psw_install_pkg
+          cd /opt/intel
+          sudo cp $(pwd)/../*/linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+          sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
+          sudo rm -f sgx_linux_x64_psw*.bin
+          cd $(pwd)/../*
+          rm -rf linux-sgx
+      
+      - name: Setup ccache
+        run: |
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/clang
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/clang++
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/g++
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/cc
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/c++
+      
+      - name: Build dependencies
+        run: |
+          chmod +x scripts/install_packages.sh
+          sudo ./scripts/install_packages.sh
+          cd scripts
+          sudo ./build_deps.py
+      
+      - name: Install Intel DAL Host Interface
+        run: |
+          cd scripts
+          wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
+          cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+          cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit
+          make install -j$(nproc)
+          cd ..
+          rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+      
+      - name: Configure and build SGX wallet
+        run: |
+          source /opt/intel/sgxsdk/environment
+          ./autoconf.bash
+          ./configure
+          make -j$(nproc)
+          mkdir -p sgx_data
+      
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
+      
       - name: Calculate and cache VERSION
         if: |
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
