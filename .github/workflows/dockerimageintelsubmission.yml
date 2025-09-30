@@ -65,7 +65,7 @@ jobs:
           WORK_DIR=$(pwd)
           sudo mkdir -p /opt/intel
           cd /opt/intel
-          sudo sh -c 'echo yes | $WORK_DIR/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+          sudo sh -c "echo yes | $WORK_DIR/linux/installer/bin/sgx_linux_x64_sdk_*.bin"
           cd $WORK_DIR
           make psw_install_pkg -j$(nproc)
           cd /opt/intel
