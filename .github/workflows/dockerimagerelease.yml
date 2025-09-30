@@ -23,7 +23,6 @@ jobs:
       # Host build steps (moved from DockerfileBase)
       - name: Install host dependencies
         run: |
-          sudo apt-get update
           sudo apt-get install -yq --no-install-recommends \
             wget \
             curl \
