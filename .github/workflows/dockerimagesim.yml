@@ -22,6 +22,7 @@ jobs:
     # Host build steps (moved from DockerfileBase)
     - name: Install host dependencies
       run: |
+        sudo apt-get update
         sudo apt-get install -yq --no-install-recommends \
           wget \
           curl \
@@ -44,6 +45,8 @@ jobs:
           doxygen \
           libgnutls28-dev \
           libgcrypt20-dev
+        chmod +x scripts/install_packages.sh
+        sudo ./scripts/install_packages.sh
     
     - name: Install libssl1.1 dependency
       run: |
@@ -79,8 +82,6 @@ jobs:
     
     - name: Build dependencies
       run: |
-        chmod +x scripts/install_packages.sh
-        sudo ./scripts/install_packages.sh
         cd scripts
         sudo ./build_deps.py
     
