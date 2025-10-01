@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     doxygen \
     libgnutls28-dev \
     libgcrypt20-dev && \
-    chmod +x scripts/install_packages.sh && \
-    ./scripts/install_packages.sh && \
+    chmod +x /usr/src/sdk/sgxwallet/scripts/install_packages.sh && \
+    ./usr/src/sdk/sgxwallet/scripts/install_packages.sh && \
     pip3 install --upgrade --no-cache-dir pip && \
     pip3 install --no-cache-dir requests torpy && \
     apt-get clean && \
