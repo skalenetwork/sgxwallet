@@ -47,6 +47,7 @@ RUN mkdir -p /opt/intel/sgxsdk && \
 
 # Copy pre-built SGX wallet binary and runtime files
 COPY sgxwallet /usr/src/sdk/sgxwallet
+COPY testw /usr/src/sdk/testw
 COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave/secure_enclave.signed.so
 COPY docker/start.sh /usr/src/sdk/start.sh
 COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
