@@ -118,6 +118,12 @@ jobs:
           make -j$(nproc)
           mkdir -p sgx_data
       
+      - name: Prepare build directory for Docker
+        run: |
+          mkdir -p build/opt/intel
+          cp -r /opt/intel/sgxsdk build/opt/intel/
+          cp -r /opt/intel/sgxpsw build/opt/intel/
+      
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
       

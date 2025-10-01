@@ -6,11 +6,10 @@ RUN chmod +x /install_packages.sh && /install_packages.sh
 
 # Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget curl \
-    secure-delete \
-    python3-pip \
     wget \
     curl \
+    secure-delete \
+    python3-pip \
     git \
     build-essential \
     cmake \
@@ -40,11 +39,27 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1
     && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
     && rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
+# Create required directories
+RUN mkdir -p /opt/intel/sgxsdk && \
+    mkdir -p /opt/intel/sgxpsw && \
+    mkdir -p /var/lib/intel/dal && \
+    mkdir -p /usr/src/sdk/sgx_data
+
 # Copy pre-built SGX wallet binary and runtime files
 COPY sgxwallet /usr/src/sdk/sgxwallet
 COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave/secure_enclave.signed.so
 COPY docker/start.sh /usr/src/sdk/start.sh
 COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
+COPY testw.py /usr/src/sdk/testw.py
+
+# Copy Intel SGX runtime components
+COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
+COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
+
+# Make scripts executable
+RUN chmod +x /usr/src/sdk/start.sh && \
+    chmod +x /usr/src/sdk/testw.py && \
+    chmod +x /usr/src/sdk/check_firewall.py
 
 # Create required directories
 RUN mkdir -p /usr/src/sdk/sgx_data

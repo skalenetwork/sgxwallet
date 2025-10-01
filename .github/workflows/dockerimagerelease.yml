@@ -136,6 +136,12 @@ jobs:
           make -j$(nproc)
           mkdir -p sgx_data
       
+      - name: Prepare build directory for Docker
+        run: |
+          mkdir -p build/opt/intel
+          cp -r /opt/intel/sgxsdk build/opt/intel/
+          cp -r /opt/intel/sgxpsw build/opt/intel/
+      
       - name: Calculate and cache VERSION
         run : |
           export BRANCH=${GITHUB_REF##*/}
