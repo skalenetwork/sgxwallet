@@ -12,7 +12,7 @@ DEBUG_D=""
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout b547a27e8802bfba3564d8075efa36a475f4d9e8
+git checkout 0bc250af13385c782634635e3d376e1ed6d2c35d
 git pull
 rm -rf build || true
 mkdir -p build
