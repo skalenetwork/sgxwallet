@@ -95,6 +95,10 @@ jobs:
         cd scripts
         sudo ./build_deps.py
     
+    - name: Create Intel DAL directory
+      run: |
+        sudo mkdir -p /var/lib/intel/dal
+    
     - name: Install Intel DAL Host Interface
       run: |
         cd scripts
