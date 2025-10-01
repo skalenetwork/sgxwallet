@@ -54,6 +54,7 @@ COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave.signed.
 COPY docker/start.sh /usr/src/sdk/start.sh
 COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
 COPY testw.py /usr/src/sdk/testw.py
+COPY cert /usr/src/sdk/cert
 
 # Copy Intel SGX runtime components
 COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
