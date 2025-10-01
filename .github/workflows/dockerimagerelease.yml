@@ -23,6 +23,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Submodule update
         run: git submodule update --init --recursive
+      - name: Cleanup Intel SGX (initial)
+        run: |
+          sudo /opt/intel/sgxpsw/uninstall.sh || true
+          sudo /opt/intel/sgxsdk/uninstall.sh || true
       
       # Host build steps (moved from DockerfileBase)
       - name: Install host dependencies
