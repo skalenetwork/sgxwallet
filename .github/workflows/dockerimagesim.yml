@@ -123,6 +123,11 @@ jobs:
         mkdir -p build/opt/intel
         cp -r /opt/intel/sgxsdk build/opt/intel/
     
+    - name: Cleanup existing Docker containers and images
+      run: |
+        docker stop sgxwallet || true
+        docker rm sgxwallet || true
+    
     - name: Build and publish container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: test
