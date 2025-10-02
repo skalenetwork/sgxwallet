@@ -92,13 +92,11 @@ jobs:
       - name: Build dependencies
         run: |
           cd scripts
-          sudo ./build_deps.py
+          ./build_deps.py
       
       - name: Create Intel DAL directory
         run: |
           sudo mkdir -p /var/lib/intel/dal
-          # sudo chown -R $USER:$USER /var/lib/intel/dal
-          # sudo chmod -R 755 /var/lib/intel/dal
       
       - name: Install Intel DAL Host Interface
         run: |
