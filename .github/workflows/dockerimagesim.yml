@@ -93,7 +93,7 @@ jobs:
     - name: Build dependencies
       run: |
         cd scripts
-        sudo ./build_deps.py
+        ./build_deps.py
     
     - name: Create Intel DAL directory
       run: |
