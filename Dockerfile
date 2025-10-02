@@ -61,8 +61,8 @@ COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
 RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
 
 # Create symbolic links for SGX libraries in system library paths
-RUN ln -sf /opt/intel/sgxsdk/lib64/libsgx_urts.so /usr/lib/x86_64-linux-gnu/libsgx_urts.so && \
-    ln -sf /opt/intel/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/x86_64-linux-gnu/libsgx_uae_service.so
+RUN ln -sf /opt/intel/sgxsdk/lib64/libsgx_urts.so /usr/lib/libsgx_urts.so && \
+    ln -sf /opt/intel/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/libsgx_uae_service.so
 
 # Copy Intel DAL Host Interface binaries (includes jhid)
 COPY build/usr/sbin/jhid /usr/sbin/jhid
