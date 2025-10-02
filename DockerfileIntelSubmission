@@ -54,6 +54,8 @@ COPY docker/start.sh /usr/src/sdk/start.sh
 COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
 COPY cert /usr/src/sdk/cert
 
+RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+
 # Copy Intel SGX runtime components
 COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
 COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
