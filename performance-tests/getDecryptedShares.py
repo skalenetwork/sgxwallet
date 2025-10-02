@@ -27,14 +27,14 @@ class DecryptSharesTest(PerformanceTest):
             "1167e1f5c133ec7f90856379036269cfbb4301088e845be781c9fca33d7147ce07e2568d1dd7d91792c57b81a5180f734148885651fc9bfba6d8e462ca46f6e306b773010b64df82f927d75780ba8a660ad450fd0a6a5cee3e0d0d7862b2b4d51a90e322711fefbf690fa062e983f301f02a82a1274d067c1c0d853444519ff7",
         ]
 
-        self.num_batches_each = 50
+        self.num_batches_each = 1
 
         # single request data
-        self.batch_sizes = [2, 4, 8, 16, 32, 64, 128]
+        self.batch_sizes = [512]
 
         # parallel test data
-        self.parallel_threads = [ 1, 2, 4, 8, 16]
-        self.parallel_batch_size = 2000
+        self.parallel_threads = [ 11 ]
+        self.parallel_batch_size = 5000
 
     
     # Send by default batch of size 1000 - for parallel tests
@@ -57,10 +57,8 @@ async def main(args):
     results = await test.run_serial_test(test.batch_sizes, test.num_batches_each)
     test.plot_results(results, "Batch size", "Time (ms)", "DecryptShares Performance Test", "getDecryptionShares-single-thread")
 
-    resutls = await test.run_parallel_test(test.parallel_threads, test.parallel_batch_size, test.num_batches_each)
-    test.plot_results(resutls, "Number of Threads", "Trhoughput", "DecryptShares Performance Test", "getDecryptionShares-parallel")
-
-
+    results = await test.run_parallel_test(test.parallel_threads, test.parallel_batch_size, test.num_batches_each)
+    test.plot_results(results, "Number of Threads", "Throughput", "DecryptShares Performance Test", "getDecryptionShares-parallel")
 
 
 if __name__ == "__main__":

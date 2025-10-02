@@ -156,7 +156,7 @@ class PerformanceTest(ABC):
                 
                 print(f"{threads:2d} threads: {np.mean(times):8.2f} ms total, +-{np.std(times):6.2f} ms")
         
-        return Results(self.rtt, self.rtt_std, results, standard_devs, variable)
+        return Results(self.rtt, self.rtt_std, results, standard_devs)
     
     # Returns a tuple ( results, standard deviation )
     async def run_serial_test(self, variable: List[int], num_iterations: int = 2, **kwargs) -> Results:

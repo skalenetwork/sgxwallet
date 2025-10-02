@@ -63,6 +63,8 @@
 #include "testw.h"
 #include "zmq_src/ZMQClient.h"
 #include "zmq_src/ZMQServer.h"
+#include <condition_variable>
+#include <mutex>
 
 #define PRINT_SRC_LINE cerr << "Executing line " << to_string(__LINE__) << endl;
 
@@ -1750,6 +1752,101 @@ TEST_CASE_METHOD(TestFixture,
       libff::alt_bn128_G2 share = convertStringToG2(decryption_share);
       REQUIRE(share == key * decryption_values[i]);
     }
+  }
+}
+
+TEST_CASE_METHOD(TestFixture,
+                 "Test 15 concurrent decryption share calls via zmq",
+                 "[te-load-test-decryption-share-zmq]") {
+  // Root client for key import (server-side state); do this once.
+  auto rootClient = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, /*verify=*/true,
+                                           "./sgx_data/cert_data/rootCA.pem",
+                                           "./sgx_data/cert_data/rootCA.key");
+
+  const std::string key_hex =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  const std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  rootClient->importBLSKeyShare(key_hex, name);
+
+  // Same key in decimal (G2 * Fr verification)
+  const libff::alt_bn128_Fr key(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847");
+
+  // For each configured batch size, launch 15 concurrent requests
+  for (int num_requests : BATCH_TEST_VALUES) {
+    // Ensure small-ish test to keep it lightweight; adjust or remove if
+    // unneeded.
+    REQUIRE(num_requests > 0);
+
+    constexpr int kNumThreads = 22;
+    TestUtils::start_barrier start_gate(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+
+    std::mutex first_exc_m;
+    std::exception_ptr first_exc = nullptr;
+
+    for (int t = 0; t < kNumThreads; ++t) {
+      threads.emplace_back([&, t]() {
+        try {
+          // Per-thread client (ZMQ socket/thread safety)
+          auto client =
+              std::make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, /*verify=*/true,
+                                          "./sgx_data/cert_data/rootCA.pem",
+                                          "./sgx_data/cert_data/rootCA.key");
+
+          // Build thread-local inputs
+          Json::Value publicDecryptionValues;
+          std::vector<libff::alt_bn128_G2> decryption_values;
+          decryption_values.reserve(num_requests);
+
+          for (int i = 0; i < num_requests; ++i) {
+            libff::alt_bn128_G2 g = libff::alt_bn128_G2::random_element();
+            decryption_values.push_back(g);
+            g.to_affine_coordinates();
+            auto g_str = convertG2ToString(g, /*base=*/16, /*prefix=*/"");
+            publicDecryptionValues["publicDecryptionValues"][i] = g_str;
+          }
+
+          // Synchronize start so all 22 hit the server together
+          start_gate.wait();
+          // Request + validate
+          auto decryptionShares =
+              client->getDecryptionShares(name, publicDecryptionValues);
+
+          // Basic shape checks
+          REQUIRE(decryptionShares.isObject());
+          REQUIRE(!decryptionShares.isMember("failedRequests"));
+          REQUIRE(decryptionShares.isMember("decryptionShares"));
+          REQUIRE(decryptionShares["decryptionShares"].isArray());
+          REQUIRE(
+              static_cast<int>(decryptionShares["decryptionShares"].size()) ==
+              num_requests);
+
+          // Verify each share: share == key * G2_i
+          for (int i = 0; i < num_requests; ++i) {
+            const auto share_hex =
+                decryptionShares["decryptionShares"][i].asString();
+            libff::alt_bn128_G2 share = convertStringToG2(share_hex);
+            REQUIRE(share == key * decryption_values[i]);
+          }
+        } catch (...) {
+          // Capture first exception for clean failure after joins
+          std::lock_guard<std::mutex> lk(first_exc_m);
+          if (!first_exc)
+            first_exc = std::current_exception();
+        }
+      });
+    }
+
+    // Join all workers
+    for (auto &th : threads)
+      th.join();
+
+    // Surface any error observed in threads
+    if (first_exc)
+      std::rethrow_exception(first_exc);
   }
 }
 
