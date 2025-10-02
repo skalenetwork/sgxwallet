@@ -58,9 +58,15 @@ COPY cert /usr/src/sdk/cert
 COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
 COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
 
+# Copy Intel DAL Host Interface binaries (includes jhid)
+COPY build/usr/local/bin/jhid /usr/local/bin/jhid
+COPY build/usr/local/lib/libjhi* /usr/local/lib/
+COPY build/usr/local/include/jhi* /usr/local/include/
+
 # Make scripts executable
 RUN chmod +x /usr/src/sdk/start.sh && \
-    chmod +x /usr/src/sdk/check_firewall.py
+    chmod +x /usr/src/sdk/check_firewall.py && \
+    chmod +x /usr/local/bin/jhid
 
 # Create required directories
 RUN mkdir -p /usr/src/sdk/sgx_data
