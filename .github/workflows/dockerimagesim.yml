@@ -19,6 +19,12 @@ jobs:
       run: ls /dev/urandom
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+    - name: Clean workspace
+      run: |
+        cd $GITHUB_WORKSPACE/..
+        rm -rf sgxwallet || true
+        mkdir -p sgxwallet
+        cd sgxwallet
     - uses: actions/checkout@v2
     - name: submodule update
       run: git submodule update --init --recursive
