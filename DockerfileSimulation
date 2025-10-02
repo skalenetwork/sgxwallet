@@ -60,10 +60,16 @@ COPY insecure-samples /usr/src/sdk/insecure-samples
 # Copy Intel SGX runtime components (simulation mode - minimal)
 COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
 
+# Copy SGX SDK directory structure
+COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
+
+# Copy Intel DAL Host Interface binaries (includes jhid)
+
 # Make scripts executable
 RUN chmod +x /usr/src/sdk/start.sh && \
     chmod +x /usr/src/sdk/testw.py && \
-    chmod +x /usr/src/sdk/check_firewall.py
+    chmod +x /usr/src/sdk/check_firewall.py && \
+    ldconfig
 
 WORKDIR /usr/src/sdk
 
