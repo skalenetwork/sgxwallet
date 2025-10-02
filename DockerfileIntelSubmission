@@ -60,7 +60,6 @@ COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
 
 # Make scripts executable
 RUN chmod +x /usr/src/sdk/start.sh && \
-    chmod +x /usr/src/sdk/testw.py && \
     chmod +x /usr/src/sdk/check_firewall.py
 
 WORKDIR /usr/src/sdk
