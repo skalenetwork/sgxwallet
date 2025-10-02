@@ -59,14 +59,14 @@ COPY build/opt/intel/sgxsdk /opt/intel/sgxsdk
 COPY build/opt/intel/sgxpsw /opt/intel/sgxpsw
 
 # Copy Intel DAL Host Interface binaries (includes jhid)
-COPY build/usr/local/bin/jhid /usr/local/bin/jhid
-COPY build/usr/local/lib/libjhi* /usr/local/lib/
-COPY build/usr/local/include/jhi* /usr/local/include/
+COPY build/usr/sbin/jhid /usr/sbin/jhid
+COPY build/usr/lib/libjhi.so /usr/lib/libjhi.so
+COPY build/usr/lib/libteemanagement.so /usr/lib/libteemanagement.so
 
 # Make scripts executable
 RUN chmod +x /usr/src/sdk/start.sh && \
     chmod +x /usr/src/sdk/check_firewall.py && \
-    chmod +x /usr/local/bin/jhid
+    chmod +x /usr/sbin/jhid
 
 # Create required directories
 RUN mkdir -p /usr/src/sdk/sgx_data

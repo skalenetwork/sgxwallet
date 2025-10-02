@@ -125,15 +125,14 @@ jobs:
       - name: Prepare build directory for Docker
         run: |
           mkdir -p build/opt/intel
-          mkdir -p build/usr/local/bin
-          mkdir -p build/usr/local/lib
-          mkdir -p build/usr/local/include
+          mkdir -p build/usr/sbin
+          mkdir -p build/usr/lib
           cp -r /opt/intel/sgxsdk build/opt/intel/
           cp -r /opt/intel/sgxpsw build/opt/intel/
           # Copy Intel DAL Host Interface binaries
-          cp /usr/local/bin/jhid build/usr/local/bin/ || true
-          cp /usr/local/lib/libjhi* build/usr/local/lib/ || true
-          cp /usr/local/include/jhi* build/usr/local/include/ || true
+          cp /usr/sbin/jhid build/usr/sbin/ || true
+          cp /usr/lib/libjhi.so build/usr/lib/ || true
+          cp /usr/lib/libteemanagement.so build/usr/lib/ || true
       
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
