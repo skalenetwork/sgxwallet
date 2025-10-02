@@ -5,7 +5,6 @@ COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh
 
 # Install minimal runtime dependencies
-RUN # Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
