@@ -1,53 +1,82 @@
 FROM ubuntu:22.04
 
+# Install packages and setup environment in optimized layers
 COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh
 
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+# Install libssl1.1 dependency
+RUN wget --progress=dot:mega http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
+# Clone and build Intel SGX SDK/PSW
+RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx \
+    && cd linux-sgx \
+    && make preparation \
+    && make sdk_install_pkg_no_mitigation
 
-RUN cd linux-sgx && make preparation
-
-WORKDIR /linux-sgx
-COPY . .
-
-RUN make sdk_install_pkg_no_mitigation
-
+# Install SGX SDK first (required before PSW build)
 WORKDIR /opt/intel
 RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
 
+# Build and install PSW
 WORKDIR /linux-sgx
 RUN make psw_install_pkg
 
 WORKDIR /opt/intel
-RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
-RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
+RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin . \
+    && ./sgx_linux_x64_psw*.bin --no-start-aesm \
+    && rm -f sgx_linux_x64_psw*.bin
+
+# Cleanup Intel SGX source
+RUN rm -rf /linux-sgx
 
 COPY . /usr/src/sdk
-RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
 
-RUN apt update && \
-    apt install -yq apt-utils && \
-    apt install -yq --no-install-recommends vim telnet ca-certificates perl \
-        alien uuid-dev libxml2-dev ccache \
-        yasm libprocps-dev texinfo \
-        graphviz doxygen libgnutls28-dev libgcrypt20-dev && \
-    ln -s /usr/bin/ccache /usr/local/bin/clang && \
-    ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
-    ln -s /usr/bin/ccache /usr/local/bin/gcc && \
-    ln -s /usr/bin/ccache /usr/local/bin/g++ && \
-    ln -s /usr/bin/ccache /usr/local/bin/cc && \
-    ln -s /usr/bin/ccache /usr/local/bin/c++
+# Install additional packages and setup ccache in one layer
+RUN apt-get update \
+    && apt-get install -yq --no-install-recommends \
+        apt-utils \
+        vim \
+        telnet \
+        ca-certificates \
+        perl \
+        alien \
+        uuid-dev \
+        libxml2-dev \
+        ccache \
+        yasm \
+        libprocps-dev \
+        texinfo \
+        graphviz \
+        doxygen \
+        libgnutls28-dev \
+        libgcrypt20-dev \
+    && ln -s /usr/bin/ccache /usr/local/bin/clang \
+    && ln -s /usr/bin/ccache /usr/local/bin/clang++ \
+    && ln -s /usr/bin/ccache /usr/local/bin/gcc \
+    && ln -s /usr/bin/ccache /usr/local/bin/g++ \
+    && ln -s /usr/bin/ccache /usr/local/bin/cc \
+    && ln -s /usr/bin/ccache /usr/local/bin/c++ \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Build dependencies
 WORKDIR /usr/src/sdk/scripts
 RUN ./build_deps.py
-RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
-WORKDIR dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
-RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
-WORKDIR /usr/src/sdk/scripts
-RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+
+# Install Intel DAL Host Interface and cleanup
+RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz \
+    && cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b \
+    && cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit \
+    && make install -j$(nproc) \
+    && cd .. \
+    && rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+
 WORKDIR /usr/src/sdk
 RUN ./autoconf.bash
+
+# Final cleanup to reduce base image size
+RUN find /usr/src/sdk -name "*.o" -type f -delete \
+    && ccache -C

@@ -10,15 +10,132 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
       - name: Fail, if older Github Actions machine. Click "Re-run jobs"
         run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+      - name: Clean workspace
+        run: |
+          cd $GITHUB_WORKSPACE/..
+          rm -rf sgxwallet || true
+          mkdir -p sgxwallet
+          cd sgxwallet
       - uses: actions/checkout@v2
       - name: submodule update
         run: git submodule update --init --recursive
+      - name: Cleanup Intel SGX (initial)
+        run: |
+          sudo /opt/intel/sgxpsw/uninstall.sh || true
+          sudo /opt/intel/sgxsdk/uninstall.sh || true
+      
+      # Host build steps (moved from DockerfileBase)
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -yq --no-install-recommends \
+            wget \
+            curl \
+            git \
+            build-essential \
+            cmake \
+            apt-utils \
+            vim \
+            telnet \
+            ca-certificates \
+            perl \
+            alien \
+            uuid-dev \
+            libxml2-dev \
+            ccache \
+            yasm \
+            libprocps-dev \
+            texinfo \
+            graphviz \
+            doxygen \
+            libgnutls28-dev \
+            libgcrypt20-dev
+          chmod +x scripts/install_packages.sh
+          sudo ./scripts/install_packages.sh
+      
+      - name: Install libssl1.1 dependency
+        run: |
+          wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+      
+      - name: Install Intel SGX SDK and PSW
+        run: |
+          git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
+          cd linux-sgx
+          make preparation -j$(nproc)
+          make sdk_install_pkg_no_mitigation -j$(nproc)
+          WORK_DIR=$(pwd)
+          sudo mkdir -p /opt/intel
+          cd /opt/intel
+          sudo sh -c "echo yes | $WORK_DIR/linux/installer/bin/sgx_linux_x64_sdk_*.bin"
+          cd $WORK_DIR
+          make psw_install_pkg -j$(nproc)
+          cd /opt/intel
+          sudo cp $WORK_DIR/linux/installer/bin/sgx_linux_x64_psw*.bin .
+          sudo ./sgx_linux_x64_psw*.bin --no-start-aesm
+          sudo rm -f sgx_linux_x64_psw*.bin
+          cd $WORK_DIR/..
+          rm -rf linux-sgx
+
+      - name: Setup ccache
+        run: |
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/clang
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/clang++
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/g++
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/cc
+          sudo ln -sf /usr/bin/ccache /usr/local/bin/c++
+      
+      - name: Build dependencies
+        run: |
+          cd scripts
+          ./build_deps.py
+      
+      - name: Create Intel DAL directory
+        run: |
+          sudo mkdir -p /var/lib/intel/dal
+      
+      - name: Install Intel DAL Host Interface
+        run: |
+          cd scripts
+          wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
+          cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+          cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit
+          sudo make install -j$(nproc)
+          cd ..
+          rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+      
+      - name: Configure and build SGX wallet
+        run: |
+          source /opt/intel/sgxsdk/environment
+          ./autoconf.bash
+          ./configure
+          make -j$(nproc)
+          mkdir -p sgx_data
+      
+      - name: Prepare build directory for Docker
+        run: |
+          mkdir -p build/opt/intel
+          mkdir -p build/usr/sbin
+          mkdir -p build/usr/lib
+          cp -r /opt/intel build/opt/intel/
+          # Copy Intel DAL Host Interface binaries
+          cp /usr/sbin/jhid build/usr/sbin/ || true
+          cp /usr/lib/libjhi.so build/usr/lib/ || true
+          cp /usr/lib/libteemanagement.so build/usr/lib/ || true
+      
       - name: build and deploy test image
         run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
+      
       - name: Calculate and cache VERSION
         if: |
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||

@@ -26,10 +26,17 @@
 import os
 import subprocess
 
+# Get number of CPU cores for parallel builds
+try:
+    num_cores = str(os.cpu_count())
+except:
+    num_cores = "1"  # fallback to 1 core
+
 os.chdir("..")
 topDir = os.getcwd()
 print("Starting build")
 print("Top directory is:" + topDir)
+print("Using {} cores for parallel builds".format(num_cores))
 makeExecutable = subprocess.check_output(["which", "make"])
 SCRIPTS_DIR = topDir + "/scripts"
 GMP_DIR = topDir + "/sgx-gmp"
@@ -43,9 +50,9 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-JSON_LIBS_DIR = topDir +  "/jsonrpc"
+JSON_LIBS_DIR = topDir + "/jsonrpc"
 
-BLS_DIR = topDir +  "/libBLS"
+BLS_DIR = topDir + "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
@@ -66,25 +73,25 @@ assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 print("Build LibBLS");
 os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+assert subprocess.call(["bash", "-c", "export CMAKE_BUILD_TYPE=Release && ./build.sh"]) == 0
 os.chdir(BLS_DIR)
-assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) == 0
+assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo"]) == 0
 os.chdir(BLS_DIR + "/build")
-assert subprocess.call(["bash", "-c", "make"]) == 0
+assert subprocess.call(["bash", "-c", "make -j" + num_cores]) == 0
 
 print("Build ZMQ");
 
 os.chdir(ZMQ_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(ZMQ_BUILD_DIR)
-assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j " + num_cores]) == 0
 
 print("Build LevelDB");
 
 os.chdir(LEVELDB_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
-assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j " + num_cores]) == 0
 
 print("Build JSON"); 
 
@@ -101,16 +108,21 @@ print("Make GMP");
 os.chdir(GMP_DIR)
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + TGMP_BUILD_DIR + " --disable-shared --enable-static --with-pic --enable-sgx --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0
 
-assert subprocess.call(["make", "install"]) == 0
+assert subprocess.call(["make", "-j" + num_cores, "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + GMP_BUILD_DIR + " --disable-shared --enable-static --with-pic --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0
 
-assert subprocess.call(["make", "install"]) == 0
+assert subprocess.call(["make", "-j" + num_cores, "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)
 assert subprocess.call(["cp", "third_party/gmp/sgx_tgmp.h.fixed", TGMP_BUILD_DIR + "/include/sgx_tgmp.h"]) ==  0  
 
+print("Cleanup")
+os.chdir(BLS_DIR + "/deps")
+assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type d ! -name '.' ! -name 'deps_inst' -exec rm -rf {} +"]) == 0
+assert subprocess.call(["bash", "-c", "find . -maxdepth 1 -type f \\( -name '*.tar.gz' -o -name '*.tar.bz2' -o -name '*.tar.xz' -o -name '*.zip' -o -name '*.tgz' -o -name '*.tbz2' \\) -delete"]) == 0
+
 os.chdir(topDir)
-print("Build successfull.")
+print("Build successful.")

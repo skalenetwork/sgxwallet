@@ -1,20 +1,88 @@
-FROM skalenetwork/sgxwallet_base:latest
+FROM ubuntu:22.04
 
-COPY . /usr/src/sdk
+# Install packages and setup environment in optimized layers
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    curl \
+    secure-delete \
+    python3-pip \
+    git \
+    build-essential \
+    cmake \
+    apt-utils \
+    vim \
+    telnet \
+    ca-certificates \
+    perl \
+    alien \
+    uuid-dev \
+    libxml2-dev \
+    ccache \
+    yasm \
+    libprocps-dev \
+    texinfo \
+    graphviz \
+    doxygen \
+    libgnutls28-dev \
+    libgcrypt20-dev && \
+    pip3 install --upgrade --no-cache-dir pip && \
+    pip3 install --no-cache-dir requests torpy && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install libssl1.1 dependency
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+    && rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# Create required directories
+RUN mkdir -p /opt/intel/sgxsdk && \
+    mkdir -p /opt/intel/sgxpsw && \
+    mkdir -p /var/lib/intel/dal && \
+    mkdir -p /usr/src/sdk/sgx_data
+
+# Copy pre-built SGX wallet binary and runtime files
+COPY sgxwallet /usr/src/sdk/sgxwallet
+COPY sgx_util /usr/src/sdk/sgx_util
+COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave/secure_enclave.signed.so
+COPY secure_enclave/secure_enclave.signed.so /usr/src/sdk/secure_enclave.signed.so
+COPY docker/start.sh /usr/src/sdk/start.sh
+COPY docker/check_firewall.py /usr/src/sdk/check_firewall.py
+COPY cert /usr/src/sdk/cert
+
+# Copy Intel SGX runtime components
+COPY build/opt/intel /opt/intel
+
+RUN ls -al /opt/intel
+
+RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+
+# # Create symbolic links for SGX libraries in system library paths
+# RUN ln -sf /opt/intel/sgxsdk/lib64/libsgx_urts.so /usr/lib/libsgx_urts.so && \
+#     ln -sf /opt/intel/sgxsdk/lib64/libsgx_urts.so.2 /usr/lib/libsgx_urts.so.2 && \
+#     ln -sf /opt/intel/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/libsgx_uae_service.so
+
+# Copy Intel DAL Host Interface binaries (includes jhid)
+COPY build/usr/sbin/jhid /usr/sbin/jhid
+COPY build/usr/lib/libjhi.so /usr/lib/libjhi.so
+COPY build/usr/lib/libteemanagement.so /usr/lib/libteemanagement.so
+
+# Make scripts executable
+RUN chmod +x /usr/src/sdk/start.sh && \
+    chmod +x /usr/src/sdk/check_firewall.py && \
+    chmod +x /usr/sbin/jhid && \
+    ldconfig
+
+# Create required directories
+RUN mkdir -p /usr/src/sdk/sgx_data
+
 WORKDIR /usr/src/sdk
 
-RUN apt update && apt install -y curl secure-delete python3-pip
-RUN pip3 install --upgrade pip
-RUN pip3 install requests torpy
-
+# Mark as hardware mode
 RUN touch /var/hwmode
-RUN ./autoconf.bash
-RUN ./configure
-RUN bash -c "make -j$(nproc)"
-RUN ccache -sz
-RUN mkdir -p /usr/src/sdk/sgx_data
-COPY docker/start.sh ./
-COPY docker/check_firewall.py ./
-RUN rm -rf /usr/src/sdk/sgx-sdk-build/
-RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
+
 ENTRYPOINT ["/usr/src/sdk/start.sh"]
