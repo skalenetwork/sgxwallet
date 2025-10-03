@@ -127,7 +127,7 @@ jobs:
     - name: Prepare build directory for Docker
       run: |
         mkdir -p build/opt/intel
-        cp -r /opt/intel/sgxsdk build/opt/intel/
+        cp -r /opt/intel build/opt/intel/
     
     - name: Cleanup existing Docker containers and images
       run: |

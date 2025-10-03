@@ -145,8 +145,7 @@ jobs:
           mkdir -p build/opt/intel
           mkdir -p build/usr/sbin
           mkdir -p build/usr/lib
-          cp -r /opt/intel/sgxsdk build/opt/intel/
-          cp -r /opt/intel/sgxpsw build/opt/intel/
+          cp -r /opt/intel build/opt/intel/
           # Copy Intel DAL Host Interface binaries
           cp /usr/sbin/jhid build/usr/sbin/ || true
           cp /usr/lib/libjhi.so build/usr/lib/ || true
