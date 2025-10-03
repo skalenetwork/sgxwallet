@@ -57,6 +57,8 @@ COPY cert /usr/src/sdk/cert
 # Copy Intel SGX runtime components
 COPY build/opt/intel /opt/intel
 
+RUN ll -a /opt/intel
+
 RUN rm /opt/intel/sgxsdk/lib64/*_sim.so
 
 # # Create symbolic links for SGX libraries in system library paths
