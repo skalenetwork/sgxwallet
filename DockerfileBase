@@ -1,13 +1,18 @@
-FROM ubuntu:22.04
+# =========================
+# Builder stage
+# =========================
+FROM ubuntu:22.04 AS builder
 
 COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh
 
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
-
 RUN cd linux-sgx && make preparation
 
 WORKDIR /linux-sgx
@@ -26,28 +31,54 @@ RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
 
 COPY . /usr/src/sdk
-RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
 
-RUN apt update && \
-    apt install -yq apt-utils && \
-    apt install -yq --no-install-recommends vim telnet ca-certificates perl \
-        alien uuid-dev libxml2-dev ccache \
-        yasm libprocps-dev texinfo \
-        graphviz doxygen libgnutls28-dev libgcrypt20-dev && \
-    ln -s /usr/bin/ccache /usr/local/bin/clang && \
-    ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
-    ln -s /usr/bin/ccache /usr/local/bin/gcc && \
-    ln -s /usr/bin/ccache /usr/local/bin/g++ && \
-    ln -s /usr/bin/ccache /usr/local/bin/cc && \
-    ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends \
+      apt-utils vim telnet ca-certificates perl \
+      alien uuid-dev libxml2-dev ccache \
+      yasm libprocps-dev texinfo \
+      graphviz doxygen libgnutls28-dev libgcrypt20-dev \
+      cmake make gcc g++ pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/ccache /usr/local/bin/clang \
+    && ln -s /usr/bin/ccache /usr/local/bin/clang++ \
+    && ln -s /usr/bin/ccache /usr/local/bin/gcc \
+    && ln -s /usr/bin/ccache /usr/local/bin/g++ \
+    && ln -s /usr/bin/ccache /usr/local/bin/cc \
+    && ln -s /usr/bin/ccache /usr/local/bin/c++
 
 WORKDIR /usr/src/sdk/scripts
 RUN ./build_deps.py
 RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
-WORKDIR dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+WORKDIR /usr/src/sdk/scripts/dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
 WORKDIR /usr/src/sdk/scripts
 RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+
 WORKDIR /usr/src/sdk
 RUN ./autoconf.bash
+
+# =========================
+# Runtime stage
+# =========================
+FROM ubuntu:22.04 AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      libstdc++6 \
+      libc6 \
+      libgcc-s1 \
+      libssl3 \
+      libcurl4 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/
+
+COPY --from=builder /opt/intel /opt/intel
+
+COPY --from=builder /usr/local /usr/local
+
+COPY --from=builder /usr/src/sdk /usr/src/sdk
+WORKDIR /usr/src/sdk
