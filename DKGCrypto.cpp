@@ -105,49 +105,26 @@ string convertHexToDec(const string &hex_str) {
   return ret;
 }
 
-string convertG2ToString(const libff::alt_bn128_G2 &elem, int base,
+// Converts G2Point to colon-delimited decimal string
+string convertG2ToString(const libBLS::algebra::G2Point &elem, int base,
                          const string &delim) {
-  string result = "";
-
+  // G2Point.toString(Base::DEC) already outputs colon-delimited format
+  // and handles affine coordinate normalization internally
+  if (delim != ":" || base != 10) {
+    throw SGXException(
+        EXCEPTION_IN_CONVERT_G2_STRING,
+        "convertG2ToString only supports base 10 with : delimiter");
+  }
   try {
-    result += ConvertToString(elem.X.c0, base);
-    result += delim;
-    result += ConvertToString(elem.X.c1, base);
-    result += delim;
-    result += ConvertToString(elem.Y.c0, base);
-    result += delim;
-    result += ConvertToString(elem.Y.c1, base);
-
-    return result;
-
-  } catch (SGXException &e) {
-    throw;
+    return elem.toString(libBLS::algebra::Base::DEC);
   } catch (exception &e) {
     throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
-  } catch (...) {
-    throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
-                       "Exception in convert G2 to string");
   }
 }
 
-// TODO - we should use libBLS functions instead - these are repeated
-libff::alt_bn128_G2 convertStringToG2(const std::string &str) {
-  if (str.size() != 256) {
-    throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
-                       "Wrong string size to convert to G2");
-  }
-
-  libff::alt_bn128_G2 ret;
-
-  ret.Z = libff::alt_bn128_Fq2::one();
-
-  ret.X.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(0, 64)).c_str());
-  ret.X.c1 = libff::alt_bn128_Fq(convertHexToDec(str.substr(64, 64)).c_str());
-  ret.Y.c0 = libff::alt_bn128_Fq(convertHexToDec(str.substr(128, 64)).c_str());
-  ret.Y.c1 = libff::alt_bn128_Fq(
-      convertHexToDec(str.substr(192, std::string::npos)).c_str());
-
-  return ret;
+// Converts 256-char hex string (4x64 chars) to G2Point
+libBLS::algebra::G2Point convertStringToG2(const std::string &str) {
+  return libBLS::algebra::G2Point::fromString(str, libBLS::algebra::Base::HEXA);
 }
 
 string gen_dkg_poly(int _t) {
@@ -220,24 +197,17 @@ getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n,
   vector<vector<string>> result(t);
 
   for (int i = 0; i < t; ++i) {
-    libff::alt_bn128_G2 current_coefficient;
-    current_coefficient.X.c0 =
-        libff::alt_bn128_Fq(verificationVector[i][0].c_str());
-    current_coefficient.X.c1 =
-        libff::alt_bn128_Fq(verificationVector[i][1].c_str());
-    current_coefficient.Y.c0 =
-        libff::alt_bn128_Fq(verificationVector[i][2].c_str());
-    current_coefficient.Y.c1 =
-        libff::alt_bn128_Fq(verificationVector[i][3].c_str());
-    current_coefficient.Z = libff::alt_bn128_Fq2::one();
+    libBLS::algebra::G2Point current_coefficient =
+        libBLS::algebra::G2Point::fromString(verificationVector[i],
+                                             libBLS::algebra::Base::DEC);
 
     current_coefficient =
-        libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
-    current_coefficient.to_affine_coordinates();
+        libBLS::algebra::power(libBLS::algebra::FrScalar(ind + 1), i) *
+        current_coefficient;
 
-    auto g2_str = convertG2ToString(current_coefficient);
-
-    result[i] = splitString(g2_str.c_str(), ':');
+    auto g2_arr =
+        current_coefficient.toStringVector(libBLS::algebra::Base::DEC);
+    result[i] = g2_arr;
   }
 
   return result;
@@ -559,37 +529,21 @@ vector<string> getBLSPubKey(const char *encryptedKeyHex) {
 vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares) {
   size_t n = public_shares.size();
   size_t t = public_shares[0].length() / 256;
-  uint64_t share_length = 256;
-  uint8_t coord_length = 64;
+  constexpr uint64_t share_length = 256;
 
-  vector<libff::alt_bn128_G2> public_keys(n, libff::alt_bn128_G2::zero());
+  vector<libBLS::algebra::G2Point> public_keys(
+      n, libBLS::algebra::G2Point::identity());
 
-  vector<libff::alt_bn128_G2> public_values(t, libff::alt_bn128_G2::zero());
+  vector<libBLS::algebra::G2Point> public_values(
+      t, libBLS::algebra::G2Point::identity());
+
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < t; ++j) {
-      libff::alt_bn128_G2 public_share;
-
       uint64_t pos0 = share_length * j;
-      string x_c0_str =
-          convertHexToDec(public_shares[i].substr(pos0, coord_length));
-      string x_c1_str = convertHexToDec(
-          public_shares[i].substr(pos0 + coord_length, coord_length));
-      string y_c0_str = convertHexToDec(
-          public_shares[i].substr(pos0 + 2 * coord_length, coord_length));
-      string y_c1_str = convertHexToDec(
-          public_shares[i].substr(pos0 + 3 * coord_length, coord_length));
-
-      if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" ||
-          y_c1_str == "") {
-        return {};
-      }
-
-      public_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
-      public_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
-      public_share.Y.c0 = libff::alt_bn128_Fq(y_c0_str.c_str());
-      public_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
-      public_share.Z = libff::alt_bn128_Fq2::one();
-
+      string g2_hex_str = public_shares[i].substr(pos0, share_length);
+      libBLS::algebra::G2Point public_share =
+          libBLS::algebra::G2Point::fromString(g2_hex_str,
+                                               libBLS::algebra::Base::HEXA);
       public_values[j] = public_values[j] + public_share;
     }
   }
@@ -598,14 +552,14 @@ vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares) {
     for (size_t j = 0; j < t; ++j) {
       public_keys[i] =
           public_keys[i] +
-          libff::power(libff::alt_bn128_Fr(i + 1), j) * public_values[j];
+          libBLS::algebra::power(libBLS::algebra::FrScalar(i + 1), j) *
+              public_values[j];
     }
-    public_keys[i].to_affine_coordinates();
   }
 
   vector<string> result(n);
   for (size_t i = 0; i < n; ++i) {
-    result[i] = convertG2ToString(public_keys[i]);
+    result[i] = public_keys[i].toString(libBLS::algebra::Base::DEC);
   }
 
   return result;
@@ -645,13 +599,8 @@ string decryptDHKey(const string &polyName, int ind) {
 }
 
 vector<string> mult_G2(const string &x) {
-  vector<string> result(4);
-  libff::alt_bn128_Fr el(x.c_str());
-  libff::alt_bn128_G2 elG2 = el * libff::alt_bn128_G2::one();
-  elG2.to_affine_coordinates();
-  result[0] = ConvertToString(elG2.X.c0);
-  result[1] = ConvertToString(elG2.X.c1);
-  result[2] = ConvertToString(elG2.Y.c0);
-  result[3] = ConvertToString(elG2.Y.c1);
-  return result;
+  libBLS::algebra::FrScalar el =
+      libBLS::algebra::FrScalar::fromString(x, libBLS::algebra::Base::DEC);
+  libBLS::algebra::G2Point elG2 = el * libBLS::algebra::G2Point::generator();
+  return elG2.toStringVector(libBLS::algebra::Base::DEC);
 }

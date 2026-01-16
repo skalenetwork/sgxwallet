@@ -45,7 +45,7 @@ EXTERNC bool popProveSGX(const char *encryptedKeyHex, char *_prove);
 
 EXTERNC bool generateBLSPrivateKeyAggegated(const char *blsKeyName);
 
-std::shared_ptr<std::string> FqToString(libff::alt_bn128_Fq *_fq);
+std::shared_ptr<std::string> FqToString(const libBLS::algebra::FqElement &fq);
 
 std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string,
                                    const char *_key);

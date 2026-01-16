@@ -37,13 +37,13 @@
 #include "SEKManager.h"
 #include "ServerInit.h"
 
-shared_ptr<string> stringFromG1(libff::alt_bn128_G1 *_g1) {
+shared_ptr<string> stringFromG1(libBLS::algebra::G1Point *_g1) {
 
   CHECK_STATE(_g1);
 
-  auto sX = FqToString(&_g1->X);
-  auto sY = FqToString(&_g1->Y);
-  auto sZ = FqToString(&_g1->Z);
+  auto sX = FqToString(_g1->getX());
+  auto sY = FqToString(_g1->getY());
+  auto sZ = FqToString(_g1->getZ());
 
   auto sG1 = make_shared<string>(*sX + ":" + *sY + ":" + *sZ);
 
@@ -83,16 +83,16 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
 
   obj = make_shared<libBLS::Bls>(libBLS::Bls(requiredSigners, totalSigners));
 
-  pair<libff::alt_bn128_G1, string> hash_with_hint =
-      obj->HashtoG1withHint(hash_byte_arr);
+  pair<libBLS::algebra::G1Point, string> hash_with_hint =
+      libBLS::algebra::hashToG1withHint(*hash_byte_arr);
 
   int errStatus = 0;
 
-  shared_ptr<string> xStr = FqToString(&(hash_with_hint.first.X));
+  shared_ptr<string> xStr = FqToString(hash_with_hint.first.getX());
 
   CHECK_STATE(xStr);
 
-  shared_ptr<string> yStr = FqToString(&(hash_with_hint.first.Y));
+  shared_ptr<string> yStr = FqToString(hash_with_hint.first.getY());
 
   CHECK_STATE(yStr);
 
@@ -132,8 +132,8 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   }
 
   string hint =
-      libBLS::ThresholdUtils::fieldElementToString(hash_with_hint.first.Y) +
-      ":" + hash_with_hint.second;
+      hash_with_hint.first.getY().toString(libBLS::algebra::Base::DEC) + ":" +
+      hash_with_hint.second;
 
   string sig = signature;
 
@@ -143,17 +143,15 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   return sig;
 }
 
-shared_ptr<BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
+shared_ptr<libBLS::BLSSigShare> BLSPrivateKeyShareSGX::signWithHelperSGX(
     shared_ptr<array<uint8_t, 32>> hash_byte_arr, size_t _signerIndex) {
 
   CHECK_STATE(hash_byte_arr);
 
   string signature = signWithHelperSGXstr(hash_byte_arr, _signerIndex);
 
-  auto sig = make_shared<string>(signature);
-
-  shared_ptr<BLSSigShare> s = make_shared<BLSSigShare>(
-      sig, _signerIndex, requiredSigners, totalSigners);
+  shared_ptr<libBLS::BLSSigShare> s = make_shared<libBLS::BLSSigShare>(
+      signature, _signerIndex, requiredSigners, totalSigners);
 
   return s;
 }

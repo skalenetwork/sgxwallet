@@ -27,7 +27,8 @@
 #include <string>
 #include <vector>
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "libBLS/backends/algebra.hpp"
+#include "libBLS/bls/bls.h"
 
 using namespace std;
 
@@ -65,10 +66,10 @@ vector<string> mult_G2(const string &x);
 
 string convertHexToDec(const string &hex_str);
 
-string convertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10,
+string convertG2ToString(const libBLS::algebra::G2Point &elem, int base = 10,
                          const string &delim = ":");
 
-libff::alt_bn128_G2 convertStringToG2(const std::string &str);
+libBLS::algebra::G2Point convertStringToG2(const std::string &str);
 
 vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares);
 
