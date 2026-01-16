@@ -65,8 +65,10 @@ subprocess.call(["rm", "-rf", SDK_DIR])
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 print("Build LibBLS");
+# Build LibBLS deps (host + SGX)
 os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh"]) == 0 
 os.chdir(BLS_DIR)
 assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) == 0
 os.chdir(BLS_DIR + "/build")
