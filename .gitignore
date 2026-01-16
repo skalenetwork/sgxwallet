@@ -52,3 +52,6 @@
 /cert/*.crt
 /jsonrpc/
 /sgx-gmp/
+performance-tests/plots/
+performance-tests/venv/
+performance-tests/utils/__pycache__/
