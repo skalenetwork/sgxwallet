@@ -49,8 +49,9 @@ AM_CFLAGS = -DUSER_SPACE -O2 -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls \
-    -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
+AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
+    -DMCL_FP_BIT=256 -DMCL_FR_BIT=256 -DMCL \
+    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
     -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide \
     -I./rapidjson/include/rapidjson
 
@@ -103,14 +104,14 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-   -LlibBLS/build/libff/libff \
+sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
    -Llibzmq/build/lib/ \
-   -l:libbls.a -l:libleveldb.a \
-   -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
+   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+   -l:libbackend.a -l:libmcl.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -l:libzmq.a \
+   -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
    -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
-   -lboost_system -lboost_thread -ltbb -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
+   -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lgnutls -lgcrypt -lidn2 -lcurl -lpsl -lssl -lcrypto -lz -lpthread -lstdc++fs
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
@@ -121,10 +122,10 @@ sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exce
                 InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
                 SGXRegistrationServer.cpp CSRManagerServer.cpp
 
-sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-                   -LlibBLS/build/libff/libff \
+sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
                    -Llibzmq/build/lib/ \
                    -l:libzmq.a \
-                   -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
-                   -ljsoncpp -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+                   -l:libbackend.a -l:libmcl.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
+                   -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
+                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lpsl -lssl -lcrypto -lz -lpthread -ldl
