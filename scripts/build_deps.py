@@ -72,7 +72,11 @@ os.chdir(BLS_DIR + "/deps")
 assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
 assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh"]) == 0 
 os.chdir(BLS_DIR)
-assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) == 0
+assert subprocess.call([
+	"bash",
+	"-c",
+	"cmake -H. -Bbuild -DLIBBLS_BUILD_TESTS=OFF -DLIBBLS_BUILD_BENCHMARKS=OFF",
+]) == 0
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0
 
