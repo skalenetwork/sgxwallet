@@ -28,4 +28,6 @@ apt install -y build-essential \
     libboost-thread-dev \
     libtbb-dev \
     lsb-release \
-    libsystemd0
+    libsystemd0 \
+    clang \
+    llvm
