@@ -62,6 +62,8 @@ subprocess.call(["rm", "-rf", GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
+subprocess.call(["rm", "-rf", BLS_BUILD_DIR])
+
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 print("Build LibBLS");
