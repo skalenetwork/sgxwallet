@@ -24,7 +24,7 @@
 #include <mcl/bn.hpp>
 #pragma GCC diagnostic pop
 
-// Namespace aliases for easier migration
+// Namespace aliases
 using Fr = mcl::bn::Fr;
 using Fp = mcl::bn::Fp;
 using Fp2 = mcl::bn::Fp2;

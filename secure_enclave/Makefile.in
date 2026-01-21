@@ -110,11 +110,9 @@ am_secure_enclave_OBJECTS = secure_enclave_t.$(OBJEXT) \
 	secure_enclave.$(OBJEXT) Curves.$(OBJEXT) \
 	NumberTheory.$(OBJEXT) Point.$(OBJEXT) Signature.$(OBJEXT) \
 	DHDkg.$(OBJEXT) HKDF.$(OBJEXT) AESUtils.$(OBJEXT) \
-	SGXException.$(OBJEXT) LibffUtils.$(OBJEXT) DKGUtils.$(OBJEXT) \
-	TEUtils.$(OBJEXT) EnclaveCommon.$(OBJEXT) \
-	DomainParameters.$(OBJEXT) alt_bn128_init.$(OBJEXT) \
-	alt_bn128_g2.$(OBJEXT) alt_bn128_g1.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_1)
+	SGXException.$(OBJEXT) DKGUtils.$(OBJEXT) TEUtils.$(OBJEXT) \
+	EnclaveCommon.$(OBJEXT) DomainParameters.$(OBJEXT) \
+	MclUtils.$(OBJEXT) $(am__objects_1) $(am__objects_1)
 secure_enclave_OBJECTS = $(am_secure_enclave_OBJECTS)
 secure_enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -143,12 +141,11 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/AESUtils.Po ./$(DEPDIR)/Curves.Po \
 	./$(DEPDIR)/DHDkg.Po ./$(DEPDIR)/DKGUtils.Po \
 	./$(DEPDIR)/DomainParameters.Po ./$(DEPDIR)/EnclaveCommon.Po \
-	./$(DEPDIR)/HKDF.Po ./$(DEPDIR)/LibffUtils.Po \
+	./$(DEPDIR)/HKDF.Po ./$(DEPDIR)/MclUtils.Po \
 	./$(DEPDIR)/NumberTheory.Po ./$(DEPDIR)/Point.Po \
 	./$(DEPDIR)/SGXException.Po ./$(DEPDIR)/Signature.Po \
-	./$(DEPDIR)/TEUtils.Po ./$(DEPDIR)/alt_bn128_g1.Po \
-	./$(DEPDIR)/alt_bn128_g2.Po ./$(DEPDIR)/alt_bn128_init.Po \
-	./$(DEPDIR)/secure_enclave.Po ./$(DEPDIR)/secure_enclave_t.Po \
+	./$(DEPDIR)/TEUtils.Po ./$(DEPDIR)/secure_enclave.Po \
+	./$(DEPDIR)/secure_enclave_t.Po \
 	./$(DEPDIR)/signed_enclave_debug.Po \
 	./$(DEPDIR)/signed_enclave_rel.Po
 am__mv = mv -f
@@ -334,14 +331,13 @@ SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
-AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -O2 -Wall \
-	-Wno-implicit-function-declaration $(TGMP_CPPFLAGS) \
-	-I./third_party/SCIPR -I../third_party/SCIPR \
+AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -O2 -Wall $(TGMP_CPPFLAGS) -DMCL \
+	-I../libBLS/deps/mcl/include \
 	-I../sgx-sdk-build/sgxsdk/include/libcxx
 AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -fno-builtin \
 	-fstack-protector-strong
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@ $(TGMP_LDFLAGS) -L./tgmp-build/lib \
-	-L../tgmp-build/lib
+	-L../tgmp-build/lib -Wl,-z,noexecstack
 CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
 	secure_enclave_t.h
 @ENCLAVE_RELEASE_SIGN_TRUE@nodist_signed_enclave_rel_SOURCES = signed_enclave_rel.c
@@ -349,16 +345,20 @@ CLEANFILES = $(ENCLAVE).signed.so secure_enclave_t.c \
 ENCLAVE = secure_enclave
 ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
+
+# Tell automake to generate these files before anything else - fixes race conditions
+# on make -j<N> command
+BUILT_SOURCES = secure_enclave_t.c secure_enclave_t.h
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
         Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c ../SGXException.cpp \
-        LibffUtils.cpp DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-        ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
-        ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+        DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp MclUtils.cpp \
+        $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
-SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice -lsgx_urts -lsgx_tcxx 
-all: all-am
+SGX_EXTRA_TLIBS = -lsgx_tgmp -lsgx_tservice -lsgx_tcxx -lsgx_pthread -L../libBLS/deps/deps_inst/x86_or_x64/lib/ -l:libmcl_sgx.a
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .cpp .o .obj
@@ -452,15 +452,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DomainParameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveCommon.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HKDF.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LibffUtils.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MclUtils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NumberTheory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Point.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGXException.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Signature.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TEUtils.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g1.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_g2.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alt_bn128_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secure_enclave_t.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_debug.Po@am__quote@ # am--include-marker
@@ -513,48 +510,6 @@ SGXException.obj: ../SGXException.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../SGXException.cpp' object='SGXException.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SGXException.obj `if test -f '../SGXException.cpp'; then $(CYGPATH_W) '../SGXException.cpp'; else $(CYGPATH_W) '$(srcdir)/../SGXException.cpp'; fi`
-
-alt_bn128_init.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.o -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-
-alt_bn128_init.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_init.obj -MD -MP -MF $(DEPDIR)/alt_bn128_init.Tpo -c -o alt_bn128_init.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_init.Tpo $(DEPDIR)/alt_bn128_init.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp' object='alt_bn128_init.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_init.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp'; fi`
-
-alt_bn128_g2.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.o -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-
-alt_bn128_g2.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g2.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g2.Tpo -c -o alt_bn128_g2.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g2.Tpo $(DEPDIR)/alt_bn128_g2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp' object='alt_bn128_g2.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g2.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp'; fi`
-
-alt_bn128_g1.o: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.o -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.o `test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' || echo '$(srcdir)/'`../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-
-alt_bn128_g1.obj: ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT alt_bn128_g1.obj -MD -MP -MF $(DEPDIR)/alt_bn128_g1.Tpo -c -o alt_bn128_g1.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/alt_bn128_g1.Tpo $(DEPDIR)/alt_bn128_g1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp' object='alt_bn128_g1.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o alt_bn128_g1.obj `if test -f '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; then $(CYGPATH_W) '../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; else $(CYGPATH_W) '$(srcdir)/../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -641,14 +596,17 @@ distdir-am: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(libexecdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
-install-exec: install-exec-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
+install-exec: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
 
@@ -678,6 +636,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
@@ -690,15 +649,12 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/DomainParameters.Po
 	-rm -f ./$(DEPDIR)/EnclaveCommon.Po
 	-rm -f ./$(DEPDIR)/HKDF.Po
-	-rm -f ./$(DEPDIR)/LibffUtils.Po
+	-rm -f ./$(DEPDIR)/MclUtils.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
 	-rm -f ./$(DEPDIR)/SGXException.Po
 	-rm -f ./$(DEPDIR)/Signature.Po
 	-rm -f ./$(DEPDIR)/TEUtils.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_debug.Po
@@ -755,15 +711,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/DomainParameters.Po
 	-rm -f ./$(DEPDIR)/EnclaveCommon.Po
 	-rm -f ./$(DEPDIR)/HKDF.Po
-	-rm -f ./$(DEPDIR)/LibffUtils.Po
+	-rm -f ./$(DEPDIR)/MclUtils.Po
 	-rm -f ./$(DEPDIR)/NumberTheory.Po
 	-rm -f ./$(DEPDIR)/Point.Po
 	-rm -f ./$(DEPDIR)/SGXException.Po
 	-rm -f ./$(DEPDIR)/Signature.Po
 	-rm -f ./$(DEPDIR)/TEUtils.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_g1.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_g2.Po
-	-rm -f ./$(DEPDIR)/alt_bn128_init.Po
 	-rm -f ./$(DEPDIR)/secure_enclave.Po
 	-rm -f ./$(DEPDIR)/secure_enclave_t.Po
 	-rm -f ./$(DEPDIR)/signed_enclave_debug.Po
@@ -785,7 +738,7 @@ ps-am:
 
 uninstall-am: uninstall-libexecPROGRAMS
 
-.MAKE: install-am install-strip
+.MAKE: all check install install-am install-exec install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
 	clean-generic clean-libexecPROGRAMS cscopelist-am ctags \
