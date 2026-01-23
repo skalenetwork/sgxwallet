@@ -21,6 +21,7 @@
     @date 2019
 */
 
+#include "backends/interface/group/G2Point.hpp"
 #include "leveldb/db.h"
 #include "libBLS/backends/interface/init.hpp"
 #include <jsonrpccpp/server/connectors/httpserver.h>
@@ -156,18 +157,7 @@ bool popProveSGX(const char *encryptedKeyHex, char *prove) {
   for (int i = 0; i < 4; i++)
     spdlog::debug("{}", pubKeyVect.at(i));
 
-  // TODO use G2Point::fromString
-  libBLS::algebra::G2Point publicKey;
-  publicKey.setZC0(libBLS::algebra::FqElement::one());
-  publicKey.setZC1(libBLS::algebra::FqElement::zero());
-  publicKey.setXC0(libBLS::algebra::FqElement::fromString(
-      pubKeyVect[0], libBLS::algebra::Base::DEC));
-  publicKey.setXC1(libBLS::algebra::FqElement::fromString(
-      pubKeyVect[1], libBLS::algebra::Base::DEC));
-  publicKey.setYC0(libBLS::algebra::FqElement::fromString(
-      pubKeyVect[2], libBLS::algebra::Base::DEC));
-  publicKey.setYC1(libBLS::algebra::FqElement::fromString(
-      pubKeyVect[3], libBLS::algebra::Base::DEC));
+  libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(pubKeyVect, libBLS::algebra::Base::DEC);
 
   pair<libBLS::algebra::G1Point, string> hashPublicKeyWithHint =
       libBLS::Bls::HashPublicKeyToG1WithHint(publicKey);
