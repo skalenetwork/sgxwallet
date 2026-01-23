@@ -12,6 +12,7 @@
 
 // Mcl Support
 #include "MclUtils.h"
+#include "DKGUtils.h"
 
 // Needed for mpz_t types in DomainParameters
 #include <sgx_tgmp.h>
@@ -79,12 +80,20 @@ Fr *keyFromString(const char *_keyStringHex) {
   Fr *ret = nullptr;
   try {
     Fr val;
-    bool b = false;
-    val.setStr(&b, _keyStringHex, 16);
-    if (!b) {
-      LOG_ERROR("keyFromString: setStr failed");
+    // Use helper that handles modular reduction if needed
+    if (!trySettingFrFromString(val, _keyStringHex, 16)) {
+      LOG_ERROR("keyFromString: trySettingFrFromString failed");
       return nullptr;
     }
+    
+    // Log the actual key value in decimal for debugging
+    char keyBuf[1024];
+    size_t len = val.getStr(keyBuf, sizeof(keyBuf), 10);
+    if (len > 0) {
+      LOG_DEBUG("keyFromString: final key value (dec) = ");
+      LOG_DEBUG(keyBuf);
+    }
+    
     ret = new Fr(val);
   } catch (...) {
     LOG_ERROR("Unknown throwable");
@@ -138,6 +147,13 @@ bool enclave_sign(const char *_keyString, const char *_hashXString,
     LOG_ERROR("Null argument");
     return false;
   }
+  
+  LOG_DEBUG("enclave_sign: key_hex = ");
+  LOG_DEBUG(_keyString);
+  LOG_DEBUG("enclave_sign: hashX = ");
+  LOG_DEBUG(_hashXString);
+  LOG_DEBUG("enclave_sign: hashY = ");
+  LOG_DEBUG(_hashYString);
 
   try {
     key = keyFromString(_keyString);

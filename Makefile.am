@@ -49,10 +49,10 @@ AM_CFLAGS = -DUSER_SPACE -O2 -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
+AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
     -DMCL_FP_BIT=256 -DMCL_FR_BIT=256 -DMCL \
     -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
-    -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide \
+    -I./libzmq/include -I./cppzmq -I./third_party/zguide \
     -I./rapidjson/include/rapidjson
 
 ## Additional targets to remove with 'make clean'. You must list

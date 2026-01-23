@@ -39,6 +39,10 @@ static const char *G2_Y0_DEC = "84956539231234314176049732474892724384181905872"
 static const char *G2_Y1_DEC = "40823678758634336813322034031454355683168513275"
                                "93401208105741076214120093531";
 
+// Alt-Bn128 (BN254) Fr field order (used by MCL with BN_SNARK1 curve)
+static const char *ALT_BN128_R_DEC = 
+    "21888242871839275222246405745257275088548364400416034343698204186575808495617";
+
 G2 getG2Generator() {
   G2 P;
   bool b = false;
@@ -51,6 +55,63 @@ G2 getG2Generator() {
   if (!b)
     LOG_ERROR("Failed to init G2 generator");
   return P;
+}
+
+/// Reduces a string representing an integer in the given base mod ALT_BN128_R_DEC
+/// and returns the result as a decimal string (similar to libBLS reduce_mod)
+string reduce_mod_fr(const char *s, int base) {
+  mcl::Vint z;
+  bool b = false;
+  // Parse the input (arbitrary precision); if it fails, z remains zero
+  z.setStr(&b, s, base);
+  
+  if (!b) {
+    return "";
+  }
+
+  mcl::Vint modulus;
+  modulus.setStr(&b, ALT_BN128_R_DEC, 10);
+
+  z %= modulus;
+
+  // Return canonical decimal string
+  char buf[1024];
+  size_t len = z.getStr(buf, sizeof(buf), 10);
+  return len ? string(buf) : string("0");
+}
+
+/// Helper to set Fr from string with automatic modular reduction if needed
+/// Similar to libBLS trySettingFieldWithString pattern
+/// Returns true on success, false on failure
+bool trySettingFrFromString(Fr &fr, const char *str, int base) {
+  bool b = false;
+  fr.setStr(&b, str, base);
+  
+  if (b) {
+    return true; // Success - value was in range
+  }
+  
+  // Value exceeds field order - need to reduce mod r
+  // NOTE: libff also reduced these values (through Montgomery arithmetic)
+  // We need to ensure this produces the same result as libff
+  LOG_ERROR("trySettingFrFromString: initial setStr failed, attempting reduction");
+  LOG_ERROR("reduce_mod_fr: input=");
+  LOG_ERROR(str);
+  
+  string reduced = reduce_mod_fr(str, base);
+  
+  if (reduced.empty()) {
+    return false;
+  }
+  
+  LOG_ERROR("reduce_mod_fr: output=");
+  LOG_ERROR(reduced.c_str());
+  
+  // Try setting with reduced value (now in decimal)
+  b = false;
+  fr.setStr(&b, reduced.c_str(), 10);
+  
+  return b;
 }
 
 string stringFromFr(const Fr &_el) {
@@ -407,10 +468,10 @@ int calc_bls_public_key(char *skey_hex, char *pub_key) {
   CHECK_ARG_CLEAN(pub_key);
   try {
     Fr bls_skey;
-    bool b = false;
-    bls_skey.setStr(&b, skey_hex, 16); // Hex input
-    if (!b) {
-      LOG_ERROR("calc_bls_public_key: Fr.setStr failed - key may exceed field order");
+    
+    // Use helper that handles modular reduction if needed
+    if (!trySettingFrFromString(bls_skey, skey_hex, 16)) {
+      LOG_ERROR("calc_bls_public_key: trySettingFrFromString failed");
       return 1;
     }
 
