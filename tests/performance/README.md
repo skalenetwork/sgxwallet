@@ -10,7 +10,7 @@ Python scripts to measure the performance of the `sgxwallet` server.
 ## Setup
 
 ```bash
-cd performance-tests
+cd tests/performance
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

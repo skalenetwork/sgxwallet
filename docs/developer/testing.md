@@ -1,4 +1,4 @@
-# Testing
+# Functional Tests
 
 Tests require SGXWallet to have been built locally in simulation mode, as described in [this document](building.md).
 
@@ -22,7 +22,21 @@ To run an individual test named `[test_ex]`:
 
 We follow the convention of naming tests like `[test-name]`.
 
+---
+
+# Performance Tests
+
+We provide a small test set to measure the performance of the `sgxwallet` server for the following operations:
+
+- `getDecryptionShares`
+- `blsSignMessageHash`
+- `ecdsaSignMessageHash`
+
+To run the tests, please follow the instructions in the [performance-tests/README.md](../../tests/performance/README.md).
+
+
+---
 
 # Backward Compatibility Tests
 
-To test that new sgxwallet versions with udpated backends are still compatible with old versions, [see this document](../../compatibility_tests/README.md)
+To test that new sgxwallet versions with udpated backends are still compatible with old versions, [see this document](../../tests/backward_compatibility/README.md)
