@@ -21,3 +21,8 @@ To run an individual test named `[test_ex]`:
 ```
 
 We follow the convention of naming tests like `[test-name]`.
+
+
+# Backward Compatibility Tests
+
+To test that new sgxwallet versions with udpated backends are still compatible with old versions, [see this document](../../compatibility_tests/README.md)
