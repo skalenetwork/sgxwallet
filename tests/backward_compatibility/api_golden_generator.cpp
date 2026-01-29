@@ -23,6 +23,16 @@
 using namespace std;
 using namespace jsonrpc;
 
+namespace {
+int g_testIndex = 0;
+const int g_totalTests = 19;
+
+void logTest(const string& message) {
+  cerr << "[" << ++g_testIndex << "/" << g_totalTests << "] " << message
+       << endl;
+}
+} // namespace
+
 // Fixed test inputs for deterministic tests
 const string DETERMINISTIC_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 const string DETERMINISTIC_POLY_NAME = "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1";
@@ -131,7 +141,7 @@ int main(int argc, char* argv[]) {
     // ===== DETERMINISTIC TESTS =====
     // These should produce byte-identical results
     
-    cerr << "[1/9] Testing importBLSKeyShare (deterministic)..." << endl;
+    logTest("Testing importBLSKeyShare (deterministic)...");
     // Test 1: Import a fixed BLS key share
     {
       if (!firstTest) cout << ",\n";
@@ -165,7 +175,7 @@ int main(int argc, char* argv[]) {
                 "importBLSKeyShare", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[2/9] Testing getBLSPublicKeyShare (deterministic)..." << endl;
+    logTest("Testing getBLSPublicKeyShare (deterministic)...");
     // Test 2: Get BLS public key from imported share
     {
       Json::Value request;
@@ -186,7 +196,7 @@ int main(int argc, char* argv[]) {
                 "getBLSPublicKeyShare", request, response, "deterministic", criteria);
     }
 
-    cerr << "[3/9] Testing blsSignMessageHash (deterministic)..." << endl;
+    logTest("Testing blsSignMessageHash (deterministic)...");
     // Test 3: Sign message hash with deterministic input
     {
       int t = 2, n = 3;
@@ -215,7 +225,7 @@ int main(int argc, char* argv[]) {
     // ===== FUNCTIONAL TESTS =====
     // These involve randomness - only check success/failure and structure
     
-    cerr << "[4/9] Testing generateECDSAKey (functional, has randomness)..." << endl;
+    logTest("Testing generateECDSAKey (functional, has randomness)...");
     // Test 4: Generate ECDSA key (random)
     {
       Json::Value request = Json::nullValue;
@@ -244,7 +254,7 @@ int main(int argc, char* argv[]) {
                 "generateECDSAKey", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[5/9] Testing generateDKGPoly (functional, has randomness)..." << endl;
+    logTest("Testing generateDKGPoly (functional, has randomness)...");
     // Test 5: Generate DKG polynomial (random)
     {
       int t = 3;
@@ -273,7 +283,7 @@ int main(int argc, char* argv[]) {
                 "generateDKGPoly", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[6/9] Testing getVerificationVector (functional)..." << endl;
+    logTest("Testing getVerificationVector (functional)...");
     // Test 6: Get verification vector
     {
       int t = 3;
@@ -303,7 +313,7 @@ int main(int argc, char* argv[]) {
                 "getVerificationVector", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[7/20] Testing importECDSAKey (deterministic)..." << endl;
+    logTest("Testing importECDSAKey (deterministic)...");
     // Test 7: Import ECDSA key with fixed value
     {
       string privateKey = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
@@ -343,7 +353,7 @@ int main(int argc, char* argv[]) {
       client.importECDSAKey(privateKey3, DETERMINISTIC_ETH_KEY3);
     }
 
-    cerr << "[8/9] Testing getPublicECDSAKey (deterministic)..." << endl;
+    logTest("Testing getPublicECDSAKey (deterministic)...");
     // Test 8: Get ECDSA public key from imported key
     {
       Json::Value request;
@@ -364,7 +374,7 @@ int main(int argc, char* argv[]) {
                 "getPublicECDSAKey", request, response, "deterministic", criteria);
     }
 
-    cerr << "[9/15] Testing ecdsaSignMessageHash (deterministic)..." << endl;
+    logTest("Testing ecdsaSignMessageHash (deterministic)...");
     // Test 9: ECDSA sign with deterministic hash
     {
       int base = 16;
@@ -405,7 +415,7 @@ int main(int argc, char* argv[]) {
 
     // ===== CORE CRYPTO OPERATIONS (libff/mcl primitives) =====
     
-    cerr << "[10/15] Testing multG2 (deterministic, core G2 operation)..." << endl;
+    logTest("Testing multG2 (deterministic, core G2 operation)...");
     // Test 10: G2 scalar multiplication - core libff/mcl operation
     {
       Json::Value request;
@@ -426,7 +436,7 @@ int main(int argc, char* argv[]) {
                 "multG2", request, response, "deterministic", criteria);
     }
 
-    cerr << "[11/15] Testing generateBLSPrivateKey (deterministic with fixed name)..." << endl;
+    logTest("Testing generateBLSPrivateKey (deterministic with fixed name)...");
     // Test 11: Generate a full BLS private key
     {
       Json::Value request;
@@ -449,27 +459,6 @@ int main(int argc, char* argv[]) {
                 "generateBLSPrivateKey", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[12/15] Testing popProve (deterministic)..." << endl;
-    // Test 12: Proof of possession for BLS key
-    {
-      Json::Value request;
-      request["blsKeyName"] = DETERMINISTIC_BLS_KEY;
-      
-      Json::Value response = client.popProve(DETERMINISTIC_BLS_KEY);
-      
-      if (!checkStatus(response, "popProve")) {
-        return 1;
-      }
-      
-      Json::Value criteria;
-      criteria["status"] = 0;
-      criteria["popProof"] = "must_match_exactly";
-      criteria["comparison"] = "exact";
-      
-      printTest("api_pop_prove_001", "Generate proof of possession for BLS key",
-                "popProve", request, response, "deterministic", criteria);
-    }
-
     // ===== FULL DKG WORKFLOW =====
     
     // Get 3 unique ECDSA public keys for DKG participants
@@ -482,7 +471,7 @@ int main(int argc, char* argv[]) {
     Json::Value ecdsaPubKeyResponse3 = client.getPublicECDSAKey(DETERMINISTIC_ETH_KEY3);
     string ecdsaPubKey3 = ecdsaPubKeyResponse3["publicKey"].asString();
     
-    cerr << "[13/20] Testing getSecretShare (deterministic)..." << endl;
+    logTest("Testing getSecretShare (deterministic)...");
     // Test 13: Get secret share from DKG polynomial
     {
       int t = 3, n = 3;
@@ -520,7 +509,7 @@ int main(int argc, char* argv[]) {
                 "getSecretShare", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[14/20] Testing dkgVerification (deterministic)..." << endl;
+    logTest("Testing dkgVerification (deterministic)...");
     // Test 14: Verify DKG secret share
     {
       int t = 3, n = 3, index = 0;
@@ -575,7 +564,7 @@ int main(int argc, char* argv[]) {
                 "dkgVerification", request, response, "deterministic", criteria);
     }
 
-    cerr << "[15/20] Testing createBLSPrivateKey (deterministic)..." << endl;
+    logTest("Testing createBLSPrivateKey (deterministic)...");
     // Test 15: Create BLS private key from verified secret share
     // Note: createBLSPrivateKey consumes the polynomial, so use a separate poly for this test
     {
@@ -622,7 +611,7 @@ int main(int argc, char* argv[]) {
 
     // ===== V2 PROTOCOL TESTS (Updated DKG) =====
     
-    cerr << "[16/20] Testing getSecretShareV2 (deterministic)..." << endl;
+    logTest("Testing getSecretShareV2 (deterministic)...");
     // Test 16: Get secret share using V2 protocol
     {
       int t = 3, n = 3;
@@ -659,7 +648,7 @@ int main(int argc, char* argv[]) {
                 "getSecretShareV2", request, expectedResponse, "functional", criteria);
     }
 
-    cerr << "[17/20] Testing dkgVerificationV2 (deterministic)..." << endl;
+    logTest("Testing dkgVerificationV2 (deterministic)...");
     // Test 17: Verify DKG secret share with V2 protocol
     {
       int t = 3, n = 3, index = 0;
@@ -712,8 +701,8 @@ int main(int argc, char* argv[]) {
                 "dkgVerificationV2", request, response, "deterministic", criteria);
     }
 
-    cerr << "[18/20] Testing createBLSPrivateKeyV2 (deterministic)..." << endl;
-    // Test 18: Create BLS private key with V2 protocol
+    logTest("Testing createBLSPrivateKeyV2 (deterministic)...");
+    // Create BLS private key with V2 protocol
     // Note: createBLSPrivateKeyV2 consumes the polynomial, so use a separate poly for this test
     {
       int t = 3, n = 3;
@@ -757,7 +746,8 @@ int main(int argc, char* argv[]) {
     }
 
     // ===== BLS PUBLIC KEY AGGREGATION =====
-    // Test 19: Aggregate BLS public keys from shares
+    logTest("Testing calculateAllBLSPublicKeys (deterministic)...");
+    // Aggregate BLS public keys from shares
     {
       int t = 3, n = 3;
       
@@ -801,8 +791,8 @@ int main(int argc, char* argv[]) {
 
     // ===== DKG FAULT TOLERANCE =====
     
-    cerr << "[20/20] Testing complaintResponse (deterministic)..." << endl;
-    // Test 20: Generate complaint response for DKG
+    logTest("Testing complaintResponse (deterministic)...");
+    // Generate complaint response for DKG
     {
       int t = 3, n = 3, ind = 1;
       

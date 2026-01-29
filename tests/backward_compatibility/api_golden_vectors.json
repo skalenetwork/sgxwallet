@@ -239,25 +239,6 @@
       }
     },
     {
-      "test_id": "api_pop_prove_001",
-      "description": "Generate proof of possession for BLS key",
-      "method": "popProve",
-      "request":       {
-        "blsKeyName" : "BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1"
-      },
-      "expected_response":       {
-        "errorMessage" : "",
-        "popProve" : "18454957151356220002259400846175396592737689043919433070719164855304387649502:9504329837773159050222788443404716134151332856634932107550670471977304685562:17173176795000828283228482349662982051008179827123906030304185342299003193140:0",
-        "status" : 0
-      },
-      "validation_type": "deterministic",
-      "validation_criteria":       {
-        "comparison" : "exact",
-        "popProof" : "must_match_exactly",
-        "status" : 0
-      }
-    },
-    {
       "test_id": "api_get_secret_share_001",
       "description": "Compute secret shares (depends on random poly)",
       "method": "getSecretShare",

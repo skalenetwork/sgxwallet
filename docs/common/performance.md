@@ -5,14 +5,14 @@
 ## BLS Sign Performance
 
 | Threads | Throughput (ops/sec) |
-|---------|---------------------|
-| 1       | ~3,650              |
-| 2       | ~4,375              |
-| 4       | ~5,375              |
-| 8       | ~5,420 (peak)       |
-| 16      | ~5,050              |
+|---------|--------------------- |
+| 1       | ~6200                |
+| 2       | ~5700                |
+| 4       | ~6300     (PEAK)     |
+| 8       | ~6100                |
+| 16      | ~5000                |
 
-**Notes:** Peak throughput at 8 threads. Beyond 8 threads, contention reduces performance.
+**Notes:** Times are very variable. Some runs it may reach ~8k, others 4k. Mean is around 6k.
 
 ---
 
@@ -20,13 +20,13 @@
 
 | Threads | Throughput (ops/sec) |
 |---------|---------------------|
-| 1       | ~255                |
-| 2       | ~267                |
-| 4       | ~199                |
-| 8       | ~274 (peak)         |
-| 16      | ~255                |
+| 1       | ~250  (PEAK)        |
+| 2       | ~180                |
+| 4       | ~145                |
+| 8       | ~150                |
+| 16      | ~70                 |
 
-**Notes:** ECDSA uses GMP-based ECC (not MCL). Performance limited by enclave crypto overhead.
+**Notes:** ECDSA uses GMP-based ECC (not MCL).
 
 ---
 
@@ -34,25 +34,24 @@
 
 ### By Thread Count (fixed batch size)
 
-| Threads | Throughput (ops/sec) |
+| Threads | Throughput (ops/sec)|
 |---------|---------------------|
-| 1       | ~10,900 (peak)      |
-| 2       | ~9,250              |
-| 4       | ~9,200              |
-| 8       | ~10,000             |
-| 11      | ~9,800              |
-| 16      | ~10,250             |
+| 1       | ~6,750              |
+| 2       | ~7,200              |
+| 4       | ~6,900              |
+| 8       | ~7,300              |
+| 11      | ~7,600              |
+| 16      | ~7,800              |
 
-### By Batch Size (single thread)
+### By Batch Size (Fixed max concurrency)
 
 | Batch Size | Throughput (items/sec) |
 |------------|------------------------|
-| 32         | ~12,500 (peak)         |
-| 64         | ~9,000                 |
-| 128        | ~9,100                 |
-| 256        | ~8,500                 |
-| 512        | ~8,850                 |
-| 1024       | ~9,550                 |
+| 64         | ~5,100                 |
+| 128        | ~8,600                 |
+| 256        | ~7,500                 |
+| 512        | ~6,800                 |
+| 1024       | ~6,800                 |
 
 **Notes:** `getDecryptionShares` processes ciphertexts batch-internally in parallel. Adding client-side parallelism does not improve throughput — single-threaded requests achieve near-peak performance.
 
@@ -60,8 +59,8 @@
 
 ## Summary
 
-| Operation            | Peak Throughput | Optimal Config       |
-|----------------------|-----------------|----------------------|
-| BLS Sign             | ~5,420 ops/sec  | 8 threads           |
-| ECDSA Sign           | ~274 ops/sec    | 8 threads           |
-| getDecryptionShares  | ~12,500 ops/sec | 1 thread, batch=32  |
+| Operation            | Peak Throughput |
+|----------------------|-----------------|
+| BLS Sign             | ~6.000 ops/sec  |
+| ECDSA Sign           | ~250 ops/sec    |
+| getDecryptionShares  | ~7,200 ops/sec  |

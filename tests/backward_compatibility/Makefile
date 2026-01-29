@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -I..
+CXXFLAGS = -std=c++14 -Wall -Wextra -I.. -I../..
 
 # Libraries
 COMMON_LIBS = -lgmp -lcrypto -lpthread

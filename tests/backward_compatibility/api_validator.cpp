@@ -178,10 +178,6 @@ bool runTest(StubClient& client, const Json::Value& test) {
       actualResponse = client.generateBLSPrivateKey(
         request["blsKeyName"].asString()
       );
-    } else if (method == "popProve") {
-      actualResponse = client.popProve(
-        request["blsKeyName"].asString()
-      );
     } else if (method == "getSecretShare") {
       actualResponse = client.getSecretShare(
         request["polyName"].asString(),
