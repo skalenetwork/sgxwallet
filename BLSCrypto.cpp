@@ -157,7 +157,8 @@ bool popProveSGX(const char *encryptedKeyHex, char *prove) {
   for (int i = 0; i < 4; i++)
     spdlog::debug("{}", pubKeyVect.at(i));
 
-  libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(pubKeyVect, libBLS::algebra::Base::DEC);
+  libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
+      pubKeyVect, libBLS::algebra::Base::DEC);
 
   pair<libBLS::algebra::G1Point, string> hashPublicKeyWithHint =
       libBLS::Bls::HashPublicKeyToG1WithHint(publicKey);
