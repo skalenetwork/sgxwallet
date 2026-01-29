@@ -106,7 +106,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 
 sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
    -Llibzmq/build/lib/ \
-   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a -l:libsnappy.a \
    -l:libbackend.a -l:libmcl.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -l:libzmq.a \
    -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
@@ -125,7 +125,7 @@ sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exce
 sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
                    -Llibzmq/build/lib/ \
                    -l:libzmq.a \
-                   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+                   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a -l:libsnappy.a \
                    -l:libbackend.a -l:libmcl.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
                    -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
                    -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lpsl -lssl -lcrypto -lz -lpthread -ldl
