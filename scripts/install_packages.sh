@@ -23,6 +23,7 @@ apt install -y build-essential \
     reprepro \
     unzip \
     pkgconf \
+    liblzma-dev \
     libboost-dev \
     libboost-system-dev \
     libboost-thread-dev \
