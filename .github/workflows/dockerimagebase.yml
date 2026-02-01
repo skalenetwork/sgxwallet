@@ -20,4 +20,4 @@ jobs:
     - name: submodule update
       run: git submodule update --init --recursive
     - name: Build the Docker image
-      run: docker build . --file DockerfileBase --tag skalenetwork/sgxwallet_base:build_2026_01_19 && docker push skalenetwork/sgxwallet_base:build_2026_01_19
+      run: docker build --no-cache --pull . --file DockerfileBase --tag skalenetwork/sgxwallet_base:build_2026_01_19 && docker push skalenetwork/sgxwallet_base:build_2026_01_19
