@@ -17,17 +17,15 @@ jobs:
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v2
-    - name: Submodules (prove they are correct)
+    - name: Log submodule status
       run: |
         set -euxo pipefail
         git submodule sync --recursive
         git submodule update --init --recursive
         git submodule status --recursive
-        git -C libBLS rev-parse HEAD
-        git -C sgx-gmp rev-parse HEAD
 
     - name: Build the Docker image
       run: |
-        ./clean.sh
+        ./clean.sh --full
         docker build --no-cache --pull . --file DockerfileBase --tag skalenetwork/sgxwallet_base:build_2026_01_19 
         docker push skalenetwork/sgxwallet_base:build_2026_01_19
