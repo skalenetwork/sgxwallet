@@ -1,3 +1,9 @@
+# clean all libBLS dependencies
+cd libBLS/deps
+./clean.sh
+cd ../..
+
+# clean all build files
 rm -rf *.o
 rm -rf .deps/*.Po
 rm -rf secure_enclave/*.o
