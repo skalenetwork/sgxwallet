@@ -42,7 +42,7 @@ RUN apt update && \
 
 # build all sgxwallet deps
 WORKDIR /usr/src/sdk/scripts
-RUN rm -rf ../libBLS/deps/deps_inst && ./build_deps.py
+RUN ./build_deps.py
 
 # Install Dynamic Application Loader Host Interface
 RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
