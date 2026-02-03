@@ -340,7 +340,7 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t decKeyLen = 0;
-  int result = 0;
+  int statusCode = 0;
 
   SAFE_UINT8_BUF(encr_key, BUF_LEN);
   if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
@@ -354,16 +354,26 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   sgx_status_t status = SGX_SUCCESS;
 
   status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares,
-                            encr_sshare, encr_key, decKeyLen, t, ind, &result);
+                            encr_sshare, encr_key, decKeyLen, t, ind, &statusCode);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  if (result == 2) {
-    throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
-                       string(__FUNCTION__) + +":Invalid public shares");
+
+  bool dkgVerifiedSuccessfully = (statusCode == 1);
+
+  if ( !dkgVerifiedSuccessfully ) {
+    // status code 1 indicates validation failed
+    if (statusCode == 0) {
+      return false;
+    }
+    // status codes 2 & 3 indicate errors
+    else if (statusCode >= 2) {
+      throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                         string(__FUNCTION__) + ":Invalid public shares");
+    }
   }
 
-  return result;
+  return true;
 }
 
 /**
@@ -417,12 +427,15 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  if (result == 2) {
-    throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
-                       string(__FUNCTION__) + ":Invalid public shares");
+  if (result != 1) {
+    if (result >= 2) {
+      throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
+                         string(__FUNCTION__) + ":Invalid public shares");
+    }
+    return false;
   }
 
-  return result;
+  return true;
 }
 
 bool createBLSShare(const string &blsKeyName, const char *s_shares,

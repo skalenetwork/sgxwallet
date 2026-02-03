@@ -82,7 +82,7 @@ string reduce_mod_fr(const char *s, int base) {
 }
 
 /// Helper to set Fr from string with automatic modular reduction if needed
-/// Similar to libBLS trySettingFieldWithString pattern
+/// Similar to libBLS::trySettingFieldWithString() pattern
 /// Returns true on success, false on failure
 bool trySettingFrFromString(Fr &fr, const char *str, int base) {
   bool b = false;
@@ -95,19 +95,20 @@ bool trySettingFrFromString(Fr &fr, const char *str, int base) {
   // Value exceeds field order - need to reduce mod r
   // NOTE: libff also reduced these values (through Montgomery arithmetic)
   // We need to ensure this produces the same result as libff
-  LOG_ERROR(
+  LOG_INFO(
       "trySettingFrFromString: initial setStr failed, attempting reduction");
-  LOG_ERROR("reduce_mod_fr: input=");
-  LOG_ERROR(str);
+  LOG_INFO("reduce_mod_fr: input=");
+  LOG_INFO(str);
 
   string reduced = reduce_mod_fr(str, base);
 
   if (reduced.empty()) {
+    LOG_ERROR("trySettingFrFromString: reduction failed");
     return false;
   }
 
-  LOG_ERROR("reduce_mod_fr: output=");
-  LOG_ERROR(reduced.c_str());
+  LOG_INFO("reduce_mod_fr: output=");
+  LOG_INFO(reduced.c_str());
 
   // Try setting with reduced value (now in decimal)
   b = false;
@@ -362,13 +363,6 @@ clean:
   return ret;
 }
 
-// ConvertHexToDec used for verification parsing?
-// Legacy EnclaveCommon used mpz.
-// Mcl setStr(16) handles it.
-// But Verification uses string result?
-// Verify logic: split big string into chunks, parse chunks.
-// Chunks are Hex.
-// We can parse Hex directly to Fp.
 int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
                  int ind) {
   string pub_shares_str = public_shares;
@@ -431,11 +425,6 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
     memset(public_shares, 0, strlen(public_shares));
     strncpy(public_shares, tmp, strlen(tmp));
 
-    // Legacy: construct X.c0:X.c0 output ??
-    // Legacy: strncpy(public_shares, ConvertToString(val.X.c0).c_str(), ...);
-    // It overwrote with secret share, THEN overwrote with val.X.c0 ?
-    // Line 546 strncpy overwrites public_shares!
-    // Yes.
     val.normalize();
     val2.normalize();
 
@@ -444,18 +433,7 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
     string out = s1 + ":" + s2;
     strncpy(public_shares, out.c_str(), out.length());
 
-    if (val == val2)
-      ret =
-          0; // Legacy ret=(val==val2). if true return 0? No, ret is bool (1/0).
-    // Legacy returned (val == val2).
-    // Standard C return: 1 usually true, 0 false?
-    // Wait, typical Enclave functions return status: 0 success, 1 fail.
-    // Legacy code: ret = (val == val2).
-    // If they match, ret = 1.
-    // If they verify, it usually returns 1? Or 0?
-    // DKGUtils Verification returns int.
-    // I will return (val==val2).
-    ret = (val == val2); // Cast bool to int.
+    ret = (val == val2);
 
   } catch (...) {
     ret = 0;
