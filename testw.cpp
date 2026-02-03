@@ -1563,10 +1563,7 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
 
     std::vector<libBLS::algebra::G2Point> decryption_values;
     for (int i = 0; i < num_requests; i++) {
-      // TODO libBLS should have random point generator for G2
-      libBLS::algebra::G2Point decryption_value =
-          libBLS::algebra::FrScalar::random() *
-          libBLS::algebra::G2Point::generator();
+      libBLS::algebra::G2Point decryption_value = libBLS::algebra::G2Point::random();
       decryption_values.push_back(decryption_value);
       auto decrytion_value_str =
           decryption_value.toString(libBLS::algebra::Base::HEXA);

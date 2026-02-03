@@ -5,7 +5,7 @@ import json
 from sgx import SgxClient
 
 # BN-SNARK1 Fr order (scalar field modulus)
-# This is the max valid value for a BLS private key
+# BLS private keys must be in range [0, FR_ORDER-1]
 FR_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617
 
 def generate_valid_bls_key() -> str:
