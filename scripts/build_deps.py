@@ -75,7 +75,7 @@ os.chdir(BLS_DIR)
 assert subprocess.call([
 	"bash",
 	"-c",
-	"cmake -H. -Bbuild -DLIBBLS_BUILD_TESTS=OFF -DLIBBLS_BUILD_BENCHMARKS=OFF",
+	"cmake -H. -Bbuild -DLIBBLS_BUILD_TESTS=OFF -DLIBBLS_BUILD_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=Release",
 ]) == 0
 os.chdir(BLS_DIR + "/build")
 assert subprocess.call(["bash", "-c", "make"]) == 0

@@ -65,7 +65,7 @@ BUILT_SOURCES = secure_enclave_t.c secure_enclave_t.h
 
 ## Additional Automake flags needed to build the enclave.
 
-AM_CPPFLAGS += -O2 -Wall $(TGMP_CPPFLAGS) -DMCL -I../libBLS/deps/mcl/include -I../sgx-sdk-build/sgxsdk/include/libcxx
+AM_CPPFLAGS += -O3 -Wall $(TGMP_CPPFLAGS) -DMCL -I../libBLS/deps/mcl/include -I../sgx-sdk-build/sgxsdk/include/libcxx
 AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
