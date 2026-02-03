@@ -427,12 +427,18 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  if (result != 1) {
-    if (result >= 2) {
-      throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
+  bool dkgVerifiedSuccessfully = (statusCode == 1);
+
+  if ( !dkgVerifiedSuccessfully ) {
+    // status code 1 indicates validation failed
+    if (statusCode == 0) {
+      return false;
+    }
+    // status codes 2 & 3 indicate errors
+    else if (statusCode >= 2) {
+      throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
                          string(__FUNCTION__) + ":Invalid public shares");
     }
-    return false;
   }
 
   return true;
