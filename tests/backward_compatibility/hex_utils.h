@@ -4,6 +4,6 @@
 #include <string>
 
 // Convert decimal string to hexadecimal with padding
-std::string convertDecToHex(const std::string& dec, int numBytes = 32);
+std::string convertDecToHex(const std::string &dec, int numBytes = 32);
 
 #endif // HEX_UTILS_H

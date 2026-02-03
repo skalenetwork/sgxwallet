@@ -2,7 +2,7 @@
 #include <gmp.h>
 #include <vector>
 
-std::string convertDecToHex(const std::string& dec, int numBytes) {
+std::string convertDecToHex(const std::string &dec, int numBytes) {
   mpz_t num;
   mpz_init(num);
   mpz_set_str(num, dec.c_str(), 10);
