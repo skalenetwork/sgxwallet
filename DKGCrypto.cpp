@@ -353,15 +353,15 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
 
   sgx_status_t status = SGX_SUCCESS;
 
-  status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares,
-                            encr_sshare, encr_key, decKeyLen, t, ind, &statusCode);
+  status =
+      trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares, encr_sshare,
+                       encr_key, decKeyLen, t, ind, &statusCode);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-
   bool dkgVerifiedSuccessfully = (statusCode == 1);
 
-  if ( !dkgVerifiedSuccessfully ) {
+  if (!dkgVerifiedSuccessfully) {
     // status code 1 indicates validation failed
     if (statusCode == 0) {
       return false;
@@ -429,7 +429,7 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
 
   bool dkgVerifiedSuccessfully = (statusCode == 1);
 
-  if ( !dkgVerifiedSuccessfully ) {
+  if (!dkgVerifiedSuccessfully) {
     // status code 1 indicates validation failed
     if (statusCode == 0) {
       return false;
