@@ -6,6 +6,11 @@ RUN pip3 install requests torpy
 
 RUN ccache -sz
 
+# Copy sgxwallet source code
+# This only overwrites source code files, not
+# dependency builds from base image
+COPY . /usr/src/sdk
+
 WORKDIR /usr/src/sdk
 RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 RUN ./autoconf.bash && \
