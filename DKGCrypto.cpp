@@ -408,7 +408,7 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t decKeyLen = 0;
-  int result = 0;
+  int statusCode = 0;
 
   SAFE_UINT8_BUF(encr_key, BUF_LEN);
   if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
@@ -423,7 +423,7 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
 
   status =
       trustedDkgVerifyV2(eid, &errStatus, errMsg.data(), pshares, encr_sshare,
-                         encr_key, decKeyLen, t, ind, &result);
+                         encr_key, decKeyLen, t, ind, &statusCode);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
