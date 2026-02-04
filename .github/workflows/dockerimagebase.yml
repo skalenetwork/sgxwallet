@@ -27,5 +27,5 @@ jobs:
     - name: Build the Docker image
       run: |
         ./clean.sh --full
-        docker build --no-cache --pull . --file DockerfileBase --tag skalenetwork/sgxwallet_base:build_2026_01_19 
-        docker push skalenetwork/sgxwallet_base:build_2026_01_19
+        docker build --no-cache --pull . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest 
+        docker push skalenetwork/sgxwallet_base:latest
