@@ -1,4 +1,4 @@
-FROM skalenetwork/sgxwallet_base:build_2026_01_19
+FROM skalenetwork/sgxwallet_base:latest
 
 COPY . /usr/src/sdk
 WORKDIR /usr/src/sdk
