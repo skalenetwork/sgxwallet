@@ -9,7 +9,12 @@ CXXFLAGS = -std=c++14 -Wall -Wextra -I.. -I../.. -I$(DEPS_INSTALL_ROOT)/include
 
 # Libraries
 COMMON_LIBS = -lgmp -lcrypto -lpthread
-JSONRPC_LIBS = -L$(DEPS_INSTALL_ROOT)/lib -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lcurl
+# Link jsonrpccpp/jsoncpp from libBLS deps (static), but prefer system libcurl (shared).
+# The deps tree may contain a static libcurl.a built with optional features (idn2, etc.)
+# whose dependent libs aren't present in the image; using shared libcurl avoids that.
+JSONRPC_LIBS = -L$(DEPS_INSTALL_ROOT)/lib \
+	-Wl,-Bstatic -l:libjsonrpccpp-client.a -l:libjsonrpccpp-common.a -l:libjsoncpp.a \
+	-Wl,-Bdynamic -lcurl
 
 # declares targets thata re not acutal files
 .PHONY: clean
