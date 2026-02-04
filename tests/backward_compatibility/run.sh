@@ -37,7 +37,10 @@ cleanup() {
     wait "${SERVER_PID}" 2>/dev/null || true
   fi
 
-  rm -rf "${ROOT_DIR}/sgx_data"
+  # sgx_data is often a bind-mount in CI; remove contents, not the mountpoint dir.
+  if [[ -d "${ROOT_DIR}/sgx_data" ]]; then
+    find "${ROOT_DIR}/sgx_data" -mindepth 1 -maxdepth 1 -exec rm -rf {} + || true
+  fi
 
   # optional: only clean if you really want this every run
   make -C "${SCRIPT_DIR}" clean || true
@@ -52,8 +55,9 @@ trap cleanup EXIT INT TERM
 make -C "${SCRIPT_DIR}" api_validator
 
 # start with a clean sgx_data directory
-rm -rf "${ROOT_DIR}/sgx_data"
 mkdir -p "${ROOT_DIR}/sgx_data"
+# clean everything inside
+find "${ROOT_DIR}/sgx_data" -mindepth 1 -maxdepth 1 -exec rm -rf {} + || true
 
 ############################################
 ##     Start sgxwallet & wait for it

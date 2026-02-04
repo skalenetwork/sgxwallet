@@ -1,9 +1,15 @@
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -I.. -I../..
+
+# Prefer libBLS-built dependencies when running inside the docker image.
+# This avoids relying on system-wide jsonrpccpp headers/libs which may not be installed.
+ROOT_DIR ?= ../..
+DEPS_INSTALL_ROOT ?= $(ROOT_DIR)/libBLS/deps/deps_inst/x86_or_x64
+
+CXXFLAGS = -std=c++14 -Wall -Wextra -I.. -I../.. -I$(DEPS_INSTALL_ROOT)/include
 
 # Libraries
 COMMON_LIBS = -lgmp -lcrypto -lpthread
-JSONRPC_LIBS = -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lcurl
+JSONRPC_LIBS = -L$(DEPS_INSTALL_ROOT)/lib -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lcurl
 
 # declares targets thata re not acutal files
 .PHONY: clean
