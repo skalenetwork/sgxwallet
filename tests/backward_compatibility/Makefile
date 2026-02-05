@@ -9,12 +9,22 @@ CXXFLAGS = -std=c++14 -Wall -Wextra -I.. -I../.. -I$(DEPS_INSTALL_ROOT)/include
 
 # Libraries
 COMMON_LIBS = -lgmp -lcrypto -lpthread
-# Link jsonrpccpp/jsoncpp from libBLS deps (static), but prefer system libcurl (shared).
-# The deps tree may contain a static libcurl.a built with optional features (idn2, etc.)
-# whose dependent libs aren't present in the image; using shared libcurl avoids that.
+
+# We link jsonrpc statically from $(DEPS_INSTALL_ROOT)/lib. Using "-lcurl" would search that path
+# first and often resolves to deps_inst/libcurl.a (no deps_inst/libcurl.so), forcing extra deps
+# (zlib/idn2/ssl/...) and possibly breaking minimal CI images. Prefer explicit libcurl.so.4 to force
+# dynamic curl without needing the -dev libcurl.so symlink.
+
+CURL_SO4 ?= $(firstword $(wildcard \
+	/usr/lib/x86_64-linux-gnu/libcurl.so.4 \
+	/usr/lib64/libcurl.so.4 \
+	/usr/local/lib/libcurl.so.4 \
+))
+CURL_LIBS ?= $(if $(CURL_SO4),$(CURL_SO4),-lcurl)
+
 JSONRPC_LIBS = -L$(DEPS_INSTALL_ROOT)/lib \
 	-Wl,-Bstatic -l:libjsonrpccpp-client.a -l:libjsonrpccpp-common.a -l:libjsoncpp.a \
-	-Wl,-Bdynamic -lcurl
+	-Wl,-Bdynamic $(CURL_LIBS)
 
 # declares targets thata re not acutal files
 .PHONY: clean

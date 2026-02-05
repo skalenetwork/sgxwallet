@@ -48,6 +48,8 @@ if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 sleep 5
 ./testw.py
+echo "Running backward compatibility tests"
+./tests/backward_compatibility/run.sh
 else
 /usr/src/sdk/check_firewall.py
 ./sgxwallet $1 $2 $3 $4 $5 $6
