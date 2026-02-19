@@ -94,11 +94,6 @@ assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
 
-
-# print("Build JSON"); 
-# os.chdir(JSON_LIBS_DIR)
-# assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
-
 print("Install Linux SDK");
 
 os.chdir(SCRIPTS_DIR)
