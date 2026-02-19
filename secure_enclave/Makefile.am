@@ -114,7 +114,7 @@ secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 ## --startgroup and --endgroup flags. (This would be where you'd add
 ## SGXSSL libraries, and your trusted c++ library
 
-SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice -lsgx_tcxx -lsgx_pthread -L../libBLS/deps/deps_inst/x86_or_x64/lib/ -l:libmcl_sgx.a
+SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice -lsgx_tcxx -L../libBLS/deps/deps_inst/x86_or_x64/lib/ -l:libmcl_sgx.a
 
 
 
