@@ -52,6 +52,7 @@
  */
 std::pair<std::vector<string>, std::vector<int>>
 calculateDecryptionShares(const std::string &encryptedKeyShare,
-                          const std::string &decryptionValueBatches);
+                          const std::string &decryptionValueBatches,
+                          uint64_t requestId = 0, int workerId = -1);
 
 #endif // SGXWALLET_TECRYPTO_H

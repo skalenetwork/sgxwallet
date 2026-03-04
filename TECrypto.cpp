@@ -23,6 +23,7 @@
 
 #include "leveldb/db.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <chrono>
 #include <memory>
 
 #include "threshold_encryption/threshold_encryption.h"
@@ -44,7 +45,17 @@
 
 std::pair<vector<string>, vector<int>>
 calculateDecryptionShares(const string &encryptedKeyShare,
-                          const string &decryptionValueBatches) {
+                          const string &decryptionValueBatches,
+                          uint64_t requestId, int workerId) {
+  using clock = std::chrono::steady_clock;
+  const auto totalStart = clock::now();
+  uint64_t tHex2BinNs = 0;
+  uint64_t tEcallTotalNs = 0;
+  uint64_t tSplitOutputNs = 0;
+  size_t ecallCount = 0;
+  size_t ecallInputBytes = 0;
+  size_t decodedShares = 0;
+
   size_t sz = 0;
 
   // calculate number of batches needed
@@ -56,8 +67,13 @@ calculateDecryptionShares(const string &encryptedKeyShare,
 
   SAFE_UINT8_BUF(encryptedKey, BUF_LEN);
 
+  const auto hex2binStart = clock::now();
   bool result =
       hex2carray(encryptedKeyShare.data(), &sz, encryptedKey, BUF_LEN);
+  tHex2BinNs +=
+      std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() -
+                                                           hex2binStart)
+          .count();
 
   if (!result) {
     BOOST_THROW_EXCEPTION(invalid_argument("Invalid hex encrypted key"));
@@ -97,12 +113,19 @@ calculateDecryptionShares(const string &encryptedKeyShare,
     CHECK_STATE(decryptionSharesStatus);
     CHECK_STATE(currentBatchLength <= BATCH_SIZE_BYTES);
 
+    const auto ecallStart = clock::now();
     status = trustedGetDecryptionShares(
         eid, &errStatus, errMsg.data(), encryptedKey, currentBatch,
         currentBatchLength, sz, decryptionShares, decryptionSharesStatus);
+    tEcallTotalNs += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         clock::now() - ecallStart)
+                         .count();
+    ++ecallCount;
+    ecallInputBytes += currentBatchLength;
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
+    const auto splitStart = clock::now();
     std::string decr_shares(decryptionShares);
 
     // split the decrypted shares into individual shares
@@ -112,7 +135,11 @@ calculateDecryptionShares(const string &encryptedKeyShare,
       decryptedBatches.push_back(
           decr_shares.substr(i, CIPHERTEXT_CHARACTER_LENGTH));
       errorCodesVector.push_back(decryptionSharesStatus[idx]);
+      ++decodedShares;
     }
+    tSplitOutputNs += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                          clock::now() - splitStart)
+                          .count();
 
     // only increment pointer if there are more batches to process
     if (--numBatchesRemaining) {
@@ -128,6 +155,35 @@ calculateDecryptionShares(const string &encryptedKeyShare,
       }
     }
   }
+
+  const uint64_t tTotalNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                clock::now() - totalStart)
+                                .count();
+  constexpr double kNsPerMs = 1000000.0;
+  const double avgCiphertextsPerEcall =
+      ecallCount ? (double)numRequests / (double)ecallCount : 0.0;
+  const double avgInputBytesPerEcall =
+      ecallCount ? (double)ecallInputBytes / (double)ecallCount : 0.0;
+  const double inputUtilizationPct =
+      BATCH_SIZE_BYTES
+          ? (100.0 * avgInputBytesPerEcall) / (double)BATCH_SIZE_BYTES
+          : 0.0;
+  const size_t fixedBridgeBytesPerEcall =
+      BUF_LEN + ENCLAVE_MAX_BATCH_BUFFER_SIZE + ENCLAVE_MAX_BATCH_BUFFER_SIZE +
+      ENCLAVE_MAX_CIPHERTEXT_BATCH * sizeof(int) + BUF_LEN + sizeof(int);
+  const double estimatedBridgeCopyKB =
+      (double)(ecallCount * fixedBridgeBytesPerEcall) / 1024.0;
+
+  spdlog::info(
+      "[PERF][req:{}][worker:{}] calculateDecryptionShares ct={} ecalls={} "
+      "avg_ct_per_ecall={:.2f} avg_in_bytes_per_ecall={:.1f} "
+      "in_util_pct={:.1f} decoded={} t_total_ms={:.3f} t_hex2bin_ms={:.3f} "
+      "t_ecall_ms={:.3f} t_split_ms={:.3f} est_bridge_copy_kb={:.1f}",
+      requestId, workerId, numRequests, ecallCount, avgCiphertextsPerEcall,
+      avgInputBytesPerEcall, inputUtilizationPct, decodedShares,
+      (double)tTotalNs / kNsPerMs, (double)tHex2BinNs / kNsPerMs,
+      (double)tEcallTotalNs / kNsPerMs, (double)tSplitOutputNs / kNsPerMs,
+      estimatedBridgeCopyKB);
 
   return std::make_pair(decryptedBatches, errorCodesVector);
 }

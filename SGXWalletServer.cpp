@@ -23,6 +23,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <limits>
 #include <thread>
 
 #include "abstractstubserver.h"
@@ -1116,6 +1117,15 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
   INIT_RESULT(result)
   // init as empty array
   result["decryptionShares"] = Json::Value(Json::arrayValue);
+  using clock = std::chrono::steady_clock;
+  static std::atomic<uint64_t> nextRequestId(1);
+  const uint64_t requestId = nextRequestId.fetch_add(1);
+  const auto requestStart = clock::now();
+  uint64_t tParseNs = 0;
+  uint64_t tCryptoNs = 0;
+  uint64_t tBuildNs = 0;
+  uint64_t tParseWorkerMaxNs = 0;
+  uint64_t tCryptoWorkerMaxNs = 0;
 
   try {
     CHECK_STATE(checkName(blsKeyName, "BLS_KEY"));
@@ -1170,14 +1180,17 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     std::vector<std::string> concatenatedCiphertexts(numThreads);
     std::atomic<bool> batchSizeError(false);
     std::atomic<bool> shareSizeError(false);
+    std::vector<uint64_t> parseWorkerNs(numThreads, 0);
 
     // evaluate inputs in parallel
+    const auto parseStart = clock::now();
     threadPool.execute([&]() {
       tbb::task_group group;
 
       for (int i = 0; i < numThreads; ++i) {
         // pass 'i' by copy to each thread
         group.run([&, i]() {
+          const auto workerStart = clock::now();
           std::string local; // will hold inputs to each thread
           local.reserve(ENCLAVE_MAX_BATCH_BUFFER_SIZE);
           int startingIdx = startIndices.at(i);
@@ -1197,13 +1210,47 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
             local += publicDecryptionValue;
           }
           concatenatedCiphertexts.at(i) = std::move(local);
+          parseWorkerNs.at(i) = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                    clock::now() - workerStart)
+                                    .count();
         });
       }
       group.wait(); // wait for all threads to finish
     });
+    tParseNs = std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() -
+                                                                     parseStart)
+                   .count();
+    if (!parseWorkerNs.empty()) {
+      tParseWorkerMaxNs =
+          *std::max_element(parseWorkerNs.begin(), parseWorkerNs.end());
+    }
 
     CHECK_STATE(!batchSizeError.load());
     CHECK_STATE(!shareSizeError.load());
+
+    size_t estimatedEcallCount = 0;
+    size_t nonEmptyChunks = 0;
+    size_t minChunkCiphertexts = std::numeric_limits<size_t>::max();
+    size_t maxChunkCiphertexts = 0;
+    constexpr size_t kBatchPayloadBytes = ENCLAVE_MAX_BATCH_BUFFER_SIZE - 1;
+    for (const auto &chunk : concatenatedCiphertexts) {
+      if (chunk.empty()) {
+        continue;
+      }
+      const size_t chunkCiphertexts =
+          chunk.size() / CIPHERTEXT_CHARACTER_LENGTH;
+      if (chunkCiphertexts == 0) {
+        continue;
+      }
+      ++nonEmptyChunks;
+      minChunkCiphertexts = std::min(minChunkCiphertexts, chunkCiphertexts);
+      maxChunkCiphertexts = std::max(maxChunkCiphertexts, chunkCiphertexts);
+      estimatedEcallCount +=
+          (chunk.size() + kBatchPayloadBytes - 1) / kBatchPayloadBytes;
+    }
+    if (minChunkCiphertexts == std::numeric_limits<size_t>::max()) {
+      minChunkCiphertexts = 0;
+    }
 
     // -----------------------------------------------------------
     //                  Execute decryption
@@ -1211,24 +1258,40 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     // holds results for each thread
     std::vector<std::pair<std::vector<std::string>, std::vector<int>>>
         decryptionSharesByThread(numThreads);
+    std::vector<uint64_t> cryptoWorkerNs(numThreads, 0);
 
     // compute decryption shares in parallel
+    const auto cryptoStart = clock::now();
     threadPool.execute([&]() {
       tbb::task_group group;
 
       for (int i = 0; i < numThreads; ++i) {
         // pass 'i' by copy to each thread
         group.run([&, i]() {
+          const auto workerStart = clock::now();
           decryptionSharesByThread.at(i) = calculateDecryptionShares(
-              encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts.at(i));
+              encryptedKeyHex_ptr->c_str(), concatenatedCiphertexts.at(i),
+              requestId, i);
+          cryptoWorkerNs.at(i) =
+              std::chrono::duration_cast<std::chrono::nanoseconds>(
+                  clock::now() - workerStart)
+                  .count();
         });
       }
       group.wait(); // wait for all threads to finish
     });
+    tCryptoNs = std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() -
+                                                                      cryptoStart)
+                    .count();
+    if (!cryptoWorkerNs.empty()) {
+      tCryptoWorkerMaxNs =
+          *std::max_element(cryptoWorkerNs.begin(), cryptoWorkerNs.end());
+    }
 
     // -----------------------------------------------------------
     //                  Build Response
     // -----------------------------------------------------------
+    const auto buildStart = clock::now();
     int idx = 0;
     for (auto &decryptionShares : decryptionSharesByThread) {
       size_t sharesAmount = decryptionShares.first.size();
@@ -1241,6 +1304,31 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
         idx++;
       }
     }
+    tBuildNs = std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() -
+                                                                     buildStart)
+                   .count();
+
+    const uint64_t tTotalNs =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() -
+                                                             requestStart)
+            .count();
+    const uint64_t tThreadOverheadNs =
+        (tParseNs > tParseWorkerMaxNs ? (tParseNs - tParseWorkerMaxNs) : 0) +
+        (tCryptoNs > tCryptoWorkerMaxNs ? (tCryptoNs - tCryptoWorkerMaxNs) : 0);
+    constexpr double kNsPerMs = 1000000.0;
+    const double avgCiphertextsPerEcall =
+        estimatedEcallCount ? (double)batchSize / (double)estimatedEcallCount
+                            : 0.0;
+    spdlog::info(
+        "[PERF][req:{}] getDecryptionShares batch={} threads={} chunks_non_empty={} "
+        "chunk_ct_min={} chunk_ct_max={} est_ecalls={} avg_ct_per_ecall={:.2f} "
+        "t_total_ms={:.3f} t_parse_ms={:.3f} t_crypto_ms={:.3f} "
+        "t_build_ms={:.3f} t_thread_overhead_ms={:.3f}",
+        requestId, batchSize, numThreads, nonEmptyChunks, minChunkCiphertexts,
+        maxChunkCiphertexts, estimatedEcallCount, avgCiphertextsPerEcall,
+        (double)tTotalNs / kNsPerMs, (double)tParseNs / kNsPerMs,
+        (double)tCryptoNs / kNsPerMs, (double)tBuildNs / kNsPerMs,
+        (double)tThreadOverheadNs / kNsPerMs);
   }
   HANDLE_SGX_EXCEPTION(result)
 
