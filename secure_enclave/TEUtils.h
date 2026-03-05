@@ -30,6 +30,8 @@
 #define EXTERNC
 #endif
 
+#include <stdint.h>
+
 #ifdef USER_SPACE
 
 #include <gmp.h>
@@ -45,9 +47,26 @@
 #define STATUS_INTERNAL_ERROR 3
 #define STATUS_UNKNOWN_ERROR 4
 
+typedef struct te_decryption_share_timing_t {
+  uint64_t t_total_ns;
+  uint64_t t_skey_parse_ns;
+  uint64_t t_g2_deser_ns;
+  uint64_t t_g2_validate_in_ns;
+  uint64_t t_mul_ns;
+  uint64_t t_validate_out_ns;
+  uint64_t t_normalize_ns;
+  uint64_t t_serialize_ns;
+} te_decryption_share_timing_t;
+
+EXTERNC uint64_t tePerfNowNs();
+
 EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
 
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);
+EXTERNC int getDecryptionShareTimed(char *secret, char *decryptionValue,
+                                    size_t decryptionSize,
+                                    char *decryption_share,
+                                    te_decryption_share_timing_t *timing);
 
 #endif

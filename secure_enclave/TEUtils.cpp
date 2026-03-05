@@ -180,44 +180,104 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   }
 }
 
+EXTERNC uint64_t tePerfNowNs() {
+  // SGX-friendly high-resolution counter for relative profiling.
+  // Avoid sgx_intrin.h to keep compatibility with -nostdinc++ enclave builds.
+  unsigned int lo = 0;
+  unsigned int hi = 0;
+#if defined(__x86_64__) || defined(__i386__)
+  __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
+  return ((uint64_t)hi << 32) | lo;
+#else
+  return 0;
+#endif
+}
+
 EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share) {
+  return getDecryptionShareTimed(skey_dec, decryptionValue, decryptionSize,
+                                 decryption_share, nullptr);
+}
+
+EXTERNC int getDecryptionShareTimed(char *skey_dec, char *decryptionValue,
+                                    size_t decryptionSize,
+                                    char *decryption_share,
+                                    te_decryption_share_timing_t *timing) {
+  bool collectTiming = timing != nullptr;
+  uint64_t tTotalStartNs = collectTiming ? tePerfNowNs() : 0;
+  if (collectTiming) {
+    memset(timing, 0, sizeof(*timing));
+  }
 
   CHECK_ARG_CLEAN(skey_dec);
   CHECK_ARG_CLEAN(decryptionValue);
   CHECK_ARG_CLEAN(decryption_share);
 
   try {
+    const uint64_t tSkeyParseStartNs = collectTiming ? tePerfNowNs() : 0;
     bool b = false;
     Fr bls_skey;
     bls_skey.setStr(&b, skey_dec, 10);
+    if (collectTiming) {
+      timing->t_skey_parse_ns += tePerfNowNs() - tSkeyParseStartNs;
+    }
     if (!b) {
       LOG_ERROR("Failed to convert string to Fr");
       return STATUS_INTERNAL_ERROR;
     }
 
+    const uint64_t tG2DeserStartNs = collectTiming ? tePerfNowNs() : 0;
     G2 decryption_value = stringToG2(decryptionValue, decryptionSize);
+    if (collectTiming) {
+      timing->t_g2_deser_ns += tePerfNowNs() - tG2DeserStartNs;
+    }
 
+    const uint64_t tG2ValidateInStartNs = collectTiming ? tePerfNowNs() : 0;
     if (!isG2(decryption_value)) {
+      if (collectTiming) {
+        timing->t_g2_validate_in_ns += tePerfNowNs() - tG2ValidateInStartNs;
+      }
       LOG_ERROR("Decryption value is not well formed");
       // must be '0' -> not 0. 0 is null terminator & string parsing by the
       // caller will fail
       memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
       return STATUS_G2_NOT_WELL_FORMED;
     }
+    if (collectTiming) {
+      timing->t_g2_validate_in_ns += tePerfNowNs() - tG2ValidateInStartNs;
+    }
 
     G2 decryption_share_point;
+    const uint64_t tMulStartNs = collectTiming ? tePerfNowNs() : 0;
     G2::mul(decryption_share_point, decryption_value, bls_skey);
+    if (collectTiming) {
+      timing->t_mul_ns += tePerfNowNs() - tMulStartNs;
+    }
 
+    const uint64_t tValidateOutStartNs = collectTiming ? tePerfNowNs() : 0;
     if (!isG2(decryption_share_point)) {
+      if (collectTiming) {
+        timing->t_validate_out_ns += tePerfNowNs() - tValidateOutStartNs;
+      }
       LOG_ERROR("Decryption share point is not well formed");
       memset(decryption_share, '0', CIPHERTEXT_CHARACTER_LENGTH);
       return STATUS_G2_NOT_WELL_FORMED;
     }
+    if (collectTiming) {
+      timing->t_validate_out_ns += tePerfNowNs() - tValidateOutStartNs;
+    }
 
+    const uint64_t tNormalizeStartNs = collectTiming ? tePerfNowNs() : 0;
     decryption_share_point.normalize();
+    if (collectTiming) {
+      timing->t_normalize_ns += tePerfNowNs() - tNormalizeStartNs;
+    }
 
+    const uint64_t tSerializeStartNs = collectTiming ? tePerfNowNs() : 0;
     std::string result = G2ToString(decryption_share_point);
+    if (collectTiming) {
+      timing->t_serialize_ns += tePerfNowNs() - tSerializeStartNs;
+    }
 
     strncpy(decryption_share, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
   } catch (SGXException &e) {
@@ -232,5 +292,8 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
   }
 
 clean:
+  if (collectTiming) {
+    timing->t_total_ns += tePerfNowNs() - tTotalStartNs;
+  }
   return SUCCESS;
 }

@@ -1397,20 +1397,43 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     SAFE_CHAR_BUF(skey_hex, ENCLAVE_BUF_LEN);
     SAFE_CHAR_BUF(skey_dec, ENCLAVE_BUF_LEN);
+    // Enable detailed profiling only in trace/debug mode to keep production
+    // overhead minimal.
+    const bool perfEnabled = globalLogLevel_ <= 1;
+    const uint64_t tEcallStartNs = perfEnabled ? tePerfNowNs() : 0;
+    uint64_t tKeyDecryptNs = 0;
+    uint64_t tKeyHexToDecNs = 0;
+    uint64_t tLoopTotalNs = 0;
+    uint64_t tShareTotalNs = 0;
+    uint64_t tSkeyParseNs = 0;
+    uint64_t tG2DeserNs = 0;
+    uint64_t tG2ValidateInNs = 0;
+    uint64_t tMulNs = 0;
+    uint64_t tValidateOutNs = 0;
+    uint64_t tNormalizeNs = 0;
+    uint64_t tSerializeNs = 0;
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
     // Key comes in hexadecimal
+    uint64_t tPhaseStartNs = perfEnabled ? tePerfNowNs() : 0;
     int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ENCLAVE_BUF_LEN,
                              &type, &exportable);
+    if (perfEnabled) {
+        tKeyDecryptNs += tePerfNowNs() - tPhaseStartNs;
+    }
 
     CHECK_STATUS2("AES decrypt failed %d");
 
     skey_hex[ECDSA_SKEY_LEN - 1] = 0;
 
     // convert to decimal
+    tPhaseStartNs = perfEnabled ? tePerfNowNs() : 0;
     int stat = keyHexToDecimal(skey_hex, skey_dec);
+    if (perfEnabled) {
+        tKeyHexToDecNs += tePerfNowNs() - tPhaseStartNs;
+    }
     
     status = stat;
 
@@ -1420,10 +1443,25 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
     char* current_output_decryption_share = decryption_shares;
 
     size_t current_ciphertext = 0;
+    const uint64_t tLoopStartNs = perfEnabled ? tePerfNowNs() : 0;
     // assumes the input vectors have been correctly allocated with a size of BATCH_SIZE * CIPHERTEXT_LEN + 1
     // /                                    Available data may be less than batch size
     for (uint8_t i = 0; (i < ENCLAVE_MAX_CIPHERTEXT_BATCH) && (current_ciphertext < public_decryption_value_len); ++i) {
-        status = getDecryptionShare(skey_dec, current_input_ciphertext, CIPHERTEXT_CHARACTER_LENGTH, current_output_decryption_share);
+        te_decryption_share_timing_t shareTiming;
+        memset(&shareTiming, 0, sizeof(shareTiming));
+        status = getDecryptionShareTimed(
+            skey_dec, current_input_ciphertext, CIPHERTEXT_CHARACTER_LENGTH,
+            current_output_decryption_share, perfEnabled ? &shareTiming : NULL);
+        if (perfEnabled) {
+            tShareTotalNs += shareTiming.t_total_ns;
+            tSkeyParseNs += shareTiming.t_skey_parse_ns;
+            tG2DeserNs += shareTiming.t_g2_deser_ns;
+            tG2ValidateInNs += shareTiming.t_g2_validate_in_ns;
+            tMulNs += shareTiming.t_mul_ns;
+            tValidateOutNs += shareTiming.t_validate_out_ns;
+            tNormalizeNs += shareTiming.t_normalize_ns;
+            tSerializeNs += shareTiming.t_serialize_ns;
+        }
 
         // array of status is sent to caller
         decryption_shares_status[i] = status;
@@ -1431,6 +1469,41 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
         current_input_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
         current_output_decryption_share += CIPHERTEXT_CHARACTER_LENGTH;
         current_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
+    }
+    if (perfEnabled) {
+        tLoopTotalNs += tePerfNowNs() - tLoopStartNs;
+    }
+
+    if (perfEnabled) {
+        const uint64_t tEcallTotalNs = tePerfNowNs() - tEcallStartNs;
+        const size_t processedCiphertexts = current_ciphertext / CIPHERTEXT_CHARACTER_LENGTH;
+        const unsigned long long avgShareTotalTicks =
+            processedCiphertexts ? (unsigned long long)(tShareTotalNs / (uint64_t)processedCiphertexts) : 0ULL;
+        SAFE_CHAR_BUF(perfLine, ENCLAVE_BUF_LEN);
+        snprintf(
+            perfLine, ENCLAVE_BUF_LEN,
+            "[PERF][ecall] trustedGetDecryptionShares ct=%u t_total_ticks=%llu "
+            "t_key_decrypt_ticks=%llu t_key_hex2dec_ticks=%llu "
+            "t_loop_ticks=%llu t_share_total_ticks=%llu "
+            "t_skey_parse_ticks=%llu t_g2_deser_ticks=%llu "
+            "t_g2_validate_in_ticks=%llu t_mul_ticks=%llu "
+            "t_validate_out_ticks=%llu t_normalize_ticks=%llu "
+            "t_serialize_ticks=%llu avg_share_ticks=%llu",
+            (unsigned int)processedCiphertexts,
+            (unsigned long long)tEcallTotalNs,
+            (unsigned long long)tKeyDecryptNs,
+            (unsigned long long)tKeyHexToDecNs,
+            (unsigned long long)tLoopTotalNs,
+            (unsigned long long)tShareTotalNs,
+            (unsigned long long)tSkeyParseNs,
+            (unsigned long long)tG2DeserNs,
+            (unsigned long long)tG2ValidateInNs,
+            (unsigned long long)tMulNs,
+            (unsigned long long)tValidateOutNs,
+            (unsigned long long)tNormalizeNs,
+            (unsigned long long)tSerializeNs,
+            avgShareTotalTicks);
+        LOG_DEBUG(perfLine);
     }
 
     SET_SUCCESS
