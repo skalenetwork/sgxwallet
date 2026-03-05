@@ -1136,18 +1136,16 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     CHECK_STATE(encryptedKeyHex_ptr != nullptr);
     CHECK_STATE(threadPool.isInitialized());
 
-    int batchSize = publicDecryptionValues.size();
-    int threadBatch = batchSize / threadPool.size;
-    int numThreads = threadPool.size;
-    int threadRemainder = 0;
-
-    // More threads than items - use one item per thread
-    if (threadBatch == 0) {
-      threadBatch = 1;
-      numThreads = batchSize;
-    } else {
-      threadRemainder = batchSize % threadPool.size;
-    }
+    const int batchSize = publicDecryptionValues.size();
+    const int maxCiphertextsPerChunk = ENCLAVE_MAX_CIPHERTEXT_BATCH;
+    const int maxPoolThreads = static_cast<int>(threadPool.size);
+    const int targetChunks =
+        batchSize > 0 ? ((batchSize + maxCiphertextsPerChunk - 1) /
+                         maxCiphertextsPerChunk)
+                      : 0;
+    const int numThreads = std::min(maxPoolThreads, targetChunks);
+    const int threadBatch = numThreads > 0 ? (batchSize / numThreads) : 0;
+    int threadRemainder = numThreads > 0 ? (batchSize % numThreads) : 0;
 
     // -----------------------------------------------------------
     //      Populate start and end indices for each thread
@@ -1155,23 +1153,16 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     std::vector<int> startIndices(numThreads);
     std::vector<int> endIndices(numThreads);
 
-    int thread = 0;
     int startIdx = 0;
-    int plusOneBatch = threadBatch + 1;
-    // populate the threads that will have +1 items
-    while (threadRemainder > 0) {
+    for (int thread = 0; thread < numThreads; ++thread) {
+      int chunkSize = threadBatch;
+      if (threadRemainder > 0) {
+        ++chunkSize;
+        --threadRemainder;
+      }
       startIndices.at(thread) = startIdx;
-      startIdx += plusOneBatch;
+      startIdx += chunkSize;
       endIndices.at(thread) = startIdx;
-      ++thread;
-      --threadRemainder;
-    }
-    // populate the rest
-    while (thread < numThreads) {
-      startIndices.at(thread) = startIdx;
-      startIdx += threadBatch;
-      endIndices.at(thread) = startIdx;
-      ++thread;
     }
 
     // -----------------------------------------------------------
@@ -1319,7 +1310,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     const double avgCiphertextsPerEcall =
         estimatedEcallCount ? (double)batchSize / (double)estimatedEcallCount
                             : 0.0;
-    spdlog::info(
+    spdlog::debug(
         "[PERF][req:{}] getDecryptionShares batch={} threads={} chunks_non_empty={} "
         "chunk_ct_min={} chunk_ct_max={} est_ecalls={} avg_ct_per_ecall={:.2f} "
         "t_total_ms={:.3f} t_parse_ms={:.3f} t_crypto_ms={:.3f} "

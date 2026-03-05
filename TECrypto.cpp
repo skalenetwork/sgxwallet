@@ -174,7 +174,7 @@ calculateDecryptionShares(const string &encryptedKeyShare,
   const double estimatedBridgeCopyKB =
       (double)(ecallCount * fixedBridgeBytesPerEcall) / 1024.0;
 
-  spdlog::info(
+  spdlog::debug(
       "[PERF][req:{}][worker:{}] calculateDecryptionShares ct={} ecalls={} "
       "avg_ct_per_ecall={:.2f} avg_in_bytes_per_ecall={:.1f} "
       "in_util_pct={:.1f} decoded={} t_total_ms={:.3f} t_hex2bin_ms={:.3f} "
