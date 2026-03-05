@@ -14,13 +14,13 @@ RUN cd linux-sgx && make preparation
 WORKDIR /linux-sgx
 COPY . .
 
-RUN make sdk_install_pkg_no_mitigation
+RUN make -j$(nproc) sdk_install_pkg_no_mitigation
 
 WORKDIR /opt/intel
 RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
 
 WORKDIR /linux-sgx
-RUN make psw_install_pkg
+RUN make -j$(nproc) psw_install_pkg
 
 WORKDIR /opt/intel
 RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
@@ -53,7 +53,7 @@ WORKDIR /usr/src/sdk/scripts
 RUN ./build_deps.py
 RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
 WORKDIR dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
-RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
+RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make -j$(nproc) install
 WORKDIR /usr/src/sdk/scripts
 RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 WORKDIR /usr/src/sdk
@@ -62,7 +62,7 @@ RUN ./autoconf.bash
 # ---- Build sgxwallet (hardware mode) ----
 RUN touch /var/hwmode
 RUN ./configure
-RUN bash -c "make -j$(nproc)"
+RUN make -j$(nproc)
 RUN ccache -sz
 RUN mkdir -p /usr/src/sdk/sgx_data
 COPY docker/start.sh ./
