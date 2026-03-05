@@ -20,7 +20,7 @@ WORKDIR /opt/intel
 RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
 
 WORKDIR /linux-sgx
-RUN make psw_install_pkg
+RUN make -j$(nproc) psw_install_pkg
 
 WORKDIR /opt/intel
 RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
