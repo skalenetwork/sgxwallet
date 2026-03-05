@@ -1,0 +1,447 @@
+{
+  "format_version": "2.0",
+  "test_type": "api_level",
+  "timestamp": "2026-01-26T18:47:18Z",
+  "description": "API-level golden vectors for sgxwallet libff->mcl migration",
+  "tests": [
+    {
+      "test_id": "api_import_bls_001",
+      "description": "Import BLS key share (encryption is random)",
+      "method": "importBLSKeyShare",
+      "request":       {
+        "keyShare" : "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "keyShareName" : "BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1"
+      },
+      "expected_response":       {
+        "encryptedKeyShare" : "<encrypted>",
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "encryptedKeyShare" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_get_bls_pubkey_001",
+      "description": "Get BLS public key share",
+      "method": "getBLSPublicKeyShare",
+      "request":       {
+        "blsKeyName" : "BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1"
+      },
+      "expected_response":       {
+        "blsPublicKeyShare" : 
+        [
+          "4134213916343724931760970732975602250786076528375749075160172169169044486969",
+          "21558308526502507855325166439008393966717643700102272257425778227652387758205",
+          "891189877208105314331199145787525421844052589013600536797344575232083382042",
+          "2653326632600946096894137479864389653965751602244102699043300532605270979831"
+        ],
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "blsPublicKeyShare" : "must_match_exactly",
+        "comparison" : "exact",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_bls_sign_001",
+      "description": "BLS sign with deterministic hash",
+      "method": "blsSignMessageHash",
+      "request":       {
+        "keyShareName" : "BLS_KEY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1",
+        "messageHash" : "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "n" : 3,
+        "t" : 2
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "signatureShare" : "8596193470174801906330364772974657405092240758855065917105569707304059144770:8683643099083593117989687539628738426736754310976951215906800163306353268811:13113186184359990999018007751176469429957312607452188749184335928160265937877:1",
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "signatureShare" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_gen_ecdsa_001",
+      "description": "Generate ECDSA key (random)",
+      "method": "generateECDSAKey",
+      "request":       null,
+      "expected_response":       {
+        "PublicKey" : "73c2b623630ff84cdff47c5af964155022831c9d9179ab34300c794bffc599948372e28483e235fb70c7014dc0a7a36345d0eb6cb9dd7d138da8aac74dfddee3",
+        "encryptedKey" : "c118fed32006803d8566ee0756eb5d44f582839b0e8f510551e6c17c7ef31d9db4dca998079461d9ed9f2fd7b441c0c487289bfc3fd6e3f98671c87b1b87b6cdb50d3e4901f745ce3ea9e62023fbf5fc6052b11d0433fb3d337c9c10a504af",
+        "errorMessage" : "",
+        "keyName" : "<random>",
+        "publicKey" : "<random>",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "keyName" : "must_be_present",
+        "publicKey" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_gen_dkg_poly_001",
+      "description": "Generate DKG polynomial (random coefficients)",
+      "method": "generateDKGPoly",
+      "request":       {
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_get_verif_vect_001",
+      "description": "Get verification vector for DKG poly",
+      "method": "getVerificationVector",
+      "request":       {
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "t" : 3
+      },
+      "expected_response":       {
+        "status" : 0,
+        "verificationVector" : "<array_of_G2_points>"
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "status" : 0,
+        "vector_length" : 3,
+        "verificationVector" : "must_be_array"
+      }
+    },
+    {
+      "test_id": "api_import_ecdsa_001",
+      "description": "Import ECDSA key (encryption is random)",
+      "method": "importECDSAKey",
+      "request":       {
+        "key" : "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "keyName" : "NEK:1"
+      },
+      "expected_response":       {
+        "encryptedKey" : "<encrypted>",
+        "errorMessage" : "",
+        "publicKey" : "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "encryptedKey" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_get_ecdsa_pubkey_001",
+      "description": "Get ECDSA public key",
+      "method": "getPublicECDSAKey",
+      "request":       {
+        "keyName" : "NEK:1"
+      },
+      "expected_response":       {
+        "PublicKey" : "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+        "errorMessage" : "",
+        "publicKey" : "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "publicKey" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_ecdsa_sign_001",
+      "description": "ECDSA sign (signature has randomness)",
+      "method": "ecdsaSignMessageHash",
+      "request":       {
+        "base" : 16,
+        "keyName" : "NEK:1",
+        "messageHash" : "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "signature_r" : "<signature_r>",
+        "signature_s" : "<signature_s>",
+        "signature_v" : "<signature_v>",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "signature_r" : "must_be_present",
+        "signature_s" : "must_be_present",
+        "signature_v" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_mult_g2_001",
+      "description": "Multiply G2 generator by scalar",
+      "method": "multG2",
+      "request":       {
+        "x" : "12345678901234567890"
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "status" : 0,
+        "x*G2" : 
+        [
+          "6564126029540036232371934286329030016255444017152536820876048207919739730398",
+          "4683255715346260369151334816766668396167208186992857263696264538002349470571",
+          "7229581354938513027023644364437179811074071888736235177382381658405602879852",
+          "9779951490326959790654441816793816479518157718076739742832593879512712820883"
+        ]
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "g2Point" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_gen_bls_key_001",
+      "description": "Generate full BLS private key",
+      "method": "generateBLSPrivateKey",
+      "request":       {
+        "blsKeyName" : "BLS_KEY:SCHAIN_ID:2:NODE_ID:2:DKG_ID:2"
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_get_secret_share_001",
+      "description": "Compute secret shares (depends on random poly)",
+      "method": "getSecretShare",
+      "request":       {
+        "n" : 3,
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "publicKeys" : 
+        [
+          "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+          "2b7739ccc3e407e5cfaf4d04ba05b57efda0cb1ea249c6faf7fd36db3c27fa863d04c2a3b21e8f4911f19b8f91454d7a3afb09da5c58c380685242d09cdebc61",
+          "8df45cf98d61606e8143b38df0c0b13f0688abe03614399ad7aef0615213cb0aed18313bd243b1bed3da87768e634d9623b4217910494477aae3c9b9e4199841"
+        ],
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "secretShare" : "<random_depends_on_poly>",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "secretShare" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_dkg_verification_001",
+      "description": "Verify DKG secret share with verification vector",
+      "method": "dkgVerification",
+      "request":       {
+        "ethKeyName" : "NEK:1",
+        "index" : 0,
+        "n" : 3,
+        "publicShares" : "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+        "secretShare" : "53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6",
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "result" : true,
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "result" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_create_bls_key_001",
+      "description": "Create BLS key from DKG secret share",
+      "method": "createBLSPrivateKey",
+      "request":       {
+        "blsKeyName" : "BLS_KEY:SCHAIN_ID:99:NODE_ID:99:DKG_ID:99",
+        "ethKeyName" : "NEK:1",
+        "n" : 3,
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:2",
+        "secretShare" : "7152011f0e8401aceb5db4e124f98f1b452a12972195accb6f4b9d0c5cf3eb159e9e58ade990bbc7c9a43078f738036ea8309a7665cc7b63a51fc8751114abab8d95e28b109738fc05614f7be8f50a6dd8f499d9632314343acb355968828f7f84e50bf90dc17839aba1cb21c96b9e1fc646912488a0ed1c76b383e031ca8938f5f3165e49e79a6c633075e5f1903c6fc39dfad1491b6c36581ebc5f1a4d5202ecc2b9b5daed9f64caa8e3a05391356232928ff4ab8621e67c617caa7d4ef4053d6e1b3ad3f965fc9ad660f7ba2f6fb5af6f0caf16f2bc609655a6b82ea767e063292602295deee4584ba6599e9a3ff6d4620ec2f1f4fdccab0f9174d92cede8931d4d75ab65b211c680e21ed71d7bf61867ed69dc627368d2a1455727ced27f",
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "encryptedKey" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_get_secret_share_v2_001",
+      "description": "Compute secret shares V2 (depends on random poly)",
+      "method": "getSecretShareV2",
+      "request":       {
+        "n" : 3,
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "publicKeys" : 
+        [
+          "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+          "2b7739ccc3e407e5cfaf4d04ba05b57efda0cb1ea249c6faf7fd36db3c27fa863d04c2a3b21e8f4911f19b8f91454d7a3afb09da5c58c380685242d09cdebc61",
+          "8df45cf98d61606e8143b38df0c0b13f0688abe03614399ad7aef0615213cb0aed18313bd243b1bed3da87768e634d9623b4217910494477aae3c9b9e4199841"
+        ],
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "secretShare" : "<random_depends_on_poly>",
+        "status" : 0
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "secretShare" : "must_be_present",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_dkg_verification_v2_001",
+      "description": "Verify DKG share with V2 protocol",
+      "method": "dkgVerificationV2",
+      "request":       {
+        "ethKeyName" : "NEK:1",
+        "index" : 0,
+        "n" : 3,
+        "publicShares" : "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+        "secretShare" : "53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6",
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "result" : false,
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "result" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_create_bls_key_v2_001",
+      "description": "Create BLS key with V2 protocol",
+      "method": "createBLSPrivateKeyV2",
+      "request":       {
+        "blsKeyName" : "BLS_KEY:SCHAIN_ID:100:NODE_ID:100:DKG_ID:100",
+        "ethKeyName" : "NEK:1",
+        "n" : 3,
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:3",
+        "secretShare" : "e3585ec495bd44390de871d7cc3dd8cc59869d3bd8a5ad376abf4714ac0b7782779c1dcb350a48f7c8742ca05e5a1f6250313cb3219f8aa753aa518dc0af578c5664b68cc2ff861c979cb09ecdbc56cddd99062868eac6caabf45c3283ca42d7af9e80a3412696fa46549cb73af920a70f0fa418f40b5f520e119fcbebe552cf8ef8c83769ce3fe5db461cd1b4c66849b0b46f2780144cd6b51457784742ae8ef9678738750b2b041eede528581d0981335598a8e40a6de9be5d90466d8a156c2e8ce558f6ed0652b792a262673a443e2dc45345bb01d20dae08973f2494d72e8f6835f03c17f61adf6e1e12c36ab88875df1f5b24c07570804a05532b0f67e52806941d123d2c20fd53753ec33591b92a956ffb761b9149deb0e6ff6006294f",
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "encryptedKey" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_calc_all_bls_pubkeys_001",
+      "description": "Aggregate BLS public keys from shares",
+      "method": "calculateAllBLSPublicKeys",
+      "request":       {
+        "n" : 3,
+        "publicShares" : 
+        [
+          "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+          "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+          "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad"
+        ],
+        "t" : 3
+      },
+      "expected_response":       {
+        "errorMessage" : "",
+        "publicKeys" : 
+        [
+          "21148705485955109689447402635207813109694349450860770148921533596604402456950:4360532663836311769430501291108721419794059554489655379291767944498710944357:12415806749004957646706238286061804861596023462742555600298220246217419937780:21660081499524936519499197613373012538331378946946035638365800125884824591194",
+          "14095350868710478246191632278172968147608948483296219556991686339213250786950:21774633829710376980845971548345109867559379049541761827005412071259540258969:18207586806328732227724862823490208736668973453566702579422214127072509612697:2141179598393663750425248044541554598053843679983757066419151997564112862678",
+          "6437605967845583383382615667104227414978842668864889581827318202621210001963:20755421391875546868875831745248639180665596959466289047980280027694013763339:1770486684754724300209520234502131395551475612857703187765505063237430271469:1084910849603765536635107462036871243559191591202576072271455536861907483175"
+        ],
+        "status" : 0
+      },
+      "validation_type": "deterministic",
+      "validation_criteria":       {
+        "comparison" : "exact",
+        "publicKeys" : "must_match_exactly",
+        "status" : 0
+      }
+    },
+    {
+      "test_id": "api_complaint_response_001",
+      "description": "Generate DKG complaint response (depends on random poly)",
+      "method": "complaintResponse",
+      "request":       {
+        "ind" : 1,
+        "n" : 3,
+        "polyName" : "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "t" : 3
+      },
+      "expected_response":       {
+        "dhKey" : "<random_depends_on_poly>",
+        "errorMessage" : "",
+        "share*G2" : "<random_depends_on_poly>",
+        "status" : 0,
+        "verificationVectorMult" : "<array_of_G2_points>"
+      },
+      "validation_type": "functional",
+      "validation_criteria":       {
+        "comparison" : "structural",
+        "dhKey" : "must_be_present",
+        "share*G2" : "must_be_present",
+        "status" : 0,
+        "verificationVectorMult" : "must_be_array"
+      }
+    }
+  ]
+}

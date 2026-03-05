@@ -30,6 +30,7 @@
 /sgx-gmp/
 /sgx-sdk-build/
 /secure_enclave/Makefile
+/secure_enclave/Makefile.in
 /secure_enclave/secure_enclave.signed.so
 /secure_enclave/secure_enclave.so
 /secure_enclave/secure_enclave_t.c
@@ -52,3 +53,6 @@
 /cert/*.crt
 /jsonrpc/
 /sgx-gmp/
+tests/performance/plots/
+tests/performance/venv/
+tests/performance/utils/__pycache__/
