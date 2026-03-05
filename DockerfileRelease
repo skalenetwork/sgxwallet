@@ -1,15 +1,67 @@
-FROM skalenetwork/sgxwallet_base:latest
+FROM ubuntu:22.04
 
+# ---- Install build packages ----
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
+
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# ---- Build and install Intel SGX SDK & PSW ----
+RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
+RUN cd linux-sgx && make preparation
+
+WORKDIR /linux-sgx
+COPY . .
+
+RUN make sdk_install_pkg_no_mitigation
+
+WORKDIR /opt/intel
+RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+
+WORKDIR /linux-sgx
+RUN make psw_install_pkg
+
+WORKDIR /opt/intel
+RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
+
+# ---- Set up project source ----
 COPY . /usr/src/sdk
+RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
-RUN cp -f secure_enclave/secure_enclave.config.xml.release secure_enclave/secure_enclave.config.xml
 
-RUN apt update && apt install -y curl secure-delete python3-pip
-RUN pip3 install --upgrade pip
-RUN pip3 install requests torpy
+# ---- Install development & runtime packages ----
+RUN apt update && \
+    apt install -yq apt-utils && \
+    apt install -yq --no-install-recommends vim telnet ca-certificates perl \
+        alien uuid-dev libxml2-dev ccache \
+        yasm libprocps-dev texinfo \
+        graphviz doxygen libgnutls28-dev libgcrypt20-dev \
+        curl secure-delete python3-pip && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/gcc && \
+    ln -s /usr/bin/ccache /usr/local/bin/g++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/cc && \
+    ln -s /usr/bin/ccache /usr/local/bin/c++
 
-RUN touch /var/hwmode
+RUN pip3 install --upgrade pip && pip3 install requests torpy
+
+# ---- Build dependencies ----
+WORKDIR /usr/src/sdk/scripts
+RUN ./build_deps.py
+RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
+WORKDIR dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
+WORKDIR /usr/src/sdk/scripts
+RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+WORKDIR /usr/src/sdk
 RUN ./autoconf.bash
+
+# ---- Build sgxwallet (release mode) ----
+RUN cp -f secure_enclave/secure_enclave.config.xml.release secure_enclave/secure_enclave.config.xml
+RUN touch /var/hwmode
 RUN ./configure --with-sgx-build=release
 RUN cd secure_enclave && bash -c "make secure_enclave.so -j$(nproc)"
 RUN cd scripts && ./sign_enclave.bash
