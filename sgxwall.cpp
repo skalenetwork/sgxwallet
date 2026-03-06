@@ -70,9 +70,8 @@ void SGXWallet::printUsage() {
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
   cerr << "\nConfiguration flags:\n\n";
-  cerr << "   -t  Set thread pool size. Default is "
-       << maxThreadPoolSize << ". Must be >= 1 and <= " << maxThreadPoolSize
-       << ".\n";
+  cerr << "   -t  Set thread pool size. Default is " << maxThreadPoolSize
+       << ". Must be >= 1 and <= " << maxThreadPoolSize << ".\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -180,9 +179,8 @@ int main(int argc, char *argv[]) {
         if (threadPoolSize <= 0) {
           throw std::invalid_argument("Thread pool size must be positive");
         } else if (threadPoolSize > maxThreadPoolSize) {
-          throw std::invalid_argument(
-              "Thread pool size must not exceed " +
-              std::to_string(maxThreadPoolSize));
+          throw std::invalid_argument("Thread pool size must not exceed " +
+                                      std::to_string(maxThreadPoolSize));
         }
       } catch (const std::exception &e) {
         std::cerr << "Invalid thread pool size: " << optarg << "\n";
