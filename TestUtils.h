@@ -35,7 +35,9 @@
 #include <gmp.h>
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libBLS/backends/algebra.hpp>
+#include <libBLS/bls/bls.h>
+#include <random>
 #include <sgx_tcrypto.h>
 #include <sgx_urts.h>
 #include <stdio.h>
@@ -49,7 +51,9 @@ class TestUtils {
 public:
   static default_random_engine randGen;
 
-  static string stringFromFr(libff::alt_bn128_Fr &el, size_t base = 10);
+  static string
+  stringFromFr(libBLS::algebra::FrScalar &el,
+               libBLS::algebra::Base base = libBLS::algebra::Base::DEC);
 
   static string convertDecToHex(string dec, int numBytes = 32);
 
@@ -59,12 +63,13 @@ public:
 
   static shared_ptr<string> encryptTestKey();
 
-  static vector<libff::alt_bn128_Fr> splitStringToFr(const char *coeffs,
-                                                     const char symbol);
+  static vector<libBLS::algebra::FrScalar> splitStringToFr(const char *coeffs,
+                                                           const char symbol);
 
   static vector<string> splitStringTest(const char *coeffs, const char symbol);
 
-  static libff::alt_bn128_G2 vectStringToG2(const vector<string> &G2_str_vect);
+  static libBLS::algebra::G2Point
+  vectStringToG2(const vector<string> &G2_str_vect);
 
   static void sendRPCRequest();
 

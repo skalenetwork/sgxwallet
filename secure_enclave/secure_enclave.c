@@ -73,7 +73,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     if (!(_EXPRESSION_)) {        \
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
         LOG_ERROR((const char*) __FILE__); \
-        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        snprintf(errString, ENCLAVE_BUF_LEN, "State check failed. Check log."); \
         *errStatus = -1;                          \
         return;}
 
@@ -81,20 +81,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     if (!(_EXPRESSION_)) {        \
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
         LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
-        snprintf(errString, BUF_LEN, "State check failed. Check log."); \
+        snprintf(errString, ENCLAVE_BUF_LEN, "State check failed. Check log."); \
         *errStatus = -1;                          \
         goto clean;}
 
 #define CHECK_STATUS(__ERRMESSAGE__) if (status != SGX_SUCCESS) { \
 LOG_ERROR(__FUNCTION__); \
-snprintf(errString, BUF_LEN, "failed with status %d : %s",  status,  __ERRMESSAGE__); \
+snprintf(errString, ENCLAVE_BUF_LEN, "failed with status %d : %s",  status,  __ERRMESSAGE__); \
 LOG_ERROR(errString); \
 *errStatus = status; \
 goto clean; \
 };
 
 #define CHECK_STATUS2(__ERRMESSAGE__) if (status != SGX_SUCCESS) { \
-snprintf(errString, BUF_LEN, __ERRMESSAGE__, status); \
+snprintf(errString, ENCLAVE_BUF_LEN, __ERRMESSAGE__, status); \
 LOG_ERROR(errString); \
 *errStatus = status; \
 goto clean; \
@@ -212,7 +212,7 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 volatile uint64_t counter = 0;
 
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
-    char errString[BUF_LEN];
+    char errString[ENCLAVE_BUF_LEN];
     int status;
     int *errStatus = &status;
 
@@ -260,8 +260,8 @@ void sealHexSEK(int *errStatus, char *errString,
 
     CHECK_STATE(encrypt_text_length = plaintextLen);
 
-    SAFE_CHAR_BUF(unsealedKey, BUF_LEN);
-    uint32_t decLen = BUF_LEN;
+    SAFE_CHAR_BUF(unsealedKey, ENCLAVE_BUF_LEN);
+    uint32_t decLen = ENCLAVE_BUF_LEN;
 
     uint64_t add_text_length = sgx_get_add_mac_txt_len((const sgx_sealed_data_t *)encrypted_sek);
     CHECK_STATE(add_text_length == 0);
@@ -311,9 +311,9 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
     CHECK_STATE(encrypted_sek);
-    SAFE_CHAR_BUF(aes_key_hex, BUF_LEN);
+    SAFE_CHAR_BUF(aes_key_hex, ENCLAVE_BUF_LEN);
 
-    uint32_t dec_len = BUF_LEN;
+    uint32_t dec_len = ENCLAVE_BUF_LEN;
 
     sgx_status_t status = sgx_unseal_data(
             (const sgx_sealed_data_t *) encrypted_sek, NULL, 0,
@@ -323,7 +323,7 @@ void trustedSetSEK(int *errStatus, char *errString, uint8_t *encrypted_sek) {
         const char errorMessage [] = "Could not decrypt LevelDB storage! \n"
                   "If you upgraded sgxwallet software or if you are restoring from backup, please run sgxwallet with -b flag  and "
                   "pass your backup key.";
-        snprintf(errString, BUF_LEN, errorMessage);
+        snprintf(errString, ENCLAVE_BUF_LEN, errorMessage);
         LOG_ERROR(errorMessage);
     }
 
@@ -390,7 +390,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
 
     signature_extract_public_key(Pkey, skey, curve);
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -399,7 +399,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y, BUF_LEN);
+    SAFE_CHAR_BUF(arr_y, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
     n_zeroes = 64 - strlen(arr_y);
     for (int i = 0; i < n_zeroes; i++) {
@@ -407,7 +407,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
     }
     strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(skey_str, BUF_LEN);
+    SAFE_CHAR_BUF(skey_str, ENCLAVE_BUF_LEN);
     SAFE_CHAR_BUF(arr_skey_str, mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
     n_zeroes = 64 - strlen(arr_skey_str);
@@ -415,15 +415,15 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
         skey_str[i] = '0';
     }
     strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
-    snprintf(errString, BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
+    snprintf(errString, ENCLAVE_BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
     int status = -1;
 
     if ( *is_exportable ) {
-        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, ENCLAVE_BUF_LEN,
                              ECDSA, EXPORTABLE, enc_len);
     } else {
-        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, BUF_LEN,
+        status = AES_encrypt((char *) skey_str, encryptedPrivateKey, ENCLAVE_BUF_LEN,
                              ECDSA, NON_EXPORTABLE, enc_len);
     }
     CHECK_STATUS("ecdsa private key encryption failed");
@@ -431,7 +431,7 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    status = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, BUF_LEN, &type, &exportable);
+    status = AES_decrypt(encryptedPrivateKey, *enc_len, skey_str, ENCLAVE_BUF_LEN, &type, &exportable);
 
     CHECK_STATUS2("ecdsa private key decr failed with status %d");
 
@@ -449,7 +449,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     LOG_DEBUG(__FUNCTION__);
     INIT_ERROR_STATE
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
     mpz_t privateKeyMpz;
     mpz_init(privateKeyMpz);
@@ -464,7 +464,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
     CHECK_STATUS2("AES_decrypt failed with status %d");
 
@@ -480,13 +480,13 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
     point_multiplication(pKey_test, privateKeyMpz, curve->G, curve);
 
     if (!point_cmp(pKey, pKey_test)) {
-        snprintf(errString, BUF_LEN, "Points are not equal");
+        snprintf(errString, ENCLAVE_BUF_LEN, "Points are not equal");
         LOG_ERROR(errString);
         *errStatus = -11;
         goto clean;
     }
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, pKey->x);
 
     int n_zeroes = 64 - strlen(arr_x);
@@ -496,7 +496,7 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
 
-    SAFE_CHAR_BUF(arr_y, BUF_LEN);
+    SAFE_CHAR_BUF(arr_y, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, pKey->y);
 
     n_zeroes = 64 - strlen(arr_y);
@@ -526,7 +526,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     CHECK_STATE(sigR);
     CHECK_STATE(sigS);
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
     mpz_t privateKeyMpz;
     mpz_init(privateKeyMpz);
@@ -538,7 +538,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("aes decrypt failed with status %d");
@@ -547,14 +547,14 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     if (mpz_set_str(privateKeyMpz, skey, ECDSA_SKEY_BASE) == -1) {
         *errStatus = -1;
-        snprintf(errString, BUF_LEN, "invalid secret key");
+        snprintf(errString, ENCLAVE_BUF_LEN, "invalid secret key");
         LOG_ERROR(errString);
         goto clean;
     }
 
     if (mpz_set_str(msgMpz, hash, 16) == -1) {
         *errStatus = -1;
-        snprintf(errString, BUF_LEN, "invalid message hash");
+        snprintf(errString, ENCLAVE_BUF_LEN, "invalid message hash");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -571,7 +571,7 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
         if (!signature_verify(msgMpz, sign, Pkey, curve)) {
             *errStatus = -2;
-            snprintf(errString, BUF_LEN, "signature is not verified! ");
+            snprintf(errString, ENCLAVE_BUF_LEN, "signature is not verified! ");
             LOG_ERROR(errString);
             point_clear(Pkey);
             goto clean;
@@ -580,15 +580,15 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
         point_clear(Pkey);
     }
 
-    SAFE_CHAR_BUF(arrM, BUF_LEN);
+    SAFE_CHAR_BUF(arrM, ENCLAVE_BUF_LEN);
     mpz_get_str(arrM, 16, msgMpz);
-    snprintf(errString, BUF_LEN, "message is %s ", arrM);
+    snprintf(errString, ENCLAVE_BUF_LEN, "message is %s ", arrM);
 
-    SAFE_CHAR_BUF(arrR, BUF_LEN);
+    SAFE_CHAR_BUF(arrR, ENCLAVE_BUF_LEN);
     mpz_get_str(arrR, base, sign->r);
     strncpy(sigR, arrR, 1024);
 
-    SAFE_CHAR_BUF(arrS, BUF_LEN);
+    SAFE_CHAR_BUF(arrS, ENCLAVE_BUF_LEN);
     mpz_get_str(arrS, base, sign->s);
     strncpy(sigS, arrS, 1024);
 
@@ -622,7 +622,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     if (status != 0) {
         *errStatus = status;
-        snprintf(errString, BUF_LEN, "aes decrypt failed with status %d", status);
+        snprintf(errString, ENCLAVE_BUF_LEN, "aes decrypt failed with status %d", status);
         LOG_ERROR(errString);
         goto clean;
     }
@@ -631,7 +631,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
 
     if (keyLen == MAX_KEY_LENGTH) {
         *errStatus = -10;
-        snprintf(errString, BUF_LEN, "Key is not null terminated");
+        snprintf(errString, ENCLAVE_BUF_LEN, "Key is not null terminated");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -641,7 +641,7 @@ void trustedDecryptKey(int *errStatus, char *errString, uint8_t *encryptedPrivat
             *key++ = '0';
         }
         *errStatus = -11;
-        snprintf(errString, BUF_LEN, "Key is not exportable");
+        snprintf(errString, ENCLAVE_BUF_LEN, "Key is not exportable");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -663,17 +663,17 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
 
     *errStatus = UNKNOWN_ERROR;
 
-    int status = AES_encrypt((char *)key, encryptedPrivateKey, BUF_LEN,
+    int status = AES_encrypt((char *)key, encryptedPrivateKey, ENCLAVE_BUF_LEN,
                              DKG, EXPORTABLE, enc_len);
 
     CHECK_STATUS2("AES encrypt failed with status %d");
 
-    SAFE_CHAR_BUF(decryptedKey, BUF_LEN);
+    SAFE_CHAR_BUF(decryptedKey, ENCLAVE_BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    status = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, BUF_LEN,
+    status = AES_decrypt(encryptedPrivateKey, *enc_len, decryptedKey, ENCLAVE_BUF_LEN,
                          &type, &exportable);
 
     CHECK_STATUS2("trustedDecryptKey failed with status %d");
@@ -681,7 +681,7 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
     uint64_t decryptedKeyLen = strnlen(decryptedKey, MAX_KEY_LENGTH);
 
     if (decryptedKeyLen == MAX_KEY_LENGTH) {
-        snprintf(errString, BUF_LEN, "Decrypted key is not null terminated");
+        snprintf(errString, ENCLAVE_BUF_LEN, "Decrypted key is not null terminated");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -689,7 +689,7 @@ void trustedEncryptKey(int *errStatus, char *errString, const char *key,
     *errStatus = -8;
 
     if (strncmp(key, decryptedKey, MAX_KEY_LENGTH) != 0) {
-        snprintf(errString, BUF_LEN, "Decrypted key does not match original key");
+        snprintf(errString, ENCLAVE_BUF_LEN, "Decrypted key does not match original key");
         LOG_ERROR(key);
         LOG_ERROR(decryptedKey);
         LOG_ERROR(errString);
@@ -715,26 +715,26 @@ void trustedBlsSignMessage(int *errStatus, char *errString, uint8_t *encryptedPr
     CHECK_STATE(_hashY);
     CHECK_STATE(signature);
 
-    SAFE_CHAR_BUF(key, BUF_LEN);SAFE_CHAR_BUF(sig, BUF_LEN);
+    SAFE_CHAR_BUF(key, ENCLAVE_BUF_LEN);SAFE_CHAR_BUF(sig, ENCLAVE_BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, BUF_LEN, &type, &exportable);
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, key, ENCLAVE_BUF_LEN, &type, &exportable);
 
     CHECK_STATUS("AES decrypt failed")
 
     if (!enclave_sign(key, _hashX, _hashY, sig)) {
-        strncpy(errString, "Enclave failed to create bls signature", BUF_LEN);
+        strncpy(errString, "Enclave failed to create bls signature", ENCLAVE_BUF_LEN);
         LOG_ERROR(errString);
         *errStatus = -1;
         goto clean;
     }
 
-    strncpy(signature, sig, BUF_LEN);
+    strncpy(signature, sig, ENCLAVE_BUF_LEN);
 
-    if (strnlen(signature, BUF_LEN) < 10) {
-        strncpy(errString, "Signature too short", BUF_LEN);
+    if (strnlen(signature, ENCLAVE_BUF_LEN) < 10) {
+        strncpy(errString, "Signature too short", ENCLAVE_BUF_LEN);
         LOG_ERROR(errString);
         *errStatus = -1;
         goto clean;
@@ -762,7 +762,7 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
 
     CHECK_STATUS("gen_dkg_poly failed")
 
-    status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * BUF_LEN,
+    status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * ENCLAVE_BUF_LEN,
                          DKG, EXPORTABLE, enc_len);
 
     CHECK_STATUS("SGX AES encrypt DKG poly failed");
@@ -778,7 +778,7 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
     CHECK_STATUS("aes decrypt dkg poly failed");
 
     if (strcmp(dkg_secret, decr_dkg_secret) != 0) {
-        snprintf(errString, BUF_LEN,
+        snprintf(errString, ENCLAVE_BUF_LEN,
                  "encrypted poly is not equal to decrypted poly");
         LOG_ERROR(errString);
         *errStatus = -333;
@@ -866,9 +866,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
-    SAFE_CHAR_BUF(pub_key_x, BUF_LEN);SAFE_CHAR_BUF(pub_key_y, BUF_LEN);
+    SAFE_CHAR_BUF(pub_key_x, ENCLAVE_BUF_LEN);SAFE_CHAR_BUF(pub_key_y, ENCLAVE_BUF_LEN);
 
     int is_exportable = 1;
 
@@ -879,7 +879,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    status = AES_decrypt(encrypted_skey, enc_len, skey, BUF_LEN, &type, &exportable);
+    status = AES_decrypt(encrypted_skey, enc_len, skey, ENCLAVE_BUF_LEN, &type, &exportable);
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
@@ -887,13 +887,13 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     *dec_len = enc_len;
 
-    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    SAFE_CHAR_BUF(common_key, ENCLAVE_BUF_LEN);
 
     status = gen_session_key(skey, pub_keyB, common_key);
 
     CHECK_STATUS("gen_session_key failed")
 
-    SAFE_CHAR_BUF(s_share, BUF_LEN);
+    SAFE_CHAR_BUF(s_share, ENCLAVE_BUF_LEN);
 
     status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
@@ -902,7 +902,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
     status = calc_secret_shareG2(s_share, s_shareG2);
     CHECK_STATUS("invalid decr secret share");
 
-    SAFE_CHAR_BUF(cypher, BUF_LEN);
+    SAFE_CHAR_BUF(cypher, ENCLAVE_BUF_LEN);
     status=xor_encrypt(common_key, s_share, cypher);
 
     CHECK_STATUS("xor_encrypt failed")
@@ -941,10 +941,10 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     CHECK_STATUS2("trustedSetEncryptedDkgPoly failed with status %d ");
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
-    SAFE_CHAR_BUF(pubKeyX, BUF_LEN);
-    SAFE_CHAR_BUF(pubKeyY, BUF_LEN);
+    SAFE_CHAR_BUF(pubKeyX, ENCLAVE_BUF_LEN);
+    SAFE_CHAR_BUF(pubKeyY, ENCLAVE_BUF_LEN);
 
     int is_exportable = 1;
 
@@ -955,7 +955,7 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    status = AES_decrypt(encryptedSkey, encLen, skey, BUF_LEN, &type, &exportable);
+    status = AES_decrypt(encryptedSkey, encLen, skey, ENCLAVE_BUF_LEN, &type, &exportable);
 
     skey[ECDSA_SKEY_LEN - 1] = 0;
 
@@ -963,13 +963,13 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     *decLen = encLen;
 
-    SAFE_CHAR_BUF(commonKey, BUF_LEN);
+    SAFE_CHAR_BUF(commonKey, ENCLAVE_BUF_LEN);
 
     status = gen_session_key(skey, pubKeyB, commonKey);
 
     CHECK_STATUS("gen_session_key failed")
 
-    SAFE_CHAR_BUF(s_share, BUF_LEN);
+    SAFE_CHAR_BUF(s_share, ENCLAVE_BUF_LEN);
 
     status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
@@ -977,12 +977,12 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
     status = calc_secret_shareG2(s_share, secretShareG2);
     CHECK_STATUS("invalid decr secret share");
 
-    SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+    SAFE_CHAR_BUF(derivedKey, ENCLAVE_BUF_LEN);
     status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
     derivedKey[ECDSA_BIN_LEN - 1] = 0;
 
-    SAFE_CHAR_BUF(cypher, BUF_LEN);
+    SAFE_CHAR_BUF(cypher, ENCLAVE_BUF_LEN);
     status = xor_encrypt_v2(derivedKey, s_share, cypher);
 
     CHECK_STATUS("xor_encrypt failed")
@@ -1040,7 +1040,7 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     CHECK_STATE(s_share);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey,BUF_LEN);
+    SAFE_CHAR_BUF(skey,ENCLAVE_BUF_LEN);
 
     mpz_t s;
     mpz_init(s);
@@ -1048,22 +1048,22 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, enc_len, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES_decrypt failed (in trustedDkgVerifyAES) with status %d");
 
-    SAFE_CHAR_BUF(encr_sshare, BUF_LEN);
+    SAFE_CHAR_BUF(encr_sshare, ENCLAVE_BUF_LEN);
 
     strncpy(encr_sshare, s_share, ECDSA_SKEY_LEN - 1);
 
-    SAFE_CHAR_BUF(common_key, BUF_LEN);
+    SAFE_CHAR_BUF(common_key, ENCLAVE_BUF_LEN);
 
     status = session_key_recover(skey, s_share, common_key);
 
     CHECK_STATUS("session_key_recover failed");
 
-    SAFE_CHAR_BUF(decr_sshare, BUF_LEN);
+    SAFE_CHAR_BUF(decr_sshare, ENCLAVE_BUF_LEN);
 
     status = xor_decrypt(common_key, encr_sshare, decr_sshare);
 
@@ -1092,7 +1092,7 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *publicShare
     CHECK_STATE(secretShare);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey,BUF_LEN);
+    SAFE_CHAR_BUF(skey,ENCLAVE_BUF_LEN);
 
     mpz_t s;
     mpz_init(s);
@@ -1100,27 +1100,27 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *publicShare
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, encLen, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, encLen, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES_decrypt failed (in trustedDkgVerifyAES) with status %d");
 
-    SAFE_CHAR_BUF(encrSshare, BUF_LEN);
+    SAFE_CHAR_BUF(encrSshare, ENCLAVE_BUF_LEN);
 
     strncpy(encrSshare, secretShare, ECDSA_SKEY_LEN - 1);
 
-    SAFE_CHAR_BUF(commonKey, BUF_LEN);
+    SAFE_CHAR_BUF(commonKey, ENCLAVE_BUF_LEN);
 
     status = session_key_recover(skey, secretShare, commonKey);
 
     CHECK_STATUS("session_key_recover failed");
 
-    SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+    SAFE_CHAR_BUF(derivedKey, ENCLAVE_BUF_LEN);
     status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
     CHECK_STATUS("hash key failed")
     derivedKey[ECDSA_BIN_LEN - 1] = 0;
 
-    SAFE_CHAR_BUF(decrSshare, BUF_LEN);
+    SAFE_CHAR_BUF(decrSshare, ENCLAVE_BUF_LEN);
 
     status = xor_decrypt_v2(derivedKey, encrSshare, decrSshare);
 
@@ -1151,7 +1151,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(encr_bls_key);
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
     mpz_t sum;
     mpz_init(sum);
@@ -1168,7 +1168,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     uint8_t exportable = 0;
 
 
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
     CHECK_STATUS2("aes decrypt failed with status %d");
 
@@ -1203,7 +1203,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
         mpz_init(decr_secret_share);
         if (mpz_set_str(decr_secret_share, decr_sshare, 16) == -1) {
             *errStatus = 111;
-            snprintf(errString, BUF_LEN, "invalid decrypted secret share");
+            snprintf(errString, ENCLAVE_BUF_LEN, "invalid decrypted secret share");
             LOG_ERROR(errString);
 
             mpz_clear(decr_secret_share);
@@ -1218,7 +1218,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
 
     SAFE_CHAR_BUF(key_share, BLS_KEY_LENGTH);
 
-    SAFE_CHAR_BUF(arr_skey_str, BUF_LEN);
+    SAFE_CHAR_BUF(arr_skey_str, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arr_skey_str, 16, bls_key);
     int n_zeroes = 64 - strlen(arr_skey_str);
@@ -1228,7 +1228,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
     key_share[BLS_KEY_LENGTH - 1] = 0;
 
-    status = AES_encrypt(key_share, encr_bls_key, BUF_LEN, BLS, NON_EXPORTABLE, enc_bls_key_len);
+    status = AES_encrypt(key_share, encr_bls_key, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, enc_bls_key_len);
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
 
@@ -1254,7 +1254,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     CHECK_STATE(encryptedPrivateKey);
     CHECK_STATE(encrBlsKey);
 
-    SAFE_CHAR_BUF(skey, BUF_LEN);
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
 
     mpz_t sum;
     mpz_init(sum);
@@ -1270,7 +1270,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, keyLen, skey, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, keyLen, skey, ENCLAVE_BUF_LEN,
                              &type, &exportable);
     CHECK_STATUS2("aes decrypt failed with status %d");
 
@@ -1295,7 +1295,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
 
         commonKey[64] = 0;
 
-        SAFE_CHAR_BUF(derivedKey, BUF_LEN);
+        SAFE_CHAR_BUF(derivedKey, ENCLAVE_BUF_LEN);
         status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
         CHECK_STATUS("hash key failed")
         derivedKey[ECDSA_BIN_LEN - 1] = 0;
@@ -1312,7 +1312,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
         mpz_init(decryptedSecretShare);
         if (mpz_set_str(decryptedSecretShare, decrSecretShare, 16) == -1) {
             *errStatus = 111;
-            snprintf(errString, BUF_LEN, "invalid decrypted secret share");
+            snprintf(errString, ENCLAVE_BUF_LEN, "invalid decrypted secret share");
             LOG_ERROR(errString);
 
             mpz_clear(decryptedSecretShare);
@@ -1327,7 +1327,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
 
     SAFE_CHAR_BUF(keyShare, BLS_KEY_LENGTH);
 
-    SAFE_CHAR_BUF(arrSkeyStr, BUF_LEN);
+    SAFE_CHAR_BUF(arrSkeyStr, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arrSkeyStr, 16, blsKey);
     int nZeroes = 64 - strlen(arrSkeyStr);
@@ -1337,7 +1337,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     strncpy(keyShare + nZeroes, arrSkeyStr, 65 - nZeroes);
     keyShare[BLS_KEY_LENGTH - 1] = 0;
 
-    status = AES_encrypt(keyShare, encrBlsKey, BUF_LEN, BLS, NON_EXPORTABLE, encBlsKeyLen);
+    status = AES_encrypt(keyShare, encrBlsKey, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, encBlsKeyLen);
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
 
@@ -1361,12 +1361,12 @@ trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKe
     CHECK_STATE(bls_pub_key);
     CHECK_STATE(encryptedPrivateKey);
 
-    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
+    SAFE_CHAR_BUF(skey_hex, ENCLAVE_BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ENCLAVE_BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES decrypt failed %d");
@@ -1395,14 +1395,14 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
     CHECK_STATE(decryption_shares);
     CHECK_STATE(decryption_shares_status);
 
-    SAFE_CHAR_BUF(skey_hex, BUF_LEN);
-    SAFE_CHAR_BUF(skey_dec, BUF_LEN);
+    SAFE_CHAR_BUF(skey_hex, ENCLAVE_BUF_LEN);
+    SAFE_CHAR_BUF(skey_dec, ENCLAVE_BUF_LEN);
 
     uint8_t type = 0;
     uint8_t exportable = 0;
 
     // Key comes in hexadecimal
-    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, BUF_LEN,
+    int status = AES_decrypt(encryptedPrivateKey, key_len, skey_hex, ENCLAVE_BUF_LEN,
                              &type, &exportable);
 
     CHECK_STATUS2("AES decrypt failed %d");
@@ -1473,7 +1473,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
 
     int k = 0;
     while (mpz_cmp_ui(skey, 0) == 0) {
-        SAFE_CHAR_BUF(saltHashed, BUF_LEN);
+        SAFE_CHAR_BUF(saltHashed, ENCLAVE_BUF_LEN);
         int len = strnlen(salt, 39);
         int status;
         if (len > ECDSA_BIN_LEN - 1)
@@ -1482,7 +1482,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
             status = hash_key(salt, saltHashed, len, false);
         CHECK_STATUS("hash key failed")
 
-        SAFE_CHAR_BUF(ikmConcat, BUF_LEN);
+        SAFE_CHAR_BUF(ikmConcat, ENCLAVE_BUF_LEN);
         strncat(ikmConcat, ikm, ECDSA_BIN_LEN - 1);
         ikmConcat[ECDSA_BIN_LEN - 1] = '\0';
 
@@ -1493,21 +1493,21 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
         strncat(ikmConcat, octetStr0, 1);
         ikmConcat[ECDSA_BIN_LEN] = '\0';
 
-        SAFE_CHAR_BUF(prk, BUF_LEN);
+        SAFE_CHAR_BUF(prk, ENCLAVE_BUF_LEN);
         status = hkdfExtract(saltHashed, ikmConcat, prk);
         CHECK_STATUS("hkdfExtract failed");
         prk[ECDSA_BIN_LEN - 1] = '\0';
 
-        SAFE_CHAR_BUF(okm, BUF_LEN);
+        SAFE_CHAR_BUF(okm, ENCLAVE_BUF_LEN);
         status = hkdfExpand(prk, l, L, okm);
         CHECK_STATUS("hkdfExpand failed");
 
-        SAFE_CHAR_BUF(blsKey, BUF_LEN);
+        SAFE_CHAR_BUF(blsKey, ENCLAVE_BUF_LEN);
         carray2Hex((unsigned char*)okm, ECDSA_BIN_LEN - 1, blsKey);
 
         if (mpz_set_str(skey, blsKey, 16) == -1) {
             *errStatus = 111;
-            snprintf(errString, BUF_LEN, "error in mpz_set_str");
+            snprintf(errString, ENCLAVE_BUF_LEN, "error in mpz_set_str");
             LOG_ERROR(errString);
 
             goto clean;
@@ -1527,11 +1527,11 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
 
     SAFE_CHAR_BUF(blsKey, BLS_KEY_LENGTH);
 
-    SAFE_CHAR_BUF(arrSkeyStr, BUF_LEN);
+    SAFE_CHAR_BUF(arrSkeyStr, ENCLAVE_BUF_LEN);
 
     if (mpz_get_str(arrSkeyStr, 16, skey) == -1) {
         *errStatus = 111;
-        snprintf(errString, BUF_LEN, "error in mpz_get_str");
+        snprintf(errString, ENCLAVE_BUF_LEN, "error in mpz_get_str");
         LOG_ERROR(errString);
 
         goto clean;
@@ -1546,9 +1546,9 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
 
     int status;
     if (isExportable) {
-        status = AES_encrypt(blsKey, encryptedPrivateKey, BUF_LEN, BLS, EXPORTABLE, encLen);
+        status = AES_encrypt(blsKey, encryptedPrivateKey, ENCLAVE_BUF_LEN, BLS, EXPORTABLE, encLen);
     } else {
-        status = AES_encrypt(blsKey, encryptedPrivateKey, BUF_LEN, BLS, NON_EXPORTABLE, encLen);
+        status = AES_encrypt(blsKey, encryptedPrivateKey, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, encLen);
     }
 
     CHECK_STATUS2("aes encrypt bls private key failed with status %d ");

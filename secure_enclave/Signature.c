@@ -203,8 +203,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_clear(seed);
     mpz_clear(n_div_2);
     mpz_clear(s_mul_2);
-
-
 }
 
 #endif

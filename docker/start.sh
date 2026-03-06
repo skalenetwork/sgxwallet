@@ -48,6 +48,8 @@ if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 sleep 5
 ./testw.py
+echo "Running backward compatibility tests"
+./tests/backward_compatibility/run.sh
 else
 if [[ -f "/var/hwmode" ]]; then
     /usr/src/sdk/check_firewall.py

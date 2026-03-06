@@ -2,6 +2,12 @@
 AC_INIT([SGX GMP Test], 1.0, [john.p.mechalas@intel.com])
 
 AC_CONFIG_MACRO_DIRS([m4])
+
+# Automake options:
+#  - foreign: relax GNU project file requirements (no need for NEWS/AUTHORS/ChangeLog, etc.)
+#  - subdir-objects: place .o files in per-source subdirectories (avoids collisions + future automake changes).
+#                    Avoids warnings because of setting source files from different directories.
+# TODO - add subdir-objects & fix the errors
 AM_INIT_AUTOMAKE([foreign])
 
 AC_PROG_CC
