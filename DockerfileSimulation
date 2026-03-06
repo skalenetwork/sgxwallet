@@ -9,7 +9,7 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1
 
 # ---- Build and install Intel SGX SDK & PSW ----
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
-RUN cd linux-sgx && make preparation
+RUN cd linux-sgx && make -j$(nproc) preparation
 
 WORKDIR /linux-sgx
 COPY . .
