@@ -129,7 +129,7 @@ std::string convertHexToDec(char *hex_str) {
  * May return an invalid G2 element.
  * Caller should check if the element is well formed if needed.
  */
-G2 stringToG2(char *str, size_t size) {
+G2 stringToG2(const char *str, size_t size) {
   if (size != CIPHERTEXT_CHARACTER_LENGTH) {
     LOG_ERROR("Wrong string size to convert to G2");
   }
@@ -180,7 +180,7 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   }
 }
 
-EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
+EXTERNC int getDecryptionShare(const char *skey_dec, const char *decryptionValue,
                                size_t decryptionSize, char *decryption_share) {
 
   CHECK_ARG_CLEAN(skey_dec);

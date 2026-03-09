@@ -47,7 +47,7 @@
 
 EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
 
-EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
+EXTERNC int getDecryptionShare(const char *secret, const char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);
 
 #endif

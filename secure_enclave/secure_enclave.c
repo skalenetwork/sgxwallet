@@ -56,6 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "HKDF.h"
 #include "AESUtils.h"
 #include "TEUtils.h"
+#include "DKGUtils.h"
 
 #include "EnclaveConstants.h"
 #include "EnclaveCommon.h"
@@ -113,6 +114,52 @@ void *reallocate_function(void *, size_t, size_t);
 void free_function(void *, size_t);
 
 unsigned char *globalRandom = NULL;
+
+static size_t copy_string(char *dest, size_t dest_size, const char *src) {
+    size_t len;
+
+    if (dest_size == 0) {
+        return 0;
+    }
+
+    len = strnlen(src, dest_size - 1);
+    memcpy(dest, src, len);
+    dest[len] = '\0';
+
+    return len;
+}
+
+static size_t append_string(char *dest, size_t dest_size, size_t offset, const char *src) {
+    size_t len;
+
+    if (dest_size == 0 || offset >= dest_size) {
+        return offset;
+    }
+
+    len = strnlen(src, dest_size - offset - 1);
+    memcpy(dest + offset, src, len);
+    dest[offset + len] = '\0';
+
+    return offset + len;
+}
+
+static void copy_fixed_hex(char *dest, size_t dest_size, const char *src, size_t width) {
+    size_t output_len;
+    size_t src_len;
+    size_t copy_len;
+
+    if (dest_size == 0) {
+        return;
+    }
+
+    output_len = MIN(width, dest_size - 1);
+    src_len = strlen(src);
+    copy_len = MIN(src_len, output_len);
+
+    memset(dest, '0', output_len);
+    memcpy(dest + output_len - copy_len, src + src_len - copy_len, copy_len);
+    dest[output_len] = '\0';
+}
 
 
 #define CALL_ONCE \
@@ -221,11 +268,11 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     CHECK_STATE(_size <= 32)
     CHECK_STATE(_randBuff);
 
-    counter++;
+    const uint64_t counter_snapshot = ++counter;
     sgx_sha_state_handle_t shaStateHandle;
     CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_update(&counter, sizeof(counter), shaStateHandle) == SGX_SUCCESS);
+    CHECK_STATE(sgx_sha256_update((const uint8_t *)&counter_snapshot, sizeof(counter_snapshot), shaStateHandle) == SGX_SUCCESS);
     unsigned char tmpBuffer[32];
     CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)tmpBuffer) == SGX_SUCCESS);
     CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
@@ -392,29 +439,16 @@ void trustedGenerateEcdsaKey(int *errStatus, char *errString, int *is_exportable
 
     SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, Pkey->x);
-    int n_zeroes = 64 - strlen(arr_x);
-    for (int i = 0; i < n_zeroes; i++) {
-        pub_key_x[i] = '0';
-    }
-
-    strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
+    copy_fixed_hex(pub_key_x, ENCLAVE_BUF_LEN, arr_x, 64);
 
     SAFE_CHAR_BUF(arr_y, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, Pkey->y);
-    n_zeroes = 64 - strlen(arr_y);
-    for (int i = 0; i < n_zeroes; i++) {
-        pub_key_y[i] = '0';
-    }
-    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+    copy_fixed_hex(pub_key_y, ENCLAVE_BUF_LEN, arr_y, 64);
 
     SAFE_CHAR_BUF(skey_str, ENCLAVE_BUF_LEN);
     SAFE_CHAR_BUF(arr_skey_str, mpz_sizeinbase(skey, ECDSA_SKEY_BASE) + 2);
     mpz_get_str(arr_skey_str, ECDSA_SKEY_BASE, skey);
-    n_zeroes = 64 - strlen(arr_skey_str);
-    for (int i = 0; i < n_zeroes; i++) {
-        skey_str[i] = '0';
-    }
-    strncpy(skey_str + n_zeroes, arr_skey_str, 65 - n_zeroes);
+    copy_fixed_hex(skey_str, ENCLAVE_BUF_LEN, arr_skey_str, ECDSA_SKEY_LEN - 1);
     snprintf(errString, ENCLAVE_BUF_LEN, "skey len is %d\n", (int) strlen(skey_str));
 
     int status = -1;
@@ -488,22 +522,11 @@ void trustedGetPublicEcdsaKey(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, ECDSA_SKEY_BASE, pKey->x);
-
-    int n_zeroes = 64 - strlen(arr_x);
-    for (int i = 0; i < n_zeroes; i++) {
-        pub_key_x[i] = '0';
-    }
-
-    strncpy(pub_key_x + n_zeroes, arr_x, 1024 - n_zeroes);
+    copy_fixed_hex(pub_key_x, ENCLAVE_BUF_LEN, arr_x, 64);
 
     SAFE_CHAR_BUF(arr_y, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_y, ECDSA_SKEY_BASE, pKey->y);
-
-    n_zeroes = 64 - strlen(arr_y);
-    for (int i = 0; i < n_zeroes; i++) {
-        pub_key_y[i] = '0';
-    }
-    strncpy(pub_key_y + n_zeroes, arr_y, 1024 - n_zeroes);
+    copy_fixed_hex(pub_key_y, ENCLAVE_BUF_LEN, arr_y, 64);
 
     SET_SUCCESS
     clean:
@@ -582,7 +605,9 @@ void trustedEcdsaSign(int *errStatus, char *errString, uint8_t *encryptedPrivate
 
     SAFE_CHAR_BUF(arrM, ENCLAVE_BUF_LEN);
     mpz_get_str(arrM, 16, msgMpz);
-    snprintf(errString, ENCLAVE_BUF_LEN, "message is %s ", arrM);
+    size_t err_offset = copy_string(errString, ENCLAVE_BUF_LEN, "message is ");
+    err_offset = append_string(errString, ENCLAVE_BUF_LEN, err_offset, arrM);
+    append_string(errString, ENCLAVE_BUF_LEN, err_offset, " ");
 
     SAFE_CHAR_BUF(arrR, ENCLAVE_BUF_LEN);
     mpz_get_str(arrR, base, sign->r);
@@ -895,7 +920,7 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(s_share, ENCLAVE_BUF_LEN);
 
-    status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
+    status = calc_secret_share((const char *)getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
 
 
@@ -907,9 +932,9 @@ void trustedGetEncryptedSecretShare(int *errStatus, char *errString,
 
     CHECK_STATUS("xor_encrypt failed")
 
-    strncpy(result_str, cypher, strlen(cypher));
-    strncpy(result_str + strlen(cypher), pub_key_x, strlen(pub_key_x));
-    strncpy(result_str + strlen(pub_key_x) + strlen(pub_key_y), pub_key_y, strlen(pub_key_y));
+    size_t result_len = copy_string(result_str, ENCLAVE_BUF_LEN, cypher);
+    result_len = append_string(result_str, ENCLAVE_BUF_LEN, result_len, pub_key_x);
+    append_string(result_str, ENCLAVE_BUF_LEN, result_len, pub_key_y);
 
     SET_SUCCESS
 
@@ -971,7 +996,7 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     SAFE_CHAR_BUF(s_share, ENCLAVE_BUF_LEN);
 
-    status = calc_secret_share(getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
+    status = calc_secret_share((const char *)getThreadLocalDecryptedDkgPoly(), s_share, _t, _n, ind);
     CHECK_STATUS("calc secret share failed")
 
     status = calc_secret_shareG2(s_share, secretShareG2);
@@ -987,9 +1012,9 @@ void trustedGetEncryptedSecretShareV2(int *errStatus, char *errString,
 
     CHECK_STATUS("xor_encrypt failed")
 
-    strncpy(resultStr, cypher, strlen(cypher));
-    strncpy(resultStr + strlen(cypher), pubKeyX, strlen(pubKeyX));
-    strncpy(resultStr + strlen(pubKeyX) + strlen(pubKeyY), pubKeyY, strlen(pubKeyY));
+    size_t result_len = copy_string(resultStr, ENCLAVE_BUF_LEN, cypher);
+    result_len = append_string(resultStr, ENCLAVE_BUF_LEN, result_len, pubKeyX);
+    append_string(resultStr, ENCLAVE_BUF_LEN, result_len, pubKeyY);
 
     SET_SUCCESS
 
@@ -1072,7 +1097,9 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     status = mpz_set_str(s, decr_sshare, 16);
     CHECK_STATUS("invalid decr secret share");
 
-    *result = Verification(public_shares, s, _t, _ind);
+    SAFE_CHAR_BUF(public_shares_copy, DKG_BUFER_LENGTH);
+    strncpy(public_shares_copy, public_shares, DKG_BUFER_LENGTH - 1);
+    *result = Verification(public_shares_copy, s, _t, _ind);
 
     SET_SUCCESS
     clean:
@@ -1129,7 +1156,9 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *publicShare
     status = mpz_set_str(s, decrSshare, 16);
     CHECK_STATUS("invalid decr secret share");
 
-    *result = Verification(publicShares, s, _t, _ind);
+    SAFE_CHAR_BUF(publicSharesCopy, DKG_BUFER_LENGTH);
+    strncpy(publicSharesCopy, publicShares, DKG_BUFER_LENGTH - 1);
+    *result = Verification(publicSharesCopy, s, _t, _ind);
 
     SET_SUCCESS
     clean:
@@ -1221,12 +1250,7 @@ void trustedCreateBlsKey(int *errStatus, char *errString, const char *s_shares,
     SAFE_CHAR_BUF(arr_skey_str, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arr_skey_str, 16, bls_key);
-    int n_zeroes = 64 - strlen(arr_skey_str);
-    for (int i = 0; i < n_zeroes; i++) {
-        key_share[i] = '0';
-    }
-    strncpy(key_share + n_zeroes, arr_skey_str, 65 - n_zeroes);
-    key_share[BLS_KEY_LENGTH - 1] = 0;
+    copy_fixed_hex(key_share, BLS_KEY_LENGTH, arr_skey_str, BLS_KEY_LENGTH - 1);
 
     status = AES_encrypt(key_share, encr_bls_key, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, enc_bls_key_len);
 
@@ -1330,12 +1354,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     SAFE_CHAR_BUF(arrSkeyStr, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arrSkeyStr, 16, blsKey);
-    int nZeroes = 64 - strlen(arrSkeyStr);
-    for (int i = 0; i < nZeroes; i++) {
-        keyShare[i] = '0';
-    }
-    strncpy(keyShare + nZeroes, arrSkeyStr, 65 - nZeroes);
-    keyShare[BLS_KEY_LENGTH - 1] = 0;
+    copy_fixed_hex(keyShare, BLS_KEY_LENGTH, arrSkeyStr, BLS_KEY_LENGTH - 1);
 
     status = AES_encrypt(keyShare, encrBlsKey, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, encBlsKeyLen);
 
@@ -1416,7 +1435,7 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     CHECK_STATUS2("HexToDecimal failed %d");
 
-    char* current_input_ciphertext = public_decryption_value;
+    const char* current_input_ciphertext = public_decryption_value;
     char* current_output_decryption_share = decryption_shares;
 
     size_t current_ciphertext = 0;
@@ -1471,7 +1490,6 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
     int L = 48; // math.ceil(3*math.ceil(math.log2(q))/16)
     char l[2] = "30"; // octet L
 
-    int k = 0;
     while (mpz_cmp_ui(skey, 0) == 0) {
         SAFE_CHAR_BUF(saltHashed, ENCLAVE_BUF_LEN);
         int len = strnlen(salt, 39);
@@ -1529,7 +1547,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
 
     SAFE_CHAR_BUF(arrSkeyStr, ENCLAVE_BUF_LEN);
 
-    if (mpz_get_str(arrSkeyStr, 16, skey) == -1) {
+    if (mpz_get_str(arrSkeyStr, 16, skey) == NULL) {
         *errStatus = 111;
         snprintf(errString, ENCLAVE_BUF_LEN, "error in mpz_get_str");
         LOG_ERROR(errString);
@@ -1537,12 +1555,7 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
         goto clean;
     }
 
-    int nZeroes = 64 - strlen(arrSkeyStr);
-    for (int i = 0; i < nZeroes; i++) {
-        blsKey[i] = '0';
-    }
-    strncpy(blsKey + nZeroes, arrSkeyStr, 65 - nZeroes);
-    blsKey[BLS_KEY_LENGTH - 1] = 0;
+    copy_fixed_hex(blsKey, BLS_KEY_LENGTH, arrSkeyStr, BLS_KEY_LENGTH - 1);
 
     int status;
     if (isExportable) {
