@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
   bool autoSignClientCertOption = false;
   bool generateTestKeys = false;
   bool checkKeyOwnership = false;
-  int threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
+  size_t threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
 
   std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -166,10 +166,15 @@ int main(int argc, char *argv[]) {
       break;
     case 't': {
       try {
-        threadPoolSize = std::stoi(optarg); // Convert argument to integer
-        if (threadPoolSize <= 0) {
-          throw std::invalid_argument("Thread pool size must be positive");
-        } else if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
+        // parse as signed first
+        long long value = std::stoll(optarg);
+
+        if (value <= 0) {
+            throw std::invalid_argument("Thread pool size must be positive");
+        }
+
+        threadPoolSize = static_cast<size_t>(value);
+        if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
           throw std::invalid_argument(
               "Thread pool size must not exceed " +
               std::to_string(SGXWalletServer::DEFAULT_NUM_THREADS_SGX));
