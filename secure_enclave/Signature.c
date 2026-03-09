@@ -28,15 +28,12 @@
 #include <string.h>
 
 #ifdef USER_SPACE
-#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
-#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
-#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
-
 #include <gmp.h>
 #else
 #include <../tgmp-build/include/sgx_tgmp.h>
-#include "EnclaveCommon.h"
 #endif
+
+#include "EnclaveCommon.h"
 
 #include "DomainParameters.h"
 #include "Point.h"
