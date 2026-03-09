@@ -61,8 +61,17 @@ AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION=
 CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 
-## The build target
+# build but do not install
+noinst_LIBRARIES = libthirdpartyintel.a
 
+INTEL_STUB_SRC = third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c \
+                 third_party/intel/create_enclave.c third_party/intel/oc_alloc.c
+
+libthirdpartyintel_a_SOURCES = $(INTEL_STUB_SRC)
+libthirdpartyintel_a_CPPFLAGS = $(AM_CPPFLAGS) -UPACKAGE -UPACKAGE_NAME -UPACKAGE_STRING -UPACKAGE_TARNAME
+libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-parameter
+
+## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
 
 
@@ -70,14 +79,12 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-
 COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/RspMessage.cpp zmq_src/ReqMessage.cpp \
              zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/Agent.cpp zmq_src/WorkerThreadPool.cpp ExitRequestedException.cpp \
              InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp TECrypto.cpp \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp CryptoTools.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
-             third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c \
-             third_party/intel/oc_alloc.c ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
@@ -104,7 +111,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
+sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
    -Llibzmq/build/lib/ \
    -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
    -l:libbackend.a -l:libmcl.a -l:libgmp.a \
