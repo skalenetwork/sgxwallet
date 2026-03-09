@@ -275,10 +275,10 @@ void ZMQClient::reconnect() {
   string identity = to_string(135) + ":" + to_string(randNumber);
 
   auto clientSocket = make_shared<zmq::socket_t>(ctx, ZMQ_DEALER);
-  clientSocket->setsockopt(ZMQ_IDENTITY, identity.c_str(), identity.size() + 1);
+  clientSocket->set(zmq::sockopt::routing_id, identity);
   //  Configure socket to not wait at close time
   int linger = 0;
-  clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+  clientSocket->set(zmq::sockopt::linger, linger);
   clientSocket->connect(url);
   clientSockets.insert({pid, clientSocket});
 }
