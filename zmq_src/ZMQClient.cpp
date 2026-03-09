@@ -139,9 +139,6 @@ void ZMQClient::verifySig(EVP_PKEY *_pubkey, const string &_str,
   CHECK_STATE(binLen > 0);
 
   EVP_MD_CTX *mdctx = NULL;
-  int ret = 0;
-
-  size_t slen = 0;
 
   CHECK_STATE(mdctx = EVP_MD_CTX_create());
 
@@ -168,9 +165,7 @@ string ZMQClient::signString(EVP_PKEY *_pkey, const string &_str) {
   auto msgToSign = std::regex_replace(_str, r, "");
 
   EVP_MD_CTX *mdctx = NULL;
-  int ret = 0;
   unsigned char *signature = NULL;
-  auto sig = &signature;
   size_t slen = 0;
 
   CHECK_STATE(mdctx = EVP_MD_CTX_create());
@@ -221,8 +216,8 @@ ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
                      const string &_certFileName, const string &_certKeyName)
-    : ctx(1), sign(_sign), certKeyName(_certKeyName),
-      certFileName(_certFileName) {
+    : sign(_sign), certFileName(_certFileName), certKeyName(_certKeyName),
+      ctx(1) {
   spdlog::info("Initing ZMQClient. Sign:{} ", _sign);
 
   if (sign) {
