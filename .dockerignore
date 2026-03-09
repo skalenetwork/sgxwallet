@@ -1,0 +1,19 @@
+# Global build artefacts
+**/build/
+**/.deps/
+**/.libs/
+**/CMakeFiles/
+**/cmake-build*/
+**/autom4te.cache/
+**/*.o
+**/*.a
+**/*.so
+**/*.lo
+
+# SGX build artefacts
+linux-sgx/build/
+linux-sgx/docker/build/
+
+# Autotools
+config.log
+config.status
