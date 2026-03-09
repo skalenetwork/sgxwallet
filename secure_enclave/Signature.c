@@ -27,25 +27,22 @@
 #include <assert.h>
 #include <string.h>
 
+#ifdef USER_SPACE
 #define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
 #define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
 
-
-#ifdef USER_SPACE
 #include <gmp.h>
-
-
 #else
-
 #include <../tgmp-build/include/sgx_tgmp.h>
-
+#include "EnclaveCommon.h"
 #endif
 
 #include "DomainParameters.h"
 #include "Point.h"
 #include "NumberTheory.h"
 #include "Signature.h"
+
 
 /*Initialize a signature*/
 signature signature_init() {
@@ -276,5 +273,3 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     return result;
 
 }
-
-
