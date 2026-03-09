@@ -21,15 +21,15 @@
     @date 2019
 */
 
+#ifndef SGXWALLET_ENCLAVECOMMON_H
+#define SGXWALLET_ENCLAVECOMMON_H
+
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "DomainParameters.h"
-
 #include "Curves.h"
 #include "Signature.h"
-
-#ifndef SGXWALLET_ENCLAVECOMMON_H
-#define SGXWALLET_ENCLAVECOMMON_H
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

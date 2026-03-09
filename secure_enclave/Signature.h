@@ -24,6 +24,10 @@
 #ifndef SGXWALLET_SIGNATURE_H
 #define SGXWALLET_SIGNATURE_H
 
+#include <stdbool.h>
+
+#include "DomainParameters.h"
+
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else
