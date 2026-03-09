@@ -33,6 +33,7 @@
 #else
 
 #include <../tgmp-build/include/sgx_tgmp.h>
+#include "sgx_tcrypto.h"
 
 #endif
 
@@ -57,7 +58,7 @@ int hkdfExtract(char* salt, char* seed, char* prk) {
         return ret;
     }
 
-    ret = sgx_hmac_sha256_msg((unsigned char*)salt, ECDSA_BIN_LEN - 1, seed, ECDSA_BIN_LEN, prk, ECDSA_BIN_LEN - 1);
+    ret = sgx_hmac_sha256_msg((unsigned char*)salt, ECDSA_BIN_LEN - 1, (unsigned char*)seed, ECDSA_BIN_LEN, (unsigned char*)prk, ECDSA_BIN_LEN - 1);
 
     return ret;
 }
@@ -94,7 +95,7 @@ int hkdfExpand(char* prk, char* keyInfo, int length, char* okm) {
         strncat(toHash, keyInfo, ECDSA_BIN_LEN - 1);
         strncat(toHash, hex, 4);
 
-        ret = sgx_hmac_sha256_msg(prk, ECDSA_BIN_LEN - 1, toHash, ECDSA_BIN_LEN, tmp, ECDSA_BIN_LEN - 1);
+        ret = sgx_hmac_sha256_msg((unsigned char*)prk, ECDSA_BIN_LEN - 1, (unsigned char*)toHash, ECDSA_BIN_LEN, (unsigned char*)tmp, ECDSA_BIN_LEN - 1);
         if (ret != 0) {
             return ret;
         }

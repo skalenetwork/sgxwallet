@@ -29,6 +29,7 @@
 #else
 
 #include <../tgmp-build/include/sgx_tgmp.h>
+#include "sgx_tcrypto.h"
 
 #endif
 
@@ -352,9 +353,9 @@ int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded) {
             return ret;
         }
 
-        ret = sgx_sha256_msg(key_to_hash, length, (uint8_t*)hashedKey);
+        ret = sgx_sha256_msg(key_to_hash, length, (sgx_sha256_hash_t*)hashedKey);
     } else {
-        ret = sgx_sha256_msg((uint8_t*)key, length, (uint8_t*)hashedKey);
+        ret = sgx_sha256_msg((uint8_t*)key, length, (sgx_sha256_hash_t*)hashedKey);
     }
 
     return ret;

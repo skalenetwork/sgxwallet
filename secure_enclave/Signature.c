@@ -130,12 +130,12 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     SAFE_CHAR_BUF(rand_char, 32);
 
-    get_global_random(rand_char, 32);
+    get_global_random((unsigned char *) rand_char, 32);
 
     signature_sign_start:
 
 
-    get_global_random(rand_char, 32);
+    get_global_random((unsigned char *) rand_char, 32);
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
