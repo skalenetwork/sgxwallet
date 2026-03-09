@@ -86,14 +86,14 @@ int hkdfExpand(char* prk, char* keyInfo, int length, char* okm) {
     SAFE_CHAR_BUF(t, ENCLAVE_BUF_LEN);
     SAFE_CHAR_BUF(tmp, ENCLAVE_BUF_LEN);
     for (int i = 0; i < n; ++i) {
-        char hex[4] = "0x01";
-        snprintf(hex + 3, 1, "%d", i + 1);
+        char hex[6] = "0x01";
+        snprintf(hex + 3, 3, "%d", i + 1);
         SAFE_CHAR_BUF(toHash, ENCLAVE_BUF_LEN);
         if (i > 0) {
-            strncat(toHash, tmp, ECDSA_BIN_LEN - 1);
+            memcpy(toHash, tmp, ECDSA_BIN_LEN - 1);
         }
         strncat(toHash, keyInfo, ECDSA_BIN_LEN - 1);
-        strncat(toHash, hex, 4);
+        strncat(toHash, hex, sizeof(hex) - 1);
 
         ret = sgx_hmac_sha256_msg((unsigned char*)prk, ECDSA_BIN_LEN - 1, (unsigned char*)toHash, ECDSA_BIN_LEN, (unsigned char*)tmp, ECDSA_BIN_LEN - 1);
         if (ret != 0) {
