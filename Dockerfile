@@ -16,6 +16,11 @@ WORKDIR /linux-sgx
 COPY . .
 
 RUN make sdk_install_pkg_no_mitigation
+
+WORKDIR /opt/intel
+RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+
+WORKDIR /linux-sgx
 RUN make -j$(nproc) psw_install_pkg
 
 # Stage 2: Final
@@ -30,8 +35,7 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1
 
 # ---- Install Intel SGX SDK & PSW ----
 WORKDIR /opt/intel
-COPY --from=builder /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin .
-RUN sh -c 'echo yes | ./sgx_linux_x64_sdk_*.bin'
+COPY --from=builder /opt/intel/sgxsdk /opt/intel/sgxsdk
 
 COPY --from=builder /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
