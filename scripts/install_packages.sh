@@ -5,6 +5,7 @@
 
 apt update
 apt install -y --no-install-recommends build-essential \
+    ca-certificates \
     ocaml \
     ocamlbuild \
     automake \
