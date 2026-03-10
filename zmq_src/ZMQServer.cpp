@@ -44,8 +44,8 @@ shared_ptr<ZMQServer> ZMQServer::zmqServer = nullptr;
 ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership,
                      const string &_caCertFile)
     : caCertFile(_caCertFile), incomingQueue(NUM_ZMQ_WORKER_THREADS),
-      checkKeyOwnership(_checkKeyOwnership), ctx(make_shared<zmq::context_t>(1)),
-      checkSignature(_checkSignature) {
+      checkKeyOwnership(_checkKeyOwnership),
+      ctx(make_shared<zmq::context_t>(1)), checkSignature(_checkSignature) {
 
   CHECK_STATE(NUM_ZMQ_WORKER_THREADS > 1);
 
@@ -210,9 +210,11 @@ pair<string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
   if (!socket->recv(*identity, zmq::recv_flags::none)) {
     checkForExit();
     // bad socket type
-    spdlog::error("Error: socket->recv(identity, recv_flags::none) returned false.");
-    throw SGXException(ZMQ_SERVER_ERROR,
-                       "Error: socket->recv(identity, recv_flags::none) returned false.");
+    spdlog::error(
+        "Error: socket->recv(identity, recv_flags::none) returned false.");
+    throw SGXException(
+        ZMQ_SERVER_ERROR,
+        "Error: socket->recv(identity, recv_flags::none) returned false.");
   }
 
   if (!identity->more()) {
@@ -230,9 +232,11 @@ pair<string, shared_ptr<zmq::message_t>> ZMQServer::receiveMessage() {
   if (!socket->recv(*reqMsg, zmq::recv_flags::none)) {
     checkForExit();
     // bad socket type
-    spdlog::error("Error: socket.recv(reqMsg, recv_flags::none) returned false.");
-    throw SGXException(ZMQ_SERVER_ERROR,
-                       "Error: socket.recv(reqMsg, recv_flags::none) returned false.");
+    spdlog::error(
+        "Error: socket.recv(reqMsg, recv_flags::none) returned false.");
+    throw SGXException(
+        ZMQ_SERVER_ERROR,
+        "Error: socket.recv(reqMsg, recv_flags::none) returned false.");
   }
 
   auto result = string((char *)reqMsg->data(), reqMsg->size());

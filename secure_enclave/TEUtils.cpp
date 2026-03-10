@@ -180,7 +180,8 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   }
 }
 
-EXTERNC int getDecryptionShare(const char *skey_dec, const char *decryptionValue,
+EXTERNC int getDecryptionShare(const char *skey_dec,
+                               const char *decryptionValue,
                                size_t decryptionSize, char *decryption_share) {
 
   CHECK_ARG_CLEAN(skey_dec);

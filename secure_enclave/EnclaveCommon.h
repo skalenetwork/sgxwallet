@@ -27,8 +27,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "DomainParameters.h"
 #include "Curves.h"
+#include "DomainParameters.h"
 #include "Signature.h"
 
 #ifdef __cplusplus

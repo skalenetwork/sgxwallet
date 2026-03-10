@@ -235,7 +235,9 @@ public:
     return result;
   }
 
-  Json::Value getFailedRequests() { return getJsonValueRapid("failedRequests", /* optional = */ true); }
+  Json::Value getFailedRequests() {
+    return getJsonValueRapid("failedRequests", /* optional = */ true);
+  }
 };
 
 class generateBLSPrivateKeyRspMessage : public ZMQMessage {

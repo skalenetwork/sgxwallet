@@ -160,7 +160,7 @@ inline string exec(const char *cmd) {
   CHECK_STATE(cmd);
   std::array<char, 128> buffer;
   std::string result;
-  auto closer = [](FILE* f) { return pclose(f); };
+  auto closer = [](FILE *f) { return pclose(f); };
   std::unique_ptr<FILE, decltype(closer)> pipe(popen(cmd, "r"), closer);
   if (!pipe) {
     BOOST_THROW_EXCEPTION(std::runtime_error("popen() failed!"));

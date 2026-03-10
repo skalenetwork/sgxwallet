@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
         long long value = std::stoll(optarg);
 
         if (value <= 0) {
-            throw std::invalid_argument("Thread pool size must be positive");
+          throw std::invalid_argument("Thread pool size must be positive");
         }
 
         threadPoolSize = static_cast<size_t>(value);
