@@ -4,7 +4,7 @@
 # the required packages for building the project.
 
 apt update
-apt install -y build-essential \
+apt install -y --no-install-recommends build-essential \
     ocaml \
     ocamlbuild \
     automake \
