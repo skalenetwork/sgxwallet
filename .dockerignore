@@ -13,6 +13,8 @@
 # SGX build artefacts
 linux-sgx/build/
 linux-sgx/docker/build/
+tgmp-build/
+gmp-build/
 
 # Autotools
 config.log
