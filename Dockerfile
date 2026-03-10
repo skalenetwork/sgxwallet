@@ -1,3 +1,24 @@
+# Stage 1: Builder
+FROM ubuntu:22.04 as builder
+
+# ---- Install build packages ----
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
+
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# ---- Build Intel SGX SDK & PSW ----
+RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx && \
+    cd linux-sgx && make -j$(nproc) preparation
+
+WORKDIR /linux-sgx
+COPY . .
+
+RUN make sdk_install_pkg_no_mitigation
+RUN make -j$(nproc) psw_install_pkg
+
+# Stage 2: Final
 FROM ubuntu:22.04
 
 # ---- Install build packages ----
@@ -7,23 +28,12 @@ RUN chmod +x /install_packages.sh && /install_packages.sh
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-# ---- Build and install Intel SGX SDK & PSW ----
-RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
-RUN cd linux-sgx && make -j$(nproc) preparation
-
-WORKDIR /linux-sgx
-COPY . .
-
-RUN make sdk_install_pkg_no_mitigation
-
+# ---- Install Intel SGX SDK & PSW ----
 WORKDIR /opt/intel
-RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+COPY --from=builder /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin .
+RUN sh -c 'echo yes | ./sgx_linux_x64_sdk_*.bin'
 
-WORKDIR /linux-sgx
-RUN make -j$(nproc) psw_install_pkg
-
-WORKDIR /opt/intel
-RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+COPY --from=builder /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
 
 # ---- Set up project source ----
