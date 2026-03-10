@@ -39,7 +39,7 @@ export OPENSSL_SRC=`$READLINK -f $OPENSSL_SRC_RELATIVE`
 git clone https://github.com/madler/zlib.git
 cd zlib
 ./configure --static --prefix=$INSTALL_ROOT
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ..
 
@@ -48,7 +48,7 @@ cd argtable2
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
@@ -60,7 +60,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DBUILD_SHARED_LIBS=NO \
 	-DBUILD_STATIC_LIBS=YES \
 	..
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
@@ -74,7 +74,7 @@ echo " " >> lib/curl_config.h
 echo "#define HAVE_POSIX_STRERROR_R 1" >> lib/curl_config.h
 echo " " >> lib/curl_config.h
 ### Set HAVE_POSIX_STRERROR_R to 1 in build/lib/curl_config.h
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
@@ -87,13 +87,13 @@ then
 fi
 ./bootstrap
 ./configure --enable-static --disable-shared --with-pic --prefix=$INSTALL_ROOT $MHD_HTTPS_OPT
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ..
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout b547a27e8802bfba3564d8075efa36a475f4d9e8
+git checkout c846c3326cc5dca2f27f7e9f46ac1ce096e9b0b1
 git pull
 rm -rf build || true
 mkdir -p build
@@ -120,6 +120,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DCURL_INCLUDE_DIR=$INSTALL_ROOT/include \
 	-DJSONCPP_INCLUDE_DIR=$INSTALL_ROOT/include \
 	..
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
