@@ -104,12 +104,12 @@ calculateDecryptionShares(const string &encryptedKeyShare,
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     const size_t sharesInBatch =
-      currentBatchLength / CIPHERTEXT_CHARACTER_LENGTH;
+        currentBatchLength / CIPHERTEXT_CHARACTER_LENGTH;
 
     // Split the decrypted buffer directly into fixed-size share strings.
     for (size_t idx = 0; idx < sharesInBatch; ++idx) {
       const char *sharePtr =
-        decryptionShares + idx * CIPHERTEXT_CHARACTER_LENGTH;
+          decryptionShares + idx * CIPHERTEXT_CHARACTER_LENGTH;
       decryptedBatches.push_back(
           std::string(sharePtr, CIPHERTEXT_CHARACTER_LENGTH));
       errorCodesVector.push_back(decryptionSharesStatus[idx]);
