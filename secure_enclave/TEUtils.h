@@ -50,4 +50,9 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
 EXTERNC int getDecryptionShare(char *secret, char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);
 
+EXTERNC int getDecryptionSharesBatch(char *secret, char *decryptionValues,
+                                     size_t decryptionValuesSize,
+                                     char *decryption_shares,
+                                     int *decryption_shares_status);
+
 #endif

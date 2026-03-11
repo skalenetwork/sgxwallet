@@ -1416,22 +1416,12 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     CHECK_STATUS2("HexToDecimal failed %d");
 
-    char* current_input_ciphertext = public_decryption_value;
-    char* current_output_decryption_share = decryption_shares;
+    status = getDecryptionSharesBatch(skey_dec, (char*)public_decryption_value,
+                                      public_decryption_value_len,
+                                      decryption_shares,
+                                      decryption_shares_status);
 
-    size_t current_ciphertext = 0;
-    // assumes the input vectors have been correctly allocated with a size of BATCH_SIZE * CIPHERTEXT_LEN + 1
-    // /                                    Available data may be less than batch size
-    for (uint8_t i = 0; (i < ENCLAVE_MAX_CIPHERTEXT_BATCH) && (current_ciphertext < public_decryption_value_len); ++i) {
-        status = getDecryptionShare(skey_dec, current_input_ciphertext, CIPHERTEXT_CHARACTER_LENGTH, current_output_decryption_share);
-
-        // array of status is sent to caller
-        decryption_shares_status[i] = status;
-        
-        current_input_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
-        current_output_decryption_share += CIPHERTEXT_CHARACTER_LENGTH;
-        current_ciphertext += CIPHERTEXT_CHARACTER_LENGTH;
-    }
+    CHECK_STATUS2("Batch decryption shares failed %d");
 
     SET_SUCCESS
 

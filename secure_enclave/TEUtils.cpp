@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "../SGXException.h"
 #include "../sgxwallet_common.h"
@@ -148,13 +149,14 @@ G2 stringToG2(char *str, size_t size) {
   std::string sY0 = s.substr(2 * hexaSize, hexaSize);
   std::string sY1 = s.substr(3 * hexaSize, hexaSize);
 
-  bool b = false;
-  ret.x.a.setStr(&b, sX0.c_str(), base);
-  ret.x.b.setStr(&b, sX1.c_str(), base);
-  ret.y.a.setStr(&b, sY0.c_str(), base);
-  ret.y.b.setStr(&b, sY1.c_str(), base);
+  bool xa, xb, ya, yb;
+  ret.x.a.setStr(&xa, sX0.c_str(), base);
+  ret.x.b.setStr(&xb, sX1.c_str(), base);
+  ret.y.a.setStr(&ya, sY0.c_str(), base);
+  ret.y.b.setStr(&yb, sY1.c_str(), base);
+  bool allSuccessful = xa && xb && ya && yb;
 
-  if (!b) {
+  if (!allSuccessful) {
     throw SGXException(EXCEPTION_IN_STRING_TO_G2,
                        "Failed to convert string to G2");
   }
@@ -231,6 +233,134 @@ EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
     return STATUS_UNKNOWN_ERROR;
   }
 
-clean:
   return SUCCESS;
+
+clean:
+  return FAILURE;
+}
+
+EXTERNC int getDecryptionSharesBatch(char *skey_dec, char *decryptionValues,
+                                     size_t decryptionValuesSize,
+                                     char *decryption_shares,
+                                     int *decryption_shares_status) {
+  CHECK_ARG_CLEAN(skey_dec);
+  CHECK_ARG_CLEAN(decryptionValues);
+  CHECK_ARG_CLEAN(decryption_shares);
+  CHECK_ARG_CLEAN(decryption_shares_status);
+
+  {
+    size_t shareCount = decryptionValuesSize / CIPHERTEXT_CHARACTER_LENGTH;
+    if (shareCount > ENCLAVE_MAX_CIPHERTEXT_BATCH) {
+      shareCount = ENCLAVE_MAX_CIPHERTEXT_BATCH;
+    }
+
+    for (size_t i = 0; i < shareCount; ++i) {
+      decryption_shares_status[i] = SUCCESS;
+    }
+
+    try {
+
+      // Get Fr element once
+      bool b = false;
+      Fr bls_skey;
+      bls_skey.setStr(&b, skey_dec, 10);
+      if (!b) {
+        LOG_ERROR("Failed to convert string to Fr");
+        for (size_t i = 0; i < shareCount; ++i) {
+          memset(decryption_shares + i * CIPHERTEXT_CHARACTER_LENGTH, '0',
+                 CIPHERTEXT_CHARACTER_LENGTH);
+          decryption_shares_status[i] = STATUS_INTERNAL_ERROR;
+        }
+        return SUCCESS;
+      }
+
+      std::vector<G2> validPoints;
+      validPoints.reserve(shareCount);
+      std::vector<size_t> validPointIndices;
+      validPointIndices.reserve(shareCount);
+
+      // Parse each G2Point
+      for (size_t i = 0; i < shareCount; ++i) {
+        const size_t offset = i * CIPHERTEXT_CHARACTER_LENGTH;
+        char *outputShare = decryption_shares + offset;
+        memset(outputShare, '0', CIPHERTEXT_CHARACTER_LENGTH);
+
+        const size_t bytesRemaining = (offset < decryptionValuesSize)
+                                          ? (decryptionValuesSize - offset)
+                                          : 0;
+        if (bytesRemaining < CIPHERTEXT_CHARACTER_LENGTH) {
+          decryption_shares_status[i] = STATUS_G2_NOT_WELL_FORMED;
+          continue;
+        }
+
+        try {
+          G2 point = stringToG2(decryptionValues + offset,
+                                CIPHERTEXT_CHARACTER_LENGTH);
+          if (!isG2(point)) {
+            decryption_shares_status[i] = STATUS_G2_NOT_WELL_FORMED;
+            continue;
+          }
+
+          validPoints.push_back(point);
+          validPointIndices.push_back(i);
+        } catch (SGXException &e) {
+          LOG_ERROR(e.what());
+          decryption_shares_status[i] = STATUS_G2_SERIALIZATION_FAILED;
+        } catch (std::exception &e) {
+          LOG_ERROR(e.what());
+          decryption_shares_status[i] = STATUS_INTERNAL_ERROR;
+        } catch (...) {
+          LOG_ERROR("Unknown throwable");
+          decryption_shares_status[i] = STATUS_UNKNOWN_ERROR;
+        }
+      }
+
+      if (validPoints.empty()) {
+        return SUCCESS;
+      }
+
+      // Vectorized multiplication of valid G2 points by the same scalar
+      std::vector<Fr> scalars(validPoints.size(), bls_skey);
+      G2::mulEach(validPoints.data(), scalars.data(), validPoints.size());
+
+      // Build output string and status for each share
+      for (size_t i = 0; i < validPoints.size(); ++i) {
+        const size_t outputIndex = validPointIndices[i];
+        char *outputShare =
+            decryption_shares + outputIndex * CIPHERTEXT_CHARACTER_LENGTH;
+
+        std::string result = G2ToString(validPoints[i]);
+        if (result.length() != CIPHERTEXT_CHARACTER_LENGTH) {
+          memset(outputShare, '0', CIPHERTEXT_CHARACTER_LENGTH);
+          decryption_shares_status[outputIndex] =
+              STATUS_G2_SERIALIZATION_FAILED;
+          continue;
+        }
+
+        memcpy(outputShare, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
+        decryption_shares_status[outputIndex] = SUCCESS;
+      }
+    } catch (std::exception &e) {
+      LOG_ERROR(e.what());
+      for (size_t i = 0; i < shareCount; ++i) {
+        memset(decryption_shares + i * CIPHERTEXT_CHARACTER_LENGTH, '0',
+               CIPHERTEXT_CHARACTER_LENGTH);
+        decryption_shares_status[i] = STATUS_INTERNAL_ERROR;
+      }
+      return SUCCESS;
+    } catch (...) {
+      LOG_ERROR("Unknown throwable");
+      for (size_t i = 0; i < shareCount; ++i) {
+        memset(decryption_shares + i * CIPHERTEXT_CHARACTER_LENGTH, '0',
+               CIPHERTEXT_CHARACTER_LENGTH);
+        decryption_shares_status[i] = STATUS_UNKNOWN_ERROR;
+      }
+      return SUCCESS;
+    }
+  }
+
+  return SUCCESS;
+
+clean:
+  return FAILURE;
 }
