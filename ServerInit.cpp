@@ -32,9 +32,7 @@
 
 #include "bls.h"
 #include "leveldb/db.h"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/common/profiling.hpp>
 
 #include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
@@ -91,11 +89,7 @@ void systemHealthCheck() {
 }
 
 void initUserSpace() {
-
-  libff::inhibit_profiling_counters = true;
-
-  libff::init_alt_bn128_params();
-
+  libBLS::init();
   LevelDB::initDataFolderAndDBs();
 
 #ifndef SGX_HW_SIM
