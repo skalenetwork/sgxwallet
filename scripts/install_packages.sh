@@ -32,4 +32,5 @@ apt install -y --no-install-recommends build-essential \
     lsb-release \
     libsystemd0 \
     clang \
-    llvm
+    llvm \
+    texinfo
