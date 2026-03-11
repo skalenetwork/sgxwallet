@@ -115,7 +115,7 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -l:libjsoncpp.a -l:libmicrohttpd.a \
    -l:libboost_system.a -l:libboost_thread.a -l:libboost_context.a \
    -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a \
-   -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -lsnappy -ldl
+   -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -ldl
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
@@ -132,4 +132,4 @@ sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/b
                    -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
                    -l:libbackend.a -l:libmcl.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
                    -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
-                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl -lsnappy
+                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
