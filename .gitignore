@@ -56,3 +56,4 @@
 tests/performance/plots/
 tests/performance/venv/
 tests/performance/utils/__pycache__/
+tests/performance/__pycache__/
