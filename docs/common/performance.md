@@ -1,18 +1,11 @@
-# SGXWallet Performance Benchmarks
+# SGXWallet Performance Benchmarks (Hardware Mode)
 
-> Performance measured on Intel Core i7-10510U CPU @ 1.80 GHz (8 cores), SGX simulation mode, MCL backend.
+> Performance measured on Intel(R) Xeon(R) E-2286G CPU @ 4.00GHz, using Hardware mode
+> 6 physical cores, 12 logical cores
 
 ## BLS Sign Performance
 
-| Threads | Throughput (ops/sec) |
-|---------|--------------------- |
-| 1       | ~6200                |
-| 2       | ~5700                |
-| 4       | ~6300     (PEAK)     |
-| 8       | ~6100                |
-| 16      | ~5000                |
-
-**Notes:** Times are very variable. Some runs it may reach ~8k, others 4k. Mean is around 6k.
+~ 7000 signatures/s
 
 ---
 
@@ -32,26 +25,15 @@
 
 ## getDecryptionShares Performance
 
-### By Thread Count (fixed batch size)
+### By Batch Size (Fixed max concurrency, MCL-0-s)
 
-| Threads | Throughput (ops/sec)|
-|---------|---------------------|
-| 1       | ~6,750              |
-| 2       | ~7,200              |
-| 4       | ~6,900              |
-| 8       | ~7,300              |
-| 11      | ~7,600              |
-| 16      | ~7,800              |
-
-### By Batch Size (Fixed max concurrency)
-
-| Batch Size | Throughput (items/sec) |
-|------------|------------------------|
-| 64         | ~5,100                 |
-| 128        | ~8,600                 |
-| 256        | ~7,500                 |
-| 512        | ~6,800                 |
-| 1024       | ~6,800                 |
+| Batch Size | Throughput (items/sec) | Approx Mean Time (ms) | Approx times in previous LIBFF version (ms) |
+|------------|------------------------|-----------------------|---------------------------------------------|
+| 64         | ~6,106                 | ~10.48                | ~45.79                                      |
+| 128        | ~6,875                 | ~18.62                | ~84.94                                      |
+| 256        | ~7,548                 | ~33.92                | ~172.44                                     |
+| 512        | ~7,788                 | ~65.74                | ~352.49                                     |
+| 1024       | ~7,885                 | ~129.87               | ~707.35                                     |
 
 **Notes:** `getDecryptionShares` processes ciphertexts batch-internally in parallel. Adding client-side parallelism does not improve throughput — single-threaded requests achieve near-peak performance.
 
@@ -61,6 +43,6 @@
 
 | Operation            | Peak Throughput |
 |----------------------|-----------------|
-| BLS Sign             | ~6.000 ops/sec  |
+| BLS Sign             | ~7.000 ops/sec  |
 | ECDSA Sign           | ~250 ops/sec    |
 | getDecryptionShares  | ~7,200 ops/sec  |

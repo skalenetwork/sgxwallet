@@ -1,8 +1,74 @@
 import secrets
 import random
-import os
 import json
-from sgx import SgxClient
+from urllib import error, request
+
+try:
+    from sgx import SgxClient  # type: ignore
+except ModuleNotFoundError:
+    class SgxClient:
+        """Small JSON-RPC client fallback used when sgx.py is unavailable."""
+
+        def __init__(self, endpoint: str):
+            self.endpoint = endpoint
+
+        @staticmethod
+        def _with_0x(hex_value: str) -> str:
+            return hex_value if hex_value.startswith("0x") else f"0x{hex_value}"
+
+        def _rpc(self, method: str, params: dict):
+            payload = {
+                "jsonrpc": "2.0",
+                "method": method,
+                "params": params,
+                "id": 1,
+            }
+            body = json.dumps(payload).encode("utf-8")
+            req = request.Request(
+                self.endpoint,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                with request.urlopen(req) as response:
+                    reply = json.loads(response.read().decode("utf-8"))
+            except error.URLError as exc:
+                raise RuntimeError(f"RPC call '{method}' failed: {exc}") from exc
+
+            if "error" in reply and reply["error"] is not None:
+                err = reply["error"]
+                raise RuntimeError(
+                    f"RPC error in '{method}': code={err.get('code')} message={err.get('message')}"
+                )
+
+            result = reply.get("result", {})
+            if isinstance(result, dict) and result.get("status", 0) != 0:
+                raise RuntimeError(
+                    f"RPC method '{method}' returned status {result.get('status')}: "
+                    f"{result.get('errorMessage', '')}"
+                )
+            return result
+
+        def import_bls_private_key(self, key_share_name: str, key_share: str):
+            return self._rpc(
+                "importBLSKeyShare",
+                {
+                    "keyShare": self._with_0x(key_share),
+                    "keyShareName": key_share_name,
+                },
+            )
+
+        def get_bls_public_key(self, bls_key_name: str):
+            result = self._rpc("getBLSPublicKeyShare", {"blsKeyName": bls_key_name})
+            return result.get("blsPublicKeyShare")
+
+        def import_ecdsa_private_key(self, key_name: str, key: str):
+            result = self._rpc(
+                "importECDSAKey",
+                {"key": self._with_0x(key), "keyName": key_name},
+            )
+            return result.get("publicKey") or result.get("PublicKey")
 
 # BN-SNARK1 Fr order (scalar field modulus)
 # BLS private keys must be in range [0, FR_ORDER-1]
