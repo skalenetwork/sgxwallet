@@ -53,7 +53,13 @@
 /cert/*.crt
 /jsonrpc/
 /sgx-gmp/
+
+# performance test generated files
 tests/performance/plots/
 tests/performance/venv/
 tests/performance/utils/__pycache__/
 tests/performance/__pycache__/
+
+# backward compatibility generated binaries
+tests/backward_compatibility/api_golden_generator
+tests/backward_compatibility/api_validator
