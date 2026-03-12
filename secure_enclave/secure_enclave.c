@@ -1416,7 +1416,7 @@ void trustedGetDecryptionShares( int *errStatus, char* errString, uint8_t* encry
 
     CHECK_STATUS2("HexToDecimal failed %d");
 
-    status = getDecryptionSharesBatch(skey_dec, (char*)public_decryption_value,
+    status = getDecryptionSharesBatch(skey_dec, public_decryption_value,
                                       public_decryption_value_len,
                                       decryption_shares,
                                       decryption_shares_status);

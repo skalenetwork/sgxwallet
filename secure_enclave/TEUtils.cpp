@@ -91,7 +91,7 @@ std::string G2ToString(G2 elem) {
   return pkey_str;
 }
 
-std::string convertHexToDec(char *hex_str) {
+std::string convertHexToDec(const char *hex_str) {
   std::string output;
 
   try {
@@ -130,7 +130,7 @@ std::string convertHexToDec(char *hex_str) {
  * May return an invalid G2 element.
  * Caller should check if the element is well formed if needed.
  */
-G2 stringToG2(char *str, size_t size) {
+G2 stringToG2(const char *str, size_t size) {
   if (size != CIPHERTEXT_CHARACTER_LENGTH) {
     LOG_ERROR("Wrong string size to convert to G2");
   }
@@ -164,7 +164,7 @@ G2 stringToG2(char *str, size_t size) {
   return ret;
 }
 
-EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
+EXTERNC int keyHexToDecimal(const char *skey_hex, char *skey_dec_out) {
   try {
     std::string dec = convertHexToDec(skey_hex);
     strncpy(skey_dec_out, dec.c_str(), dec.length() + 1);
@@ -182,7 +182,8 @@ EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out) {
   }
 }
 
-EXTERNC int getDecryptionShare(char *skey_dec, char *decryptionValue,
+EXTERNC int getDecryptionShare(const char *skey_dec,
+                               const char *decryptionValue,
                                size_t decryptionSize, char *decryption_share) {
 
   CHECK_ARG_CLEAN(skey_dec);
@@ -239,7 +240,8 @@ clean:
   return FAILURE;
 }
 
-EXTERNC int getDecryptionSharesBatch(char *skey_dec, char *decryptionValues,
+EXTERNC int getDecryptionSharesBatch(const char *skey_dec,
+                                     const char *decryptionValues,
                                      size_t decryptionValuesSize,
                                      char *decryption_shares,
                                      int *decryption_shares_status) {
@@ -247,6 +249,8 @@ EXTERNC int getDecryptionSharesBatch(char *skey_dec, char *decryptionValues,
   CHECK_ARG_CLEAN(decryptionValues);
   CHECK_ARG_CLEAN(decryption_shares);
   CHECK_ARG_CLEAN(decryption_shares_status);
+  // Each decryption share is represented by a G2 point, which is 256 characters long
+  CHECK_ARG_CLEAN(decryptionValuesSize % CIPHERTEXT_CHARACTER_LENGTH == 0);
 
   {
     size_t shareCount = decryptionValuesSize / CIPHERTEXT_CHARACTER_LENGTH;
