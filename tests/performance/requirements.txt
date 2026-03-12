@@ -1,6 +1,5 @@
 requests
 urllib3<2
-sgx.py==0.10.0.dev0
 matplotlib
 pyzmq
 aiohttp
