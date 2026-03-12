@@ -73,6 +73,7 @@ RUN cd scripts && ./build_deps.py && \
     cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml && \
     ./configure --enable-sgx-simulation && \
     make -j$(nproc) && \
+    make -C tests/backward_compatibility api_validator && \
     ccache -sz && mkdir -p sgx_data && \
     # ---- Remove build artifacts to minimize image size ---- \
     rm -rf \
@@ -94,7 +95,7 @@ RUN cd scripts && ./build_deps.py && \
         /install_packages.sh /tmp/* /root/.cache && \
     find . -name '*.o' -delete 2>/dev/null; \
     find . -name '.git' -type d -exec rm -rf {} + 2>/dev/null; \
-    strip --strip-unneeded sgxwallet testw sgx_util 2>/dev/null; \
+    strip --strip-unneeded sgxwallet testw sgx_util tests/backward_compatibility/api_validator 2>/dev/null; \
     true
 
 COPY docker/start.sh ./

@@ -41,9 +41,6 @@ cleanup() {
   if [[ -d "${ROOT_DIR}/sgx_data" ]]; then
     find "${ROOT_DIR}/sgx_data" -mindepth 1 -maxdepth 1 -exec rm -rf {} + || true
   fi
-
-  # optional: only clean if you really want this every run
-  make -C "${SCRIPT_DIR}" clean || true
 }
 trap cleanup EXIT INT TERM
 
@@ -51,8 +48,11 @@ trap cleanup EXIT INT TERM
 ##     Build test
 ############################################
 
-# build api_validator using SCRIPT_DIR as working directory
-make -C "${SCRIPT_DIR}" api_validator
+# api_validator is pre-built during Docker image build
+if [[ ! -x "${VALIDATOR}" ]]; then
+  echo "api_validator not found at ${VALIDATOR} — was it built during docker build?" >&2
+  exit 1
+fi
 
 # start with a clean sgx_data directory
 mkdir -p "${ROOT_DIR}/sgx_data"
