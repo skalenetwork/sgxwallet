@@ -8,7 +8,7 @@ This document explains what is tested and how to run the validation tests for an
 
 Test coverage includes 20 different API calls. The majority tests deterministically. Since there are non-deterministic API calls, we only test for correctness on those (i.e, we check the returned structure is the expected)
 
-### Deterministic Tests (14 tests) - CRITICAL
+### Deterministic Tests - CRITICAL
 These **must** produce byte-identical outputs with the same inputs:
 
 | Method | What it validates |
@@ -24,7 +24,7 @@ These **must** produce byte-identical outputs with the same inputs:
 | `createBLSPrivateKeyV2` | BLS key reconstruction (V2) |
 | `calculateAllBLSPublicKeys` | BLS public key aggregation |
 
-### Functional Tests (6 tests) - API CORRECTNESS
+### Functional Tests - API CORRECTNESS
 These involve randomness - validate structure and success:
 
 | Method | Why functional (not deterministic) |
@@ -44,13 +44,13 @@ These involve randomness - validate structure and success:
 
 To run the tests, you need to do 2 separate steps:
 
-### Phase 1: Generate test binaries
+### 1: Generate test binaries
 ```bash
 cd compatibility_tests
 make all
 ```
 
-### Phase 2: Generate Golden Vectors (libff build)
+### 2: Generate Golden Vectors (libff build)
 
 ```bash
 # 1. Build sgxwallet with libff backend (see the build commands)
@@ -68,7 +68,7 @@ cd compatibility_tests
 # 4. Verify all 20 tests completed (the tool prints to the terminal)
 ```
 
-### Phase 3: Validate Compatibility (new backend)
+### 3: Validate Compatibility (new backend)
 
 ```bash
 # 1. Build sgxwallet with mcl or any newer backend
@@ -77,7 +77,7 @@ cd compatibility_tests
 rm -rf sgx_data/
 ./sgxwallet -n -s -y -d -V
 
-# 3. Run validator
+# 3. (in a separate terminal) Run validator
 cd compatibility_tests
 ./api_validator api_golden_vectors.json
 
