@@ -249,7 +249,8 @@ EXTERNC int getDecryptionSharesBatch(const char *skey_dec,
   CHECK_ARG_CLEAN(decryptionValues);
   CHECK_ARG_CLEAN(decryption_shares);
   CHECK_ARG_CLEAN(decryption_shares_status);
-  // Each decryption share is represented by a G2 point, which is 256 characters long
+  // Each decryption share is represented by a G2 point, which is 256 characters
+  // long
   CHECK_ARG_CLEAN(decryptionValuesSize % CIPHERTEXT_CHARACTER_LENGTH == 0);
 
   {
