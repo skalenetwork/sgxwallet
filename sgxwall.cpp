@@ -34,6 +34,7 @@
 #include "SGXWalletServer.hpp"
 
 #include <fstream>
+#include <thread>
 
 #include "TestUtils.h"
 
@@ -43,7 +44,15 @@
 #include "sgxwallet.h"
 #include "testw.h"
 
+namespace {
+int getDefaultThreadPoolSize() {
+  const unsigned int cpuCount = std::thread::hardware_concurrency();
+  return cpuCount == 0 ? 1 : static_cast<int>(cpuCount);
+}
+} // namespace
+
 void SGXWallet::printUsage() {
+  const int maxThreadPoolSize = getDefaultThreadPoolSize();
   cerr << "\nAvailable flags:\n";
   cerr << "\nDebug flags:\n\n";
   cerr << "   -v  Verbose mode: turn on debug output\n";
@@ -61,9 +70,8 @@ void SGXWallet::printUsage() {
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
   cerr << "\nConfiguration flags:\n\n";
-  cerr << "   -t  Set thread pool size. Default is "
-       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ". Must be > 0 and < "
-       << SGXWalletServer::DEFAULT_NUM_THREADS_SGX << ".\n";
+  cerr << "   -t  Set thread pool size. Default is " << maxThreadPoolSize
+       << ". Must be >= 1 and <= " << maxThreadPoolSize << ".\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -110,7 +118,8 @@ int main(int argc, char *argv[]) {
   bool autoSignClientCertOption = false;
   bool generateTestKeys = false;
   bool checkKeyOwnership = false;
-  size_t threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
+  const int maxThreadPoolSize = getDefaultThreadPoolSize();
+  int threadPoolSize = maxThreadPoolSize;
 
   std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -171,13 +180,9 @@ int main(int argc, char *argv[]) {
 
         if (value <= 0) {
           throw std::invalid_argument("Thread pool size must be positive");
-        }
-
-        threadPoolSize = static_cast<size_t>(value);
-        if (threadPoolSize > SGXWalletServer::DEFAULT_NUM_THREADS_SGX) {
-          throw std::invalid_argument(
-              "Thread pool size must not exceed " +
-              std::to_string(SGXWalletServer::DEFAULT_NUM_THREADS_SGX));
+        } else if (threadPoolSize > maxThreadPoolSize) {
+          throw std::invalid_argument("Thread pool size must not exceed " +
+                                      std::to_string(maxThreadPoolSize));
         }
       } catch (const std::exception &e) {
         std::cerr << "Invalid thread pool size: " << optarg << "\n";

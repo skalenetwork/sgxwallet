@@ -216,8 +216,6 @@ EXTERNC int getDecryptionShare(const char *skey_dec,
       return STATUS_G2_NOT_WELL_FORMED;
     }
 
-    decryption_share_point.normalize();
-
     std::string result = G2ToString(decryption_share_point);
 
     strncpy(decryption_share, result.data(), CIPHERTEXT_CHARACTER_LENGTH);
