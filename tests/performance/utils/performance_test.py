@@ -1,5 +1,6 @@
 import time
 import asyncio
+import argparse
 import numpy as np
 import aiohttp
 import matplotlib.pyplot as plt
@@ -55,24 +56,50 @@ class Results:
 class PerformanceTest(ABC):
     """Base class for performance tests"""
     
-    def __init__(self, ip: str):
+    # Override these in subclasses
+    name = "PerformanceTest"
+    method = ""
+    xlabel = "Variable"
+    ylabel = "Throughput (ops/sec)"
+    
+    # Default test parameters (override in subclass)
+    default_batch_sizes = [64, 128, 256, 512, 1024]
+    default_parallel_threads = [1, 2, 4, 8, 11, 16]
+    # number of times we call the method per iteration for a better mean
+    default_iterations = 3
+    default_parallel_batch_size = 500
+    
+    def __init__(self, ip: str, args: argparse.Namespace = None):
         self.endpoint = "http://" + ip + ":1029"
+        self.args = args
+
+        # Test parameters from args or defaults
+        self.batch_sizes = self._parse_list(args, 'batch_sizes', self.default_batch_sizes)
+        self.parallel_threads = self._parse_list(args, 'parallel_threads', self.default_parallel_threads)
+        self.num_iterations = getattr(args, 'iterations', None) or self.default_iterations
+        self.parallel_batch_size = getattr(args, 'parallel_batch_size', None) or self.default_parallel_batch_size
 
         # Initialized on 'create' method
         self.keys = None
         self.rtt = None
         self.rtt_std = None
 
+    def _parse_list(self, args, attr: str, default: list) -> list:
+        """Parse comma-separated string to list of ints"""
+        val = getattr(args, attr, None) if args else None
+        if val:
+            return [int(x) for x in val.split(',')]
+        return default
 
     @classmethod
-    async def create(cls, ip: str):
+    async def create(cls, ip: str, args: argparse.Namespace = None):
         """Async factory method to create and initialize the test"""
-        instance = cls(ip)
+        instance = cls(ip, args)
         await instance.initialize()
         return instance
     
     async def initialize(self):
-        """Initialize async components like RTT measurement"""
+        """Initialize async components like RTT measurement and key provisioning"""
         if self.rtt is None:
             (self.rtt, self.rtt_std) = await self._measure_rtt()
 
@@ -99,14 +126,13 @@ class PerformanceTest(ABC):
 
     
     @abstractmethod
-    def create_payload(self, **kwargs) -> Dict[str, Any]:
-        """Create the JSON-RPC payload for this test"""
+    def create_payload(self, var: int = 1, **kwargs) -> Dict[str, Any]:
+        """Create the JSON-RPC params for this test. 'var' is the variable being tested."""
         pass
 
-    @abstractmethod
     def get_method_name(self) -> str:
         """Get JSON-RPC method name for this test"""
-        pass
+        return self.method
     
     async def make_single_request(self, session: aiohttp.ClientSession, valid: bool, **kwargs) -> tuple:
         """Make a single request and return (response, elapsed_time)"""
@@ -131,14 +157,13 @@ class PerformanceTest(ABC):
             
         return result, (end - start) * 1000 # Convert to ms
     
-    # Returns a tuple ( results, standard deviation )
     async def run_parallel_test(self, num_threads: List[int], variable: int, num_iterations: int = 2, **kwargs) -> Results:
         """Run parallel throughput test with different thread counts"""
         print("Running parallel throughput test...")
         results = {}
         standard_devs = {}
         
-        connector = aiohttp.TCPConnector(ssl=None)
+        connector = aiohttp.TCPConnector(ssl=None, limit=0, limit_per_host=0)  # No connection limits
         async with aiohttp.ClientSession(connector=connector) as session:
             
             for threads in num_threads:
@@ -146,19 +171,18 @@ class PerformanceTest(ABC):
                 for _ in range(num_iterations):
                     start_time = time.perf_counter()
                     # Create N parallel tasks
-                    tasks = [self.make_single_request(session, True, var = variable, **kwargs) for _ in range(threads)]
+                    tasks = [self.make_single_request(session, True, var=variable, **kwargs) for _ in range(threads)]
                     await asyncio.gather(*tasks)
-                    total_time = (time.perf_counter() - start_time)
+                    total_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                     times.append(total_time)
                 
-                results[threads] = (variable, np.mean(times))
+                results[threads] = (variable * threads, np.mean(times))  # total items = batch_size * threads
                 standard_devs[threads] = np.std(times)
                 
                 print(f"{threads:2d} threads: {np.mean(times):8.2f} ms total, +-{np.std(times):6.2f} ms")
         
-        return Results(self.rtt, self.rtt_std, results, standard_devs, variable)
+        return Results(self.rtt, self.rtt_std, results, standard_devs)
     
-    # Returns a tuple ( results, standard deviation )
     async def run_serial_test(self, variable: List[int], num_iterations: int = 2, **kwargs) -> Results:
         """Run single-threaded batch size test"""
         print("Running single-threaded variable test...")
@@ -186,3 +210,50 @@ class PerformanceTest(ABC):
         """Plot and save results"""
         data.plot(title, xlabel, ylabel, filename)
 
+    @classmethod
+    def add_common_args(cls, parser: argparse.ArgumentParser):
+        """Add common CLI arguments"""
+        parser.add_argument("--ip", required=True, help="SGX wallet IP address")
+        parser.add_argument("--batch-sizes", dest="batch_sizes", 
+                            help="Comma-separated batch sizes for serial test")
+        parser.add_argument("--parallel-threads", dest="parallel_threads",
+                            help="Comma-separated thread counts for parallel test")
+        parser.add_argument("--iterations", type=int, 
+                            help="Number of iterations per data point")
+        parser.add_argument("--parallel-batch-size", dest="parallel_batch_size", type=int,
+                            help="Fixed batch size per request in parallel test")
+
+    @classmethod
+    def add_test_args(cls, parser: argparse.ArgumentParser):
+        """Override in subclass to add test-specific arguments"""
+        pass
+
+    @classmethod
+    def create_parser(cls) -> argparse.ArgumentParser:
+        """Create argument parser with common + test-specific args"""
+        parser = argparse.ArgumentParser(description=f"{cls.name} Performance Test")
+        cls.add_common_args(parser)
+        cls.add_test_args(parser)
+        return parser
+
+    async def run(self):
+        """Run the full test suite"""
+        # Serial test
+        results = await self.run_serial_test(self.batch_sizes, self.num_iterations)
+        self.plot_results(results, self.xlabel, self.ylabel, 
+                         f"{self.name} Performance Test", 
+                         f"{self.name.lower()}-serial")
+
+        # Parallel test
+        results = await self.run_parallel_test(self.parallel_threads, self.parallel_batch_size, self.num_iterations)
+        self.plot_results(results, "Number of Threads", "Throughput (ops/sec)",
+                         f"{self.name} Performance Test (Parallel)",
+                         f"{self.name.lower()}-parallel")
+
+    @classmethod
+    async def main(cls):
+        """Entry point for running the test"""
+        parser = cls.create_parser()
+        args = parser.parse_args()
+        test = await cls.create(args.ip, args)
+        await test.run()

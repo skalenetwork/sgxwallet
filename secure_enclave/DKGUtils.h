@@ -54,4 +54,11 @@ EXTERNC int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
 EXTERNC int calc_bls_public_key(char *skey, char *pub_key);
 
 EXTERNC int calc_secret_shareG2(const char *s_share, char *s_shareG2);
+
+#ifdef __cplusplus
+// C++ only - helper for setting Fr from string with modular reduction
+#include "MclUtils.h"
+bool trySettingFrFromString(Fr &fr, const char *str, int base);
+#endif
+
 #endif

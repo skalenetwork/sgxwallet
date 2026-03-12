@@ -23,9 +23,12 @@ apt install -y build-essential \
     reprepro \
     unzip \
     pkgconf \
+    liblzma-dev \
     libboost-dev \
     libboost-system-dev \
     libboost-thread-dev \
     libtbb-dev \
     lsb-release \
-    libsystemd0
+    libsystemd0 \
+    clang \
+    llvm

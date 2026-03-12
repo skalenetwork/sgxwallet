@@ -84,7 +84,7 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
 
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -145,7 +145,7 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
