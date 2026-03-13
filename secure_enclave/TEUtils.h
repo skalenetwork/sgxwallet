@@ -45,9 +45,15 @@
 #define STATUS_INTERNAL_ERROR 3
 #define STATUS_UNKNOWN_ERROR 4
 
-EXTERNC int keyHexToDecimal(char *skey_hex, char *skey_dec_out);
+EXTERNC int keyHexToDecimal(const char *skey_hex, char *skey_dec_out);
 
 EXTERNC int getDecryptionShare(const char *secret, const char *decryptionValue,
                                size_t decryptionSize, char *decryption_share);
+
+EXTERNC int getDecryptionSharesBatch(const char *secret,
+                                     const char *decryptionValues,
+                                     size_t decryptionValuesSize,
+                                     char *decryption_shares,
+                                     int *decryption_shares_status);
 
 #endif
