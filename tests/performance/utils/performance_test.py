@@ -1,6 +1,7 @@
 import time
 import asyncio
 import argparse
+import os
 import numpy as np
 import aiohttp
 import matplotlib.pyplot as plt
@@ -49,6 +50,7 @@ class Results:
         plt.ylabel(ylabel)
         plt.title(title)
         plt.grid(True)
+        os.makedirs("./plots", exist_ok=True)
         plt.savefig(f"./plots/{filename}.png")
         plt.show()
     
@@ -64,10 +66,10 @@ class PerformanceTest(ABC):
     
     # Default test parameters (override in subclass)
     default_batch_sizes = [64, 128, 256, 512, 1024]
-    default_parallel_threads = [1, 2, 4, 8, 11, 16]
+    default_parallel_threads = [1]
     # number of times we call the method per iteration for a better mean
-    default_iterations = 3
-    default_parallel_batch_size = 500
+    default_iterations = 100
+    default_parallel_batch_size = 256
     
     def __init__(self, ip: str, args: argparse.Namespace = None):
         self.endpoint = "http://" + ip + ":1029"
