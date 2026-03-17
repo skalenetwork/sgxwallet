@@ -17,7 +17,8 @@ then
 	export SO_EXT=dylib
 fi
 
-INSTALL_ROOT_RELATIVE="../libBLS/deps/deps_inst/x86_or_x64/"
+DEPS_SOURCE_ROOT="../libBLS/deps"
+INSTALL_ROOT_RELATIVE="$DEPS_SOURCE_ROOT/deps_inst/x86_or_x64/"
 INSTALL_ROOT=`$READLINK -f $INSTALL_ROOT_RELATIVE`
 
 TOP_CMAKE_BUILD_TYPE="Release"
@@ -33,13 +34,12 @@ else
 	CONF_DEBUG_OPTIONS=""
 fi
 
-export OPENSSL_SRC_RELATIVE="../libBLS/deps/openssl"
+export OPENSSL_SRC_RELATIVE="$DEPS_SOURCE_ROOT/openssl"
 export OPENSSL_SRC=`$READLINK -f $OPENSSL_SRC_RELATIVE`
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
 git checkout c846c3326cc5dca2f27f7e9f46ac1ce096e9b0b1
-git pull
 rm -rf build || true
 mkdir -p build
 cd build
@@ -60,7 +60,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DCOMPILE_STUBGEN=YES \
 	-DCOMPILE_EXAMPLES=NO \
 	-DWITH_COVERAGE=NO \
-	-DARGTABLE_INCLUDE_DIR=../../argtable2/src \
+	-DARGTABLE_INCLUDE_DIR=$DEPS_SOURCE_ROOT/argtable2/src \
 	-DARGTABLE_LIBRARY=$INSTALL_ROOT/lib/libargtable2${DEBUG_D}.a \
 	-DCURL_INCLUDE_DIR=$INSTALL_ROOT/include \
 	-DJSONCPP_INCLUDE_DIR=$INSTALL_ROOT/include \
