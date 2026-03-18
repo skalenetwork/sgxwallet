@@ -1,15 +1,12 @@
-# Git metadata
 .git
 **/.git
 **/.github
 
-# IDE and editor files
 .idea
 cmake-build-debug
 **/*.swp
 **/*.user
 
-# Build outputs (regenerated during Docker build anyway)
 sgx_data
 **/build/
 **/*.o
@@ -19,7 +16,6 @@ autom4te.cache
 config.log
 config.status
 
-# Large dependency build artifacts (rebuilt by build_deps.py)
 libBLS/deps/boost_1*
 libBLS/deps/openssl
 libBLS/deps/curl
@@ -33,10 +29,8 @@ libBLS/deps/argtable2
 libBLS/deps/zlib
 libBLS/deps/*.tar.*
 
-# Directories regenerated during build or not needed in context
 gmp-build
 tgmp-build
 sgx-sdk-build
 
-# Documentation and tests not needed for Docker build
 performance-tests

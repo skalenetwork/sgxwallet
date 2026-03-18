@@ -63,7 +63,7 @@ RUN apt update && \
 
 RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir requests torpy
 
-# ---- Build dependencies, project, and clean up (single layer to avoid ~2GB intermediate artifacts) ----
+# ---- Build dependencies, project, and clean up ----
 RUN cd scripts && ./build_deps.py && \
     wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
     cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
