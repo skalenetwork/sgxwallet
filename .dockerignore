@@ -32,5 +32,3 @@ libBLS/deps/*.tar.*
 gmp-build
 tgmp-build
 sgx-sdk-build
-
-performance-tests
