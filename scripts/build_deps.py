@@ -75,8 +75,8 @@ assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 print("Build LibBLS");
 # Build LibBLS deps (host + SGX)
 os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
-assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh"]) == 0 
+assert subprocess.call(["bash", "-c", "./build.sh", "SKALED_DEPS_CHAIN=1"]) == 0
+assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh", "SKALED_DEPS_CHAIN=1"]) == 0 
 os.chdir(BLS_DIR)
 assert subprocess.call([
 	"bash",
@@ -99,6 +99,11 @@ os.chdir(LEVELDB_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
 assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -- -j" + PARALLEL_COUNT]) == 0
+
+print("Build JSON"); 
+
+os.chdir(JSON_LIBS_DIR)
+assert subprocess.call(["bash", "-c", "./build.sh", "PARALLEL_COUNT=" + PARALLEL_COUNT]) == 0
 
 print("Install Linux SDK");
 

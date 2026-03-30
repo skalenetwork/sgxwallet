@@ -48,6 +48,62 @@ fi
 export OPENSSL_SRC_RELATIVE="$DEPS_SOURCE_ROOT/openssl"
 export OPENSSL_SRC=`$READLINK -f $OPENSSL_SRC_RELATIVE`
 
+git clone https://github.com/madler/zlib.git
+cd zlib
+./configure --static --prefix=$INSTALL_ROOT
+make -j$NUMBER_OF_CPU_CORES
+make install
+cd ..
+
+git clone https://github.com/jonathanmarvens/argtable2.git
+cd argtable2
+mkdir -p build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
+make -j$NUMBER_OF_CPU_CORES
+make install
+cd ../..
+
+git clone https://github.com/open-source-parsers/jsoncpp
+cd jsoncpp
+git checkout 30170d651c108400b1b9ed626ba715a5d95c5fd2
+mkdir -p build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
+	-DBUILD_SHARED_LIBS=NO \
+	-DBUILD_STATIC_LIBS=YES \
+	..
+make -j$NUMBER_OF_CPU_CORES
+make install
+cd ../..
+
+git clone https://github.com/curl/curl.git
+cd curl
+git checkout curl-8_2_1
+mkdir -p build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DOPENSSL_ROOT_DIR=$OPENSSL_SRC -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DCURL_USE_LIBSSH2=OFF -DBUILD_SHARED_LIBS=OFF -DCURL_DISABLE_LDAP=ON -DCURL_STATICLIB=ON -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
+echo " " >> lib/curl_config.h
+echo "#define HAVE_POSIX_STRERROR_R 1" >> lib/curl_config.h
+echo " " >> lib/curl_config.h
+### Set HAVE_POSIX_STRERROR_R to 1 in build/lib/curl_config.h
+make -j$NUMBER_OF_CPU_CORES
+make install
+cd ../..
+
+git clone https://github.com/scottjg/libmicrohttpd.git
+cd libmicrohttpd
+MHD_HTTPS_OPT=""
+if [ "$WITH_GCRYPT" = "yes" ];
+then
+	MHD_HTTPS_OPT="--enable-https"
+fi
+./bootstrap
+./configure --enable-static --disable-shared --with-pic --prefix=$INSTALL_ROOT $MHD_HTTPS_OPT
+make -j$NUMBER_OF_CPU_CORES
+make install
+cd ..
+
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
 git checkout c846c3326cc5dca2f27f7e9f46ac1ce096e9b0b1
