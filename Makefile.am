@@ -61,6 +61,17 @@ AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION=
 CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 
+# Keep local top-level builds compatible with Docker images by building
+# backward compatibility validator as part of "make".
+all-local: tests/backward_compatibility/api_validator
+
+tests/backward_compatibility/api_validator:
+	$(MAKE) -C tests/backward_compatibility api_validator
+
+clean-local:
+	$(MAKE) -C tests/backward_compatibility clean
+
+
 ## The build target
 
 bin_PROGRAMS = sgxwallet testw sgx_util

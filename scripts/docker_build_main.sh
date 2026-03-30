@@ -73,4 +73,4 @@ make -C tests/backward_compatibility api_validator
 ccache -sz
 mkdir -p sgx_data
 
-bash ./scripts/docker_cleanup.sh
+bash ./scripts/docker_cleanup.sh --build-type="${BUILD_TYPE}"

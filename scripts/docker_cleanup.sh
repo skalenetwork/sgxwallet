@@ -2,6 +2,15 @@
 
 set -euo pipefail
 
+BUILD_TYPE="main"
+for arg in "$@"; do
+    case "$arg" in
+        --build-type=*)
+            BUILD_TYPE="${arg#--build-type=}"
+            ;;
+    esac
+done
+
 cd /usr/src/sdk
 
 rm -rf \
@@ -24,5 +33,7 @@ rm -rf \
 
 find . -name '*.o' -delete 2>/dev/null || true
 find . -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
-rm -f /opt/intel/sgxsdk/lib64/*_sim.so
+if [[ "${BUILD_TYPE}" != "simulation" ]]; then
+    rm -f /opt/intel/sgxsdk/lib64/*_sim.so
+fi
 strip --strip-unneeded sgxwallet testw sgx_util tests/backward_compatibility/api_validator 2>/dev/null || true
