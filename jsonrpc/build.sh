@@ -1,5 +1,14 @@
 #!/bin/bash
 
+JOBS=1
+for arg in "$@"; do
+	case "$arg" in
+		PARALLEL_COUNT=*)
+			JOBS="${arg#PARALLEL_COUNT=}"
+			;;
+	esac
+done
+
 export UNIX_SYSTEM_NAME=`uname -s`
 export NUMBER_OF_CPU_CORES=1
 if [ "$UNIX_SYSTEM_NAME" = "Linux" ];
@@ -16,6 +25,8 @@ then
 	export READLINK=/usr/local/bin/greadlink
 	export SO_EXT=dylib
 fi
+
+NUMBER_OF_CPU_CORES="$JOBS"
 
 DEPS_SOURCE_ROOT="../libBLS/deps"
 INSTALL_ROOT_RELATIVE="$DEPS_SOURCE_ROOT/deps_inst/x86_or_x64/"

@@ -64,39 +64,7 @@ RUN apt update && \
 RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir requests torpy
 
 # ---- Build dependencies, project, and clean up ----
-RUN cd scripts && ./build_deps.py && \
-    wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz && \
-    cd dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-    cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make -j$(nproc) install && \
-    cd /usr/src/sdk && rm -rf scripts/dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b && \
-    ./autoconf.bash && \
-    cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml && \
-    ./configure --enable-sgx-simulation && \
-    make -j$(nproc) && \
-    make -C tests/backward_compatibility api_validator && \
-    ccache -sz && mkdir -p sgx_data && \
-    # ---- Remove build artifacts to minimize image size ---- \
-    rm -rf \
-        libBLS/deps/boost_1* libBLS/deps/openssl libBLS/deps/curl \
-        libBLS/deps/gmp-6.1.2 libBLS/deps/libff libBLS/deps/jsoncpp \
-        libBLS/deps/libjson-rpc-cpp libBLS/deps/libjson-rpc-cpp-develop \
-        libBLS/deps/libmicrohttpd libBLS/deps/argtable2 libBLS/deps/zlib \
-        libBLS/deps/pre_downloaded "libBLS/deps/*.tar.*" \
-        libBLS/deps/deps_inst/x86_or_x64/include \
-        libBLS/deps/deps_inst/x86_or_x64/share \
-        libBLS/deps/deps_inst/x86_or_x64/bin \
-        libBLS/build libBLS/test libBLS/docs \
-        libzmq leveldb cppzmq rapidjson third_party \
-        linux-sgx-driver intel-sgx-ssl jsonrpc \
-        gmp-build tgmp-build sgx-gmp sgx-sdk-build \
-        docs performance-tests \
-        .deps secure_enclave/.deps autom4te.cache config.log \
-        /opt/intel/sgxsdk/include /opt/intel/sgxsdk/SampleCode \
-        /install_packages.sh /tmp/* /root/.cache && \
-    find . -name '*.o' -delete 2>/dev/null; \
-    find . -name '.git' -type d -exec rm -rf {} + 2>/dev/null; \
-    strip --strip-unneeded sgxwallet testw sgx_util tests/backward_compatibility/api_validator 2>/dev/null; \
-    true
+RUN bash ./scripts/docker_build_main.sh --build-type=simulation
 
 COPY docker/start.sh ./
 COPY docker/check_firewall.py ./

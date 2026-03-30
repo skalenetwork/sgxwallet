@@ -26,7 +26,11 @@
 import os
 import subprocess
 
-PARALLEL_COUNT = str(os.cpu_count() or 1)
+PARALLEL_COUNT = "1"
+for arg in os.sys.argv[1:]:
+    if arg.startswith("PARALLEL_COUNT="):
+        PARALLEL_COUNT = arg.split("=", 1)[1]
+        break
 
 os.chdir("..")
 topDir = os.getcwd()
@@ -45,9 +49,9 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-JSON_LIBS_DIR = topDir +  "/jsonrpc"
+JSON_LIBS_DIR = topDir + "/jsonrpc"
 
-BLS_DIR = topDir +  "/libBLS"
+BLS_DIR = topDir + "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
