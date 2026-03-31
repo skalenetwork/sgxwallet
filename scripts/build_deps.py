@@ -75,8 +75,8 @@ assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 print("Build LibBLS");
 # Build LibBLS deps (host + SGX)
 os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh", "SKALED_DEPS_CHAIN=1"]) == 0
-assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh", "SKALED_DEPS_CHAIN=1"]) == 0 
+assert subprocess.call(["bash", "-c", "./build.sh SKALED_DEPS_CHAIN=1"]) == 0
+assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh SKALED_DEPS_CHAIN=1"]) == 0 
 os.chdir(BLS_DIR)
 assert subprocess.call([
 	"bash",
