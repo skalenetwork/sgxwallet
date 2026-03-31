@@ -36,5 +36,4 @@ apt install -y --no-install-recommends build-essential \
     texinfo \
     yasm \
     libgcrypt20-dev \
-    libsnappy-dev \
     libgnutls28-dev
