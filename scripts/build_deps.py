@@ -103,7 +103,7 @@ assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cm
 print("Build JSON"); 
 
 os.chdir(JSON_LIBS_DIR)
-assert subprocess.call(["bash", "-c", "./build.sh", "PARALLEL_COUNT=" + PARALLEL_COUNT]) == 0
+assert subprocess.call(["bash", "-c", "./build.sh PARALLEL_COUNT=" + PARALLEL_COUNT]) == 0
 
 print("Install Linux SDK");
 

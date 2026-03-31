@@ -18,7 +18,7 @@ rm -rf \
     libBLS/deps/gmp-6.1.2 libBLS/deps/libff libBLS/deps/jsoncpp \
     libBLS/deps/libjson-rpc-cpp libBLS/deps/libjson-rpc-cpp-develop \
     libBLS/deps/libmicrohttpd libBLS/deps/argtable2 libBLS/deps/zlib \
-    libBLS/deps/pre_downloaded "libBLS/deps/*.tar.*" \
+    libBLS/deps/pre_downloaded libBLS/deps/*.tar.* \
     libBLS/deps/deps_inst/x86_or_x64/include \
     libBLS/deps/deps_inst/x86_or_x64/share \
     libBLS/deps/deps_inst/x86_or_x64/bin \
