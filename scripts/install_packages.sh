@@ -33,4 +33,8 @@ apt install -y --no-install-recommends build-essential \
     libsystemd0 \
     clang \
     llvm \
-    texinfo
+    texinfo \
+    yasm \
+    libgcrypt20-dev \
+    libsnappy-dev \
+    libgnutls28-dev
