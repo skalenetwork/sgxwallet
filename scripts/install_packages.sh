@@ -31,4 +31,9 @@ apt install -y build-essential \
     lsb-release \
     libsystemd0 \
     clang \
-    llvm
+    llvm \
+    texinfo \
+    yasm \
+    libgcrypt20-dev \
+    libsnappy-dev \
+    libgnutls28-dev
