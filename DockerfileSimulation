@@ -1,26 +1,71 @@
-FROM skalenetwork/sgxwallet_base:latest
+# Stage 1: Builder
+FROM ubuntu:22.04 as builder
 
-RUN apt update && apt install -y curl secure-delete python3-pip
-RUN pip3 install --upgrade pip
-RUN pip3 install requests torpy
+# ---- Install build packages ----
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
 
-RUN ccache -sz
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-# Copy sgxwallet source code
-# This only overwrites source code files, not
-# dependency builds from base image
+# ---- Build Intel SGX SDK & PSW ----
+RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx && \
+    cd linux-sgx && make -j$(nproc) preparation
+
+WORKDIR /linux-sgx
+COPY . .
+
+RUN make sdk_install_pkg_no_mitigation
+
+WORKDIR /opt/intel
+RUN sh -c 'echo yes | /linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin'
+
+WORKDIR /linux-sgx
+RUN make -j$(nproc) psw_install_pkg
+
+# Stage 2: Final
+FROM ubuntu:22.04
+
+# ---- Install build packages ----
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh && rm -rf /var/lib/apt/lists/*
+
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb && rm -f libssl1.1_*.deb
+
+# ---- Install Intel SGX SDK & PSW ----
+WORKDIR /opt/intel
+COPY --from=builder /opt/intel/sgxsdk /opt/intel/sgxsdk
+
+COPY --from=builder /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
+RUN ./sgx_linux_x64_psw*.bin --no-start-aesm && rm -f sgx_linux_x64_psw*.bin
+
+# ---- Set up project source ----
 COPY . /usr/src/sdk
-
+RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
-RUN cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
-RUN ./autoconf.bash && \
-    ./configure --enable-sgx-simulation && \
-    bash -c "make" && \
-    ccache -sz && \
-    mkdir -p /usr/src/sdk/sgx_data
+
+# ---- Install development & runtime packages ----
+RUN apt update && \
+    apt install -yq apt-utils && \
+    apt install -yq --no-install-recommends ca-certificates perl \
+        alien uuid-dev libxml2-dev ccache \
+        yasm libprocps-dev \
+        libgnutls28-dev libgcrypt20-dev \
+        curl secure-delete python3-pip && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang && \
+    ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/gcc && \
+    ln -s /usr/bin/ccache /usr/local/bin/g++ && \
+    ln -s /usr/bin/ccache /usr/local/bin/cc && \
+    ln -s /usr/bin/ccache /usr/local/bin/c++ && \
+    apt clean && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir requests torpy
+
+# ---- Build dependencies, project, and clean up ----
+RUN bash ./scripts/docker_build_main.sh --build-type=simulation
 
 COPY docker/start.sh ./
 COPY docker/check_firewall.py ./
-RUN rm -rf /usr/src/sdk/sgx-sdk-build/
-
 ENTRYPOINT ["/usr/src/sdk/start.sh"]

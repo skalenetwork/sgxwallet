@@ -1,5 +1,14 @@
 #!/bin/bash
 
+JOBS=1
+for arg in "$@"; do
+	case "$arg" in
+		PARALLEL_COUNT=*)
+			JOBS="${arg#PARALLEL_COUNT=}"
+			;;
+	esac
+done
+
 export UNIX_SYSTEM_NAME=`uname -s`
 export NUMBER_OF_CPU_CORES=1
 if [ "$UNIX_SYSTEM_NAME" = "Linux" ];
@@ -17,8 +26,11 @@ then
 	export SO_EXT=dylib
 fi
 
-INSTALL_ROOT_RELATIVE="../libBLS/deps/deps_inst/x86_or_x64/"
-INSTALL_ROOT=`$READLINK -f $INSTALL_ROOT_RELATIVE`
+NUMBER_OF_CPU_CORES="$JOBS"
+
+LIBBLS_DEPS_SOURCE_ROOT="../libBLS/deps"
+LIBBLS_INSTALL_ROOT_RELATIVE="$LIBBLS_DEPS_SOURCE_ROOT/deps_inst/x86_or_x64/"
+LIBBLS_INSTALL_ROOT=`$READLINK -f $LIBBLS_INSTALL_ROOT_RELATIVE`
 
 TOP_CMAKE_BUILD_TYPE="Release"
 if [ "$DEBUG" = "1" ];
@@ -33,13 +45,13 @@ else
 	CONF_DEBUG_OPTIONS=""
 fi
 
-export OPENSSL_SRC_RELATIVE="../libBLS/deps/openssl"
+export OPENSSL_SRC_RELATIVE="$LIBBLS_DEPS_SOURCE_ROOT/openssl"
 export OPENSSL_SRC=`$READLINK -f $OPENSSL_SRC_RELATIVE`
 
 git clone https://github.com/madler/zlib.git
 cd zlib
-./configure --static --prefix=$INSTALL_ROOT
-make
+./configure --static --prefix=$LIBBLS_INSTALL_ROOT
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ..
 
@@ -47,20 +59,21 @@ git clone https://github.com/jonathanmarvens/argtable2.git
 cd argtable2
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
-make
+cmake -DCMAKE_INSTALL_PREFIX=$LIBBLS_INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
-tar -xzf ./pre_downloaded/jsoncpp.tar.gz
+git clone https://github.com/open-source-parsers/jsoncpp
 cd jsoncpp
+git checkout 30170d651c108400b1b9ed626ba715a5d95c5fd2
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
+cmake -DCMAKE_INSTALL_PREFIX=$LIBBLS_INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
 	-DBUILD_SHARED_LIBS=NO \
 	-DBUILD_STATIC_LIBS=YES \
 	..
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
@@ -69,12 +82,12 @@ cd curl
 git checkout curl-8_2_1
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DOPENSSL_ROOT_DIR=$OPENSSL_SRC -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DCURL_USE_LIBSSH2=OFF -DBUILD_SHARED_LIBS=OFF -DCURL_DISABLE_LDAP=ON -DCURL_STATICLIB=ON -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
+cmake -DCMAKE_INSTALL_PREFIX=$LIBBLS_INSTALL_ROOT -DOPENSSL_ROOT_DIR=$OPENSSL_SRC -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DCURL_USE_LIBSSH2=OFF -DBUILD_SHARED_LIBS=OFF -DCURL_DISABLE_LDAP=ON -DCURL_STATICLIB=ON -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE ..
 echo " " >> lib/curl_config.h
 echo "#define HAVE_POSIX_STRERROR_R 1" >> lib/curl_config.h
 echo " " >> lib/curl_config.h
 ### Set HAVE_POSIX_STRERROR_R to 1 in build/lib/curl_config.h
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
 
@@ -86,19 +99,18 @@ then
 	MHD_HTTPS_OPT="--enable-https"
 fi
 ./bootstrap
-./configure --enable-static --disable-shared --with-pic --prefix=$INSTALL_ROOT $MHD_HTTPS_OPT
-make
+./configure --enable-static --disable-shared --with-pic --prefix=$LIBBLS_INSTALL_ROOT $MHD_HTTPS_OPT
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ..
 
 git clone https://github.com/skalenetwork/libjson-rpc-cpp.git --recursive
 cd libjson-rpc-cpp
-git checkout b547a27e8802bfba3564d8075efa36a475f4d9e8
-git pull
+git checkout c846c3326cc5dca2f27f7e9f46ac1ce096e9b0b1
 rm -rf build || true
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
+cmake -DCMAKE_INSTALL_PREFIX=$LIBBLS_INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_TYPE \
 	-DBUILD_SHARED_LIBS=NO \
 	-DBUILD_STATIC_LIBS=YES \
 	-DUNIX_DOMAIN_SOCKET_SERVER=YES \
@@ -116,10 +128,10 @@ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_BUILD_TYPE=$TOP_CMAKE_BUILD_T
 	-DCOMPILE_EXAMPLES=NO \
 	-DWITH_COVERAGE=NO \
 	-DARGTABLE_INCLUDE_DIR=../../argtable2/src \
-	-DARGTABLE_LIBRARY=$INSTALL_ROOT/lib/libargtable2${DEBUG_D}.a \
-	-DCURL_INCLUDE_DIR=$INSTALL_ROOT/include \
-	-DJSONCPP_INCLUDE_DIR=$INSTALL_ROOT/include \
+	-DARGTABLE_LIBRARY=$LIBBLS_INSTALL_ROOT/lib/libargtable2${DEBUG_D}.a \
+	-DCURL_INCLUDE_DIR=$LIBBLS_INSTALL_ROOT/include \
+	-DJSONCPP_INCLUDE_DIR=$LIBBLS_INSTALL_ROOT/include \
 	..
-make
+make -j$NUMBER_OF_CPU_CORES
 make install
 cd ../..
