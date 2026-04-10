@@ -72,6 +72,17 @@ clean-local:
 	$(MAKE) -C tests/backward_compatibility clean
 
 
+# build but do not install
+noinst_LIBRARIES = libthirdpartyintel.a
+
+INTEL_STUB_SRC = third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c \
+                 third_party/intel/create_enclave.c third_party/intel/oc_alloc.c
+
+libthirdpartyintel_a_SOURCES = $(INTEL_STUB_SRC)
+libthirdpartyintel_a_CPPFLAGS = $(AM_CPPFLAGS) -UPACKAGE -UPACKAGE_NAME -UPACKAGE_STRING -UPACKAGE_TARNAME
+libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-parameter
+
+
 ## The build target
 
 ## The build target
