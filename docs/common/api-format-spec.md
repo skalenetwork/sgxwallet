@@ -16,7 +16,10 @@
 >   6. [deleteBlsKey](#deleteblskey)
 > ##### 3) DKG calls
 >   1. [generateDKGPoly](#generatedkgpoly) 
->   2. [isPolyExists](#ispolyexists) 
+>   2. [getVerificationVector](#getverificationvector)
+>   3. [getSecretShareV2](#getsecretsharev2)
+>   4. [dkgVerification](#dkgVerification) 
+>   5. [isPolyExists](#ispolyexists)
 > ##### 4) Threshold Encryption Calls
 >   1. [getDecryptionShares](#getdecryptionshares)
 > ##### 5) Server calls
@@ -28,8 +31,6 @@
 
 > TODO calls
 > - getSecretShare
-> - getSecretShareV2
-> - dkgVerification
 > - dkgVerificationV2
 > - calculateAllBLSPublicKeys
 > - complaintResponse
@@ -540,13 +541,15 @@ curl -X POST --data '{
 ## `generateDKGPoly`
 
 #### Description
-Creates a polynomial of degree `t-1` (where `t` is the threshold parameter).
+Creates a polynomial of degree `t-1` (where `t` is the threshold parameter) and stores the coefficients (encrypted) in DB under a key with value `polyName`.
+
+The last coefficient (`t-1`) is forced to be non-zero to make sure the polynomial has degree `t-1`.
 
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
 | `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
-| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#5-threshold-encryption-parameters) | 5  |
+| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must be in [1, 32] | 5  |
 
 #### Example Request
 ```bash
@@ -574,6 +577,201 @@ None
     "result":
     {
         "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+## `getVerificationVector`
+
+#### Description
+Returns the verification vector for the DKG polynomial identified by `polyName`.
+
+The verification vector contains `t` public G2 points, one for each polynomial coefficient. Each point is returned as an array of 4 decimal strings.
+
+Each point `A_i` is computed as `a_i * G`, where `a_i` is the coefficient `i` and `G` is the generator.
+
+This is the public data later used by `dkgVerification`. 
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `polyName`    | `String`   | [See Poly Name](#3-poly-name) | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1` |
+| `t`           | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must be greater than `0`, and must match the number of coefficients used when the polynomial was generated. | 3 |
+
+#### Example Request
+```bash
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getVerificationVector",
+    "params": {
+        "polyName":"POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "t": 3
+    }
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+| `verificationVector` | `Array<Array<String>>` | Array of length `t`. Each element is a G2 point encoded as an array of 4 decimal strings: `[x_a, x_b, y_a, y_b]`. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "verificationVector": [ // 3 points -> polynomial of degree 2
+            [
+                "18443897754565973717256850119554731228214108935025491924036055734000366132525",
+                "14240403961866329105623123586093845824784504629127034728498768615347524321474",
+                "16710466272405633168284855121838772866718811314984330190291911361255661755078",
+                "19192291159335672678321340575415025134172782843426265456238300832733199831735"
+            ],
+            [
+                "20322424584479302164643671482890448762900270994752084277213127495531433999909",
+                "5931396788532013911711373477132285226477809186754293277406575032002125600559",
+                "18359079021653807893652833991146886233057476531311530903272470636638669174041",
+                "19466527535508856253705819558467617167997001818319402096497675986097899966464"
+            ],
+            [
+                "11351779463967134282108018417321440499876829582899510386684579733979080274162",
+                "2616621985927204507697081602832362990865935003574537491922005166258346735294",
+                "16411867714808633216735357212038832380838955637381312556569588324828373582601",
+                "3859093521989077157480673057932924349185889732401504031488865259158010973352"
+            ]
+        ],
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+## `getSecretShareV2`
+
+#### Description
+Computes the V2 encrypted secret shares for all `n` participants using the DKG polynomial identified by `polyName` and the participants' ECDSA public keys.
+
+The response field `secretShare` is one concatenated string containing `n` share records. Each record is exactly 192 hexadecimal characters long and has the following layout:
+- 64 hex chars: encrypted secret share payload
+- 64 hex chars: ephemeral ECDSA public key X coordinate
+- 64 hex chars: ephemeral ECDSA public key Y coordinate
+
+So the total returned string length is always `192 * n` characters.
+
+If the shares for this `polyName` were already computed earlier, the cached value stored in DB may be returned instead of recomputing them.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `polyName` | `String` | [See Poly Name](#3-poly-name) | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1` |
+| `publicKeys` | `Array<String>` | Array of `n` ECDSA public keys, one for each participant. Each key is expected to be a hexadecimal string, typically 128 hex characters long (`X || Y`). | `["bb50e2d89a4ed7...e0e18ef4", "2b7739ccc3e407...9cdebc61"]` |
+| `t` | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
+| `n` | `Unsigned Int` | [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`, and `publicKeys` must contain exactly `n` elements. | 3 |
+
+#### Example Request
+```bash
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "getSecretShareV2",
+    "params": {
+        "polyName": "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "publicKeys": [
+            "bb50e2d89a4ed70663d080659fe0ad4b9bc3e06c17a227433966cb59ceee020decddbf6e00192011648d13b1c00af770c0c1bb609d4d3a5c98a43772e0e18ef4",
+            "2b7739ccc3e407e5cfaf4d04ba05b57efda0cb1ea249c6faf7fd36db3c27fa863d04c2a3b21e8f4911f19b8f91454d7a3afb09da5c58c380685242d09cdebc61",
+            "8df45cf98d61606e8143b38df0c0b13f0688abe03614399ad7aef0615213cb0aed18313bd243b1bed3da87768e634d9623b4217910494477aae3c9b9e4199841"
+        ],
+        "t": 3,
+        "n": 3
+    }
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+| `secretShare` | `String` | Concatenation of `n` encrypted share records. Each record is 192 hex characters long. To extract participant `i`, take substring `[i * 192, (i + 1) * 192)`. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "secretShare": "<share_0_192_hex_chars><share_1_192_hex_chars><share_2_192_hex_chars>",
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+## `dkgVerification`
+
+#### Description
+Verifies that a DKG secret share matches the verification vector derived from the original DKG polynomial, using the ECDSA key identified by `ethKeyName`.
+
+This call does not take `polyName` directly. Instead, it expects:
+- `publicShares`: the verification vector already converted into one concatenated hexadecimal string
+- `secretShare`: one participant's encrypted secret share, as returned by `getSecretShare`
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `publicShares` | `String` | Concatenation of `t` public G2 shares. Each share is encoded as 4 hexadecimal components of 64 hex characters each, so total length must be exactly `256 * t` characters. | `28bde30fa0e5...a65a3c74cad` |
+| `ethKeyName` | `String` | [See ECDSA Key Name](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05` |
+| `secretShare` | `String` | Secret share to verify, encoded as a hexadecimal string of 96 bytes (192 hex characters). This value is one participant slice from the `secretShare` returned by `getSecretShare`. | `53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6` |
+| `t` | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
+| `n` | `Unsigned Int` | [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`. | 3 |
+| `index` | `Unsigned Int` | Zero-based participant index of the share being verified. Must be in `[0, n - 1]`. | 0 |
+
+#### Example Request
+```bash
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "dkgVerification",
+    "params": {
+        "publicShares": "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+        "ethKeyName": "NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05",
+        "secretShare": "53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6",
+        "t": 3,
+        "n": 3,
+        "index": 0
+    }
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+| `result` | `boolean` | `true` if the share is valid for the provided verification vector and participant index. `false` otherwise. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "result": true,
         "status": 0
     }
 }
