@@ -4,7 +4,8 @@
 # the required packages for building the project.
 
 apt update
-apt install -y build-essential \
+apt install -y --no-install-recommends build-essential \
+    ca-certificates \
     ocaml \
     ocamlbuild \
     automake \
@@ -31,4 +32,8 @@ apt install -y build-essential \
     lsb-release \
     libsystemd0 \
     clang \
-    llvm
+    llvm \
+    texinfo \
+    yasm \
+    libgcrypt20-dev \
+    libgnutls28-dev

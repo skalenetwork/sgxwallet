@@ -13,6 +13,10 @@
 -   [Running Tests](testing.md)
 -   [Checking for memory leaks](memory-leak-check.md)
 
+## Troubleshooting and inspection
+
+-   [Inspecting SGXWallet DB with sgx_util](inspect-db.md)
+
 ## Community
 
 -   [SKALE discord](http://skale.chat)

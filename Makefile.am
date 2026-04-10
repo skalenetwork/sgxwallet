@@ -61,15 +61,18 @@ AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION=
 CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 
-# build but do not install
-noinst_LIBRARIES = libthirdpartyintel.a
+# Keep local top-level builds compatible with Docker images by building
+# backward compatibility validator as part of "make".
+all-local: tests/backward_compatibility/api_validator
 
-INTEL_STUB_SRC = third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c \
-                 third_party/intel/create_enclave.c third_party/intel/oc_alloc.c
+tests/backward_compatibility/api_validator:
+	$(MAKE) -C tests/backward_compatibility api_validator
 
-libthirdpartyintel_a_SOURCES = $(INTEL_STUB_SRC)
-libthirdpartyintel_a_CPPFLAGS = $(AM_CPPFLAGS) -UPACKAGE -UPACKAGE_NAME -UPACKAGE_STRING -UPACKAGE_TARNAME
-libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-parameter
+clean-local:
+	$(MAKE) -C tests/backward_compatibility clean
+
+
+## The build target
 
 ## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
@@ -122,7 +125,7 @@ sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) 
    -l:libjsoncpp.a -l:libmicrohttpd.a \
    -l:libboost_system.a -l:libboost_thread.a -l:libboost_context.a \
    -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a \
-   -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -lsnappy -ldl
+   -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -ldl
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
@@ -139,4 +142,4 @@ sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/b
                    -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
                    -l:libbackend.a -l:libmcl.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
                    -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
-                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl -lsnappy
+                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl

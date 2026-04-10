@@ -46,8 +46,6 @@ cleanup() {
   if [[ -d "${ROOT_DIR}/sgx_data" ]]; then
     find "${ROOT_DIR}/sgx_data" -mindepth 1 -maxdepth 1 -exec rm -rf {} + || true
   fi
-
-  make -C "${SCRIPT_DIR}" clean || true
 }
 trap cleanup EXIT INT TERM
 
@@ -55,9 +53,11 @@ trap cleanup EXIT INT TERM
 ##     Build test
 ############################################
 
-# clean & rebuild api_validator
-make -C "${SCRIPT_DIR}" clean
-make -C "${SCRIPT_DIR}" api_validator
+# api_validator is pre-built during Docker image build
+if [[ ! -x "${VALIDATOR}" ]]; then
+  echo "api_validator not found at ${VALIDATOR} — was it built during docker build?" >&2
+  exit 1
+fi
 
 ############################################
 ##     Start sgxwallet & wait for it
