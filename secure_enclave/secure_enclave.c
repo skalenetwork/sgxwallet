@@ -1097,9 +1097,7 @@ void trustedDkgVerify(int *errStatus, char *errString, const char *public_shares
     status = mpz_set_str(s, decr_sshare, 16);
     CHECK_STATUS("invalid decr secret share");
 
-    SAFE_CHAR_BUF(public_shares_copy, DKG_BUFER_LENGTH);
-    strncpy(public_shares_copy, public_shares, DKG_BUFER_LENGTH - 1);
-    *result = Verification(public_shares_copy, s, _t, _ind);
+    *result = Verification(public_shares, s, _t, _ind);
 
     SET_SUCCESS
     clean:
@@ -1156,9 +1154,7 @@ void trustedDkgVerifyV2(int *errStatus, char *errString, const char *publicShare
     status = mpz_set_str(s, decrSshare, 16);
     CHECK_STATUS("invalid decr secret share");
 
-    SAFE_CHAR_BUF(publicSharesCopy, DKG_BUFER_LENGTH);
-    strncpy(publicSharesCopy, publicShares, DKG_BUFER_LENGTH - 1);
-    *result = Verification(publicSharesCopy, s, _t, _ind);
+    *result = Verification(publicShares, s, _t, _ind);
 
     SET_SUCCESS
     clean:
