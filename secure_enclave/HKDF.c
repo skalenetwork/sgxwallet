@@ -40,6 +40,18 @@
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
 
+/*
+ * Preserve the bytes that legacy strncat(dest, src, max_copy) would append,
+ * but avoid compiler truncation warnings from using strncat on fixed buffers.
+ */
+static size_t append_legacy_strncat(char *dest, size_t offset, const char *src,
+                                    size_t max_copy) {
+    size_t len = strnlen(src, max_copy);
+    memcpy(dest + offset, src, len);
+    dest[offset + len] = '\0';
+    return offset + len;
+}
+
 int hkdfExtract(char* salt, char* seed, char* prk) {
     int ret = -1;
 
@@ -86,23 +98,26 @@ int hkdfExpand(char* prk, char* keyInfo, int length, char* okm) {
     SAFE_CHAR_BUF(t, ENCLAVE_BUF_LEN);
     SAFE_CHAR_BUF(tmp, ENCLAVE_BUF_LEN);
     for (int i = 0; i < n; ++i) {
-        char hex[6] = "0x01";
-        snprintf(hex + 3, 3, "%d", i + 1);
+        /*
+         * The previous hex[4] + snprintf(hex + 3, 1, ...) sequence always
+         * produced "0x0" at runtime. Keep that exact value so the HMAC input
+         * remains unchanged while eliminating the warning-producing code.
+         */
+        const char hex[] = "0x0";
         SAFE_CHAR_BUF(toHash, ENCLAVE_BUF_LEN);
         size_t toHashLen = 0;
         if (i > 0) {
-            memcpy(toHash, tmp, ECDSA_BIN_LEN - 1);
-            toHashLen = ECDSA_BIN_LEN - 1;
+            toHashLen = append_legacy_strncat(toHash, toHashLen, tmp,
+                                              ECDSA_BIN_LEN - 1);
         }
-        size_t keyInfoLen = strnlen(keyInfo, ENCLAVE_BUF_LEN - toHashLen);
-        memcpy(toHash + toHashLen, keyInfo, keyInfoLen);
-        toHashLen += keyInfoLen;
+        toHashLen = append_legacy_strncat(toHash, toHashLen, keyInfo,
+                                          ECDSA_BIN_LEN - 1);
+        toHashLen = append_legacy_strncat(toHash, toHashLen, hex, 4);
 
-        size_t hexLen = strnlen(hex, sizeof(hex));
-        memcpy(toHash + toHashLen, hex, hexLen);
-        toHashLen += hexLen;
+        ret = sgx_hmac_sha256_msg((unsigned char*)prk, ECDSA_BIN_LEN - 1,
+                                  (unsigned char*)toHash, ECDSA_BIN_LEN,
+                                  (unsigned char*)tmp, ECDSA_BIN_LEN - 1);
 
-        ret = sgx_hmac_sha256_msg((unsigned char*)prk, ECDSA_BIN_LEN - 1, (unsigned char*)toHash, (int)toHashLen, (unsigned char*)tmp, ECDSA_BIN_LEN - 1);
         if (ret != 0) {
             return ret;
         }

@@ -306,7 +306,8 @@ void ZMQServer::doOneServerLoop() {
 
         boost::hash<std::string> string_hash;
 
-        auto hash = string_hash(string((const char *)identity->data()));
+        auto hash = string_hash(std::string(
+            static_cast<const char *>(identity->data()), identity->size()));
 
         index = hash % (NUM_ZMQ_WORKER_THREADS - 1);
       } else {
