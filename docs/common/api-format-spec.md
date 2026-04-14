@@ -11,15 +11,17 @@
 >   1. [importBLSKeyShare](#importblskeyshare)
 >   2. [getBLSPublicKeyShare](#getblspublickeyshare) (TODO - complete description)
 >   3. [blsSignMessageHash](#blssignmessagehash)
->   4. [createBLSPrivateKey](#createblsprivatekey) (TODO - complete & test)
->   5. [popProve](#popprove) (TODO - add description & parameter description)
->   6. [deleteBlsKey](#deleteblskey)
+>   4. [popProve](#popprove) (TODO - add description & parameter description)
+>   5. [deleteBlsKey](#deleteblskey)
 > ##### 3) DKG calls
 >   1. [generateDKGPoly](#generatedkgpoly) 
 >   2. [getVerificationVector](#getverificationvector)
 >   3. [getSecretShareV2](#getsecretsharev2)
->   4. [dkgVerification](#dkgVerification) 
->   5. [isPolyExists](#ispolyexists)
+>   4. [dkgVerificationV2](#dkgverificationv2) 
+>   5. [createBLSPrivateKey](#createblsprivatekey)
+>   6. [createBLSPrivateKeyV2](#createblsprivatekeyv2)
+>   7. [calculateAllBLSPublicKeys](#calculateallblspublickeys)
+>   8. [isPolyExists](#ispolyexists)
 > ##### 4) Threshold Encryption Calls
 >   1. [getDecryptionShares](#getdecryptionshares)
 > ##### 5) Server calls
@@ -31,12 +33,10 @@
 
 > TODO calls
 > - getSecretShare
-> - dkgVerificationV2
 > - calculateAllBLSPublicKeys
 > - complaintResponse
 > - multG2
 > - generateBLSPrivateKey
-> - createBLSPrivateKeyV2
 
 ---
 
@@ -387,59 +387,6 @@ curl -X POST --data '{
 ---
 
 
-## `createBLSPrivateKey`
-
-#### Description
--
-
-#### Request Parameters
-| **Parameter** | **Type**   | **Description**   | **Example value**  |
-|---------------|------------|------------------------------------------|--------------|
-| `blsKeyName`| `String`     | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
-| `ethKeyName` | `String`    | [See ECDSA Key Hash](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
-| `secretShare` | `String`     | -         | -  |
-| `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
-| `n`           |`Unsigned Int`| number of nodes in the network         | 8            |
-| `t`           |`Unsigned Int`| threshold value - number signature shares that are required to reconstruct the full BLS signature. \(t < n\) | 5  |
-
-#### Example Request
-```bash
-curl -X POST --data '{ 
-    "jsonrpc": "2.0", 
-    "id": 1, 
-    "method": "blsSignMessageHash", 
-    "params": { 
-        "blsKeyName": "BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4",
-        "ethKeyName": "NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05",
-        "secretShare": ,
-        "polyName": ,
-        "t": 5,
-        "n": 8
-    } 
-}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
-
-```
-
-#### Return Values
-None
-
-#### Example Response
-
-```json
-{
-    "id": 1,
-    "jsonrpc": "2.0",
-    "result":
-    {
-        "errorMessage": "",
-        "status":-52
-    }
-}
-```
-
----
-
-
 ## `popProve`
 
 #### Description
@@ -661,6 +608,18 @@ curl -X POST --data '{
 #### Description
 Computes the V2 encrypted secret shares for all `n` participants using the DKG polynomial identified by `polyName` and the participants' ECDSA public keys.
 
+Let `f(x)` be the DKG polynomial stored under `polyName`. This call computes one private share per participant:
+- participant `0` receives `f(1)`
+- participant `1` receives `f(2)`
+- ...
+- participant `k` receives `f(k + 1)`
+
+The participant index is implicit from the order of `publicKeys`. In other words, `publicKeys[k]` is used to encrypt the share `f(k + 1)`.
+
+This call does **not** return the public coefficient commitments / verification vector. Those are returned separately by [`getVerificationVector`](#getverificationvector).
+
+The `publicKeys` passed to this call are the participants' existing ECDSA public keys. For each participant, the enclave generates a fresh ephemeral ECDSA keypair, derives a shared secret with that participant's public key, hashes it, and uses the result to encrypt the 32-byte secret share. The returned record contains both the encrypted share payload and the ephemeral public key needed by the recipient to decrypt it later.
+
 The response field `secretShare` is one concatenated string containing `n` share records. Each record is exactly 192 hexadecimal characters long and has the following layout:
 - 64 hex chars: encrypted secret share payload
 - 64 hex chars: ephemeral ECDSA public key X coordinate
@@ -674,7 +633,7 @@ If the shares for this `polyName` were already computed earlier, the cached valu
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
 | `polyName` | `String` | [See Poly Name](#3-poly-name) | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1` |
-| `publicKeys` | `Array<String>` | Array of `n` ECDSA public keys, one for each participant. Each key is expected to be a hexadecimal string, typically 128 hex characters long (`X || Y`). | `["bb50e2d89a4ed7...e0e18ef4", "2b7739ccc3e407...9cdebc61"]` |
+| `publicKeys` | `Array<String>` | Ordered array of `n` participant ECDSA public keys, one for each recipient. Element `k` is used to encrypt share `f(k + 1)`. Each key is expected to be a hexadecimal string, typically 128 hex characters long `(X || Y)`. These recipient keys must already exist; this call only generates fresh ephemeral keys for encryption. | `["bb50e2d89a4ed7...e0e18ef4", "2b7739ccc3e407...9cdebc61"]` |
 | `t` | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
 | `n` | `Unsigned Int` | [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`, and `publicKeys` must contain exactly `n` elements. | 3 |
 
@@ -701,7 +660,7 @@ curl -X POST --data '{
 #### Return Values
 | **Parameter** | **Type**   | **Description**                          |
 |---------------|------------|------------------------------------------|
-| `secretShare` | `String` | Concatenation of `n` encrypted share records. Each record is 192 hex characters long. To extract participant `i`, take substring `[i * 192, (i + 1) * 192)`. |
+| `secretShare` | `String` | Concatenation of `n` encrypted share records. Each record is 192 hex characters long. Record `i` corresponds to `publicKeys[i]` and contains the encrypted share `f(i + 1)`. To extract participant `i`, take substring `[i * 192, (i + 1) * 192)`. |
 
 #### Example Response
 
@@ -720,21 +679,23 @@ curl -X POST --data '{
 
 ---
 
-## `dkgVerification`
+## `dkgVerificationV2`
 
 #### Description
-Verifies that a DKG secret share matches the verification vector derived from the original DKG polynomial, using the ECDSA key identified by `ethKeyName`.
+Verifies that a V2 DKG secret share matches the verification vector derived from the original DKG polynomial, using the ECDSA key identified by `ethKeyName`.
+
+At the RPC layer, `dkgVerificationV2` has the same request and response shape as `dkgVerification`. The difference is the protocol version used internally: this call uses the V2 verification path and should be paired with [`getSecretShareV2`](#getsecretsharev2) and `createBLSPrivateKeyV2`.
 
 This call does not take `polyName` directly. Instead, it expects:
 - `publicShares`: the verification vector already converted into one concatenated hexadecimal string
-- `secretShare`: one participant's encrypted secret share, as returned by `getSecretShare`
+- `secretShare`: one participant's encrypted secret share, as returned by `getSecretShareV2`
 
 #### Request Parameters
 | **Parameter** | **Type**   | **Description**   | **Example value**  |
 |---------------|------------|------------------------------------------|--------------|
 | `publicShares` | `String` | Concatenation of `t` public G2 shares. Each share is encoded as 4 hexadecimal components of 64 hex characters each, so total length must be exactly `256 * t` characters. | `28bde30fa0e5...a65a3c74cad` |
 | `ethKeyName` | `String` | [See ECDSA Key Name](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05` |
-| `secretShare` | `String` | Secret share to verify, encoded as a hexadecimal string of 96 bytes (192 hex characters). This value is one participant slice from the `secretShare` returned by `getSecretShare`. | `53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6` |
+| `secretShare` | `String` | Secret share to verify, encoded as a hexadecimal string of 96 bytes (192 hex characters). This value is one participant slice from the `secretShare` returned by `getSecretShareV2`. | `53d79fb25ec7c7a19c39145903245a99a8913c3e9e548d433c637b1e74fbbb5b08aca997aa60abd23e7a3c71989ce6e234c28fcdcb3009e7446621b13c05774d9523298e44f460ee2087c093386a30571552dc7d39fb93a0448c3ab954e46ee6` |
 | `t` | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
 | `n` | `Unsigned Int` | [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`. | 3 |
 | `index` | `Unsigned Int` | Zero-based participant index of the share being verified. Must be in `[0, n - 1]`. | 0 |
@@ -744,7 +705,7 @@ This call does not take `polyName` directly. Instead, it expects:
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "dkgVerification",
+    "method": "dkgVerificationV2",
     "params": {
         "publicShares": "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
         "ethKeyName": "NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05",
@@ -772,6 +733,137 @@ curl -X POST --data '{
     {
         "errorMessage": "",
         "result": true,
+        "status": 0
+    }
+}
+```
+
+---
+
+## `createBLSPrivateKeyV2`
+
+#### Description
+Derives and stores a BLS private key share under `blsKeyName` using the V2 DKG flow.
+
+Input `secretShare` must be the concatenation of all encrypted shares received by one participant from all `n` dealers, so its total length must be exactly `n * 192` hexadecimal characters.
+
+For each 192-character chunk, the enclave:
+1. recovers the ECDH shared key using the local ECDSA private key identified by `ethKeyName`
+2. decrypts the encrypted share payload
+3. parses the decrypted scalar and adds it into the running BLS secret-share accumulator
+
+After processing all `n` chunks, the final BLS private key share is computed as the sum of the participant's decrypted shares modulo the BLS scalar field order, then stored under `blsKeyName` as an enclave-managed BLS key.
+
+Compared with V1, the request and response shape is the same; the difference is that this method uses the V2 key-derivation path and should be paired with `getSecretShareV2` and `dkgVerificationV2`.
+
+On success, temporary DKG records associated with `polyName` are deleted, including the polynomial, DH temporary keys, `shareG2` entries, and cached encrypted secret shares.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `blsKeyName`| `String`     | [See BLS Key Name](#1-bls-key-name)        | `BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4` |
+| `ethKeyName` | `String`    | [See ECDSA Key Hash](#2-ecdsa-key-name) | `NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05`  |
+| `secretShare` | `String`     | Concatenation of the `n` encrypted share records intended for the holder of `ethKeyName`. Each record is 192 hex characters, so total length must be exactly `192 * n` characters. This value should be assembled from `getSecretShareV2` outputs. | `<share_from_dealer_0><share_from_dealer_1><share_from_dealer_2>`  |
+| `polyName`    | `String`     | [See Poly Name](#3-poly-name)        | `POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1`  |
+| `n`           |`Unsigned Int`| [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`. | 3 |
+| `t`           |`Unsigned Int`| [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
+
+#### Example Request
+```bash
+curl -X POST --data '{ 
+    "jsonrpc": "2.0", 
+    "id": 1, 
+    "method": "createBLSPrivateKeyV2", 
+    "params": { 
+        "blsKeyName": "BLS_KEY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:4",
+        "ethKeyName": "NEK:2dfcf5ff6bcd93fbf45e5589afdf9c9dcff702e9beb5305506967b30a4f2da05",
+        "secretShare": "<share_from_dealer_0><share_from_dealer_1><share_from_dealer_2>",
+        "polyName": "POLY:SCHAIN_ID:0:NODE_ID:0:DKG_ID:1",
+        "t": 3,
+        "n": 3
+    } 
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+No method-specific fields are returned. Success is indicated by `status = 0`.
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "errorMessage": "",
+        "status": 0
+    }
+}
+```
+
+---
+
+## `calculateAllBLSPublicKeys`
+
+#### Description
+Computes all participant BLS public keys from the dealers' verification vectors.
+
+Input `publicShares` must be an array of exactly `n` strings. Each element represents one dealer's verification vector, encoded as the concatenation of `t` G2 coefficient commitments. Each commitment contributes 256 hexadecimal characters, so every string in `publicShares` must have length exactly `256 * t`.
+
+The helper works as follows:
+1. parse each dealer's concatenated coefficient commitments
+2. for each degree `j`, aggregate commitments across dealers into one combined coefficient commitment
+3. for each participant `k` (1-based), evaluate the aggregated public polynomial at `k` to derive that participant's BLS public key
+
+The returned array `publicKeys` has length `n`. Element `0` corresponds to participant `1`, element `1` to participant `2`, and so on.
+
+#### Request Parameters
+| **Parameter** | **Type**   | **Description**   | **Example value**  |
+|---------------|------------|------------------------------------------|--------------|
+| `publicShares` | `Array<String>` | Array of `n` dealer verification vectors. Element `i` must be one concatenated hexadecimal string containing that dealer's `t` G2 coefficient commitments. Each string must be exactly `256 * t` hex characters long. | `["28bde30fa0e5...a65a3c74cad", "17c3b3d2d2d1...8f2e90ab11"]` |
+| `t` | `Unsigned Int` | [See Threshold Encryption parameter t](#5-threshold-encryption-parameters). Must satisfy `1 <= t <= n`. | 3 |
+| `n` | `Unsigned Int` | [See Threshold Encryption parameter n](#5-threshold-encryption-parameters). Must satisfy `t <= n <= 32`, and `publicShares` must contain exactly `n` elements. | 3 |
+
+#### Example Request
+```bash
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "calculateAllBLSPublicKeys",
+    "params": {
+        "publicShares": [
+            "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+            "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad",
+            "28bde30fa0e5a78fab6303c727e77bace3c6e4ab0a8a7c1889c74f3cfe1fa07406926f5a58444d826c001d75e611748d4ede3e6734c15b6d31d0cfcb7525338c2b8de04dfc11ee90b925551b8af98675cfee05c1bfa9ce63b5dbd009e714a164004c7ace3d04017b76ffd14abff4ce4b7d3a08dd49c189bf16c781d3cb1d7bb72eae1988ff79750588eefde7f04ad30203ce77b66219b7ed5aef5a6d52639e300157c32ce3ac6f7ff2a24a590c10d22a1016fa1e851a7d00f6c35a819c2c5a392cb7c43baf36634de008d5088830336a22295e6be9fd6065796f5088294cfc270abe3f18b7aad051204e2a541368be0e1e19084de81f301a3d910d7e89ed50200830a640a1c228334139892f80cf478a0252ab1ae4a770928388bee6fb4668a1144364859926a7ec3e24d4c5efbe2b7c90b592ebb0f1a5541758e4d18e43124c2f0d6421cb8432c08a362e7b76e94fedbb2ad6bb7bd322f8527d71a18cfa1a11232777bfe1bc14a8e248c96f93552d9e48e1ac89c994a928037d0a65a3c74cad"
+        ],
+        "t": 3,
+        "n": 3
+    }
+}' -H 'content-type:application/json;' -v --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+| `publicKeys` | `Array<String>` | Array of `n` participant public keys. Each element is a [string encoded point](#6-string-encoded-point) representing the reconstructed BLS public key for one participant. |
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "publicKeys": [
+            "21148705485955109689447402635207813109694349450860770148921533596604402456950:4360532663836311769430501291108721419794059554489655379291767944498710944357:12415806749004957646706238286061804861596023462742555600298220246217419937780:21660081499524936519499197613373012538331378946946035638365800125884824591194",
+            "14095350868710478246191632278172968147608948483296219556991686339213250786950:21774633829710376980845971548345109867559379049541761827005412071259540258969:18207586806328732227724862823490208736668973453566702579422214127072509612697:2141179598393663750425248044541554598053843679983757066419151997564112862678",
+            "6437605967845583383382615667104227414978842668864889581827318202621210001963:20755421391875546868875831745248639180665596959466289047980280027694013763339:1770486684754724300209520234502131395551475612857703187765505063237430271469:1084910849603765536635107462036871243559191591202576072271455536861907483175"
+        ],
+        "errorMessage": "",
         "status": 0
     }
 }
