@@ -349,7 +349,13 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 
@@ -417,7 +423,13 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 

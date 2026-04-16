@@ -375,7 +375,7 @@ clean:
   return ret;
 }
 
-int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
+int Verification(const char *public_shares, mpz_t decr_secret_share, int _t,
                  int ind) {
   string pub_shares_str = public_shares;
   vector<G2> pub_shares_vec;
@@ -433,17 +433,8 @@ int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
     G2 generator = getG2Generator();
     G2::mul(val2, generator, sshare);
 
-    // Replicate legacy overwrite behavior
-    memset(public_shares, 0, strlen(public_shares));
-    strncpy(public_shares, tmp, strlen(tmp));
-
     val.normalize();
     val2.normalize();
-
-    string s1 = ConvertToString(val.x.a);
-    string s2 = ConvertToString(val2.x.a);
-    string out = s1 + ":" + s2;
-    strncpy(public_shares, out.c_str(), out.length());
 
     ret = (val == val2);
 

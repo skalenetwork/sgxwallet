@@ -25,6 +25,7 @@
 #define SGXWALLET_SERVERINIT_H
 
 #include "stdint.h"
+#include <cstddef>
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -39,7 +40,7 @@ struct initConfig {
   bool autoSign;
   bool generateTestKeys;
   bool checkKeyOwnership;
-  int threadPoolSize;
+  size_t threadPoolSize;
 };
 
 EXTERNC void initAll(initConfig &config);

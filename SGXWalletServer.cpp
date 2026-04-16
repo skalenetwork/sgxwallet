@@ -1232,7 +1232,7 @@ Json::Value SGXWalletServer::getDecryptionSharesImpl(
     int idx = 0;
     for (auto &decryptionShares : decryptionSharesByThread) {
       size_t sharesAmount = decryptionShares.first.size();
-      for (int i = 0; i < sharesAmount; i++) {
+      for (size_t i = 0; i < sharesAmount; i++) {
         result["decryptionShares"][idx] = decryptionShares.first.at(i);
         if (decryptionShares.second.at(i) > 0) {
           result["failedRequests"][std::to_string(idx)] =

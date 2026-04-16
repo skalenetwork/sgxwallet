@@ -86,7 +86,7 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c ../SGXException.cpp \
+        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c SGXException_enclave.cpp \
         DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp MclUtils.cpp \
         $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 

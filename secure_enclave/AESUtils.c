@@ -27,10 +27,13 @@
 #include <string.h>
 
 #include "AESUtils.h"
+#include "EnclaveCommon.h"
 
 sgx_aes_gcm_128bit_key_t AES_key[1024];
 
+#ifndef SAFE_CHAR_BUF
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+#endif
 
 int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned char type,
                 unsigned char exportable, uint64_t* resultLen) {
@@ -66,7 +69,7 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
     fullMessage[0] = type;
     fullMessage[1] = exportable;
 
-    strncpy(fullMessage + 2, message, len );
+    memcpy(fullMessage + 2, message, len);
 
     len = len + 2;
     message = fullMessage;

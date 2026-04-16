@@ -28,7 +28,7 @@
 #ifdef USER_SPACE
 #include <gmp.h>
 #else
-#include <../tgmp-build/include/sgx_tgmp.h>
+#include <sgx_tgmp.h>
 #endif
 
 #include "NumberTheory.h"

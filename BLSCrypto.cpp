@@ -84,8 +84,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t,
   SAFE_CHAR_BUF(yStrArg, BUF_LEN);
   SAFE_CHAR_BUF(signature, BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+  snprintf(xStrArg, BUF_LEN, "%s", xStr->c_str());
+  snprintf(yStrArg, BUF_LEN, "%s", yStr->c_str());
 
   size_t sz = 0;
 
@@ -176,8 +176,8 @@ bool popProveSGX(const char *encryptedKeyHex, char *prove) {
   SAFE_CHAR_BUF(xStrArg, BUF_LEN);
   SAFE_CHAR_BUF(yStrArg, BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+  snprintf(xStrArg, BUF_LEN, "%s", xStr->c_str());
+  snprintf(yStrArg, BUF_LEN, "%s", yStr->c_str());
 
   errStatus = 0;
 

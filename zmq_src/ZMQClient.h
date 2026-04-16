@@ -32,7 +32,10 @@
 
 #include "ZMQMessage.h"
 #include "third_party/spdlog/spdlog.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "zhelpers.hpp"
+#pragma GCC diagnostic pop
 #include <jsonrpccpp/client.h>
 #include <zmq.hpp>
 
