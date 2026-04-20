@@ -21,8 +21,9 @@
     @date 2019
 */
 
+#include "backends/interface/group/G2Point.hpp"
 #include "leveldb/db.h"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
+#include "libBLS/backends/interface/init.hpp"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <memory>
 
@@ -43,21 +44,8 @@
 #include "SEKManager.h"
 #include "ServerInit.h"
 
-shared_ptr<string> FqToString(libff::alt_bn128_Fq *_fq) {
-
-  CHECK_STATE(_fq);
-
-  mpz_t t;
-  mpz_init(t);
-
-  _fq->as_bigint().to_mpz(t);
-
-  SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, 10) + 2);
-
-  mpz_get_str(arr, 10, t);
-  mpz_clear(t);
-
-  return make_shared<string>(string(arr));
+shared_ptr<string> FqToString(const libBLS::algebra::FqElement &fq) {
+  return make_shared<string>(fq.toString(libBLS::algebra::Base::DEC));
 }
 
 bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t,
@@ -79,14 +67,14 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t,
   shared_ptr<libBLS::Bls> obj;
   obj = make_shared<libBLS::Bls>(libBLS::Bls(_t, _n));
 
-  pair<libff::alt_bn128_G1, string> hash_with_hint =
-      obj->HashtoG1withHint(hash);
+  pair<libBLS::algebra::G1Point, string> hash_with_hint =
+      libBLS::algebra::hashToG1withHint(*hash);
 
-  shared_ptr<string> xStr = FqToString(&(hash_with_hint.first.X));
+  shared_ptr<string> xStr = FqToString(hash_with_hint.first.getX());
 
   CHECK_STATE(xStr);
 
-  shared_ptr<string> yStr = FqToString(&(hash_with_hint.first.Y));
+  shared_ptr<string> yStr = FqToString(hash_with_hint.first.getY());
 
   CHECK_STATE(yStr);
 
@@ -96,8 +84,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t,
   SAFE_CHAR_BUF(yStrArg, BUF_LEN);
   SAFE_CHAR_BUF(signature, BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+  snprintf(xStrArg, BUF_LEN, "%s", xStr->c_str());
+  snprintf(yStrArg, BUF_LEN, "%s", yStr->c_str());
 
   size_t sz = 0;
 
@@ -119,8 +107,8 @@ bool sign_aes(const char *_encryptedKeyHex, const char *_hashHex, size_t _t,
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
   string hint =
-      libBLS::ThresholdUtils::fieldElementToString(hash_with_hint.first.Y) +
-      ":" + hash_with_hint.second;
+      hash_with_hint.first.getY().toString(libBLS::algebra::Base::DEC) + ":" +
+      hash_with_hint.second;
 
   string sig = signature;
 
@@ -169,31 +157,27 @@ bool popProveSGX(const char *encryptedKeyHex, char *prove) {
   for (int i = 0; i < 4; i++)
     spdlog::debug("{}", pubKeyVect.at(i));
 
-  libff::alt_bn128_G2 publicKey;
-  publicKey.Z = libff::alt_bn128_Fq2::one();
-  publicKey.X.c0 = libff::alt_bn128_Fq(pubKeyVect[0].c_str());
-  publicKey.X.c1 = libff::alt_bn128_Fq(pubKeyVect[1].c_str());
-  publicKey.Y.c0 = libff::alt_bn128_Fq(pubKeyVect[2].c_str());
-  publicKey.Y.c1 = libff::alt_bn128_Fq(pubKeyVect[3].c_str());
+  libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
+      pubKeyVect, libBLS::algebra::Base::DEC);
 
-  pair<libff::alt_bn128_G1, string> hashPublicKeyWithHint =
+  pair<libBLS::algebra::G1Point, string> hashPublicKeyWithHint =
       libBLS::Bls::HashPublicKeyToG1WithHint(publicKey);
 
-  hashPublicKeyWithHint.first.to_affine_coordinates();
+  hashPublicKeyWithHint.first.toAffineCoordinates();
 
-  shared_ptr<string> xStr = FqToString(&(hashPublicKeyWithHint.first.X));
+  shared_ptr<string> xStr = FqToString(hashPublicKeyWithHint.first.getX());
 
   CHECK_STATE(xStr);
 
-  shared_ptr<string> yStr = FqToString(&(hashPublicKeyWithHint.first.Y));
+  shared_ptr<string> yStr = FqToString(hashPublicKeyWithHint.first.getY());
 
   CHECK_STATE(yStr);
 
   SAFE_CHAR_BUF(xStrArg, BUF_LEN);
   SAFE_CHAR_BUF(yStrArg, BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+  snprintf(xStrArg, BUF_LEN, "%s", xStr->c_str());
+  snprintf(yStrArg, BUF_LEN, "%s", yStr->c_str());
 
   errStatus = 0;
 
@@ -202,9 +186,9 @@ bool popProveSGX(const char *encryptedKeyHex, char *prove) {
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  string hint = libBLS::ThresholdUtils::fieldElementToString(
-                    hashPublicKeyWithHint.first.Y) +
-                ":" + hashPublicKeyWithHint.second;
+  string hint =
+      hashPublicKeyWithHint.first.getY().toString(libBLS::algebra::Base::DEC) +
+      ":" + hashPublicKeyWithHint.second;
 
   string _prove = prove;
 

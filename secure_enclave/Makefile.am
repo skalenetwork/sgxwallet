@@ -59,10 +59,13 @@ ENCLAVE_KEY=test_insecure_private_key.pem       #$(ENCLAVE)_private.pem
 
 ## SGX_SIGN_FLAGS =
 
+# Tell automake to generate these files before anything else - fixes race conditions
+# on make -j<N> command
+BUILT_SOURCES = secure_enclave_t.c secure_enclave_t.h
 
 ## Additional Automake flags needed to build the enclave.
 
-AM_CPPFLAGS += -O2 -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx 
+AM_CPPFLAGS += -O3 -Wall $(TGMP_CPPFLAGS) -DMCL -I../libBLS/deps/mcl/include -I../sgx-sdk-build/sgxsdk/include/libcxx
 AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
@@ -83,10 +86,9 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c \
-        DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp \
-        ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp \
-        ../third_party/SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c SGXException_enclave.cpp \
+        DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp MclUtils.cpp \
+        $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put
@@ -95,8 +97,7 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 ## Be sure to use += to add to, and not replace, the default
 ## AM_LDFLAGS.
 
-AM_LDFLAGS += $(TGMP_LDFLAGS) -L./tgmp-build/lib -L../tgmp-build/lib
-
+AM_LDFLAGS += $(TGMP_LDFLAGS) -L./tgmp-build/lib -L../tgmp-build/lib -Wl,-z,noexecstack
 
 ## This line is REQUIRED. It can't be generically defined for
 ## automake, so you must specify it for your enclave. Note that you
@@ -113,7 +114,7 @@ secure_enclave_LDADD = @SGX_ENCLAVE_LDADD@
 ## --startgroup and --endgroup flags. (This would be where you'd add
 ## SGXSSL libraries, and your trusted c++ library
 
-SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice -lsgx_urts -lsgx_tcxx 
+SGX_EXTRA_TLIBS=-lsgx_tgmp -lsgx_tservice -lsgx_tcxx -L../libBLS/deps/deps_inst/x86_or_x64/lib/ -l:libmcl_sgx.a
 
 
 

@@ -49,9 +49,10 @@ AM_CFLAGS = -DUSER_SPACE -O2 -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$
 AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$(WALLET_VERSION)"
 
 
-AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include -IlibBLS/bls \
-    -IlibBLS/libff -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
-    -I./libBLS/deps/deps_inst/x86_or_x64/include -I./libzmq/include -I./cppzmq -I./third_party/zguide \
+AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
+    -DMCL_FP_BIT=256 -DMCL_FR_BIT=256 -DMCL \
+    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
+    -I./libzmq/include -I./cppzmq -I./third_party/zguide \
     -I./rapidjson/include/rapidjson
 
 ## Additional targets to remove with 'make clean'. You must list
@@ -60,8 +61,31 @@ AM_CPPFLAGS += -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBIN
 CLEANFILES = $(COMMON_ENCLAVE_SRC) secure_enclave.edl secure_enclave.signed.so
 
 
+# Keep local top-level builds compatible with Docker images by building
+# backward compatibility validator as part of "make".
+all-local: tests/backward_compatibility/api_validator
+
+tests/backward_compatibility/api_validator:
+	$(MAKE) -C tests/backward_compatibility api_validator
+
+clean-local:
+	$(MAKE) -C tests/backward_compatibility clean
+
+
+# build but do not install
+noinst_LIBRARIES = libthirdpartyintel.a
+
+INTEL_STUB_SRC = third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c \
+                 third_party/intel/create_enclave.c third_party/intel/oc_alloc.c
+
+libthirdpartyintel_a_SOURCES = $(INTEL_STUB_SRC)
+libthirdpartyintel_a_CPPFLAGS = $(AM_CPPFLAGS) -UPACKAGE -UPACKAGE_NAME -UPACKAGE_STRING -UPACKAGE_TARNAME
+libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-parameter
+
+
 ## The build target
 
+## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
 
 
@@ -69,14 +93,12 @@ bin_PROGRAMS = sgxwallet testw sgx_util
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-
 COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/RspMessage.cpp zmq_src/ReqMessage.cpp \
              zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/Agent.cpp zmq_src/WorkerThreadPool.cpp ExitRequestedException.cpp \
              InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp TECrypto.cpp \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp CryptoTools.cpp \
              DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
-             third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c \
-             third_party/intel/oc_alloc.c ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
@@ -103,14 +125,18 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-   -LlibBLS/build/libff/libff \
+sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
    -Llibzmq/build/lib/ \
-   -l:libbls.a -l:libleveldb.a \
-   -l:libff.a -lgmp -ldl -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
+   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+   -l:libbackend.a -l:libmcl.a -l:libgmp.a \
+   -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -l:libzmq.a \
-   -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common -ljsoncpp -lmicrohttpd \
-   -lboost_system -lboost_thread -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -lstdc++fs
+   -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
+   -l:libjsonrpccpp-stub.a -l:libjsonrpccpp-server.a -l:libjsonrpccpp-client.a -l:libjsonrpccpp-common.a \
+   -l:libjsoncpp.a -l:libmicrohttpd.a \
+   -l:libboost_system.a -l:libboost_thread.a -l:libboost_context.a \
+   -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a \
+   -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -ldl
 
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
@@ -121,10 +147,10 @@ sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exce
                 InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
                 SGXRegistrationServer.cpp CSRManagerServer.cpp
 
-sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build \
-                   -LlibBLS/build/libff/libff \
+sgx_util_LDADD=-LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
                    -Llibzmq/build/lib/ \
                    -l:libzmq.a \
-                   -l:libbls.a -l:libleveldb.a \
-                   -l:libff.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
-                   -ljsoncpp -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl
+                   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+                   -l:libbackend.a -l:libmcl.a -lgmp -ljsonrpccpp-stub -ljsonrpccpp-server -ljsonrpccpp-client -ljsonrpccpp-common \
+                   -l:libfolly.a -l:libglog.a -l:libgflags.a -l:libdouble-conversion.a -l:libfmt.a -l:libevent.a \
+                   -ljsoncpp -lboost_system -lboost_thread -l:libboost_context.a -ltbb -lmicrohttpd -lgnutls -lgcrypt -lidn2 -lcurl -lssl -lcrypto -lz -lpthread -ldl

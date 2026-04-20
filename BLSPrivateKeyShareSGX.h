@@ -36,7 +36,7 @@ class BLSPrivateKeyShareSGX {
   std::shared_ptr<std::string> encryptedKeyHex;
 
 public:
-  std::shared_ptr<BLSSigShare>
+  std::shared_ptr<libBLS::BLSSigShare>
   signWithHelperSGX(std::shared_ptr<std::array<uint8_t, 32>> _hash,
                     size_t _signerIndex);
 

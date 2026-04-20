@@ -21,15 +21,15 @@
     @date 2019
 */
 
-#include <stdint.h>
-
-#include "DomainParameters.h"
-
-#include "Curves.h"
-#include "Signature.h"
-
 #ifndef SGXWALLET_ENCLAVECOMMON_H
 #define SGXWALLET_ENCLAVECOMMON_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "Curves.h"
+#include "DomainParameters.h"
+#include "Signature.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -50,6 +50,7 @@ EXTERNC bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin);
 EXTERNC bool hex2carray2(const char *_hex, uint64_t *_bin_len, uint8_t *_bin,
                          const int _max_length);
 EXTERNC void enclave_init();
+EXTERNC void enclave_clear();
 
 void get_global_random(unsigned char *_randBuff, uint64_t size);
 

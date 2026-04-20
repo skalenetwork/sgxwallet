@@ -27,25 +27,19 @@
 #include <assert.h>
 #include <string.h>
 
-#define SAFE_FREE(__X__) if (__X__) {free(__X__); __X__ = NULL;}
-#define SAFE_DELETE(__X__) if (__X__) {delete(__X__); __X__ = NULL;}
-#define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
-
-
 #ifdef USER_SPACE
 #include <gmp.h>
-
-
 #else
-
-#include <../tgmp-build/include/sgx_tgmp.h>
-
+#include <sgx_tgmp.h>
 #endif
+
+#include "EnclaveCommon.h"
 
 #include "DomainParameters.h"
 #include "Point.h"
 #include "NumberTheory.h"
 #include "Signature.h"
+
 
 /*Initialize a signature*/
 signature signature_init() {
@@ -133,12 +127,12 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     SAFE_CHAR_BUF(rand_char, 32);
 
-    get_global_random(rand_char, 32);
+    get_global_random((unsigned char *) rand_char, 32);
 
     signature_sign_start:
 
 
-    get_global_random(rand_char, 32);
+    get_global_random((unsigned char *) rand_char, 32);
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
@@ -203,8 +197,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
     mpz_clear(seed);
     mpz_clear(n_div_2);
     mpz_clear(s_mul_2);
-
-
 }
 
 #endif
@@ -278,5 +270,3 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     return result;
 
 }
-
-

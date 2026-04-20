@@ -26,590 +26,463 @@
 #ifdef USER_SPACE
 #include <gmp.h>
 #else
-
-#include <../tgmp-build/include/sgx_tgmp.h>
-
+#include <sgx_tgmp.h>
 #endif
-
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <../SCIPR/libff/algebra/fields/fp.hpp>
-
-#include <../SCIPR/libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 #include "DHDkg.h"
 #include "EnclaveCommon.h"
 #include "EnclaveConstants.h"
+#include "MclUtils.h"
 #include <cstdio>
-#include <stdio.h>
+#include <cstring>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
-string stringFromFr(const libff::alt_bn128_Fr &_el) {
+// --- Helper Constants for Generator ---
+static const char *G2_X0_DEC = "10857046999023057135944570762232829481370756359"
+                               "578518086990519993285655852781";
+static const char *G2_X1_DEC = "11559732032986387107991004021392285783925812861"
+                               "821192530917403151452391805634";
+static const char *G2_Y0_DEC = "84956539231234314176049732474892724384181905872"
+                               "63600148770280649306958101930";
+static const char *G2_Y1_DEC = "40823678758634336813322034031454355683168513275"
+                               "93401208105741076214120093531";
 
+// Alt-Bn128 (BN254) Fr field order (used by MCL with BN_SNARK1 curve)
+static const char *ALT_BN128_R_DEC = "21888242871839275222246405745257275088548"
+                                     "364400416034343698204186575808495617";
+
+G2 getG2Generator() {
+  G2 P;
+  bool b = false;
+  P.x.a.setStr(&b, G2_X0_DEC, 10);
+  P.x.b.setStr(&b, G2_X1_DEC, 10);
+  P.y.a.setStr(&b, G2_Y0_DEC, 10);
+  P.y.b.setStr(&b, G2_Y1_DEC, 10);
+  P.z.clear();
+  P.z.a = 1;
+  if (!b)
+    LOG_ERROR("Failed to init G2 generator");
+  return P;
+}
+
+/// Reduces a string representing an integer in the given base mod
+/// ALT_BN128_R_DEC and returns the result as a decimal string (similar to
+/// libBLS reduce_mod)
+string reduce_mod_fr(const char *s, int base) {
+  mcl::Vint z;
+  bool b = false;
+  // Parse the input (arbitrary precision); if it fails, z remains zero
+  z.setStr(&b, s, base);
+
+  if (!b) {
+    return "";
+  }
+
+  mcl::Vint modulus;
+  modulus.setStr(&b, ALT_BN128_R_DEC, 10);
+
+  z %= modulus;
+
+  // Return canonical decimal string
+  char buf[1024];
+  size_t len = z.getStr(buf, sizeof(buf), 10);
+  return len ? string(buf) : string("0");
+}
+
+/// Helper to set Fr from string with automatic modular reduction if needed
+/// Similar to libBLS::trySettingFieldWithString() pattern
+/// Returns true on success, false on failure
+bool trySettingFrFromString(Fr &fr, const char *str, int base) {
+  bool b = false;
+  fr.setStr(&b, str, base);
+
+  if (b) {
+    return true; // Success - value was in range
+  }
+
+  // Value exceeds field order - need to reduce mod r
+  // NOTE: libff also reduced these values (through Montgomery arithmetic)
+  // We need to ensure this produces the same result as libff
+  LOG_INFO(
+      "trySettingFrFromString: initial setStr failed, attempting reduction");
+  LOG_INFO("reduce_mod_fr: input=");
+  LOG_INFO(str);
+
+  string reduced = reduce_mod_fr(str, base);
+
+  if (reduced.empty()) {
+    LOG_ERROR("trySettingFrFromString: reduction failed");
+    return false;
+  }
+
+  LOG_INFO("reduce_mod_fr: output=");
+  LOG_INFO(reduced.c_str());
+
+  // Try setting with reduced value (now in decimal)
+  b = false;
+  fr.setStr(&b, reduced.c_str(), 10);
+
+  return b;
+}
+
+string stringFromFr(const Fr &_el) {
   string ret = "";
-  mpz_t t;
-  mpz_init(t);
-
   try {
-    _el.as_bigint().to_mpz(t);
-
-    SAFE_CHAR_BUF(arr, BUF_LEN);
-
-    char *tmp = mpz_get_str(arr, 10, t);
-
-    ret = string(tmp);
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    goto clean;
+    char buf[1024];
+    size_t len = _el.getStr(buf, sizeof(buf), 10);
+    if (len > 0)
+      ret = string(buf);
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    goto clean;
+    LOG_ERROR("stringFromFr failed");
   }
-
-clean:
-
-  mpz_clear(t);
-
   return ret;
 }
 
+// Replicate ConvertToString logic using getStr
 template <class T> string ConvertToString(const T &field_elem, int base = 10) {
-
   string ret;
-
-  mpz_t t;
-  mpz_init(t);
-
   try {
-
-    field_elem.as_bigint().to_mpz(t);
-
-    SAFE_CHAR_BUF(arr, BUF_LEN);
-
-    char *tmp = mpz_get_str(arr, base, t);
-
-    ret = string(tmp);
-
-    goto clean;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    goto clean;
+    char buf[1024];
+    size_t len = field_elem.getStr(buf, sizeof(buf), base);
+    if (len > 0)
+      ret = string(buf);
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    goto clean;
+    LOG_ERROR("ConvertToString failed");
   }
-
-clean:
-  mpz_clear(t);
   return ret;
 }
 
-string ConvertG2ToString(const libff::alt_bn128_G2 &elem, int base = 10,
+string ConvertG2ToString(const G2 &elem, int base = 10,
                          const string &delim = ":") {
-
   string result = "";
-
   try {
-
-    result += ConvertToString(elem.X.c0);
+    G2 P = elem;
+    P.normalize();
+    result += ConvertToString(P.x.a, base);
     result += delim;
-    result += ConvertToString(elem.X.c1);
+    result += ConvertToString(P.x.b, base);
     result += delim;
-    result += ConvertToString(elem.Y.c0);
+    result += ConvertToString(P.y.a, base);
     result += delim;
-    result += ConvertToString(elem.Y.c1);
-
-    return result;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
+    result += ConvertToString(P.y.b, base);
     return result;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
+    LOG_ERROR("ConvertG2ToString failed");
     return result;
   }
-
-  return result;
 }
 
-string ConvertG1ToString(const libff::alt_bn128_G1 &elem, int base = 10,
+// ConvertG1ToString: X:Y
+string ConvertG1ToString(const G1 &elem, int base = 10,
                          const string &delim = ":") {
-
   string result = "";
-
   try {
-
-    result += ConvertToString(elem.X);
+    G1 P = elem;
+    P.normalize();
+    result += ConvertToString(P.x, base);
     result += delim;
-    result += ConvertToString(elem.Y);
-
-    return result;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
+    result += ConvertToString(P.y, base);
     return result;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
     return result;
   }
-
-  return result;
 }
 
-libff::alt_bn128_G1 stringToG1(const char *elem) {
-  string str(elem);
-
-  libff::alt_bn128_G1 result = libff::alt_bn128_G1::zero();
-
+G1 stringToG1(const char *elem) {
+  G1 result;
+  result.clear();
   try {
-    int pos = str.find(":", 0);
+    string str(elem);
+    size_t pos = str.find(":");
     if (pos == string::npos)
-      pos = str.length();
-    result.X = libff::alt_bn128_Fq(str.substr(0, pos).c_str());
-    result.Y = libff::alt_bn128_Fq(str.substr(pos, string::npos).c_str());
-
-    if (str.find(":", pos) != string::npos)
       return result;
-
-    return result;
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return result;
+    bool b = false;
+    // setStr needs char array, using string substr
+    Fp x;
+    x.setStr(&b, str.substr(0, pos).c_str(), 10);
+    Fp y;
+    y.setStr(&b, str.substr(pos + 1).c_str(), 10);
+    if (b)
+      result.set(&b, x, y);
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
+    LOG_ERROR("stringToG1 failed");
   }
-
   return result;
 }
 
-vector<libff::alt_bn128_Fr> SplitStringToFr(const char *coeffs,
-                                            const char symbol) {
-  vector<libff::alt_bn128_Fr> result;
+vector<Fr> SplitStringToFr(const char *coeffs, const char symbol) {
+  vector<Fr> result;
   string str(coeffs);
-  string delim;
-
   CHECK_ARG_CLEAN(coeffs);
-
   try {
-
-    delim.push_back(symbol);
-
-    size_t prev = 0, pos = 0;
-    do {
-      pos = str.find(delim, prev);
-      if (pos == string::npos)
-        pos = str.length();
-      string token = str.substr(prev, pos - prev);
-      if (!token.empty()) {
-        libff::alt_bn128_Fr coeff(token.c_str());
-        result.push_back(coeff);
-      }
-      prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-
-    return result;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return result;
+    stringstream ss(str);
+    string segment;
+    while (getline(ss, segment, symbol)) {
+      if (segment.empty())
+        continue;
+      Fr fr;
+      bool b = false;
+      fr.setStr(&b, segment.c_str(), 10);
+      if (b)
+        result.push_back(fr);
+    }
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
+    LOG_ERROR("SplitStringToFr failed");
   }
-
 clean:
   return result;
-}
-
-bool isG2(const libff::alt_bn128_G2 &point) {
-  return point.is_well_formed() &&
-         libff::alt_bn128_G2::order() * point == libff::alt_bn128_G2::zero();
 }
 
 int gen_dkg_poly(char *secret, unsigned _t) {
-
   int status = 1;
   string result;
-
   CHECK_ARG_CLEAN(secret);
-
   try {
     for (size_t i = 0; i < _t; ++i) {
-      libff::alt_bn128_Fr cur_coef = libff::alt_bn128_Fr::random_element();
+      Fr cur_coef;
+      // Generate random coefficient using SGX's hardware RNG directly
+      // (setByCSPRNG crashes due to MCL RandGen static initialization issues)
+      do {
+        setRandomFr(cur_coef);
+      } while (i == _t - 1 && cur_coef.isZero());
 
-      while (i == _t - 1 && cur_coef == libff::alt_bn128_Fr::zero()) {
-        cur_coef = libff::alt_bn128_Fr::random_element();
-      }
       result += stringFromFr(cur_coef);
       result += ":";
     }
     strncpy(secret, result.c_str(), result.length() + 1);
-
-    if (strlen(secret) == 0) {
+    if (strlen(secret) == 0)
       return status;
-    }
-
     status = 0;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return status;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return status;
+    LOG_ERROR("gen_dkg_poly failed");
   }
-
 clean:
   return status;
 }
 
-libff::alt_bn128_Fr PolynomialValue(const vector<libff::alt_bn128_Fr> &pol,
-                                    libff::alt_bn128_Fr point, unsigned _t) {
-
-  libff::alt_bn128_Fr result = libff::alt_bn128_Fr::zero();
-
+Fr PolynomialValue(const vector<Fr> &pol, Fr point, unsigned _t) {
+  Fr result = 0;
   try {
-
-    libff::alt_bn128_Fr pow = libff::alt_bn128_Fr::one();
+    Fr pow = 1;
     for (unsigned i = 0; i < pol.size(); ++i) {
       result += pol.at(i) * pow;
       pow *= point;
     }
-
-    return result;
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return result;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
+    LOG_ERROR("PolynomialValue exception");
   }
-
   return result;
 }
 
-void calc_secret_shares(const char *decrypted_coeffs,
-                        char *secret_shares, // calculates secret shares in base
-                                             // 10 to a string secret_shares,
-                        unsigned _t, unsigned _n) { // separated by ":"
-
-  // calculate for each node a list of secret values that will be used for
-  // verification
+void calc_secret_shares(const char *decrypted_coeffs, char *secret_shares,
+                        unsigned _t, unsigned _n) {
   string result;
   char symbol = ':';
-
   CHECK_ARG_CLEAN(decrypted_coeffs);
   CHECK_ARG_CLEAN(secret_shares);
   CHECK_ARG_CLEAN(_n > 0);
   CHECK_ARG_CLEAN(_t <= _n);
 
   try {
-
-    vector<libff::alt_bn128_Fr> poly =
-        SplitStringToFr(decrypted_coeffs, symbol);
-
+    vector<Fr> poly = SplitStringToFr(decrypted_coeffs, symbol);
     for (size_t i = 0; i < _n; ++i) {
-      libff::alt_bn128_Fr secret_share =
-          PolynomialValue(poly, libff::alt_bn128_Fr(i + 1), _t);
+      Fr secret_share = PolynomialValue(poly, Fr(i + 1), _t);
       result += ConvertToString(secret_share);
       result += ":";
     }
     strncpy(secret_shares, result.c_str(), result.length() + 1);
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return;
+    LOG_ERROR("calc_secret_shares exception");
   }
-
 clean:;
 }
 
 int calc_secret_share(const char *decrypted_coeffs, char *s_share, unsigned _t,
                       unsigned _n, unsigned ind) {
   int result = 1;
-
   CHECK_ARG_CLEAN(decrypted_coeffs);
   CHECK_ARG_CLEAN(s_share);
-  CHECK_ARG_CLEAN(_n > 0);
-  CHECK_ARG_CLEAN(_t <= _n);
-
   try {
-    char symbol = ':';
-    vector<libff::alt_bn128_Fr> poly =
-        SplitStringToFr(decrypted_coeffs, symbol);
-    if (poly.size() != _t) {
+    vector<Fr> poly = SplitStringToFr(decrypted_coeffs, ':');
+    if (poly.size() != _t)
       return result;
-    }
-
-    libff::alt_bn128_Fr secret_share =
-        PolynomialValue(poly, libff::alt_bn128_Fr(ind), _t);
+    Fr secret_share = PolynomialValue(poly, Fr(ind), _t);
+    // Output base 16, padded to 64 chars
     string cur_share = ConvertToString(secret_share, 16);
-    int n_zeroes = 64 - cur_share.size();
-    cur_share.insert(0, n_zeroes, '0');
-
+    int n_zeroes = 64 - (int)cur_share.size();
+    if (n_zeroes > 0)
+      cur_share.insert(0, n_zeroes, '0');
     strncpy(s_share, cur_share.c_str(), cur_share.length() + 1);
     result = 0;
-
-    return result;
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return result;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return result;
+    LOG_ERROR("calc_secret_share exception");
   }
-
 clean:
   return result;
 }
 
 int calc_secret_shareG2(const char *s_share, char *s_shareG2) {
-
   int result = 1;
-
-  mpz_t share;
-  mpz_init(share);
-
   CHECK_ARG_CLEAN(s_share);
   CHECK_ARG_CLEAN(s_shareG2);
-
   try {
-
-    if (mpz_set_str(share, s_share, 16) == -1) {
+    Fr secret_share;
+    bool b = false;
+    secret_share.setStr(&b, s_share, 16);
+    if (!b)
       goto clean;
-    }
 
-    SAFE_CHAR_BUF(arr, BUF_LEN);
+    G2 secret_shareG2;
+    G2 generator = getG2Generator();
+    G2::mul(secret_shareG2, generator, secret_share);
 
-    char *share_str = mpz_get_str(arr, 10, share);
-
-    libff::alt_bn128_Fr secret_share(share_str);
-
-    libff::alt_bn128_G2 secret_shareG2 =
-        secret_share * libff::alt_bn128_G2::one();
-
-    secret_shareG2.to_affine_coordinates();
-
-    string secret_shareG2_str = ConvertG2ToString(secret_shareG2);
-
-    strncpy(s_shareG2, secret_shareG2_str.c_str(),
-            secret_shareG2_str.length() + 1);
+    string str = ConvertG2ToString(secret_shareG2);
+    strncpy(s_shareG2, str.c_str(), str.length() + 1);
     result = 0;
-    goto clean;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    goto clean;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    goto clean;
+    LOG_ERROR("calc_secret_shareG2 exception");
   }
-
 clean:
-
-  mpz_clear(share);
   return result;
 }
 
 int calc_public_shares(const char *decrypted_coeffs, char *public_shares,
                        unsigned _t) {
-
-  // calculate for each node a list of public shares
   int ret = 1;
   string result;
-  char symbol = ':';
-
   CHECK_ARG_CLEAN(decrypted_coeffs);
   CHECK_ARG_CLEAN(public_shares);
-  CHECK_ARG_CLEAN(_t > 0);
-
   try {
-
-    vector<libff::alt_bn128_Fr> poly =
-        SplitStringToFr(decrypted_coeffs, symbol);
-    if (poly.size() != _t) {
+    vector<Fr> poly = SplitStringToFr(decrypted_coeffs, ':');
+    if (poly.size() != _t)
       return ret;
-    }
+    G2 generator = getG2Generator();
     for (size_t i = 0; i < _t; ++i) {
-      libff::alt_bn128_G2 pub_share = poly.at(i) * libff::alt_bn128_G2::one();
-      pub_share.to_affine_coordinates();
-      string pub_share_str = ConvertG2ToString(pub_share);
-      result += pub_share_str + ",";
+      G2 pub_share;
+      G2::mul(pub_share, generator, poly.at(i));
+      result += ConvertG2ToString(pub_share) + ",";
     }
     strncpy(public_shares, result.c_str(), result.length());
     ret = 0;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    ret = 1;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
     ret = 2;
   }
-
 clean:
   return ret;
 }
 
-string ConvertHexToDec(string hex_str) {
-
-  mpz_t dec;
-  mpz_init(dec);
-
-  string ret = "";
-
-  try {
-
-    if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-      goto clean;
-    }
-
-    char arr[mpz_sizeinbase(dec, 10) + 2];
-    char *result = mpz_get_str(arr, 10, dec);
-    CHECK_ARG_CLEAN(result);
-    ret = result;
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    goto clean;
-  } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    goto clean;
-  }
-
-clean:
-  mpz_clear(dec);
-  return ret;
-}
-
-int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
+int Verification(const char *public_shares, mpz_t decr_secret_share, int _t,
                  int ind) {
-
   string pub_shares_str = public_shares;
-  vector<libff::alt_bn128_G2> pub_shares;
+  vector<G2> pub_shares_vec;
   uint64_t share_length = 256;
   uint8_t coord_length = 64;
   int ret = 0;
-
   CHECK_ARG_CLEAN(public_shares);
 
   try {
-
     for (int i = 0; i < _t; i++) {
-      libff::alt_bn128_G2 pub_share;
-
       uint64_t pos0 = share_length * i;
-      string x_c0_str =
-          ConvertHexToDec(pub_shares_str.substr(pos0, coord_length));
-      string x_c1_str = ConvertHexToDec(
-          pub_shares_str.substr(pos0 + coord_length, coord_length));
-      string y_c0_str = ConvertHexToDec(
-          pub_shares_str.substr(pos0 + 2 * coord_length, coord_length));
-      string y_c1_str = ConvertHexToDec(
-          pub_shares_str.substr(pos0 + 3 * coord_length, coord_length));
-      if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" ||
-          y_c1_str == "") {
+      if (pos0 + 3 * coord_length >= pub_shares_str.size()) {
         ret = 2;
         return ret;
       }
-      pub_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
-      pub_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
-      pub_share.Y.c0 = libff::alt_bn128_Fq(y_c0_str.c_str());
-      pub_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
-      pub_share.Z = libff::alt_bn128_Fq2::one();
+      string sX0 = pub_shares_str.substr(pos0, coord_length);
+      string sX1 = pub_shares_str.substr(pos0 + coord_length, coord_length);
+      string sY0 = pub_shares_str.substr(pos0 + 2 * coord_length, coord_length);
+      string sY1 = pub_shares_str.substr(pos0 + 3 * coord_length, coord_length);
 
-      if (!isG2(pub_share)) {
+      G2 pub_share;
+      bool b = false;
+      pub_share.x.a.setStr(&b, sX0.c_str(), 16);
+      pub_share.x.b.setStr(&b, sX1.c_str(), 16);
+      pub_share.y.a.setStr(&b, sY0.c_str(), 16);
+      pub_share.y.b.setStr(&b, sY1.c_str(), 16);
+      pub_share.z.clear();
+      pub_share.z.a = 1;
+
+      if (!b || !pub_share.isValid()) {
         ret = 3;
         return ret;
       }
-      pub_shares.push_back(pub_share);
+      pub_shares_vec.push_back(pub_share);
     }
 
-    libff::alt_bn128_G2 val = libff::alt_bn128_G2::zero();
+    G2 val;
+    val.clear();
     for (int i = 0; i < _t; ++i) {
-      val = val + power(libff::alt_bn128_Fr(ind + 1), i) * pub_shares.at(i);
+      Fr power_val;
+      mcl::bn::Fr::pow(power_val, Fr(ind + 1), i);
+      G2 tmp;
+      G2::mul(tmp, pub_shares_vec.at(i), power_val);
+      val = val + tmp;
     }
 
-    SAFE_CHAR_BUF(arr, BUF_LEN);
+    // Handle secret share using mpz for compatibility with argument type
+    SAFE_CHAR_BUF(arr, ENCLAVE_BUF_LEN);
     char *tmp = mpz_get_str(arr, 10, decr_secret_share);
+    Fr sshare;
+    bool b = false;
+    sshare.setStr(&b, tmp, 10);
 
-    libff::alt_bn128_Fr sshare(tmp);
+    G2 val2;
+    G2 generator = getG2Generator();
+    G2::mul(val2, generator, sshare);
 
-    libff::alt_bn128_G2 val2 = sshare * libff::alt_bn128_G2::one();
+    val.normalize();
+    val2.normalize();
 
-    memset(public_shares, 0, strlen(public_shares));
-    strncpy(public_shares, tmp, strlen(tmp));
-
-    val.to_affine_coordinates();
-    val2.to_affine_coordinates();
-    strncpy(public_shares, ConvertToString(val.X.c0).c_str(),
-            ConvertToString(val.X.c0).length());
-    strncpy(public_shares + ConvertToString(val.X.c0).length(), ":", 1);
-    strncpy(public_shares + ConvertToString(val.X.c0).length() + 1,
-            ConvertToString(val2.X.c0).c_str(),
-            ConvertToString(val2.X.c0).length());
-
-    ret = (val == sshare * libff::alt_bn128_G2::one());
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return ret;
+    ret = (val == val2);
 
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
-    return ret;
+    ret = 0;
   }
-
 clean:
   return ret;
 }
 
 int calc_bls_public_key(char *skey_hex, char *pub_key) {
-  mpz_t skey;
-  mpz_init(skey);
-
   int ret = 1;
-
   CHECK_ARG_CLEAN(skey_hex);
   CHECK_ARG_CLEAN(pub_key);
-
   try {
+    Fr bls_skey;
 
-    if (mpz_set_str(skey, skey_hex, 16) == -1) {
-      mpz_clear(skey);
+    // Use helper that handles modular reduction if needed
+    if (!trySettingFrFromString(bls_skey, skey_hex, 16)) {
+      LOG_ERROR("calc_bls_public_key: trySettingFrFromString failed");
       return 1;
     }
 
-    char skey_dec[mpz_sizeinbase(skey, 10) + 2];
-    mpz_get_str(skey_dec, 10, skey);
+    G2 generator = getG2Generator();
+    if (!generator.isValid()) {
+      LOG_ERROR("calc_bls_public_key: G2 generator invalid!");
+      return 1;
+    }
 
-    libff::alt_bn128_Fr bls_skey(skey_dec);
+    G2 public_key;
+    G2::mul(public_key, generator, bls_skey);
 
-    libff::alt_bn128_G2 public_key = bls_skey * libff::alt_bn128_G2::one();
-    public_key.to_affine_coordinates();
+    if (!public_key.isValid()) {
+      LOG_ERROR("calc_bls_public_key: result public_key invalid!");
+      return 1;
+    }
 
     string result = ConvertG2ToString(public_key);
-
+    if (result.empty()) {
+      LOG_ERROR("calc_bls_public_key: ConvertG2ToString returned empty");
+      return 1;
+    }
     strncpy(pub_key, result.c_str(), result.length());
-
-    mpz_clear(skey);
-
     return 0;
-
-  } catch (exception &e) {
-    LOG_ERROR(e.what());
-    return 1;
   } catch (...) {
-    LOG_ERROR("Unknown throwable");
+    LOG_ERROR("calc_bls_public_key: caught exception");
     return 1;
   }
-
 clean:
-  mpz_clear(skey);
   return ret;
 }

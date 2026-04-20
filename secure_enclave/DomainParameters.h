@@ -23,6 +23,14 @@
 #ifndef SGXWALLET_DOMAINPARAMETERS_H
 #define SGXWALLET_DOMAINPARAMETERS_H
 
+#include <stdbool.h>
+
+#ifdef USER_SPACE
+#include <gmp.h>
+#else
+#include <sgx_tgmp.h>
+#endif
+
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else

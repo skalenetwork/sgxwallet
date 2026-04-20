@@ -31,8 +31,10 @@
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
+#include "SGXWalletServer.hpp"
 
 #include <fstream>
+#include <thread>
 
 #include "TestUtils.h"
 
@@ -42,7 +44,15 @@
 #include "sgxwallet.h"
 #include "testw.h"
 
+namespace {
+int getDefaultThreadPoolSize() {
+  const unsigned int cpuCount = std::thread::hardware_concurrency();
+  return cpuCount == 0 ? 1 : static_cast<int>(cpuCount);
+}
+} // namespace
+
 void SGXWallet::printUsage() {
+  const int maxThreadPoolSize = getDefaultThreadPoolSize();
   cerr << "\nAvailable flags:\n";
   cerr << "\nDebug flags:\n\n";
   cerr << "   -v  Verbose mode: turn on debug output\n";
@@ -59,6 +69,9 @@ void SGXWallet::printUsage() {
   cerr << "   -s  Sign client certificates without human confirmation. "
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
+  cerr << "\nConfiguration flags:\n\n";
+  cerr << "   -t  Set thread pool size. Default is " << maxThreadPoolSize
+       << ". Must be >= 1 and <= " << maxThreadPoolSize << ".\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -105,6 +118,9 @@ int main(int argc, char *argv[]) {
   bool autoSignClientCertOption = false;
   bool generateTestKeys = false;
   bool checkKeyOwnership = false;
+  const size_t maxThreadPoolSize =
+      static_cast<size_t>(getDefaultThreadPoolSize());
+  size_t threadPoolSize = maxThreadPoolSize;
 
   std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -115,7 +131,7 @@ int main(int argc, char *argv[]) {
     exit(-21);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0abyvVneT")) != -1) {
+  while ((opt = getopt(argc, argv, "cshd0abyvVneTt:")) != -1) {
     switch (opt) {
     case 'h':
       SGXWallet::printUsage();
@@ -158,6 +174,25 @@ int main(int argc, char *argv[]) {
     case 'T':
       generateTestKeys = true;
       break;
+    case 't': {
+      try {
+        // parse as signed first
+        long long value = std::stoll(optarg);
+
+        if (value <= 0) {
+          throw std::invalid_argument("Thread pool size must be positive");
+        } else if (static_cast<size_t>(value) > maxThreadPoolSize) {
+          throw std::invalid_argument("Thread pool size must not exceed " +
+                                      std::to_string(maxThreadPoolSize));
+        }
+        threadPoolSize = static_cast<size_t>(value);
+      } catch (const std::exception &e) {
+        std::cerr << "Invalid thread pool size: " << optarg << "\n";
+        SGXWallet::printUsage();
+        exit(-24);
+      }
+      break;
+    }
     default:
       SGXWallet::printUsage();
       exit(-23);
@@ -189,8 +224,15 @@ int main(int argc, char *argv[]) {
   }
 
   cerr << "Calling initAll ..." << endl;
-  initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption,
-          autoSignClientCertOption, generateTestKeys, checkKeyOwnership);
+  initConfig initConfig{.logLevel = enclaveLogLevel,
+                        .checkCert = checkClientCertOption,
+                        .checkZMQSig = checkKeyOwnership,
+                        .autoSign = autoSignClientCertOption,
+                        .generateTestKeys = generateTestKeys,
+                        .checkKeyOwnership = checkKeyOwnership,
+                        .threadPoolSize = threadPoolSize};
+
+  initAll(initConfig);
   cerr << "Completed initAll." << endl;
 
   // check if test keys already exist

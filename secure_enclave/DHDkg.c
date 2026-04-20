@@ -28,7 +28,8 @@
 #include <gmp.h>
 #else
 
-#include <../tgmp-build/include/sgx_tgmp.h>
+#include <sgx_tgmp.h>
+#include "sgx_tcrypto.h"
 
 #endif
 
@@ -84,7 +85,7 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
 
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
     for (int i = 0; i < n_zeroes; i++) {
@@ -145,7 +146,7 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
     point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
     point_multiplication(session_key, skey, pub_keyB, curve);
 
-    SAFE_CHAR_BUF(arr_x, BUF_LEN);
+    SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);
 
     mpz_get_str(arr_x, 16, session_key->x);
     int n_zeroes = 64 - strlen(arr_x);
@@ -352,9 +353,9 @@ int hash_key(char* key, char* hashedKey, int length, bool isConvertNeeded) {
             return ret;
         }
 
-        ret = sgx_sha256_msg(key_to_hash, length, (uint8_t*)hashedKey);
+        ret = sgx_sha256_msg(key_to_hash, length, (sgx_sha256_hash_t*)hashedKey);
     } else {
-        ret = sgx_sha256_msg((uint8_t*)key, length, (uint8_t*)hashedKey);
+        ret = sgx_sha256_msg((uint8_t*)key, length, (sgx_sha256_hash_t*)hashedKey);
     }
 
     return ret;

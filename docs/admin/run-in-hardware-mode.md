@@ -19,11 +19,11 @@ ulimit -n
 ```
 
 If you current ulimit is less than 65535, please set it to 65535 by editing /etc/systemd/system.conf
-and setting 
+and setting
 
 ```
 DefaultLimitNOFILE=65535
-```  
+```
 
 Then reboot and check ulimit again.
 
@@ -40,9 +40,10 @@ Edit `docker-compose.yml` as needed with the appropriate devices, ports, command
 
 ### Devices
 
-Note: on some machines, the SGX device is not `/dev/mei0` but a different device, such 
-as `/dev/bs0`. In this case please edit  `docker-compose.yml` to specify the correct 
-device to use. 
+On Linux kernel >= 5.11, the device name should be /dev/sgx_enclave
+
+Otherwise, it is usually set to `/dev/mei0`.
+Please make sure to specify the correct device in `docker-compose.yml` .
 
 ### Ports
 
@@ -55,21 +56,24 @@ sgxwallet operates on the following network ports:
 -   1030 (localhost for informational requests)
 -   1031 (zmq)
 
-If operating with a firewall, please make sure these ports are open so clients are able to connect to the server. 
+If operating with a firewall, please make sure these ports are open so clients are able to connect to the server.
 
 ### Command Flags
 
--   \-h     Display available flags
--   \-c     Do not verify client certificate
--   \-s     Sign client certificate without human confirmation
--   \-d     Turn on debug output
--   \-v     Verbose mode: turn on debug output
--   \-V    Detailed verbose mode: turn on debug and trace outputs
--   \-n     Launch SGXWalletServer using http (not https)
--   \-b     Restore from back up (you will need to enter backup key) 
--   \-y     Do not ask user to acknowledge receipt of backup key 
--   \-e     Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!)
--   \-T     Generate test keys     
+| Flag     | Description |
+|----------|-------------|
+| `-h`     | Display help message with available flags. |
+| `-c`     | Skip client certificate verification. |
+| `-s`     | Automatically sign client certificates without requiring human confirmation. |
+| `-d`     | Enable debug-level output. |
+| `-v`     | Enable verbose mode: turn on debug output |
+| `-V`     | Enable detailed verbose mode (includes both debug and trace-level output). |
+| `-n`     | Start the SGXWalletServer using HTTP instead of HTTPS. |
+| `-b`     | Restore from a backup. Requires entry of the backup key. |
+| `-y`     | Do not ask user to acknowledge receipt of backup key. |
+| `-e`     | Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!) |
+| `-T`     | Generate test keys. |
+| `-t<N>`  | Set the thread pool size (`<N>`) for intra-request parallelization in SGX operations that support it (e.g., `getDecryptionShares`). `N` must be an integer within the range \([1, 32]\) <br>**Example:** `-t8` for 8 threads, `-t16` for 16 threads. |
 
 ### Healthcheck
 
@@ -98,14 +102,14 @@ To run the server as a daemon, do
 sudo docker-compose up -d
 ```
 
-To stop/start the server do 
+To stop/start the server do
 
 ```bash
 sudo docker-compose stop
 sudo docker-compose start
 ```
 
-To view server logs do 
+To view server logs do
 
 ```bash
 sudo docker-compose logs
@@ -135,7 +139,7 @@ sudo docker-compose up
 ## Logging
 
 By default, sgxwallet will log into default Docker logs, which are rotated into four files 10M each.
-To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as 
+To send logs to an external syslog service, edit docker compose YAML file to specify logging configuration as
 
 ```yaml
 logging:
