@@ -161,8 +161,8 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 
 void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
   constexpr bool validateClient = false;
-  httpServer =
-      make_shared<HttpServer>(BASE_PORT + 1, "", "", "", validateClient, DEFAULT_HTTP_SERVER_THREADS);
+  httpServer = make_shared<HttpServer>(
+      BASE_PORT + 1, "", "", "", validateClient, DEFAULT_HTTP_SERVER_THREADS);
 
   server = make_shared<SGXRegistrationServer>(
       *httpServer, JSONRPC_SERVER_V2,
