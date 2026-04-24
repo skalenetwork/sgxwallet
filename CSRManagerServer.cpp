@@ -117,7 +117,9 @@ Json::Value CSRManagerServer::signByHash(const string &hash, int status) {
 }
 
 void CSRManagerServer::initCSRManagerServer() {
-  hs3 = make_shared<jsonrpc::HttpServer>(BASE_PORT + 2);
+  constexpr bool validateClient = false;
+  hs3 =
+      make_shared<jsonrpc::HttpServer>(BASE_PORT + 2, "", "", "", validateClient, DEFAULT_HTTP_SERVER_THREADS);
   hs3->BindLocalhost();
   cs = make_shared<CSRManagerServer>(
       *hs3, JSONRPC_SERVER_V2); // server (json-rpc 2.0)

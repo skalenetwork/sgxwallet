@@ -160,7 +160,10 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 }
 
 void SGXRegistrationServer::initRegistrationServer(bool _autoSign) {
-  httpServer = make_shared<HttpServer>(BASE_PORT + 1);
+  constexpr bool validateClient = false;
+  httpServer =
+      make_shared<HttpServer>(BASE_PORT + 1, "", "", "", validateClient, DEFAULT_HTTP_SERVER_THREADS);
+
   server = make_shared<SGXRegistrationServer>(
       *httpServer, JSONRPC_SERVER_V2,
       _autoSign); // hybrid server (json-rpc 1.0 & 2.0)
