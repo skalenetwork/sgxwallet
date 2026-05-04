@@ -32,7 +32,11 @@
 
 using namespace std;
 
-string gen_dkg_poly(int _t);
+string genDkgPolyCommon(int _t, const string& _encryptedFreeTerm = "");
+
+string genDkgPoly(int _t);
+
+string genDkgPolyV3(int _t, const string& _previousBLSPrivateKeyName);
 
 vector<vector<string>> get_verif_vect(const string &encryptedPolyHex, int t);
 

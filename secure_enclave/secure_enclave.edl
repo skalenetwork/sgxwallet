@@ -93,6 +93,14 @@ enclave {
                                 [out, count = 3072] uint8_t* encrypted_dkg_secret,
                                 [out] uint64_t * enc_len, size_t _t);
 
+        public void trustedGenDkgSecretV3 (
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char* err_string,
+                                [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_free_term,
+                                uint64_t encrypted_free_term_length,
+                                [out, count = 3072] uint8_t* encrypted_dkg_secret,
+                                [out] uint64_t * enc_len, size_t _t);
+
         public void trustedDecryptDkgSecret (
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,

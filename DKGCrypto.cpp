@@ -127,7 +127,7 @@ libBLS::algebra::G2Point convertStringToG2(const std::string &str) {
   return libBLS::algebra::G2Point::fromString(str, libBLS::algebra::Base::HEXA);
 }
 
-string gen_dkg_poly(int _t) {
+string genDkgPolyCommon(int _t, const string& _encryptedFreeTerm ) {
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t enc_len = 0;
@@ -136,13 +136,15 @@ string gen_dkg_poly(int _t) {
 
   sgx_status_t status = SGX_SUCCESS;
 
-  status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(),
-                               encrypted_dkg_secret.data(), &enc_len, _t);
+  status = (_encryptedFreeTerm.empty()) ? 
+    trustedGenDkgSecret(eid, &errStatus, errMsg.data(),
+                               encrypted_dkg_secret.data(), &enc_len, _t)
+    : trustedGenDkgSecretV3(eid, &errStatus, errMsg.data(),
+                               encrypted_dkg_secret.data(), &enc_len, _t, _encryptedFreeTerm.c_str());
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
   uint64_t length = enc_len;
-  ;
 
   CHECK_STATE(encrypted_dkg_secret.size() >= length);
   vector<char> hexEncrPoly = carray2Hex(encrypted_dkg_secret.data(), length);
@@ -150,6 +152,15 @@ string gen_dkg_poly(int _t) {
 
   return result;
 }
+
+string genDkgPoly(int _t) {
+  return genDkgPolyCommon(_t);
+}
+
+string genDkgPolyV3(int _t, const string& _previousBLSPrivateKeyName) {
+  return genDkgPolyCommon(_t, _previousBLSPrivateKeyName);
+}
+
 
 vector<vector<string>> get_verif_vect(const string &encryptedPolyHex, int t) {
 

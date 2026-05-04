@@ -818,6 +818,58 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
 }
 
 void
+trustedGenDkgSecretV3(int *errStatus, char *errString,
+                      uint8_t *encrypted_free_term, uint64_t encrypted_free_term_length,
+                      uint8_t *encrypted_dkg_secret, uint64_t *enc_len, size_t _t) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encrypted_free_term);
+    CHECK_STATE(encrypted_dkg_secret);
+
+    // Decrypt the previous BLS private key to get the hex-encoded Fr scalar
+    SAFE_CHAR_BUF(prev_bls_key_hex, ENCLAVE_BUF_LEN);
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encrypted_free_term, encrypted_free_term_length,
+                             prev_bls_key_hex, ENCLAVE_BUF_LEN, &type, &exportable);
+    CHECK_STATUS2("trustedGenDkgSecretV3: AES_decrypt of previous BLS key failed with status %d");
+
+    // Generate the poly, anchoring the free coefficient to the previous BLS key
+    SAFE_CHAR_BUF(dkg_secret, DKG_BUFER_LENGTH);
+
+    status = gen_dkg_poly_with_free_coef(dkg_secret, _t, prev_bls_key_hex);
+    CHECK_STATUS("trustedGenDkgSecretV3: gen_dkg_poly_with_free_coef failed");
+
+    status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * ENCLAVE_BUF_LEN,
+                         DKG, EXPORTABLE, enc_len);
+    CHECK_STATUS("trustedGenDkgSecretV3: AES encrypt DKG poly failed");
+
+    SAFE_CHAR_BUF(decr_dkg_secret, DKG_BUFER_LENGTH);
+    type = 0;
+    exportable = 0;
+
+    status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret,
+                         DKG_BUFER_LENGTH, &type, &exportable);
+    CHECK_STATUS("trustedGenDkgSecretV3: aes decrypt dkg poly failed");
+
+    if (strcmp(dkg_secret, decr_dkg_secret) != 0) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "encrypted poly is not equal to decrypted poly");
+        LOG_ERROR(errString);
+        *errStatus = -333;
+        goto clean;
+    }
+
+    SET_SUCCESS
+    clean:
+    ;
+    LOG_INFO(__FUNCTION__);
+    LOG_INFO("SGX call completed");
+}
+
+void
 trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
                            uint64_t enc_len,
                            uint8_t *decrypted_dkg_secret) {

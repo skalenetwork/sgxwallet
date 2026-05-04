@@ -35,6 +35,7 @@
 #include "MclUtils.h"
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -237,19 +238,21 @@ clean:
   return result;
 }
 
-int gen_dkg_poly(char *secret, unsigned _t) {
+static int gen_dkg_poly_impl(char *secret, unsigned _t,
+                             std::optional<Fr> freeCoefficient) {
   int status = 1;
   string result;
   CHECK_ARG_CLEAN(secret);
   try {
     for (size_t i = 0; i < _t; ++i) {
       Fr cur_coef;
-      // Generate random coefficient using SGX's hardware RNG directly
-      // (setByCSPRNG crashes due to MCL RandGen static initialization issues)
-      do {
-        setRandomFr(cur_coef);
-      } while (i == _t - 1 && cur_coef.isZero());
-
+      if (i == 0 && freeCoefficient.has_value()) {
+        cur_coef = *freeCoefficient;
+      } else {
+        do {
+          setRandomFr(cur_coef);
+        } while (i == _t - 1 && cur_coef.isZero());
+      }
       result += stringFromFr(cur_coef);
       result += ":";
     }
@@ -262,6 +265,25 @@ int gen_dkg_poly(char *secret, unsigned _t) {
   }
 clean:
   return status;
+}
+
+int gen_dkg_poly(char *secret, unsigned _t) {
+  return gen_dkg_poly_impl(secret, _t, std::nullopt);
+}
+
+int gen_dkg_poly_with_free_coef(char *secret, unsigned _t,
+                                const char *free_coef_hex) {
+  if (free_coef_hex == nullptr || free_coef_hex[0] == '\0') {
+    return gen_dkg_poly_impl(secret, _t, std::nullopt);
+  }
+  Fr freeCoef;
+  bool b = false;
+  freeCoef.setStr(&b, free_coef_hex, 16);
+  if (!b) {
+    LOG_ERROR("gen_dkg_poly_with_free_coef: failed to parse free_coef_hex");
+    return 1;
+  }
+  return gen_dkg_poly_impl(secret, _t, freeCoef);
 }
 
 Fr PolynomialValue(const vector<Fr> &pol, Fr point, unsigned _t) {

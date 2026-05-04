@@ -532,7 +532,40 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName,
       throw SGXException(GENERATE_DKG_POLY_INVALID_PARAMS,
                          string(__FUNCTION__) + ":Invalid gen dkg param t ");
     }
-    encrPolyHex = gen_dkg_poly(_t);
+    encrPolyHex = genDkgPoly(_t);
+    writeDataToDB(_polyName, encrPolyHex);
+  }
+  HANDLE_SGX_EXCEPTION(result)
+
+  RETURN_SUCCESS(result)
+}
+
+Json::Value SGXWalletServer::generateDKGPolyV3Impl(const string& _polyName, const string& _previousBLSPrivateKeyName, int _t) {
+  COUNT_STATISTICS
+  spdlog::info("Entering {}", __FUNCTION__);
+  INIT_RESULT(result)
+
+  string encrPolyHex;
+
+  try {
+    if (!checkName(_polyName, "POLY")) {
+      throw SGXException(INVALID_GEN_DKGV3_POLY_NAME,
+                         string(__FUNCTION__) +
+                             ":Invalid gen DKG polynomial name.");
+    }
+
+    if (!checkName(_previousBLSPrivateKeyName, "BLS_KEY")) {
+      throw SGXException(INVALID_GEN_DKGV3_POLY_PREV_BLS_KEY_NAME,
+                         string(__FUNCTION__) +
+                             ":Invalid previous BLS private key name.");
+    }
+
+    if (_t <= 0 || _t > 32) {
+      throw SGXException(GENERATE_DKGV3_POLY_INVALID_PARAMS,
+                         string(__FUNCTION__) + ":Invalid gen dkg param t ");
+    }
+
+    encrPolyHex = genDkgPolyV3(_t, _previousBLSPrivateKeyName);
     writeDataToDB(_polyName, encrPolyHex);
   }
   HANDLE_SGX_EXCEPTION(result)
@@ -1275,6 +1308,10 @@ Json::Value SGXWalletServer::popProveImpl(const std::string &blsKeyName) {
 
 Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
   return generateDKGPolyImpl(_polyName, _t);
+}
+
+Json::Value SGXWalletServer::generateDKGPolyV3(const string& _polyName, const string& _previousBLSPrivateKeyName, int _t) {
+  return generateDKGPolyV3Impl(_polyName, _previousBLSPrivateKeyName, _t);
 }
 
 Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName,
