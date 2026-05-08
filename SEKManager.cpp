@@ -34,14 +34,12 @@
 #include "CryptoTools.h"
 #include "LevelDB.h"
 #include "SGXException.h"
+#include "WalletDBKeys.h"
 
 #include "SEKManager.h"
 #include "ServerDataChecker.h"
-#include "ServerInit.h"
 
 using namespace std;
-
-#define BACKUP_PATH "./sgx_data/sgxwallet_backup_key.txt"
 
 bool case_insensitive_match(string s1, string s2) {
   // convert s1 and s2 into lower case strings
@@ -71,13 +69,14 @@ void create_test_key() {
 
   vector<char> hexEncrKey = carray2Hex(encrypted_key, enc_len);
 
-  LevelDB::getLevelDb()->writeDataUnique("TEST_KEY", hexEncrKey.data());
+  LevelDB::getLevelDb()->writeDataUnique(WalletDBKeys::TEST_KEY,
+                                          hexEncrKey.data());
 }
 
 void validate_SEK() {
 
   shared_ptr<string> test_key_ptr =
-      LevelDB::getLevelDb()->readString("TEST_KEY");
+      LevelDB::getLevelDb()->readString(WalletDBKeys::TEST_KEY);
   vector<uint8_t> encr_test_key(BUF_LEN, 0);
   vector<char> decr_key(BUF_LEN, 0);
   uint64_t len = 0;
@@ -166,7 +165,7 @@ void gen_SEK() {
 
   spdlog::info(string("Encrypted storage encryption key:") + hexEncrKey.data());
 
-  ofstream sek_file(BACKUP_PATH);
+  ofstream sek_file(SGXWALLET_BACKUP_KEY_PATH);
   sek_file.clear();
 
   sek_file << SEK;
@@ -190,14 +189,14 @@ void gen_SEK() {
     } while (case_insensitive_match(confirm_str, buffer));
   }
 
-  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
+  LevelDB::getLevelDb()->writeDataUnique(WalletDBKeys::SEK, hexEncrKey.data());
 
   create_test_key();
 
   validate_SEK();
 
   shared_ptr<string> encrypted_SEK_ptr =
-      LevelDB::getLevelDb()->readString("SEK");
+      LevelDB::getLevelDb()->readString(WalletDBKeys::SEK);
 
   setSEK(encrypted_SEK_ptr);
 }
@@ -232,19 +231,22 @@ void setSEK(shared_ptr<string> hex_encrypted_SEK) {
 void enter_SEK() {
 
   shared_ptr<string> test_key_ptr =
-      LevelDB::getLevelDb()->readString("TEST_KEY");
+      LevelDB::getLevelDb()->readString(WalletDBKeys::TEST_KEY);
   if (test_key_ptr == nullptr) {
     spdlog::error("Error: corrupt or empty LevelDB database");
     throw SGXException(CORRUPT_DATABASE,
-                       "Could not find TEST_KEY in database.");
+                      string("Could not find ") +
+                      string(WalletDBKeys::TEST_KEY) +
+                      " in database.");
   }
 
-  if (!experimental::filesystem::is_regular_file(BACKUP_PATH)) {
-    spdlog::error("File does not exist: " BACKUP_PATH);
-    throw SGXException(FILE_NOT_FOUND, "File does not exist: " BACKUP_PATH);
+  if (!experimental::filesystem::is_regular_file(SGXWALLET_BACKUP_KEY_PATH)) {
+    spdlog::error("File does not exist: " SGXWALLET_BACKUP_KEY_PATH);
+    throw SGXException(FILE_NOT_FOUND,
+                       "File does not exist: " SGXWALLET_BACKUP_KEY_PATH);
   }
 
-  ifstream sek_file(BACKUP_PATH);
+  ifstream sek_file(SGXWALLET_BACKUP_KEY_PATH);
 
   spdlog::info("Reading backup key from file ...");
 
@@ -267,11 +269,11 @@ void enter_SEK() {
 
   spdlog::info("Got sealed storage encryption key.");
 
-  LevelDB::getLevelDb()->deleteKey("SEK");
+  LevelDB::getLevelDb()->deleteKey(WalletDBKeys::SEK);
 
   spdlog::info("Storing sealed storage encryption key in LevelDB ...");
 
-  LevelDB::getLevelDb()->writeDataUnique("SEK", hexEncrKey.data());
+  LevelDB::getLevelDb()->writeDataUnique(WalletDBKeys::SEK, hexEncrKey.data());
 
   spdlog::info("Stored storage encryption key in LevelDB.");
 }
@@ -281,7 +283,7 @@ void initSEK() {
     enter_SEK();
   } else {
     shared_ptr<string> encrypted_SEK_ptr =
-        LevelDB::getLevelDb()->readString("SEK");
+        LevelDB::getLevelDb()->readString(WalletDBKeys::SEK);
     if (encrypted_SEK_ptr == nullptr) {
       spdlog::warn("SEK was not created yet. Going to create SEK");
       gen_SEK();

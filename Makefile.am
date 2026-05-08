@@ -51,7 +51,7 @@ AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$
 
 AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
     -DMCL_FP_BIT=256 -DMCL_FR_BIT=256 -DMCL \
-    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
+    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) $(TGMP_CPPFLAGS) -I. \
     -I./libzmq/include -I./cppzmq -I./third_party/zguide \
     -I./rapidjson/include/rapidjson
 
@@ -87,6 +87,7 @@ libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-p
 
 ## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
+noinst_PROGRAMS = db_reencrypt_integration_tests
 
 
 ## You can't use $(wildcard ...) with automake so all source files
@@ -97,7 +98,7 @@ COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/RspM
              zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/Agent.cpp zmq_src/WorkerThreadPool.cpp ExitRequestedException.cpp \
              InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp TECrypto.cpp \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp CryptoTools.cpp \
-             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
+             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp DBReencrypt.cpp \
              ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
@@ -138,10 +139,26 @@ sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) 
    -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a \
    -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -ldl
 
+#############################
+# Tests
+#############################
+
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD=${sgxwallet_LDADD}
+
+## Integration tests — built with 'make db_reencrypt_integration_tests'
+## Requires a live SGX enclave. Will be migrated to CMake when the root build moves off Autotools.
+db_reencrypt_integration_tests_CPPFLAGS = $(AM_CPPFLAGS)
+db_reencrypt_integration_tests_SOURCES=tests/integration/db/DBReencryptIntegrationTests.cpp $(COMMON_SRC)
+nodist_db_reencrypt_integration_tests_SOURCES=$(nodist_sgxwallet_SOURCES)
+EXTRA_db_reencrypt_integration_tests_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
+db_reencrypt_integration_tests_LDADD=$(sgxwallet_LDADD)
+
+#############################
+# SGX util
+#############################
 
 sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exception.cpp \
                 InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \
