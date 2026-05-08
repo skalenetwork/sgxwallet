@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 project(sgxwallet_tests)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Absolute, normalized path to the repository root (one level above tests/).
 get_filename_component(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
+set(SGXSDK_INCLUDE_DIR "/opt/intel/sgxsdk/include" CACHE PATH "Intel SGX SDK include directory")
 
 include(FetchContent)
 FetchContent_Declare(

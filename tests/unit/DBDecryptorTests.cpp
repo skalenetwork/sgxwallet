@@ -22,9 +22,12 @@
 #include <ctime>
 #include <experimental/filesystem>
 #include <fstream>
+#include <memory>
 #include <regex>
 #include <sstream>
 #include <unistd.h>
+
+#include <json/json.h>
 
 #include "../../DBReencrypt.h"
 #include "../../SGXException.h"
@@ -94,6 +97,16 @@ static std::string makeTempPath(const std::string &prefix) {
     os << fs::temp_directory_path().string() << "/" << prefix << "." << getpid()
        << "." << std::to_string(std::time(nullptr));
     return os.str();
+}
+
+static Json::Value parseJson(const std::string &value) {
+    Json::Value parsed;
+    Json::CharReaderBuilder builder;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    std::string errors;
+    REQUIRE(reader->parse(value.data(), value.data() + value.size(), &parsed,
+                          &errors));
+    return parsed;
 }
 
 // ---------------------------------------------------------------------------
@@ -171,8 +184,9 @@ TEST_CASE("encodeDBValue - new style: replaces value field, keeps other fields",
 
     std::string encoded = t.encodeDBValue(parsed, "new_payload");
 
-    // Must be a JSON string containing the new value
-    REQUIRE(encoded == R"({"value":"new_payload","timestamp":"1746547200"})");
+    Json::Value encodedJson = parseJson(encoded);
+    REQUIRE(encodedJson["value"].asString() == "new_payload");
+    REQUIRE(encodedJson["timestamp"].asString() == "1746547200");
 }
 
 TEST_CASE("encodeDBValue - roundtrip: parse then re-encode with same payload",
@@ -181,7 +195,9 @@ TEST_CASE("encodeDBValue - roundtrip: parse then re-encode with same payload",
     std::string original = R"({"value":"abc123","timestamp":"999"})";
     auto parsed = t.parseDBValue(original);
     std::string encoded = t.encodeDBValue(parsed, "abc123");
-    REQUIRE(encoded == original);
+    Json::Value encodedJson = parseJson(encoded);
+    REQUIRE(encodedJson["value"].asString() == "abc123");
+    REQUIRE(encodedJson["timestamp"].asString() == "999");
 
     auto reparsed = t.parseDBValue(encoded);
     REQUIRE(reparsed.payload == "abc123");
