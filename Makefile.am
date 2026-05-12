@@ -31,14 +31,19 @@ SUBDIRS=secure_enclave
 
 ## Supply additional flags to edger8r here.
 ##
-## SGX_EDGER8R_FLAGS=
+SGX_EDGER8R_FLAGS = --search-path $(top_srcdir)/secure_enclave
 
 WALLET_VERSION := $(shell cat VERSION)
 
 ## Needed to make our pattern rule work.
 
-secure_enclave.edl: secure_enclave/secure_enclave.edl
-	ln -s $?
+if SGX_ENABLE_TEST_ECALLS
+secure_enclave.edl: secure_enclave/secure_enclave_test.edl secure_enclave/secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+else
+secure_enclave.edl: secure_enclave/secure_enclave_production.edl secure_enclave/secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+endif
 
 ## Additional automake variables
 ##
@@ -87,7 +92,11 @@ libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-p
 
 ## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
-noinst_PROGRAMS = db_reencrypt_integration_tests
+noinst_PROGRAMS =
+
+if SGX_ENABLE_TEST_ECALLS
+noinst_PROGRAMS += db_reencrypt_integration_tests
+endif
 
 
 ## You can't use $(wildcard ...) with automake so all source files
@@ -150,11 +159,13 @@ testw_LDADD=${sgxwallet_LDADD}
 
 ## Integration tests — built with 'make db_reencrypt_integration_tests'
 ## Requires a live SGX enclave. Will be migrated to CMake when the root build moves off Autotools.
-db_reencrypt_integration_tests_CPPFLAGS = $(AM_CPPFLAGS)
+if SGX_ENABLE_TEST_ECALLS
+db_reencrypt_integration_tests_CPPFLAGS = $(AM_CPPFLAGS) -DSGX_ENABLE_TEST_ECALLS
 db_reencrypt_integration_tests_SOURCES=tests/integration/db/DBReencryptIntegrationTests.cpp $(COMMON_SRC)
 nodist_db_reencrypt_integration_tests_SOURCES=$(nodist_sgxwallet_SOURCES)
 EXTRA_db_reencrypt_integration_tests_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 db_reencrypt_integration_tests_LDADD=$(sgxwallet_LDADD)
+endif
 
 #############################
 # SGX util

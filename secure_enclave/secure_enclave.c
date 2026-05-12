@@ -1722,6 +1722,8 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
     LOG_INFO("SGX call completed");
 }
 
+#ifdef SGX_ENABLE_TEST_ECALLS
+
 void trustedTestDecryptAndMatch(int *errStatus, char *errString,
                                 const char *sek_hex,
                                 uint8_t *encrypted_payload,
@@ -1731,8 +1733,6 @@ void trustedTestDecryptAndMatch(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
-    // Declare all locals at the top so the clean: label can safely zero them
-    // regardless of which path reaches it.
     SAFE_CHAR_BUF(decrypted, ENCLAVE_BUF_LEN);
     uint8_t type = 0;
     uint8_t exportable = 0;
@@ -1770,3 +1770,5 @@ void trustedTestDecryptAndMatch(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__);
     LOG_INFO("SGX call completed");
 }
+
+#endif

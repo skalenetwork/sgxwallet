@@ -58,7 +58,7 @@ case "${BUILD_TYPE}" in
 		;;
 	simulation)
 		cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
-		./configure --enable-sgx-simulation
+		./configure --enable-sgx-simulation --enable-sgx-test-ecalls
 		make -j"${JOBS}"
 		# integration tests - require sgxwallet binary
 		make db_reencrypt_integration_tests -j"${JOBS}"
