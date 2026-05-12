@@ -259,9 +259,8 @@ string getSecretShares(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName =
-        string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName + "_" +
-        to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -319,9 +318,8 @@ string getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName =
-        string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName + "_" +
-        to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -607,8 +605,7 @@ string decryptDHKey(const string &polyName, int ind) {
 
   string DH_key_name = polyName + "_" + to_string(ind) + ":";
   shared_ptr<string> hexEncrKeyPtr =
-      SGXWalletServer::readFromDb(DH_key_name,
-                                  WalletDBKeys::DKG_DH_KEY_PREFIX);
+      SGXWalletServer::readFromDb(DH_key_name, WalletDBKeys::DKG_DH_KEY_PREFIX);
 
   spdlog::debug("encr DH key is {}", *hexEncrKeyPtr);
   spdlog::debug("encr DH key length is {}", hexEncrKeyPtr->length());

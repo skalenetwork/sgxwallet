@@ -150,8 +150,7 @@ class TestFixture {
 public:
   TestFixture() {
     TestUtils::resetDB();
-    initConfig config =
-        makeTestInitConfig(false, false, false, true, true);
+    initConfig config = makeTestInitConfig(false, false, false, true, true);
 
     initAll(config);
   }
@@ -182,8 +181,7 @@ class TestFixtureZMQSign {
 public:
   TestFixtureZMQSign() {
     TestUtils::resetDB();
-    initConfig config =
-        makeTestInitConfig(false, false, true, true, false);
+    initConfig config = makeTestInitConfig(false, false, true, true, false);
 
     initAll(config);
   }
@@ -209,8 +207,7 @@ public:
 class TestFixtureNoReset {
 public:
   TestFixtureNoReset() {
-    initConfig config =
-        makeTestInitConfig(false, false, false, true, true);
+    initConfig config = makeTestInitConfig(false, false, false, true, true);
 
     initAll(config);
   }

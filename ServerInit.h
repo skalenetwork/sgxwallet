@@ -24,9 +24,9 @@
 #ifndef SGXWALLET_SERVERINIT_H
 #define SGXWALLET_SERVERINIT_H
 
+#include "sgxwallet.h"
 #include "stdint.h"
 #include <cstddef>
-#include "sgxwallet.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

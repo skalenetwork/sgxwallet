@@ -70,7 +70,7 @@ void create_test_key() {
   vector<char> hexEncrKey = carray2Hex(encrypted_key, enc_len);
 
   LevelDB::getLevelDb()->writeDataUnique(WalletDBKeys::TEST_KEY,
-                                          hexEncrKey.data());
+                                         hexEncrKey.data());
 }
 
 void validate_SEK() {
@@ -234,10 +234,9 @@ void enter_SEK() {
       LevelDB::getLevelDb()->readString(WalletDBKeys::TEST_KEY);
   if (test_key_ptr == nullptr) {
     spdlog::error("Error: corrupt or empty LevelDB database");
-    throw SGXException(CORRUPT_DATABASE,
-                      string("Could not find ") +
-                      string(WalletDBKeys::TEST_KEY) +
-                      " in database.");
+    throw SGXException(CORRUPT_DATABASE, string("Could not find ") +
+                                             string(WalletDBKeys::TEST_KEY) +
+                                             " in database.");
   }
 
   if (!experimental::filesystem::is_regular_file(SGXWALLET_BACKUP_KEY_PATH)) {

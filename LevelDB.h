@@ -75,19 +75,19 @@ public:
   pair<string, uint64_t> getLatestCreatedKey();
 
   /**
-    * @brief Writes the value to the DB, wrapped in JSON with timestamp.
-    * This is the standard way of writing values to the DB, used everywhere
-    * except for SEK reencrypt, where we want to keep exact same value and
-    * timestamp for all keys except SEK.
-  */
+   * @brief Writes the value to the DB, wrapped in JSON with timestamp.
+   * This is the standard way of writing values to the DB, used everywhere
+   * except for SEK reencrypt, where we want to keep exact same value and
+   * timestamp for all keys except SEK.
+   */
   void writeString(std::string_view key1, const string &value1);
 
   /**
-    * @brief Writes the value as is to the DB.
-    * This method is only used during reencryption DB to keep
-    * exact same value (without JSON wrapper), keeping original
-    * timestamp.
-  */
+   * @brief Writes the value as is to the DB.
+   * This method is only used during reencryption DB to keep
+   * exact same value (without JSON wrapper), keeping original
+   * timestamp.
+   */
   void writeRawString(std::string_view key1, const string &value1);
 
   void writeDataUnique(std::string_view Name, const string &value);
@@ -117,8 +117,7 @@ public:
     virtual void visitDBKeyValue(const string &_key, const string &_value) = 0;
   };
 
-  uint64_t visitKeyValues(KeyValueVisitor *_visitor,
-                          uint64_t _maxKeysToVisit);
+  uint64_t visitKeyValues(KeyValueVisitor *_visitor, uint64_t _maxKeysToVisit);
 
   vector<string> writeKeysToVector1(uint64_t _maxKeysToVisit);
 

@@ -25,23 +25,19 @@
 
 namespace WalletDBKeys {
 
-static constexpr const std::string_view SEK      = "SEK";
+static constexpr const std::string_view SEK = "SEK";
 static constexpr const std::string_view TEST_KEY = "TEST_KEY";
 
-static constexpr const std::string_view ECDSA_KEY_PREFIX      = "NEK:";
+static constexpr const std::string_view ECDSA_KEY_PREFIX = "NEK:";
 static constexpr const std::string_view TEMP_ECDSA_KEY_PREFIX = "tmp_NEK";
 
-static constexpr const std::string_view BLS_KEY_PREFIX        = "BLS_KEY:";
-static constexpr const std::string_view POLY_KEY_PREFIX       = "POLY:";
-static constexpr const std::string_view DKG_DH_KEY_PREFIX     = "DKG_DH_KEY_";
+static constexpr const std::string_view BLS_KEY_PREFIX = "BLS_KEY:";
+static constexpr const std::string_view POLY_KEY_PREFIX = "POLY:";
+static constexpr const std::string_view DKG_DH_KEY_PREFIX = "DKG_DH_KEY_";
 
 static constexpr const std::string_view SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[] = {
-    ECDSA_KEY_PREFIX, 
-    TEMP_ECDSA_KEY_PREFIX, 
-    BLS_KEY_PREFIX, 
-    POLY_KEY_PREFIX,
-    DKG_DH_KEY_PREFIX
-};
+    ECDSA_KEY_PREFIX, TEMP_ECDSA_KEY_PREFIX, BLS_KEY_PREFIX, POLY_KEY_PREFIX,
+    DKG_DH_KEY_PREFIX};
 
 static constexpr std::size_t SEK_ENCRYPTED_PAYLOAD_KEY_PREFIX_COUNT =
     sizeof(SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES) /
