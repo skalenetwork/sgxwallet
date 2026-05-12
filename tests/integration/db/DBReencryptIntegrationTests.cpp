@@ -149,12 +149,17 @@ public:
         return std::string(encryptedHex.data());
     }
 
+#ifdef SGX_ENABLE_TEST_ECALLS
+
     /**
      * Decrypts encrypted_payload_hex using sek_hex inside the enclave and
      * checks whether the plaintext matches expected_plaintext.
      * Returns true on match.
      * Returns false when the payload does not match OR decryption fails
      * (e.g. wrong key, tampered ciphertext).
+     * This call is placed under #ifdef SGX_ENABLE_TEST_ECALLS because
+     * it requires 'trustedTestDecryptAndMatch' to be defined.
+     * This test file should thus always be compiled with this macro set
      */
     bool decryptAndMatch(const std::string &sekHex,
                          const std::string &encryptedPayloadHex,
@@ -169,16 +174,14 @@ public:
                            encryptedPayload.data(), BUF_LEN));
 
         sgx_status_t status = SGX_SUCCESS;
-        {
-            READ_LOCK(sgxInitMutex);
-
-            status = trustedTestDecryptAndMatch(
-                eid, &errStatus, errMsg.data(),
-                sekHex.c_str(),
-                encryptedPayload.data(), encryptedPayloadLen,
-                expectedPlaintext.c_str(),
-                &matches);
-        }
+        
+        status = trustedTestDecryptAndMatch(
+            eid, &errStatus, errMsg.data(),
+            sekHex.c_str(),
+            encryptedPayload.data(), encryptedPayloadLen,
+            expectedPlaintext.c_str(),
+            &matches);
+        
 
         INFO("trustedTestDecryptAndMatch errMsg: " << errMsg.data());
         REQUIRE(status == SGX_SUCCESS);
@@ -190,6 +193,8 @@ public:
 
         return matches == 1;
     }
+
+#endif
 
 private:
     void init() {
@@ -378,8 +383,12 @@ public:
     }
 
     ~TempWorkingDirectory() {
-        fs::current_path(originalPath);
-        fs::remove_all(testRoot);
+        try {
+            fs::current_path(originalPath);
+            fs::remove_all(testRoot);
+        } catch( const std::exception &e) {
+            WARN("Failed to clean up temporary test directory: " << e.what());
+        }
     }
 
 private:
@@ -459,8 +468,10 @@ TEST_CASE_METHOD(DBReencryptIntegrationFixture,
         const std::string &oldCipherHex = before.at(key).payload;
         const std::string &newCipherHex = after.at(key).payload;
 
+#ifdef SGX_ENABLE_TEST_ECALLS
         REQUIRE(getEnclave().decryptAndMatch(oldSEK, oldCipherHex, expectedPlaintext));
         REQUIRE(getEnclave().decryptAndMatch(newSEK, newCipherHex, expectedPlaintext));
+#endif
         REQUIRE_FALSE(getEnclave().decryptAndMatch(oldSEK, newCipherHex, expectedPlaintext));
     }
 }

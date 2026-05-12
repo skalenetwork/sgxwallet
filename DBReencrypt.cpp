@@ -237,17 +237,11 @@ DBReencryptor::beginDBReencrypt(const std::string &oldSEKHex) const {
     std::vector<char> newSEKHex(33, 0);
 
     sgx_status_t status = SGX_SUCCESS;
-    {
-        READ_LOCK(sgxInitMutex);
-
-        // TODO - maybe we should also input the old and new keys as binary instead
-        // of hexa. because the output gives us binary - not hexa. we should make
-        // it consistent
-        status = trustedBeginDBReencrypt(
-            eid, &errStatus, errMsg.data(), oldSEKHex.c_str(),
-            encryptedNewSEK.data(), &encryptedNewSEKLen, newSEKHex.data());
-    }
-
+    
+    status = trustedBeginDBReencrypt(
+        eid, &errStatus, errMsg.data(), oldSEKHex.c_str(),
+        encryptedNewSEK.data(), &encryptedNewSEKLen, newSEKHex.data());
+    
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
     if (strnlen(newSEKHex.data(), 33) != 32) {
@@ -280,12 +274,11 @@ std::string DBReencryptor::reencryptEncryptedPayloadHex(
     }
 
     sgx_status_t status = SGX_SUCCESS;
-    {
-        READ_LOCK(sgxInitMutex);
-        status = trustedReencryptDBPayload(
-            eid, &errStatus, errMsg.data(), encryptedPayload.data(),
-            encryptedPayloadLen, reencryptedPayload.data(), &reencryptedPayloadLen);
-    }
+
+    status = trustedReencryptDBPayload(
+        eid, &errStatus, errMsg.data(), encryptedPayload.data(),
+        encryptedPayloadLen, reencryptedPayload.data(), &reencryptedPayloadLen);
+    
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
@@ -300,10 +293,8 @@ void DBReencryptor::commitDBReencrypt() const {
     int errStatus = 0;
 
     sgx_status_t status = SGX_SUCCESS;
-    {
-        READ_LOCK(sgxInitMutex);
-        status = trustedCommitDBReencrypt(eid, &errStatus, errMsg.data());
-    }
+    
+    status = trustedCommitDBReencrypt(eid, &errStatus, errMsg.data());
 
     HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 }
@@ -314,13 +305,11 @@ void DBReencryptor::abortDBReencryptNoThrow() const {
         int errStatus = 0;
 
         sgx_status_t status = SGX_SUCCESS;
-        {
-        READ_LOCK(sgxInitMutex);
+        
         status = trustedAbortDBReencrypt(eid, &errStatus, errMsg.data());
-        }
 
         if (status != SGX_SUCCESS || errStatus != 0) {
-        spdlog::error("trustedAbortDBReencrypt failed");
+            spdlog::error("trustedAbortDBReencrypt failed");
         }
     } catch (...) {
         spdlog::error("Could not abort DB reencryption inside enclave");

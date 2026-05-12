@@ -118,6 +118,8 @@ void free_function(void *, size_t);
 
 unsigned char *globalRandom = NULL;
 
+static sgx_thread_mutex_t migration_sek_mutex = SGX_THREAD_MUTEX_INITIALIZER;
+
 // temporary buffers set during database reencryption
 static sgx_aes_gcm_128bit_key_t migration_old_sek;
 static sgx_aes_gcm_128bit_key_t migration_new_sek;
@@ -444,6 +446,7 @@ void trustedBeginDBReencrypt(int *errStatus, char *errString,
                              const char *old_sek_hex,
                              uint8_t *encrypted_new_sek, uint64_t *enc_len,
                              char *new_sek_hex) {
+
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
@@ -453,7 +456,8 @@ void trustedBeginDBReencrypt(int *errStatus, char *errString,
     CHECK_STATE(new_sek_hex);
 
     // only allow 1 migration at a time
-    // TODO - move to use mutex
+    sgx_thread_mutex_lock(&migration_sek_mutex);
+
     CHECK_STATE(!migration_sek_active);
     CHECK_STATE(strnlen(old_sek_hex, 33) == 32);
 
@@ -483,6 +487,9 @@ void trustedBeginDBReencrypt(int *errStatus, char *errString,
     if (*errStatus != 0) {
         clear_migration_seks();
     }
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
@@ -495,7 +502,7 @@ void trustedReencryptDBPayload(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
-    CHECK_STATE(migration_sek_active);
+
     CHECK_STATE(encrypted_payload);
     CHECK_STATE(encrypted_payload_len > 0);
     CHECK_STATE(encrypted_payload_len <= DB_REENCRYPT_BUF_SIZE);
@@ -509,6 +516,9 @@ void trustedReencryptDBPayload(int *errStatus, char *errString,
     uint8_t validated_type = 0;
     uint8_t validated_exportable = 0;
 
+    sgx_thread_mutex_lock(&migration_sek_mutex);
+
+    CHECK_STATE(migration_sek_active);
     // decrypt with old SEK
     int status = AES_decrypt_with_key(
             &migration_old_sek, encrypted_payload, encrypted_payload_len,
@@ -528,6 +538,9 @@ void trustedReencryptDBPayload(int *errStatus, char *errString,
             &migration_new_sek, reencrypted_payload, *reencrypted_payload_len,
             validated_payload, DB_REENCRYPT_BUF_SIZE, &validated_type,
             &validated_exportable);
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+    
     CHECK_STATUS2("DB payload validation decrypt failed with status %d");
 
     if (payload_type != validated_type ||
@@ -550,11 +563,15 @@ void trustedCommitDBReencrypt(int *errStatus, char *errString) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
+    sgx_thread_mutex_lock(&migration_sek_mutex);
+
     CHECK_STATE(migration_sek_active);
 
     // set new global SEK to be the new SEK, and clear tmp SEK buffers
     memcpy(AES_key[512], migration_new_sek, SGX_AESGCM_KEY_SIZE);
     clear_migration_seks();
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
 
     SET_SUCCESS
     clean:
@@ -566,7 +583,11 @@ void trustedAbortDBReencrypt(int *errStatus, char *errString) {
     LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
+    sgx_thread_mutex_lock(&migration_sek_mutex);
+
     clear_migration_seks();
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
 
     SET_SUCCESS
     LOG_INFO(__FUNCTION__ );
