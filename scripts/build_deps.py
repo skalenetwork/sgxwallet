@@ -26,6 +26,12 @@
 import os
 import subprocess
 
+PARALLEL_COUNT = "1"
+for arg in os.sys.argv[1:]:
+    if arg.startswith("PARALLEL_COUNT="):
+        PARALLEL_COUNT = arg.split("=", 1)[1]
+        break
+
 os.chdir("..")
 topDir = os.getcwd()
 print("Starting build")
@@ -43,9 +49,9 @@ GMP_BUILD_DIR = topDir + "/gmp-build"
 TGMP_BUILD_DIR = topDir + "/tgmp-build"
 SDK_DIR = topDir + "/sgx-sdk-build"
 
-JSON_LIBS_DIR = topDir +  "/jsonrpc"
+JSON_LIBS_DIR = topDir + "/jsonrpc"
 
-BLS_DIR = topDir +  "/libBLS"
+BLS_DIR = topDir + "/libBLS"
 BLS_BUILD_DIR = BLS_DIR + "/build"
 
 print("Cleaning")
@@ -62,34 +68,42 @@ subprocess.call(["rm", "-rf", GMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", TGMP_BUILD_DIR])
 subprocess.call(["rm", "-rf", SDK_DIR])
 
+subprocess.call(["rm", "-rf", BLS_BUILD_DIR])
+
 assert subprocess.call(["cp", "configure.gmp", GMP_DIR + "/configure"]) == 0
 
 print("Build LibBLS");
+# Build LibBLS deps (host + SGX)
 os.chdir(BLS_DIR + "/deps")
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+assert subprocess.call(["bash", "-c", "./build.sh SKALED_DEPS_CHAIN=1"]) == 0
+assert subprocess.call(["bash", "-c", "WITH_SGX=yes ./build.sh SKALED_DEPS_CHAIN=1"]) == 0 
 os.chdir(BLS_DIR)
-assert subprocess.call(["bash", "-c", "cmake -H. -Bbuild -DBUILD_TESTS=OFF"]) == 0
+assert subprocess.call([
+	"bash",
+	"-c",
+	"cmake -H. -Bbuild -DLIBBLS_BUILD_TESTS=OFF -DLIBBLS_BUILD_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=Release",
+]) == 0
 os.chdir(BLS_DIR + "/build")
-assert subprocess.call(["bash", "-c", "make"]) == 0
+assert subprocess.call(["bash", "-c", "make -j" + PARALLEL_COUNT]) == 0
 
 print("Build ZMQ");
 
 os.chdir(ZMQ_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(ZMQ_BUILD_DIR)
-assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+assert subprocess.call(["bash", "-c", "cmake -DDZMQ_EXPERIMENTAL=1 -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -- -j" + PARALLEL_COUNT]) == 0
 
 print("Build LevelDB");
 
 os.chdir(LEVELDB_DIR)
 assert subprocess.call(["bash", "-c", "mkdir -p build"]) == 0
 os.chdir(LEVELDB_BUILD_DIR)
-assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build ."]) == 0
+assert subprocess.call(["bash", "-c", "cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -- -j" + PARALLEL_COUNT]) == 0
 
 print("Build JSON"); 
 
 os.chdir(JSON_LIBS_DIR)
-assert subprocess.call(["bash", "-c", "./build.sh"]) == 0
+assert subprocess.call(["bash", "-c", "./build.sh PARALLEL_COUNT=" + PARALLEL_COUNT]) == 0
 
 print("Install Linux SDK");
 
@@ -101,12 +115,12 @@ print("Make GMP");
 os.chdir(GMP_DIR)
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + TGMP_BUILD_DIR + " --disable-shared --enable-static --with-pic --enable-sgx --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0
 
-assert subprocess.call(["make", "install"]) == 0
+assert subprocess.call(["make", "-j" + PARALLEL_COUNT, "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 assert subprocess.call(["bash", "-c", "./configure --prefix=" + GMP_BUILD_DIR + " --disable-shared --enable-static --with-pic --with-sgxsdk=" + SDK_DIR + "/sgxsdk"]) == 0
 
-assert subprocess.call(["make", "install"]) == 0
+assert subprocess.call(["make", "-j" + PARALLEL_COUNT, "install"]) == 0
 assert subprocess.call(["make", "clean"]) == 0
 
 os.chdir(topDir)

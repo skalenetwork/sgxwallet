@@ -149,6 +149,10 @@ inline int getValue() { // Note: this value is in KB!
   ;                                                                            \
   uint8_t __X__[__Y__];                                                        \
   memset(__X__, 0, __Y__);
+#define SAFE_INT_BUF(__X__, __Y__)                                             \
+  ;                                                                            \
+  int __X__[__Y__];                                                            \
+  memset(__X__, 0, __Y__);
 
 // Copy from libconsensus
 
@@ -156,7 +160,8 @@ inline string exec(const char *cmd) {
   CHECK_STATE(cmd);
   std::array<char, 128> buffer;
   std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  auto closer = [](FILE *f) { return pclose(f); };
+  std::unique_ptr<FILE, decltype(closer)> pipe(popen(cmd, "r"), closer);
   if (!pipe) {
     BOOST_THROW_EXCEPTION(std::runtime_error("popen() failed!"));
   }

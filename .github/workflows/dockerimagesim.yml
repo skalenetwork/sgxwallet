@@ -16,8 +16,8 @@ jobs:
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v2
-    - name: submodule update
-      run: git submodule update --init --recursive
+    - name: Clean & Reset submodules
+      run: ./clean.sh --full
     - name: Build and publish container for testing
       run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
     - name: test

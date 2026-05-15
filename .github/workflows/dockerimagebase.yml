@@ -17,7 +17,15 @@ jobs:
     - name: Login to docker
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v2
-    - name: submodule update
-      run: git submodule update --init --recursive
+    - name: Log submodule status
+      run: |
+        set -euxo pipefail
+        git submodule sync --recursive
+        git submodule update --init --recursive
+        git submodule status --recursive
+
     - name: Build the Docker image
-      run: docker build . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest && docker push skalenetwork/sgxwallet_base:latest
+      run: |
+        ./clean.sh --full
+        docker build --no-cache --pull . --file DockerfileBase --tag skalenetwork/sgxwallet_base:latest 
+        docker push skalenetwork/sgxwallet_base:latest

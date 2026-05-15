@@ -25,6 +25,7 @@
 #define SGXWALLET_SERVERINIT_H
 
 #include "stdint.h"
+#include <cstddef>
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -32,9 +33,17 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
-                     bool _autoSign, bool _generateTestKeys,
-                     bool _checkKeyOwnership);
+struct initConfig {
+  uint32_t logLevel;
+  bool checkCert;
+  bool checkZMQSig;
+  bool autoSign;
+  bool generateTestKeys;
+  bool checkKeyOwnership;
+  size_t threadPoolSize;
+};
+
+EXTERNC void initAll(initConfig &config);
 
 void exitAll();
 

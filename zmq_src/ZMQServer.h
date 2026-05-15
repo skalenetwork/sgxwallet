@@ -27,7 +27,10 @@
 #include "third_party/concurrentqueue.h"
 #include "third_party/readerwriterqueue.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "zhelpers.hpp"
+#pragma GCC diagnostic pop
 #include <zmq.hpp>
 
 #include "Agent.h"

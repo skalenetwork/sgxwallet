@@ -1,43 +1,15 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install software-properties-common -y && \
-    add-apt-repository ppa:ubuntu-toolchain-r/test && \
-    apt-get update && apt-get install -y \
-    build-essential \
-    ocaml \
-    ocamlbuild \
-    automake \
-    autoconf \
-    libtool \
-    wget \
-    python-is-python3 \
-    libssl-dev \
-    git \
-    cmake \
-    perl \
-    libcurl4-openssl-dev \
-    protobuf-compiler \
-    libprotobuf-dev \
-    debhelper \
-    reprepro \
-    unzip \
-    pkgconf \
-    libboost-dev \
-    libboost-system-dev \
-    libboost-thread-dev \
-    lsb-release \
-    libsystemd0
+COPY scripts/install_packages.sh /install_packages.sh
+RUN chmod +x /install_packages.sh && /install_packages.sh
 
 RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
     dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
+# Install Intel SGX SDK and PSW
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
-
 RUN cd linux-sgx && make preparation
-
 WORKDIR /linux-sgx
-COPY . .
-
 RUN make sdk_install_pkg_no_mitigation
 
 WORKDIR /opt/intel
@@ -50,6 +22,7 @@ WORKDIR /opt/intel
 RUN cp /linux-sgx/linux/installer/bin/sgx_linux_x64_psw*.bin .
 RUN ./sgx_linux_x64_psw*.bin --no-start-aesm
 
+# Copy sgxwallet repo into /usr/src/sdk 
 COPY . /usr/src/sdk
 RUN ls /usr/src/sdk/autoconf.bash
 WORKDIR /usr/src/sdk
@@ -58,7 +31,7 @@ RUN apt update && \
     apt install -yq apt-utils && \
     apt install -yq --no-install-recommends vim telnet ca-certificates perl \
         alien uuid-dev libxml2-dev ccache \
-        yasm libprocps-dev texinfo \
+        yasm libprocps-dev texinfo libsnappy-dev \
         graphviz doxygen libgnutls28-dev libgcrypt20-dev && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
@@ -67,12 +40,17 @@ RUN apt update && \
     ln -s /usr/bin/ccache /usr/local/bin/cc && \
     ln -s /usr/bin/ccache /usr/local/bin/c++
 
+# build all sgxwallet deps
 WORKDIR /usr/src/sdk/scripts
 RUN ./build_deps.py
+
+# Install Dynamic Application Loader Host Interface
 RUN wget --progress=dot:mega -O - https://github.com/intel/dynamic-application-loader-host-interface/archive/072d233296c15d0dcd1fb4570694d0244729f87b.tar.gz | tar -xz
 WORKDIR dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
 RUN cmake . -DCMAKE_BUILD_TYPE=Release -DINIT_SYSTEM=SysVinit && make install
 WORKDIR /usr/src/sdk/scripts
 RUN rm -rf dynamic-application-loader-host-interface-072d233296c15d0dcd1fb4570694d0244729f87b
+
+
 WORKDIR /usr/src/sdk
 RUN ./autoconf.bash

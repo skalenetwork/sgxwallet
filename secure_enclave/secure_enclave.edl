@@ -6,12 +6,25 @@
 #define VERY_SMALL_BUF_SIZE 512
 #define TINY_BUF_SIZE 256
 
+
+#define MAX_REQUESTS_PER_BATCH 100
+// 100 * 256 + 1 for the null terminator
+#define MAX_BATCH_BUF_SIZE 25601
+
 enclave {
+
+    from "sgx_tstdc.edl" import
+        sgx_thread_wait_untrusted_event_ocall,
+        sgx_thread_set_untrusted_event_ocall,
+        sgx_thread_setwait_untrusted_events_ocall,
+        sgx_thread_set_multiple_untrusted_events_ocall;
 
 	trusted {
 		include "sgx_tgmp.h"
 
 		public void trustedEnclaveInit(uint64_t _logLevel);
+
+        public void trustedEnclaveClear();
 
         public void trustedGenerateSEK(
                                 [out] int *errStatus,
@@ -180,13 +193,15 @@ enclave {
                                 uint64_t key_len,
                                 [out, count = 320] char* bls_pub_key);
         
-        public void trustedGetDecryptionShare(
+        public void trustedGetDecryptionShares(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
-                                [in, count = 320] const char* public_decryption_value,
+                                [in, count = MAX_BATCH_BUF_SIZE] const char* public_decryption_value,
+                                uint64_t public_decryption_value_size,
                                 uint64_t key_len,
-                                [out, count = 320] char* decrption_share);
+                                [out, count = MAX_BATCH_BUF_SIZE] char* decryption_shares,
+                                [out, count = MAX_REQUESTS_PER_BATCH] int* decryption_shares_status);
 
         public void trustedGenerateBLSKey(
                                 [out] int *errStatus,
