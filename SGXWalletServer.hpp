@@ -178,6 +178,12 @@ public:
                                             int t, int n);
 
   virtual Json::Value
+  createBLSPrivateKeyV3(const std::string &blsKeyName,
+                        const std::string &ethKeyName,
+                        const std::string &polyName,
+                        const Json::Value &secretContributions, int t, int n);
+
+  virtual Json::Value
   getDecryptionShares(const std::string &blsKeyName,
                       const Json::Value &publicDecryptionValues);
 
@@ -261,6 +267,13 @@ public:
                                                const std::string &polyName,
                                                const std::string &SecretShare,
                                                int t, int n);
+
+  static Json::Value
+  createBLSPrivateKeyV3Impl(const std::string &blsKeyName,
+                            const std::string &ethKeyName,
+                            const std::string &polyName,
+                            const Json::Value &secretContributions, int t,
+                            int n);
 
   static Json::Value generateBLSPrivateKeyImpl(const string &blsKeyName);
 

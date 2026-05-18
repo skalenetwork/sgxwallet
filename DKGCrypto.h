@@ -24,6 +24,7 @@
 #ifndef SGXD_DKGCRYPTO_H
 #define SGXD_DKGCRYPTO_H
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,19 @@
 #include "libBLS/bls/bls.h"
 
 using namespace std;
+
+struct SecretContribution {
+    size_t index;
+    // TODO - size is fixed - we could change to std::array instead
+    std::string secretShare;
+
+    SecretContribution(size_t _index, const std::string& _secretShare)
+        : index(_index), secretShare(_secretShare) {
+            if (secretShare.size() != 192 ) {
+                throw std::invalid_argument("Secret share must be 192 characters long. Got: " + std::to_string(secretShare.size()));
+            }
+        }
+};
 
 string genDkgPolyCommon(int _t, const string& _encryptedFreeTerm = "");
 
@@ -62,6 +76,9 @@ bool createBLSShare(const string &blsKeyName, const char *s_shares,
                     const char *encryptedKeyHex);
 
 bool createBLSShareV2(const string &blsKeyName, const char *s_shares,
+                      const char *encryptedKeyHex);
+
+bool createBLSShareV3(const string &blsKeyName, const std::vector<SecretContribution> &secretContributions,
                       const char *encryptedKeyHex);
 
 vector<string> getBLSPubKey(const char *encryptedKeyHex);
