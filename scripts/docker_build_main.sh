@@ -48,6 +48,8 @@ case "${BUILD_TYPE}" in
 		touch /var/hwmode
 		./configure --with-sgx-build=release
 		cd secure_enclave
+		# Explicit target builds do not force Automake BUILT_SOURCES first.
+		make secure_enclave_t.c secure_enclave_t.h
 		make secure_enclave.so -j"${JOBS}"
 		cd /usr/src/sdk/scripts
 		./sign_enclave.bash

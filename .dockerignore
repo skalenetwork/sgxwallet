@@ -36,6 +36,15 @@ libBLS/deps/libjson-rpc-cpp-develop
 libBLS/deps/libmicrohttpd
 libBLS/deps/argtable2
 libBLS/deps/zlib
+libBLS/deps/deps_inst
+libBLS/deps/double-conversion
+libBLS/deps/fast_float
+libBLS/deps/fmt
+libBLS/deps/folly
+libBLS/deps/gflags-master
+libBLS/deps/glog
+libBLS/deps/libevent
+libBLS/deps/mcl
 libBLS/deps/*.tar.*
 
 linux-sgx/build/
