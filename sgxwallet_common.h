@@ -48,6 +48,9 @@ extern bool useHTTPS;
 extern bool enterBackupKey;
 extern bool autoconfirm;
 
+// default number of threads for http server as per libjson-rpc-cpp
+#define DEFAULT_HTTP_SERVER_THREADS 50
+
 #define BUF_LEN 4096
 
 #define ENCLAVE_MAX_CIPHERTEXT_BATCH 100
