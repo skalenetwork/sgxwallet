@@ -25,27 +25,10 @@ autom4te.cache
 config.log
 config.status
 
-libBLS/deps/boost_1*
-libBLS/deps/openssl
-libBLS/deps/curl
-libBLS/deps/gmp-6.1.2
-libBLS/deps/libff
-libBLS/deps/jsoncpp
-libBLS/deps/libjson-rpc-cpp
-libBLS/deps/libjson-rpc-cpp-develop
-libBLS/deps/libmicrohttpd
-libBLS/deps/argtable2
-libBLS/deps/zlib
-libBLS/deps/deps_inst
-libBLS/deps/double-conversion
-libBLS/deps/fast_float
-libBLS/deps/fmt
-libBLS/deps/folly
-libBLS/deps/gflags-master
-libBLS/deps/glog
-libBLS/deps/libevent
-libBLS/deps/mcl
-libBLS/deps/*.tar.*
+# Ignore all inside deps/ except pre_downloaded
+libBLS/deps/*
+!libBLS/deps/pre_downloaded/
+!libBLS/deps/pre_downloaded/**
 
 linux-sgx/build/
 linux-sgx/docker/build/
