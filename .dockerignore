@@ -29,6 +29,8 @@ config.status
 libBLS/deps/*
 !libBLS/deps/pre_downloaded/
 !libBLS/deps/pre_downloaded/**
+!libBLS/deps/build.sh
+!libBLS/deps/clean.sh
 
 linux-sgx/build/
 linux-sgx/docker/build/
