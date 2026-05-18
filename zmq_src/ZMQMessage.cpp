@@ -200,6 +200,9 @@ ZMQMessage::buildRequest(string &_type, shared_ptr<rapidjson::Document> _d,
   case ENUM_GENERATE_DKG_POLY_REQ:
     ret = make_shared<generateDKGPolyReqMessage>(_d);
     break;
+  case ENUM_GENERATE_DKG_POLY_V3_REQ:
+    ret = make_shared<generateDKGPolyV3ReqMessage>(_d);
+    break;
   case ENUM_GET_VV_REQ:
     ret = make_shared<getVerificationVectorReqMessage>(_d);
     break;
@@ -211,6 +214,9 @@ ZMQMessage::buildRequest(string &_type, shared_ptr<rapidjson::Document> _d,
     break;
   case ENUM_CREATE_BLS_PRIVATE_REQ:
     ret = make_shared<createBLSPrivateKeyReqMessage>(_d);
+    break;
+  case ENUM_CREATE_BLS_PRIVATE_V3_REQ:
+    ret = make_shared<createBLSPrivateKeyV3ReqMessage>(_d);
     break;
   case ENUM_GET_BLS_PUBLIC_REQ:
     ret = make_shared<getBLSPublicReqMessage>(_d);
@@ -291,6 +297,9 @@ ZMQMessage::buildResponse(string &_type, shared_ptr<rapidjson::Document> _d,
   case ENUM_GENERATE_DKG_POLY_RSP:
     ret = make_shared<generateDKGPolyRspMessage>(_d);
     break;
+  case ENUM_GENERATE_DKG_POLY_V3_RSP:
+    ret = make_shared<generateDKGPolyV3RspMessage>(_d);
+    break;
   case ENUM_GET_VV_RSP:
     ret = make_shared<getVerificationVectorRspMessage>(_d);
     break;
@@ -302,6 +311,9 @@ ZMQMessage::buildResponse(string &_type, shared_ptr<rapidjson::Document> _d,
     break;
   case ENUM_CREATE_BLS_PRIVATE_RSP:
     ret = make_shared<createBLSPrivateKeyRspMessage>(_d);
+    break;
+  case ENUM_CREATE_BLS_PRIVATE_V3_RSP:
+    ret = make_shared<createBLSPrivateKeyV3RspMessage>(_d);
     break;
   case ENUM_GET_BLS_PUBLIC_RSP:
     ret = make_shared<getBLSPublicRspMessage>(_d);
@@ -364,49 +376,53 @@ cache::lru_cache<string, pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>>
     ZMQMessage::verifiedCerts(256);
 
 const std::map<string, int> ZMQMessage::requests{
-    {BLS_SIGN_REQ, 0},
-    {ECDSA_SIGN_REQ, 1},
-    {IMPORT_BLS_REQ, 2},
-    {IMPORT_ECDSA_REQ, 3},
-    {GENERATE_ECDSA_REQ, 4},
-    {GET_PUBLIC_ECDSA_REQ, 5},
-    {GENERATE_DKG_POLY_REQ, 6},
-    {GET_VV_REQ, 7},
-    {GET_SECRET_SHARE_REQ, 8},
-    {DKG_VERIFY_REQ, 9},
-    {CREATE_BLS_PRIVATE_REQ, 10},
-    {GET_BLS_PUBLIC_REQ, 11},
-    {GET_ALL_BLS_PUBLIC_REQ, 12},
-    {COMPLAINT_RESPONSE_REQ, 13},
-    {MULT_G2_REQ, 14},
-    {IS_POLY_EXISTS_REQ, 15},
-    {GET_SERVER_STATUS_REQ, 16},
-    {GET_SERVER_VERSION_REQ, 17},
-    {DELETE_BLS_KEY_REQ, 18},
-    {GET_DECRYPTION_SHARE_REQ, 19},
-    {GENERATE_BLS_PRIVATE_KEY_REQ, 20},
-    {POP_PROVE_REQ, 21}};
+    {BLS_SIGN_REQ, ENUM_BLS_SIGN_REQ},
+    {ECDSA_SIGN_REQ, ENUM_ECDSA_SIGN_REQ},
+    {IMPORT_BLS_REQ, ENUM_IMPORT_BLS_REQ},
+    {IMPORT_ECDSA_REQ, ENUM_IMPORT_ECDSA_REQ},
+    {GENERATE_ECDSA_REQ, ENUM_GENERATE_ECDSA_REQ},
+    {GET_PUBLIC_ECDSA_REQ, ENUM_GET_PUBLIC_ECDSA_REQ},
+    {GENERATE_DKG_POLY_REQ, ENUM_GENERATE_DKG_POLY_REQ},
+    {GENERATE_DKG_POLY_V3_REQ, ENUM_GENERATE_DKG_POLY_V3_REQ},
+    {GET_VV_REQ, ENUM_GET_VV_REQ},
+    {GET_SECRET_SHARE_REQ, ENUM_GET_SECRET_SHARE_REQ},
+    {DKG_VERIFY_REQ, ENUM_DKG_VERIFY_REQ},
+    {CREATE_BLS_PRIVATE_REQ, ENUM_CREATE_BLS_PRIVATE_REQ},
+    {CREATE_BLS_PRIVATE_V3_REQ, ENUM_CREATE_BLS_PRIVATE_V3_REQ},
+    {GET_BLS_PUBLIC_REQ, ENUM_GET_BLS_PUBLIC_REQ},
+    {GET_ALL_BLS_PUBLIC_REQ, ENUM_GET_ALL_BLS_PUBLIC_REQ},
+    {COMPLAINT_RESPONSE_REQ, ENUM_COMPLAINT_RESPONSE_REQ},
+    {MULT_G2_REQ, ENUM_MULT_G2_REQ},
+    {IS_POLY_EXISTS_REQ, ENUM_IS_POLY_EXISTS_REQ},
+    {GET_SERVER_STATUS_REQ, ENUM_GET_SERVER_STATUS_REQ},
+    {GET_SERVER_VERSION_REQ, ENUM_GET_SERVER_VERSION_REQ},
+    {DELETE_BLS_KEY_REQ, ENUM_DELETE_BLS_KEY_REQ},
+    {GET_DECRYPTION_SHARE_REQ, ENUM_GET_DECRYPTION_SHARE_REQ},
+    {GENERATE_BLS_PRIVATE_KEY_REQ, ENUM_GENERATE_BLS_PRIVATE_KEY_REQ},
+    {POP_PROVE_REQ, ENUM_POP_PROVE_REQ}};
 
 const std::map<string, int> ZMQMessage::responses{
-    {BLS_SIGN_RSP, 0},
-    {ECDSA_SIGN_RSP, 1},
-    {IMPORT_BLS_RSP, 2},
-    {IMPORT_ECDSA_RSP, 3},
-    {GENERATE_ECDSA_RSP, 4},
-    {GET_PUBLIC_ECDSA_RSP, 5},
-    {GENERATE_DKG_POLY_RSP, 6},
-    {GET_VV_RSP, 7},
-    {GET_SECRET_SHARE_RSP, 8},
-    {DKG_VERIFY_RSP, 9},
-    {CREATE_BLS_PRIVATE_RSP, 10},
-    {GET_BLS_PUBLIC_RSP, 11},
-    {GET_ALL_BLS_PUBLIC_RSP, 12},
-    {COMPLAINT_RESPONSE_RSP, 13},
-    {MULT_G2_RSP, 14},
-    {IS_POLY_EXISTS_RSP, 15},
-    {GET_SERVER_STATUS_RSP, 16},
-    {GET_SERVER_VERSION_RSP, 17},
-    {DELETE_BLS_KEY_RSP, 18},
-    {GET_DECRYPTION_SHARE_RSP, 19},
-    {GENERATE_BLS_PRIVATE_KEY_RSP, 20},
-    {POP_PROVE_RSP, 21}};
+    {BLS_SIGN_RSP, ENUM_BLS_SIGN_RSP},
+    {ECDSA_SIGN_RSP, ENUM_ECDSA_SIGN_RSP},
+    {IMPORT_BLS_RSP, ENUM_IMPORT_BLS_RSP},
+    {IMPORT_ECDSA_RSP, ENUM_IMPORT_ECDSA_RSP},
+    {GENERATE_ECDSA_RSP, ENUM_GENERATE_ECDSA_RSP},
+    {GET_PUBLIC_ECDSA_RSP, ENUM_GET_PUBLIC_ECDSA_RSP},
+    {GENERATE_DKG_POLY_RSP, ENUM_GENERATE_DKG_POLY_RSP},
+    {GENERATE_DKG_POLY_V3_RSP, ENUM_GENERATE_DKG_POLY_V3_RSP},
+    {GET_VV_RSP, ENUM_GET_VV_RSP},
+    {GET_SECRET_SHARE_RSP, ENUM_GET_SECRET_SHARE_RSP},
+    {DKG_VERIFY_RSP, ENUM_DKG_VERIFY_RSP},
+    {CREATE_BLS_PRIVATE_RSP, ENUM_CREATE_BLS_PRIVATE_RSP},
+    {CREATE_BLS_PRIVATE_V3_RSP, ENUM_CREATE_BLS_PRIVATE_V3_RSP},
+    {GET_BLS_PUBLIC_RSP, ENUM_GET_BLS_PUBLIC_RSP},
+    {GET_ALL_BLS_PUBLIC_RSP, ENUM_GET_ALL_BLS_PUBLIC_RSP},
+    {COMPLAINT_RESPONSE_RSP, ENUM_COMPLAINT_RESPONSE_RSP},
+    {MULT_G2_RSP, ENUM_MULT_G2_RSP},
+    {IS_POLY_EXISTS_RSP, ENUM_IS_POLY_EXISTS_RSP},
+    {GET_SERVER_STATUS_RSP, ENUM_GET_SERVER_STATUS_RSP},
+    {GET_SERVER_VERSION_RSP, ENUM_GET_SERVER_VERSION_RSP},
+    {DELETE_BLS_KEY_RSP, ENUM_DELETE_BLS_KEY_RSP},
+    {GET_DECRYPTION_SHARE_RSP, ENUM_GET_DECRYPTION_SHARE_RSP},
+    {GENERATE_BLS_PRIVATE_KEY_RSP, ENUM_GENERATE_BLS_PRIVATE_KEY_RSP},
+    {POP_PROVE_RSP, ENUM_POP_PROVE_RSP}};

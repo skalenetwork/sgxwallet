@@ -105,6 +105,9 @@ public:
 
   bool generateDKGPoly(const string &polyName, int t);
 
+  bool generateDKGPolyV3(const string &polyName,
+                         const string &previousBLSPrivateKeyName, int t);
+
   Json::Value getVerificationVector(const string &polyName, int t);
 
   string getSecretShare(const string &polyName, const Json::Value &pubKeys,
@@ -116,6 +119,11 @@ public:
   bool createBLSPrivateKey(const string &blsKeyName, const string &ethKeyName,
                            const string &polyName, const string &secretShare,
                            int t, int n);
+
+  bool createBLSPrivateKeyV3(const string &blsKeyName,
+                             const string &ethKeyName, const string &polyName,
+                             const Json::Value &secretContributions, int t,
+                             int n);
 
   string popProve(const string &blsKeyName);
 

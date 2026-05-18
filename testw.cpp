@@ -680,6 +680,145 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test",
   REQUIRE(errStatus == SGX_SUCCESS);
 }
 
+TEST_CASE_METHOD(TestFixture, "DKG AES V3 gen uses previous BLS key",
+                 "[dkg-aes-gen-v3]") {
+  vector<char> errMsg(BUF_LEN, 0);
+  int errStatus = 0;
+
+  int exportable = 1;
+  vector<uint8_t> encryptedBlsKey(BUF_LEN, 0);
+  uint64_t encryptedBlsKeyLen = 0;
+
+  // generate previous BLS key to be used in DKG V3 generation
+  auto status = trustedGenerateBLSKey(eid, &errStatus, errMsg.data(),
+                                      &exportable, encryptedBlsKey.data(),
+                                      &encryptedBlsKeyLen);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<char> previousBlsKey(BUF_LEN, 0);
+  status = trustedDecryptKey(eid, &errStatus, errMsg.data(),
+                             encryptedBlsKey.data(), encryptedBlsKeyLen,
+                             previousBlsKey.data());
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  // generate DKG V3 using previous BLS key
+  vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
+  uint64_t encryptedDKGSecretLen = 0;
+
+  status = trustedGenDkgSecretV3(
+      eid, &errStatus, errMsg.data(), encryptedBlsKey.data(),
+      encryptedBlsKeyLen, encryptedDKGSecret.data(), &encryptedDKGSecretLen, 2);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<char> decryptedDKGSecret(BUF_LEN, 0);
+  status = trustedDecryptDkgSecret(eid, &errStatus, errMsg.data(),
+                                   encryptedDKGSecret.data(),
+                                   encryptedDKGSecretLen,
+                                   (uint8_t *)decryptedDKGSecret.data());
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  // make sure the first coefficient of the polynomial is the same as the previous BLS key
+  vector<libBLS::algebra::FrScalar> poly =
+      TestUtils::splitStringToFr(decryptedDKGSecret.data(), ':');
+  REQUIRE(poly.size() == 2);
+
+  auto previousBlsKeyFr = libBLS::algebra::FrScalar::fromString(
+      previousBlsKey.data(), libBLS::algebra::Base::HEXA);
+  REQUIRE(poly.at(0) == previousBlsKeyFr);
+
+  // make sure the public key generated from the DKG for index 0 matches the public 
+  // key generated from the previous BLS key
+  vector<char> expectedBlsPubKey(BUF_LEN, 0);
+  status = trustedGetBlsPubKey(eid, &errStatus, errMsg.data(),
+                               encryptedBlsKey.data(), encryptedBlsKeyLen,
+                               expectedBlsPubKey.data());
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<char> publicShares(10000, 0);
+  status = trustedGetPublicShares(eid, &errStatus, errMsg.data(),
+                                  encryptedDKGSecret.data(),
+                                  encryptedDKGSecretLen, publicShares.data(),
+                                  2);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<string> publicShareStrings = splitString(publicShares.data(), ',');
+  REQUIRE(publicShareStrings.size() == 2);
+  REQUIRE(publicShareStrings.at(0) == string(expectedBlsPubKey.data()));
+}
+
+TEST_CASE_METHOD(TestFixture, "DKG AES V3 create BLS key",
+                 "[dkg-aes-create-bls-v3]") {
+  vector<char> errMsg(BUF_LEN, 0);
+  int errStatus = 0;
+
+  int exportable = 1;
+  vector<uint8_t> encryptedPreviousBlsKey(BUF_LEN, 0);
+  uint64_t encryptedPreviousBlsKeyLen = 0;
+
+  // generate previous BLS
+  auto status = trustedGenerateBLSKey(
+      eid, &errStatus, errMsg.data(), &exportable,
+      encryptedPreviousBlsKey.data(), &encryptedPreviousBlsKeyLen);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  // generate DKG V3 using previous BLS key
+  vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
+  uint64_t encryptedDKGSecretLen = 0;
+  status = trustedGenDkgSecretV3(
+      eid, &errStatus, errMsg.data(), encryptedPreviousBlsKey.data(),
+      encryptedPreviousBlsKeyLen, encryptedDKGSecret.data(),
+      &encryptedDKGSecretLen, 2);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  // generate ECDSA key to encrypt the secret contribution A->B
+  // only B will be able to use it using its own ECDSA key to decrypt
+  // the secret share
+  vector<uint8_t> encryptedRecipientKey(BUF_LEN, 0);
+  uint64_t encryptedRecipientKeyLen = 0;
+  vector<char> encryptedSecretShare(193, 0);
+  vector<char> secretShareG2(320, 0);
+  string recipientPublicKey = SAMPLE_PUBLIC_KEY_B;
+
+  status = trustedGetEncryptedSecretShareV2(
+      eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(),
+      encryptedDKGSecretLen, encryptedRecipientKey.data(),
+      &encryptedRecipientKeyLen, encryptedSecretShare.data(),
+      secretShareG2.data(), (char *)recipientPublicKey.data(), 2, 2, 1);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<uint8_t> contributorIndices = {0};
+  vector<uint8_t> encryptedBlsKey(BUF_LEN, 0);
+  uint64_t encryptedBlsKeyLen = 0;
+
+  // use the ECDH public value to decrypt the secret contribution and generate
+  // a private BLSKey
+  status = trustedCreateBlsKeyV3(
+      eid, &errStatus, errMsg.data(), encryptedSecretShare.data(),
+      contributorIndices.data(), contributorIndices.size(),
+      encryptedRecipientKey.data(), encryptedRecipientKeyLen,
+      encryptedBlsKey.data(), &encryptedBlsKeyLen);
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  vector<char> blsPubKey(320, 0);
+  status = trustedGetBlsPubKey(eid, &errStatus, errMsg.data(),
+                               encryptedBlsKey.data(), encryptedBlsKeyLen,
+                               blsPubKey.data());
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  REQUIRE(string(blsPubKey.data()) == string(secretShareG2.data()));
+}
+
 TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);

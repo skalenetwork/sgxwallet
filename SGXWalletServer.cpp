@@ -563,7 +563,8 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName,
   RETURN_SUCCESS(result)
 }
 
-Json::Value SGXWalletServer::generateDKGPolyV3Impl(const string& _polyName, const string& _previousBLSPrivateKeyName, int _t) {
+Json::Value SGXWalletServer::generateDKGPolyV3Impl(
+    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t) {
   COUNT_STATISTICS
   spdlog::info("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
@@ -588,7 +589,9 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(const string& _polyName, cons
                          string(__FUNCTION__) + ":Invalid gen dkg param t ");
     }
 
-    std::shared_ptr<std::string> encryptedBLSKey = readFromDb(_previousBLSPrivateKeyName);
+    std::shared_ptr<std::string> encryptedBLSKey =
+        readFromDb(_previousBLSPrivateKeyName);
+    CHECK_STATE(encryptedBLSKey);
 
     encrPolyHex = genDkgPolyV3(_t, *encryptedBLSKey);
     writeDataToDB(_polyName, encrPolyHex);

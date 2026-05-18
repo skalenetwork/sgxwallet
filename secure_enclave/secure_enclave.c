@@ -1602,7 +1602,7 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     status = aggregateEncryptedSecretContributions(
         secretShares,
         numShares,
-        NULL,
+        NULL, // pass no coefficients -> equivalent to all coefficients being 1
         skey,
         q,
         sum,
