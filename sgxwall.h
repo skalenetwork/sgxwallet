@@ -20,7 +20,6 @@
     @author Stan Kladko
     @date 2020
 */
-
 class SGXWallet {
 
 public:

@@ -3,6 +3,7 @@
 #define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
 #define SMALL_BUF_SIZE 1024
+#define DB_REENCRYPT_BUF_SIZE 8192
 #define VERY_SMALL_BUF_SIZE 512
 #define TINY_BUF_SIZE 256
 
@@ -26,6 +27,10 @@ enclave {
 
         public void trustedEnclaveClear();
 
+        // ------------------------------------------------------------------------------------------
+        // SEK Generation and Management
+        // ------------------------------------------------------------------------------------------
+
         public void trustedGenerateSEK(
                                 [out] int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
@@ -44,6 +49,73 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_SEK,
                                 [out] uint64_t *enc_len,
                                 [in, string] const char* SEK_hex);
+
+
+        // ------------------------------------------------------------------------------------------
+        // Database Reencryption
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //
+        // These calls refer to the process of reencrypting the wallet database with a new SEK.
+        // The old SEK is used to decrypt existing data, and the new SEK is used to reencrypt it.
+        // This process MUST run in the new SGX server trying to import an existing DB encrypted with
+        // an old SEK.
+        // This process works in 3 steps:
+        //    1. trustedBeginDBReencrypt: Initializes the reencryption process, providing the old SEK
+        //                              and receiving the new SEK.
+        //    2. trustedReencryptDBPayload: Reencrypts individual payloads from the database using the
+        //                              old and new SEK.
+        //    3.a trustedCommitDBReencrypt: If all payloads have been successfully reencrypted,
+        //                              commits the changes.
+        //    3.b trustedAbortDBReencrypt: In case of any error during the process, aborts the
+        //                              reencryption and discards the new SEK.
+        // ------------------------------------------------------------------------------------------
+
+
+        // Stores the old SEK (comes in plaintext hex) as well as a new generated SEK (generated and
+        // kept inside enclave up step 3.) in temporary buffers that
+        // will be used for any future trustedReencryptDBPayload calls, until either
+        // trustedCommitDBReencrypt or trustedAbortDBReencrypt is called (both calls clear the old
+        // and new temporary SEK buffers)
+        // 'old_SEK_hex' - old SEK in plaintext hex format
+        // 'encrypted_new_SEK' - new SEK sealed with the enclave key, returned to be stored in DB
+        // 'new_SEK_hex' - new SEK in plaintext hex format, returned to be saved as .txt backup file
+        public void trustedBeginDBReencrypt(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string,
+                                [in, string] const char* old_SEK_hex,
+                                [out, count = SMALL_BUF_SIZE] uint8_t *encrypted_new_SEK,
+                                [out] uint64_t *enc_len,
+                                [out, count = 33] char* new_SEK_hex);
+
+        // Reencrypt a given encrypted payload using the old SEK to decrypt and the new SEK
+        // to reencrypt. This function can be called multiple times for different payloads, until
+        // either trustedCommitDBReencrypt or trustedAbortDBReencrypt is called.
+        public void trustedReencryptDBPayload(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string,
+                                [in, count = DB_REENCRYPT_BUF_SIZE] uint8_t* encrypted_payload,
+                                uint64_t encrypted_payload_len,
+                                [out, count = DB_REENCRYPT_BUF_SIZE] uint8_t* reencrypted_payload,
+                                [out] uint64_t *reencrypted_payload_len);
+
+        // Commits the changes made during the database reencryption process.
+        // This function clears the old and new temporary SEK buffers, and sets the new SEK
+        // as the active SEK for the enclave.
+        public void trustedCommitDBReencrypt(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string);
+
+        // Aborts the database reencryption process, discarding both SEK tmp buffers and
+        // keeping the active SEK unchanged.
+        public void trustedAbortDBReencrypt(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string);
+
+
+        // ------------------------------------------------------------------------------------------
+        // ECDSA Key Generation and Signing
+        // ------------------------------------------------------------------------------------------
+
 
         public void trustedGenerateEcdsaKey (
                                 [out] int *errStatus,
@@ -86,6 +158,12 @@ enclave {
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t enc_len,
                                 [out, count = SMALL_BUF_SIZE] char* key );
+
+
+        // ------------------------------------------------------------------------------------------
+        // DKG
+        // ------------------------------------------------------------------------------------------
+
 
         public void trustedGenDkgSecret (
                                 [out] int *errStatus,
@@ -210,7 +288,8 @@ enclave {
                                 [out, count = SMALL_BUF_SIZE] uint8_t* encryptedKey,
                                 [out] uint64_t *encLen
                                 );
-        };
+
+    };
 
 	untrusted {
 		include "gmp.h"
