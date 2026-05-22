@@ -173,13 +173,12 @@ public:
             jsonrpc::JSON_STRING, "secretShare", jsonrpc::JSON_STRING, "t",
             jsonrpc::JSON_INTEGER, "n", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::createBLSPrivateKeyV2I);
+
+    // input set as JSON_OBJET instead of explicit parameters because there is an optional
+    // field - 'polyName'
     this->bindAndAddMethod(
-        jsonrpc::Procedure(
-            "createBLSPrivateKeyV3", jsonrpc::PARAMS_BY_NAME,
-            jsonrpc::JSON_OBJECT, "blsKeyName", jsonrpc::JSON_STRING,
-            "ethKeyName", jsonrpc::JSON_STRING, "polyName",
-            jsonrpc::JSON_STRING, "secretContributions", jsonrpc::JSON_ARRAY,
-            "t", jsonrpc::JSON_INTEGER, "n", jsonrpc::JSON_INTEGER, NULL),
+        jsonrpc::Procedure("createBLSPrivateKeyV3", jsonrpc::PARAMS_BY_NAME,
+                           jsonrpc::JSON_OBJECT, NULL),
         &AbstractStubServer::createBLSPrivateKeyV3I);
 
     this->bindAndAddMethod(
@@ -334,10 +333,14 @@ public:
   }
   inline virtual void createBLSPrivateKeyV3I(const Json::Value &request,
                                              Json::Value &response) {
+    std::string polyName;
+    if (request.isMember("polyName")) {
+      polyName = request["polyName"].asString();
+    }
     response = this->createBLSPrivateKeyV3(
         request["blsKeyName"].asString(), request["ethKeyName"].asString(),
-        request["polyName"].asString(), request["secretContributions"],
-        request["t"].asInt(), request["n"].asInt());
+        polyName, request["secretContributions"], request["t"].asInt(),
+        request["n"].asInt());
   }
 
   inline virtual void getDecryptionSharesI(const Json::Value &request,

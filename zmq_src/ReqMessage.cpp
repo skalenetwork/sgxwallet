@@ -231,11 +231,18 @@ Json::Value createBLSPrivateKeyV3ReqMessage::process() {
   auto secretContributions = getJsonValueRapid("secretContributions");
   auto t = getInt64Rapid("t");
   auto n = getInt64Rapid("n");
-  if (checkKeyOwnership && (!isKeyByOwner(ethKeyName, getStringRapid("cert")) ||
-                            !isKeyByOwner(polyName, getStringRapid("cert")))) {
-    spdlog::error("Cert {} try to access keys {} {} which do not belong to it",
-                  getStringRapid("cert"), ethKeyName, polyName);
-    throw std::invalid_argument("Only owner of the key can access it");
+  if (checkKeyOwnership) {
+    auto cert = getStringRapid("cert");
+    if (!isKeyByOwner(ethKeyName, cert)) {
+      spdlog::error("Cert {} try to access key {} which does not belong to it",
+                    cert, ethKeyName);
+      throw std::invalid_argument("Only owner of the key can access it");
+    }
+    if (!polyName.empty() && !isKeyByOwner(polyName, cert)) {
+      spdlog::error("Cert {} try to access key {} which does not belong to it",
+                    cert, polyName);
+      throw std::invalid_argument("Only owner of the key can access it");
+    }
   }
   auto result = SGXWalletServer::createBLSPrivateKeyV3Impl(
       blsKeyName, ethKeyName, polyName, secretContributions, t, n);

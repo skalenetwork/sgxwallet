@@ -1160,7 +1160,9 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
       throw SGXException(INVALID_CREATE_BLS_ECDSA_KEY_NAME,
                          string(__FUNCTION__) + ":Invalid ECDSA key name");
     }
-    if (!checkName(_polyName, "POLY")) {
+    const bool hasCleanupPolyName = !_polyName.empty();
+
+    if (hasCleanupPolyName && !checkName(_polyName, "POLY")) {
       throw SGXException(INVALID_CREATE_BLS_POLY_NAME,
                          string(__FUNCTION__) + ":Invalid polynomial name");
     }
@@ -1295,16 +1297,20 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
                              ":Error while creating BLS key share");
     }
 
-    for (int i = 0; i < _n; i++) {
-      string name = _polyName + "_" + to_string(i) + ":";
-      LevelDB::getLevelDb()->deleteDHDKGKey(name);
-      string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-      LevelDB::getLevelDb()->deleteKey(shareG2_name);
-    }
-    LevelDB::getLevelDb()->deleteKey(_polyName);
+    // Delete SGX data related to the DKG process only if polyName was passed
+    if (hasCleanupPolyName) {
+      for (int i = 0; i < _n; i++) {
+        string name = _polyName + "_" + to_string(i) + ":";
+        LevelDB::getLevelDb()->deleteDHDKGKey(name);
+        string shareG2_name =
+            "shareG2_" + _polyName + "_" + to_string(i) + ":";
+        LevelDB::getLevelDb()->deleteKey(shareG2_name);
+      }
+      LevelDB::getLevelDb()->deleteKey(_polyName);
 
-    string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
-    LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
+      string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
+      LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
+    }
   }
   HANDLE_SGX_EXCEPTION(result)
 

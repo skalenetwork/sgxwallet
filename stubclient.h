@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <jsonrpccpp/client.h>
+#include <optional>
 
 class StubClient : public jsonrpc::Client {
 public:
@@ -261,7 +262,9 @@ public:
     Json::Value p;
     p["blsKeyName"] = blsKeyName;
     p["ethKeyName"] = ethKeyName;
-    p["polyName"] = polyName;
+    if (!polyName.empty()) {
+      p["polyName"] = polyName;
+    }
     p["secretContributions"] = secretContributions;
     p["n"] = n;
     p["t"] = t;

@@ -221,7 +221,7 @@
     "params": {
       "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID:",
       "ethKeyName": "NEK:hex",
-      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID:",
+      "polyName": "optional POLY:SCHAIN_ID :NODE_ID :DKG_ID: used only for local cleanup",
       "secretContributions": [
         {
           "contributorIndex": 0,
