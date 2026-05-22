@@ -71,8 +71,6 @@ using namespace std;
 
 namespace {
 
-constexpr size_t DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN = 192;
-
 /**
  * Holds all data from DKG execution
  */
@@ -96,15 +94,6 @@ struct RotationDkgData {
   libBLS::algebra::G2Point commonBlsPublicKey;
 };
 
-string makeDKGPolyName(int schainID, int nodeID, int dkgID) {
-  return "POLY:SCHAIN_ID:" + to_string(schainID) +
-         ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
-}
-
-string blsNameFromPolyName(const string &polyName) {
-  return "BLS_KEY" + polyName.substr(4);
-}
-
 libBLS::algebra::G2Point
 blsPublicKeyShareFromResponse(const Json::Value &response) {
   vector<string> pubKeyVect;
@@ -114,25 +103,6 @@ blsPublicKeyShareFromResponse(const Json::Value &response) {
   }
   return libBLS::algebra::G2Point::fromString(pubKeyVect,
                                               libBLS::algebra::Base::DEC);
-}
-
-
-string publicSharesFromVerificationVector(const Json::Value &verificationVector,
-                                          int t) {
-  // Example (t=2):
-  // verificationVector = [[a00,a01,a02,a03], [a10,a11,a12,a13]] (decimal)
-  // output = hex(a00)||hex(a01)||hex(a02)||hex(a03)||hex(a10)||...||hex(a13)
-  // where each hex(ai*) is zero-padded to 64 chars (32 bytes).
-  string publicShares;
-  for (uint8_t coeff = 0; coeff < t; ++coeff) {
-    for (uint8_t coord = 0; coord < 4; ++coord) {
-      string publicShare =
-          verificationVector["verificationVector"][coeff][coord].asString();
-      CHECK_STATE(publicShare.length() > 60);
-      publicShares += TestUtils::convertDecToHex(publicShare);
-    }
-  }
-  return publicShares;
 }
 
 /**
@@ -323,14 +293,14 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
     CHECK_STATE(data.ecdsaKeyNames[i].size() == ECDSA_KEY_NAME_SIZE);
     data.publicEcdsaKeys.append(ethKeys[i]["publicKey"]);
 
-    data.polyNames[i] = makeDKGPolyName(schainID, i, dkgID);
+    data.polyNames[i] = TestUtils::makeDKGPolyName(schainID, i, dkgID);
     Json::Value response = c.generateDKGPoly(data.polyNames[i], t);
     CHECK_STATE(response["status"] == 0);
 
     verificationVectors[i] = c.getVerificationVector(data.polyNames[i], t);
     CHECK_STATE(verificationVectors[i]["status"] == 0);
     data.publicShares[i] =
-        publicSharesFromVerificationVector(verificationVectors[i], t);
+        TestUtils::publicSharesFromVerificationVector(verificationVectors[i], t);
   }
 
   // each secretShares[i] contains all secret shares from node i.
@@ -350,12 +320,12 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
-      const string contribution = contributorShares.substr(
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipient,
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      const string contribution =
+          TestUtils::encryptedDkgSecretContributionForRecipient(
+              contributorShares, recipient);
       recipientSecretShares[recipient] += contribution;
 
       Json::Value verification = c.dkgVerificationV2(
@@ -367,7 +337,8 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
   }
 
   for (int recipient = 0; recipient < n; ++recipient) {
-    data.blsKeyNames[recipient] = blsNameFromPolyName(data.polyNames[recipient]);
+    data.blsKeyNames[recipient] =
+        TestUtils::blsNameFromPolyName(data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV2(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], recipientSecretShares[recipient], t, n);
@@ -411,7 +382,7 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
 
   for (int contributor = 0; contributor < n; ++contributor) {
     data.polyNames[contributor] =
-        makeDKGPolyName(schainID, contributor, dkgID);
+        TestUtils::makeDKGPolyName(schainID, contributor, dkgID);
     // use previous' DKG BLS private key name
     Json::Value response = c.generateDKGPolyV3(
         data.polyNames[contributor], v2Data.blsKeyNames[contributor], t);
@@ -422,7 +393,7 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         c.getVerificationVector(data.polyNames[contributor], t);
     CHECK_STATE(verificationVectors[contributor]["status"] == 0);
     data.publicShares[contributor] =
-        publicSharesFromVerificationVector(verificationVectors[contributor], t);
+        TestUtils::publicSharesFromVerificationVector(verificationVectors[contributor], t);
   }
 
   for (int contributor = 0; contributor < n; ++contributor) {
@@ -442,12 +413,12 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
-      const string contribution = contributorShares.substr(
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipient,
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      const string contribution =
+          TestUtils::encryptedDkgSecretContributionForRecipient(
+              contributorShares, recipient);
 
       Json::Value verification = c.dkgVerificationV2(
           data.publicShares[contributor], data.ecdsaKeyNames[recipient],
@@ -463,7 +434,8 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
   }
 
   for (int recipient = 0; recipient < n; ++recipient) {
-    data.blsKeyNames[recipient] = blsNameFromPolyName(data.polyNames[recipient]);
+    data.blsKeyNames[recipient] =
+        TestUtils::blsNameFromPolyName(data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV3(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], secretContributions[recipient], t, n);
@@ -541,7 +513,8 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
        ++oldDealerIndex) {
     // generate new polynomial for each dealer
     dealerPolyNames[oldDealerIndex] =
-        makeDKGPolyName(schainID, static_cast<int>(oldDealerIndex), dkgID);
+        TestUtils::makeDKGPolyName(schainID,
+                                   static_cast<int>(oldDealerIndex), dkgID);
     Json::Value response = c.generateDKGPolyV3(
         dealerPolyNames[oldDealerIndex], v2Data.blsKeyNames.at(oldDealerIndex),
         t);
@@ -552,7 +525,7 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
         c.getVerificationVector(dealerPolyNames[oldDealerIndex], t);
     CHECK_STATE(verificationVector["status"] == 0);
     dealerPublicShares[oldDealerIndex] =
-        publicSharesFromVerificationVector(verificationVector, t);
+        TestUtils::publicSharesFromVerificationVector(verificationVector, t);
     
     // get secret contributions from this dealer - using 'newN' number of points
     // one for each new node
@@ -575,13 +548,13 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
         dealerSecretShares[oldDealerIndex]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(newN) *
-                    DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     // for each new node - save the secret contribution from 'oldDealerIndex'
     for (int recipient = 0; recipient < newN; ++recipient) {
-      const string contribution = contributorShares.substr(
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipient,
-          DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      const string contribution =
+          TestUtils::encryptedDkgSecretContributionForRecipient(
+              contributorShares, recipient);
 
       Json::Value verification = c.dkgVerificationV2(
           dealerPublicShares[oldDealerIndex], data.ecdsaKeyNames[recipient],
@@ -600,14 +573,16 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
     const size_t nodeLabel = newCommitteeOldIndices.at(recipient);
     // create BLS key name for new node
     const string syntheticPolyName =
-        makeDKGPolyName(schainID, static_cast<int>(nodeLabel), dkgID);
-    data.blsKeyNames[recipient] = blsNameFromPolyName(syntheticPolyName);
+        TestUtils::makeDKGPolyName(schainID, static_cast<int>(nodeLabel),
+                                   dkgID);
+    data.blsKeyNames[recipient] =
+        TestUtils::blsNameFromPolyName(syntheticPolyName);
 
     // set polyName for new nodes that contributed as dealers
     string cleanupPolyName;
     if (nodeLabel < static_cast<size_t>(t)) {
-      cleanupPolyName = makeDKGPolyName(schainID, static_cast<int>(nodeLabel),
-                                        dkgID);
+      cleanupPolyName = TestUtils::makeDKGPolyName(
+          schainID, static_cast<int>(nodeLabel), dkgID);
       data.polyNames[recipient] = cleanupPolyName;
     }
 
@@ -956,6 +931,77 @@ string TestUtils::convertDecToHex(string dec, int numBytes) {
   result.insert(0, n_zeroes, '0');
   mpz_clear(num);
   return result;
+}
+
+string TestUtils::makeDKGPolyName(int schainID, int nodeID, int dkgID) {
+  return "POLY:SCHAIN_ID:" + to_string(schainID) +
+         ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
+}
+
+string TestUtils::makeBLSKeyName(int schainID, int nodeID, int dkgID) {
+  return "BLS_KEY:SCHAIN_ID:" + to_string(schainID) +
+         ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
+}
+
+string TestUtils::blsNameFromPolyName(const string &polyName) {
+  return "BLS_KEY" + polyName.substr(4);
+}
+
+string TestUtils::publicSharesFromVerificationVector(
+    const Json::Value &verificationVectorResponse, int t) {
+  CHECK_STATE(t > 0);
+
+  const bool hasWrappedVerificationVector =
+      verificationVectorResponse.isObject() &&
+      verificationVectorResponse.isMember("verificationVector");
+  const Json::Value &verificationVector =
+      hasWrappedVerificationVector
+          ? verificationVectorResponse["verificationVector"]
+          : verificationVectorResponse;
+
+  CHECK_STATE(verificationVector.isArray());
+  CHECK_STATE(verificationVector.size() == static_cast<Json::ArrayIndex>(t));
+
+  // Example (t=2):
+  // [[a00,a01,a02,a03], [a10,a11,a12,a13]] as decimal strings becomes
+  // hex(a00)||hex(a01)||...||hex(a13), each coordinate padded to 32 bytes.
+  string publicShares;
+  for (int coeff = 0; coeff < t; ++coeff) {
+    CHECK_STATE(verificationVector[coeff].isArray());
+    CHECK_STATE(verificationVector[coeff].size() == 4);
+    for (int coord = 0; coord < 4; ++coord) {
+      const string publicShare = verificationVector[coeff][coord].asString();
+      CHECK_STATE(publicShare.length() > 60);
+      publicShares += TestUtils::convertDecToHex(publicShare);
+    }
+  }
+  return publicShares;
+}
+
+string TestUtils::encryptedDkgSecretContributionForRecipient(
+    const string &secretShares, int recipientIndex) {
+  CHECK_STATE(recipientIndex >= 0);
+  const size_t offset =
+      TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipientIndex;
+  CHECK_STATE(secretShares.length() >=
+              offset +
+                  TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+  return secretShares.substr(
+      offset, TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+}
+
+Json::Value TestUtils::dkgV3SecretContributionsForRecipient(
+    const vector<string> &dealerSecretShares, int recipientIndex) {
+  Json::Value secretContributions(Json::arrayValue);
+  for (size_t contributor = 0; contributor < dealerSecretShares.size();
+       ++contributor) {
+    Json::Value entry;
+    entry["contributorIndex"] = static_cast<Json::UInt>(contributor);
+    entry["secretShare"] = TestUtils::encryptedDkgSecretContributionForRecipient(
+        dealerSecretShares[contributor], recipientIndex);
+    secretContributions.append(entry);
+  }
+  return secretContributions;
 }
 
 void TestUtils::resetDB() {

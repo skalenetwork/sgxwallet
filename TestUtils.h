@@ -49,6 +49,9 @@ using namespace jsonrpc;
 class TestUtils {
 
 public:
+  static constexpr size_t DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN =
+      SECRET_SHARE_NUM_BYTES * 2;
+
   static default_random_engine randGen;
 
   static string
@@ -56,6 +59,21 @@ public:
                libBLS::algebra::Base base = libBLS::algebra::Base::DEC);
 
   static string convertDecToHex(string dec, int numBytes = 32);
+
+  static string makeDKGPolyName(int schainID, int nodeID, int dkgID);
+
+  static string makeBLSKeyName(int schainID, int nodeID, int dkgID);
+
+  static string blsNameFromPolyName(const string &polyName);
+
+  static string publicSharesFromVerificationVector(
+      const Json::Value &verificationVectorResponse, int t);
+
+  static string encryptedDkgSecretContributionForRecipient(
+      const string &secretShares, int recipientIndex);
+
+  static Json::Value dkgV3SecretContributionsForRecipient(
+      const vector<string> &dealerSecretShares, int recipientIndex);
 
   static void genTestKeys();
 

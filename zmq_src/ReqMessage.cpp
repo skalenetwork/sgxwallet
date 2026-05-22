@@ -227,7 +227,7 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
 Json::Value createBLSPrivateKeyV3ReqMessage::process() {
   auto blsKeyName = getStringRapid("blsKeyName");
   auto ethKeyName = getStringRapid("ethKeyName");
-  auto polyName = getStringRapid("polyName");
+  auto polyName = getStringRapid("polyName", true);
   auto secretContributions = getJsonValueRapid("secretContributions");
   auto t = getInt64Rapid("t");
   auto n = getInt64Rapid("n");
