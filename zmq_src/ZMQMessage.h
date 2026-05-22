@@ -182,6 +182,8 @@ public:
 
   string getStringRapid(const char *_name);
 
+  string getStringRapid(const char *_name, bool optional);
+
   uint64_t getInt64Rapid(const char *_name);
 
   Json::Value getJsonValueRapid(const char *_name);

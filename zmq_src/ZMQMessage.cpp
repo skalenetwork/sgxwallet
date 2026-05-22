@@ -79,8 +79,15 @@ bool ZMQMessage::getBoolRapid(const char *_name) {
 }
 
 string ZMQMessage::getStringRapid(const char *_name) {
+  return getStringRapid(_name, false);
+};
+
+string ZMQMessage::getStringRapid(const char *_name, bool optional) {
   CHECK_STATE(_name);
-  CHECK_STATE(d->HasMember(_name));
+  if (!d->HasMember(_name)) {
+    CHECK_STATE(optional);
+    return "";
+  }
   CHECK_STATE((*d)[_name].IsString());
   return (*d)[_name].GetString();
 };
