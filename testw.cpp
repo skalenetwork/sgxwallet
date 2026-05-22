@@ -861,6 +861,97 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[dkg-bls-v2]") {
   TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 }
 
+TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation correctness",
+                 "[dkg-bls-v2-v3-rotation]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  int schainID = TestUtils::randGen();
+  int dkgV2ID = TestUtils::randGen();
+  int dkgV3ID = dkgV2ID + 1;
+
+  PRINT_SRC_LINE
+  TestUtils::doDKGV3Rotation(c, 5, 3, schainID, dkgV2ID, dkgV3ID, 100, 3);
+
+  schainID = TestUtils::randGen();
+  dkgV2ID = TestUtils::randGen();
+  dkgV3ID = dkgV2ID + 1;
+
+  TestUtils::doDKGV3Rotation(c, 16, 5, schainID, dkgV2ID, dkgV3ID, 50, 3);
+}
+
+TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation with joining nodes",
+                 "[dkg-bls-v2-v3-rotation-new-nodes]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  int schainID = TestUtils::randGen();
+  int dkgV2ID = TestUtils::randGen();
+  int dkgV3ID = dkgV2ID + 1;
+
+  PRINT_SRC_LINE
+  TestUtils::doDKGV3RotationWithNewNodes(c, 4, 4, 3, 1, schainID, dkgV2ID,
+                                         dkgV3ID, 3);
+
+  schainID = TestUtils::randGen();
+  dkgV2ID = TestUtils::randGen();
+  dkgV3ID = dkgV2ID + 1;
+
+  TestUtils::doDKGV3RotationWithNewNodes(c, 10, 10, 7, 6, schainID, dkgV2ID,
+                                         dkgV3ID, 3);
+}
+
+TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
+                 "[dkg-bls-v2-v3-rotation-security]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  int schainID = TestUtils::randGen();
+  int dkgV2ID = TestUtils::randGen();
+  int dkgV3ID = dkgV2ID + 1;
+
+  PRINT_SRC_LINE
+
+  // Case 1: Rotate a threshold of nodes - the nodes rotated out should be able to 
+  // decrypt together
+  TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(
+      c, 10, 7, 7, schainID, dkgV2ID, dkgV3ID);
+
+  schainID = TestUtils::randGen();
+  dkgV2ID = TestUtils::randGen();
+  dkgV3ID = dkgV2ID + 1;
+  int dkgV4ID = dkgV2ID + 2;
+
+  // Case 2: Do 2 successive rotations, each rotating out number of nodes < t
+  // If all nodes join such that number of nodes > t, they should still not be able
+  // to decrypt
+  TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
+      c, 10, 7, 4, 4, schainID, dkgV2ID, dkgV3ID, dkgV4ID);
+
+  // Case 3: Test boundary conditions varying number of faulty nodes.
+  auto runScenario = [&](int n, int t, int rotatedCount,
+                         int nonRespondingCount, bool shouldDecrypt) {
+    int schainID = TestUtils::randGen();
+    int dkgV2ID = TestUtils::randGen();
+    int dkgV3ID = dkgV2ID + 1;
+
+    TestUtils::doDKGV3RotationWithNonRespondingNodes(
+        c, n, t, rotatedCount, nonRespondingCount, shouldDecrypt, schainID,
+        dkgV2ID, dkgV3ID);
+  };
+
+  // should work - 4 nodes, 1 rotated, 1 fautly
+  runScenario(4, 3, 1, 1, true);
+  // should not work - 4 nodes, 1 rotated, 2 faulty
+  runScenario(4, 3, 1, 2, false);
+  // should work - 16 nodes, 1 rotated, 5 faulty
+  runScenario(16, 11, 1, 5, true);
+  // should work - 16 nodes, 10 rotated, 5 faulty (unsafe in practice since rotated > t)
+  runScenario(16, 11, 10, 5, true);
+  // should not work - 16 nodes, 10 rotated, 6 faulty
+  runScenario(16, 11, 1, 6, false);
+}
+
 TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[dkgblszmq]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
