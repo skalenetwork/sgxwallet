@@ -31,14 +31,19 @@ SUBDIRS=secure_enclave
 
 ## Supply additional flags to edger8r here.
 ##
-## SGX_EDGER8R_FLAGS=
+SGX_EDGER8R_FLAGS = --search-path $(top_srcdir)/secure_enclave
 
 WALLET_VERSION := $(shell cat VERSION)
 
 ## Needed to make our pattern rule work.
 
-secure_enclave.edl: secure_enclave/secure_enclave.edl
-	ln -s $?
+if SGX_ENABLE_TEST_ECALLS
+secure_enclave.edl: secure_enclave/secure_enclave_test.edl secure_enclave/secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+else
+secure_enclave.edl: secure_enclave/secure_enclave_production.edl secure_enclave/secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+endif
 
 ## Additional automake variables
 ##
@@ -51,7 +56,7 @@ AM_CXXFLAGS = ${AM_CPPFLAGS} -rdynamic -Wl,--no-as-needed -DSGXWALLET_VERSION="$
 
 AM_CPPFLAGS += -I./libBLS/deps/deps_inst/x86_or_x64/include -DSGXWALLET_VERSION="$(WALLET_VERSION)" -Wall -DSKALE_SGX=1 -DBINARY_OUTPUT=1 -Ileveldb/include \
     -DMCL_FP_BIT=256 -DMCL_FR_BIT=256 -DMCL \
-    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) -I. \
+    -IlibBLS/mcl -IlibBLS/bls -IlibBLS -fno-builtin-memset $(GMP_CPPFLAGS) $(TGMP_CPPFLAGS) -I. \
     -I./libzmq/include -I./cppzmq -I./third_party/zguide \
     -I./rapidjson/include/rapidjson
 
@@ -72,23 +77,38 @@ clean-local:
 	$(MAKE) -C tests/backward_compatibility clean
 
 
+# build but do not install
+noinst_LIBRARIES = libthirdpartyintel.a
+
+INTEL_STUB_SRC = third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c \
+                 third_party/intel/create_enclave.c third_party/intel/oc_alloc.c
+
+libthirdpartyintel_a_SOURCES = $(INTEL_STUB_SRC)
+libthirdpartyintel_a_CPPFLAGS = $(AM_CPPFLAGS) -UPACKAGE -UPACKAGE_NAME -UPACKAGE_STRING -UPACKAGE_TARNAME
+libthirdpartyintel_a_CFLAGS = $(AM_CFLAGS) -Wno-pointer-to-int-cast -Wno-array-parameter
+
+
 ## The build target
 
+## The build target
 bin_PROGRAMS = sgxwallet testw sgx_util
+noinst_PROGRAMS =
+
+if SGX_ENABLE_TEST_ECALLS
+noinst_PROGRAMS += db_reencrypt_integration_tests
+endif
 
 
 ## You can't use $(wildcard ...) with automake so all source files
 ## have to be explicitly listed.
 ## have to be explicitly listed
 
-
 COMMON_SRC = SGXException.cpp ExitHandler.cpp zmq_src/ZMQClient.cpp zmq_src/RspMessage.cpp zmq_src/ReqMessage.cpp \
              zmq_src/ZMQMessage.cpp zmq_src/ZMQServer.cpp zmq_src/Agent.cpp zmq_src/WorkerThreadPool.cpp ExitRequestedException.cpp \
              InvalidStateException.cpp Exception.cpp InvalidArgumentException.cpp Log.cpp TECrypto.cpp \
              SGXWalletServer.cpp SGXRegistrationServer.cpp CSRManagerServer.cpp BLSCrypto.cpp CryptoTools.cpp \
-             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp \
-             third_party/intel/sgx_stub.c third_party/intel/sgx_detect_linux.c third_party/intel/create_enclave.c \
-             third_party/intel/oc_alloc.c ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
+             DKGCrypto.cpp ServerInit.cpp BLSPrivateKeyShareSGX.cpp LevelDB.cpp ServerDataChecker.cpp SEKManager.cpp DBReencrypt.cpp \
+             ECDSAImpl.c TestUtils.cpp sgxwallet.c SGXInfoServer.cpp ECDSACrypto.cpp
 COMMON_ENCLAVE_SRC = secure_enclave_u.c secure_enclave_u.h
 
 sgxwallet_SOURCES = sgxwall.cpp $(COMMON_SRC)
@@ -115,7 +135,7 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
+sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
    -Llibzmq/build/lib/ \
    -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
    -l:libbackend.a -l:libmcl.a -l:libgmp.a \
@@ -128,10 +148,28 @@ sgxwallet_LDADD=-l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_in
    -l:libcurl.a -l:libssl.a -l:libcrypto.a -l:libz.a \
    -ltbb -lgnutls -lgcrypt -lidn2 -lpthread -lstdc++fs -ldl
 
+#############################
+# Tests
+#############################
+
 testw_SOURCES=testw.cpp $(COMMON_SRC)
 nodist_testw_SOURCES=${nodist_sgxwallet_SOURCES}
 EXTRA_testw_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
 testw_LDADD=${sgxwallet_LDADD}
+
+## Integration tests — built with 'make db_reencrypt_integration_tests'
+## Requires a live SGX enclave. Will be migrated to CMake when the root build moves off Autotools.
+if SGX_ENABLE_TEST_ECALLS
+db_reencrypt_integration_tests_CPPFLAGS = $(AM_CPPFLAGS) -DSGX_ENABLE_TEST_ECALLS
+db_reencrypt_integration_tests_SOURCES=tests/integration/db/DBReencryptIntegrationTests.cpp $(COMMON_SRC)
+nodist_db_reencrypt_integration_tests_SOURCES=$(nodist_sgxwallet_SOURCES)
+EXTRA_db_reencrypt_integration_tests_DEPENDENCIES=${EXTRA_sgxwallet_DEPENDENCIES}
+db_reencrypt_integration_tests_LDADD=$(sgxwallet_LDADD)
+endif
+
+#############################
+# SGX util
+#############################
 
 sgx_util_SOURCES=SGXException.cpp ExitHandler.cpp InvalidStateException.cpp Exception.cpp \
                 InvalidArgumentException.cpp Log.cpp sgx_util.cpp stubclient.cpp LevelDB.cpp \

@@ -31,6 +31,13 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrLen,
                 uint64_t *resultLen);
 int AES_decrypt(uint8_t *encr_message, uint64_t length, char *message,
                 uint64_t msgLen, uint8_t *type, uint8_t *exportable);
+int AES_encrypt_with_key(const sgx_aes_gcm_128bit_key_t *aes_key, char *message,
+                         uint8_t *encr_message, uint64_t encrLen,
+                         unsigned char type, unsigned char exportable,
+                         uint64_t *resultLen);
+int AES_decrypt_with_key(const sgx_aes_gcm_128bit_key_t *aes_key,
+                         uint8_t *encr_message, uint64_t length, char *message,
+                         uint64_t msgLen, uint8_t *type, uint8_t *exportable);
 
 #define ECDSA '1'
 #define BLS '2'

@@ -34,7 +34,7 @@
 
 #include <gmp.h>
 #else
-#include <../tgmp-build/include/sgx_tgmp.h>
+#include <sgx_tgmp.h>
 #endif
 
 EXTERNC int gen_dkg_poly(char *secret, unsigned _t);
@@ -48,8 +48,8 @@ EXTERNC int calc_secret_share(const char *decrypted_coeffs, char *s_share,
 EXTERNC int calc_public_shares(const char *decrypted_coeffs,
                                char *public_shares, unsigned _t);
 
-EXTERNC int Verification(char *public_shares, mpz_t decr_secret_share, int _t,
-                         int ind);
+EXTERNC int Verification(const char *public_shares, mpz_t decr_secret_share,
+                         int _t, int ind);
 
 EXTERNC int calc_bls_public_key(char *skey, char *pub_key);
 

@@ -66,18 +66,34 @@ BUILT_SOURCES = secure_enclave_t.c secure_enclave_t.h
 ## Additional Automake flags needed to build the enclave.
 
 AM_CPPFLAGS += -O3 -Wall $(TGMP_CPPFLAGS) -DMCL -I../libBLS/deps/mcl/include -I../sgx-sdk-build/sgxsdk/include/libcxx
+
+if SGX_ENABLE_TEST_ECALLS
+AM_CPPFLAGS += -DSGX_ENABLE_TEST_ECALLS
+endif
+
 AM_CXXFLAGS += -fno-builtin -fstack-protector-strong
 
 
 ## Additional files to remove with 'make clean'. This list needs
 ## to include your edger8r genreated files.
 
-CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
+CLEANFILES+= secure_enclave_t.c secure_enclave_t.h secure_enclave.edl
 
 
 ## Supply additional flags to edger8r here.
 ##
-## SGX_EDGER8R_FLAGS=
+SGX_EDGER8R_FLAGS = --search-path $(top_srcdir)/secure_enclave
+
+## Symbolic link 'secure_enclave.edl' to '*_common.edl' or '*_test.edl'
+## depending on whether 'SGX_ENABLE_TEST_ECALLS' is defined
+## Symb links are used to keep the same final .edl file name
+if SGX_ENABLE_TEST_ECALLS
+secure_enclave.edl: secure_enclave_test.edl secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+else
+secure_enclave.edl: secure_enclave_production.edl secure_enclave_common.edl Makefile
+	ln -sfn $< $@
+endif
 
 
 ## Put your sources here. Don't forget to list the _t.c and _t.h
@@ -86,7 +102,7 @@ CLEANFILES+= secure_enclave_t.c secure_enclave_t.h
 
 secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
 	secure_enclave.c \
-        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c ../SGXException.cpp \
+        Curves.c NumberTheory.c Point.c Signature.c DHDkg.c HKDF.c AESUtils.c SGXException_enclave.cpp \
         DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp MclUtils.cpp \
         $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 

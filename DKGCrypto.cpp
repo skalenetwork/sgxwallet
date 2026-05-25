@@ -33,6 +33,7 @@
 #include "DKGCrypto.h"
 #include "SEKManager.h"
 #include "SGXWalletServer.hpp"
+#include "WalletDBKeys.h"
 
 template <class T> string ConvertToString(T field_elem, int base = 10) {
   mpz_t t;
@@ -258,7 +259,8 @@ string getSecretShares(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -316,7 +318,8 @@ string getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -349,7 +352,13 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 
@@ -417,7 +426,13 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 
@@ -590,7 +605,7 @@ string decryptDHKey(const string &polyName, int ind) {
 
   string DH_key_name = polyName + "_" + to_string(ind) + ":";
   shared_ptr<string> hexEncrKeyPtr =
-      SGXWalletServer::readFromDb(DH_key_name, "DKG_DH_KEY_");
+      SGXWalletServer::readFromDb(DH_key_name, WalletDBKeys::DKG_DH_KEY_PREFIX);
 
   spdlog::debug("encr DH key is {}", *hexEncrKeyPtr);
   spdlog::debug("encr DH key length is {}", hexEncrKeyPtr->length());

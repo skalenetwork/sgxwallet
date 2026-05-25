@@ -8,11 +8,20 @@ cmake-build-debug
 **/*.user
 
 sgx_data
-**/build/
 **/*.o
+**/*.a
+**/*.so
+**/*.lo
+**/build/
+**/.libs/
+**/CMakeFiles/
+**/cmake-build*/
+**/autom4te.cache/
 .deps
 secure_enclave/.deps
 autom4te.cache
+
+# Autotools
 config.log
 config.status
 
@@ -28,6 +37,9 @@ libBLS/deps/libmicrohttpd
 libBLS/deps/argtable2
 libBLS/deps/zlib
 libBLS/deps/*.tar.*
+
+linux-sgx/build/
+linux-sgx/docker/build/
 
 gmp-build
 tgmp-build

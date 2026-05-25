@@ -23,6 +23,7 @@
 
 #include "BLSSigShare.h"
 #include "BLSSignature.h"
+#include <cstdio>
 #include <tools/utils.h>
 
 #include "common.h"
@@ -101,8 +102,8 @@ string BLSPrivateKeyShareSGX::signWithHelperSGXstr(
   SAFE_CHAR_BUF(xStrArg, BUF_LEN)
   SAFE_CHAR_BUF(yStrArg, BUF_LEN) SAFE_CHAR_BUF(signature, BUF_LEN);
 
-  strncpy(xStrArg, xStr->c_str(), BUF_LEN);
-  strncpy(yStrArg, yStr->c_str(), BUF_LEN);
+  snprintf(xStrArg, BUF_LEN, "%s", xStr->c_str());
+  snprintf(yStrArg, BUF_LEN, "%s", yStr->c_str());
 
   size_t sz = 0;
 
