@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgx_tcrypto.h"
 #include "sgx_tseal.h"
 #include <sgx_tgmp.h>
+#include <sgx_thread.h>
 #include <sgx_trts.h>
 
 #include <sgx_key.h>
@@ -67,6 +68,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#ifndef DB_REENCRYPT_BUF_SIZE
+#define DB_REENCRYPT_BUF_SIZE (8 * ENCLAVE_BUF_LEN)
+#endif
 
 #define INIT_ERROR_STATE *errString = 0; *errStatus = UNKNOWN_ERROR;
 #define SET_SUCCESS *errStatus = 0;
@@ -82,7 +86,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CHECK_STATE_CLEAN(_EXPRESSION_) \
     if (!(_EXPRESSION_)) {        \
         LOG_ERROR("State check failed::");LOG_ERROR(#_EXPRESSION_); \
-        LOG_ERROR(__FILE__); LOG_ERROR(__LINE__);                   \
+        LOG_ERROR(__FILE__); LOG_ERROR(TOSTRING(__LINE__));         \
         snprintf(errString, ENCLAVE_BUF_LEN, "State check failed. Check log."); \
         *errStatus = -1;                          \
         goto clean;}
@@ -119,6 +123,25 @@ unsigned char *globalRandom = NULL;
 // -----------------------------------------------------------------------------------------
 // Helper functions
 // -----------------------------------------------------------------------------------------
+static sgx_thread_mutex_t migration_sek_mutex = SGX_THREAD_MUTEX_INITIALIZER;
+
+// temporary buffers set during database reencryption
+static sgx_aes_gcm_128bit_key_t migration_old_sek;
+static sgx_aes_gcm_128bit_key_t migration_new_sek;
+static bool migration_sek_active = false;
+
+static void clear_migration_seks() {
+    memset(migration_old_sek, 0, SGX_AESGCM_KEY_SIZE);
+    memset(migration_new_sek, 0, SGX_AESGCM_KEY_SIZE);
+    migration_sek_active = false;
+}
+
+// generates random SEK
+static void generate_sek(sgx_aes_gcm_128bit_key_t *sek, char *sek_hex) {
+    RANDOM_CHAR_BUF(sek_raw, SGX_AESGCM_KEY_SIZE);
+    memcpy(*sek, sek_raw, SGX_AESGCM_KEY_SIZE);
+    carray2Hex((uint8_t*) *sek, SGX_AESGCM_KEY_SIZE, sek_hex);
+}
 
 static size_t copy_string(char *dest, size_t dest_size, const char *src) {
     size_t len;
@@ -285,10 +308,8 @@ void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     memcpy(_randBuff, tmpBuffer, _size);
 }
 
-void sealHexSEK(int *errStatus, char *errString,
+static void sealHexSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {
-    CALL_ONCE
-    LOG_INFO(__FUNCTION__);
     INIT_ERROR_STATE
 
     CHECK_STATE(encrypted_sek);
@@ -310,7 +331,7 @@ void sealHexSEK(int *errStatus, char *errString,
 
     uint64_t encrypt_text_length = sgx_get_encrypt_txt_len((const sgx_sealed_data_t *)encrypted_sek);
 
-    CHECK_STATE(encrypt_text_length = plaintextLen);
+    CHECK_STATE(encrypt_text_length == plaintextLen);
 
     SAFE_CHAR_BUF(unsealedKey, ENCLAVE_BUF_LEN);
     uint32_t decLen = ENCLAVE_BUF_LEN;
@@ -568,6 +589,13 @@ clean:
 // Trusted functions
 // -----------------------------------------------------------------------------
 
+static void sealHexSEKOnce(int *errStatus, char *errString,
+                        uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {
+    CALL_ONCE
+    LOG_INFO(__FUNCTION__);
+    sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
+}
+
 void trustedGenerateSEK(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {
     CALL_ONCE
@@ -577,15 +605,12 @@ void trustedGenerateSEK(int *errStatus, char *errString,
     CHECK_STATE(encrypted_sek);
     CHECK_STATE(sek_hex);
 
-    RANDOM_CHAR_BUF(SEK_raw, SGX_AESGCM_KEY_SIZE);
+    generate_sek(&(AES_key[512]), sek_hex);
 
-    carray2Hex((uint8_t*) SEK_raw, SGX_AESGCM_KEY_SIZE, sek_hex);
-    memcpy(AES_key[512], SEK_raw, SGX_AESGCM_KEY_SIZE);
-
-    sealHexSEK(errStatus, errString, encrypted_sek, enc_len, sek_hex);
+    sealHexSEKOnce(errStatus, errString, encrypted_sek, enc_len, sek_hex);
 
     if (*errStatus != 0) {
-        LOG_ERROR("sealHexSEK failed");
+        LOG_ERROR("sealHexSEKOnce failed");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -641,10 +666,10 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     uint64_t len;
     hex2carray(sek_hex, &len, (uint8_t *) (AES_key[512]));
 
-    sealHexSEK(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
+    sealHexSEKOnce(errStatus, errString, encrypted_sek, enc_len, (char *)sek_hex);
 
     if (*errStatus != 0) {
-        LOG_ERROR("sealHexSEK failed");
+        LOG_ERROR("sealHexSEKOnce failed");
         LOG_ERROR(errString);
         goto clean;
     }
@@ -652,6 +677,161 @@ void trustedSetSEKBackup(int *errStatus, char *errString,
     SET_SUCCESS
     clean:
     ;
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
+
+// ------------------------------------------------------------------------------------------
+// Database Reencryption
+// ------------------------------------------------------------------------------------------
+
+void trustedBeginDBReencrypt(int *errStatus, char *errString,
+                             const char *old_sek_hex,
+                             uint8_t *encrypted_new_sek, uint64_t *enc_len,
+                             char *new_sek_hex) {
+
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(old_sek_hex);
+    CHECK_STATE(encrypted_new_sek);
+    CHECK_STATE(enc_len);
+    CHECK_STATE(new_sek_hex);
+
+    // only allow 1 migration at a time
+    CHECK_STATE(sgx_thread_mutex_lock(&migration_sek_mutex) == 0);
+
+    CHECK_STATE_CLEAN(!migration_sek_active);
+    CHECK_STATE_CLEAN(strnlen(old_sek_hex, 33) == 32);
+
+    uint64_t old_sek_len = 0;
+    if (!hex2carray(old_sek_hex, &old_sek_len, (uint8_t *) migration_old_sek) ||
+        old_sek_len != SGX_AESGCM_KEY_SIZE) {
+        snprintf(errString, ENCLAVE_BUF_LEN, "Invalid old SEK hex");
+        LOG_ERROR(errString);
+        *errStatus = -1;
+        goto clean;
+    }
+
+    generate_sek(&migration_new_sek, new_sek_hex);
+
+    // encrypt new SEK with enclave key
+    sealHexSEK(errStatus, errString, encrypted_new_sek, enc_len, new_sek_hex);
+
+    if (*errStatus != 0) {
+        LOG_ERROR("sealHexSEK failed");
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    migration_sek_active = true;
+    SET_SUCCESS
+    clean:
+    if (*errStatus != 0) {
+        clear_migration_seks();
+    }
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
+
+void trustedReencryptDBPayload(int *errStatus, char *errString,
+                               uint8_t *encrypted_payload,
+                               uint64_t encrypted_payload_len,
+                               uint8_t *reencrypted_payload,
+                               uint64_t *reencrypted_payload_len) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+
+    CHECK_STATE(encrypted_payload);
+    CHECK_STATE(encrypted_payload_len > 0);
+    CHECK_STATE(encrypted_payload_len <= DB_REENCRYPT_BUF_SIZE);
+    CHECK_STATE(reencrypted_payload);
+    CHECK_STATE(reencrypted_payload_len);
+
+    SAFE_CHAR_BUF(decrypted_payload, DB_REENCRYPT_BUF_SIZE);
+    SAFE_CHAR_BUF(validated_payload, DB_REENCRYPT_BUF_SIZE);
+    uint8_t payload_type = 0;
+    uint8_t payload_exportable = 0;
+    uint8_t validated_type = 0;
+    uint8_t validated_exportable = 0;
+
+    CHECK_STATE(sgx_thread_mutex_lock(&migration_sek_mutex) == 0);
+
+    CHECK_STATE_CLEAN(migration_sek_active);
+    // decrypt with old SEK
+    int status = AES_decrypt_with_key(
+            &migration_old_sek, encrypted_payload, encrypted_payload_len,
+            decrypted_payload, DB_REENCRYPT_BUF_SIZE, &payload_type,
+            &payload_exportable);
+    CHECK_STATUS2("DB payload decrypt with old SEK failed with status %d");
+
+    // encrypt with new SEK
+    status = AES_encrypt_with_key(
+            &migration_new_sek, decrypted_payload, reencrypted_payload,
+            DB_REENCRYPT_BUF_SIZE, payload_type, payload_exportable,
+            reencrypted_payload_len);
+    CHECK_STATUS2("DB payload encrypt with new SEK failed with status %d");
+
+    // test new encryption by decrypting again with new SEK and comparing with original plaintext
+    status = AES_decrypt_with_key(
+            &migration_new_sek, reencrypted_payload, *reencrypted_payload_len,
+            validated_payload, DB_REENCRYPT_BUF_SIZE, &validated_type,
+            &validated_exportable);
+    CHECK_STATUS2("DB payload validation decrypt failed with status %d");
+
+    if (payload_type != validated_type ||
+        payload_exportable != validated_exportable ||
+        strncmp(decrypted_payload, validated_payload, DB_REENCRYPT_BUF_SIZE) != 0) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "DB payload validation after reencrypt failed");
+        LOG_ERROR(errString);
+        *errStatus = -1;
+        goto clean;
+    }
+
+    SET_SUCCESS
+    clean:
+    memset(decrypted_payload, 0, DB_REENCRYPT_BUF_SIZE);
+    memset(validated_payload, 0, DB_REENCRYPT_BUF_SIZE);
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
+
+void trustedCommitDBReencrypt(int *errStatus, char *errString) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(sgx_thread_mutex_lock(&migration_sek_mutex) == 0);
+
+    CHECK_STATE_CLEAN(migration_sek_active);
+
+    // set new global SEK to be the new SEK, and clear tmp SEK buffers
+    memcpy(AES_key[512], migration_new_sek, SGX_AESGCM_KEY_SIZE);
+    clear_migration_seks();
+
+    SET_SUCCESS
+    clean:
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
+
+void trustedAbortDBReencrypt(int *errStatus, char *errString) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(sgx_thread_mutex_lock(&migration_sek_mutex) == 0);
+
+    clear_migration_seks();
+
+    sgx_thread_mutex_unlock(&migration_sek_mutex);
+
+    SET_SUCCESS
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
@@ -1948,3 +2128,54 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
+
+#ifdef SGX_ENABLE_TEST_ECALLS
+
+void trustedTestDecryptAndMatch(int *errStatus, char *errString,
+                                const char *sek_hex,
+                                uint8_t *encrypted_payload,
+                                uint64_t encrypted_payload_len,
+                                const char *expected_plaintext,
+                                int *matches) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    SAFE_CHAR_BUF(decrypted, ENCLAVE_BUF_LEN);
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+    uint64_t sek_len = 0;
+    sgx_aes_gcm_128bit_key_t sek;
+    memset(sek, 0, sizeof(sek));
+    int status = 0;
+
+    CHECK_STATE(sek_hex);
+    CHECK_STATE(encrypted_payload);
+    CHECK_STATE(encrypted_payload_len > 0);
+    CHECK_STATE(encrypted_payload_len <= ENCLAVE_BUF_LEN);
+    CHECK_STATE(expected_plaintext);
+    CHECK_STATE(matches);
+
+    *matches = 0;
+
+    if (!hex2carray(sek_hex, &sek_len, (uint8_t *) sek) ||
+        sek_len != SGX_AESGCM_KEY_SIZE) {
+        snprintf(errString, ENCLAVE_BUF_LEN, "Invalid SEK hex");
+        *errStatus = -1;
+        goto clean;
+    }
+
+    status = AES_decrypt_with_key(&sek, encrypted_payload, encrypted_payload_len,
+                                  decrypted, ENCLAVE_BUF_LEN, &type, &exportable);
+    CHECK_STATUS2("trustedTestDecryptAndMatch: decrypt failed with status %d");
+
+    *matches = (strncmp(decrypted, expected_plaintext, ENCLAVE_BUF_LEN) == 0) ? 1 : 0;
+
+    SET_SUCCESS
+    clean:
+    memset(decrypted, 0, ENCLAVE_BUF_LEN);
+    memset(sek, 0, SGX_AESGCM_KEY_SIZE);
+    LOG_INFO(__FUNCTION__);
+    LOG_INFO("SGX call completed");
+}
+
+#endif

@@ -42,6 +42,7 @@
 #include "LevelDB.h"
 #include "SGXException.h"
 #include "TECrypto.h"
+#include "WalletDBKeys.h"
 
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
@@ -66,35 +67,6 @@ uint64_t initTime;
 SGXWalletServer::thread_pool SGXWalletServer::threadPool;
 std::unique_ptr<tbb::global_control>
     SGXWalletServer::globalSGXThreadpoolControl = nullptr;
-
-void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
-                    int _enterBackupKey) {
-  COUNT_STATISTICS
-  spdlog::info("Entering {}", __FUNCTION__);
-
-  CHECK_STATE(_logLevel <= 2)
-
-  if (_logLevel == L_TRACE) {
-    spdlog::set_level(spdlog::level::trace);
-  } else if (_logLevel == L_DEBUG) {
-    spdlog::set_level(spdlog::level::debug);
-  } else {
-    spdlog::set_level(spdlog::level::info);
-  }
-
-  useHTTPS = _useHTTPS;
-  spdlog::info("useHTTPS set to " + to_string(_useHTTPS));
-  autoconfirm = _autoconfirm;
-  spdlog::info("autoconfirm set to " + to_string(autoconfirm));
-  enterBackupKey = _enterBackupKey;
-  spdlog::info("enterBackupKey set to " + to_string(enterBackupKey));
-}
-
-void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm) {
-  COUNT_STATISTICS
-  spdlog::info("Entering {}", __FUNCTION__);
-  setFullOptions(_logLevel, _useHTTPS, _autoconfirm, false);
-}
 
 bool isStringDec(const string &_str) {
   auto res = find_if_not(_str.begin(), _str.end(),
@@ -444,7 +416,7 @@ Json::Value SGXWalletServer::generateECDSAKeyImpl() {
                          string(__FUNCTION__) + ":key was not generated");
     }
 
-    string keyName = "NEK:" + keys.at(2);
+    string keyName = string(WalletDBKeys::ECDSA_KEY_PREFIX) + keys.at(2);
 
     writeDataToDB(keyName, keys.at(0));
 
@@ -1650,23 +1622,26 @@ Json::Value SGXWalletServer::popProve(const std::string &blsKeyName) {
   return popProveImpl(blsKeyName);
 }
 
-shared_ptr<string> SGXWalletServer::readFromDb(const string &name,
-                                               const string &prefix) {
-  auto dataStr = checkDataFromDb(prefix + name);
+shared_ptr<string> SGXWalletServer::readFromDb(std::string_view name,
+                                               std::string_view prefix) {
+  string dbName(prefix);
+  dbName += name;
+  auto dataStr = checkDataFromDb(dbName);
 
   if (dataStr == nullptr) {
     throw SGXException(KEY_SHARE_DOES_NOT_EXIST,
                        string(__FUNCTION__) +
-                           ":Data with this name does not exist: " + prefix +
-                           name);
+                           ":Data with this name does not exist: " + dbName);
   }
 
   return dataStr;
 }
 
-shared_ptr<string> SGXWalletServer::checkDataFromDb(const string &name,
-                                                    const string &prefix) {
-  auto dataStr = LevelDB::getLevelDb()->readString(prefix + name);
+shared_ptr<string> SGXWalletServer::checkDataFromDb(std::string_view name,
+                                                    std::string_view prefix) {
+  string dbName(prefix);
+  dbName += name;
+  auto dataStr = LevelDB::getLevelDb()->readString(dbName);
 
   return dataStr;
 }

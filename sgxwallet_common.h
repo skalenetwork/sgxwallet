@@ -217,6 +217,9 @@ extern bool autoconfirm;
 #define WALLETDB_NAME "sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
+#define SGXWALLET_BACKUP_KEY_FILE "sgxwallet_backup_key.txt"
+#define SGXWALLET_BACKUP_KEY_PATH "./" SGXDATA_FOLDER SGXWALLET_BACKUP_KEY_FILE
+#define SGXWALLET_BACKUP_KEY_TMP_PATH SGXWALLET_BACKUP_KEY_PATH ".tmp"
 
 #define TEST_VALUE "1234567890"
 

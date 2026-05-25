@@ -36,6 +36,7 @@
 /secure_enclave/Makefile.in
 /secure_enclave/secure_enclave.signed.so
 /secure_enclave/secure_enclave.so
+/secure_enclave/secure_enclave.edl
 /secure_enclave/secure_enclave_t.c
 /secure_enclave/secure_enclave_t.h
 /sgxd
