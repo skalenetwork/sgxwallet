@@ -445,10 +445,11 @@ bool ZMQClient::createBLSPrivateKey(const string &blsKeyName,
   return result->getStatus() == 0;
 }
 
-bool ZMQClient::createBLSPrivateKeyV3(
-    const string &blsKeyName, const string &ethKeyName,
-    const string &polyName, const Json::Value &secretContributions,
-    int t, int n) {
+bool ZMQClient::createBLSPrivateKeyV3(const string &blsKeyName,
+                                      const string &ethKeyName,
+                                      const string &polyName,
+                                      const Json::Value &secretContributions,
+                                      int t, int n) {
   Json::Value p;
   p["type"] = ZMQMessage::CREATE_BLS_PRIVATE_V3_REQ;
   p["ethKeyName"] = ethKeyName;

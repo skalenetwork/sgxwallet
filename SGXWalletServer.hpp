@@ -123,9 +123,9 @@ public:
    * Generates a DKG polynomial using '_previousBLSPrivateKeyName' BLS key
    * as the polynomial's free coefficient.
    */
-  virtual Json::Value generateDKGPolyV3(
-      const string &_polyName, const string &_previousBLSPrivateKeyName,
-      int _t);
+  virtual Json::Value
+  generateDKGPolyV3(const string &_polyName,
+                    const string &_previousBLSPrivateKeyName, int _t);
 
   virtual Json::Value getVerificationVector(const string &_polynomeName,
                                             int _t);
@@ -221,9 +221,9 @@ public:
 
   static Json::Value generateDKGPolyImpl(const string &_polyName, int _t);
 
-  static Json::Value generateDKGPolyV3Impl(
-      const string &_polyName, const string &_previousBLSPrivateKeyName,
-      int _t);
+  static Json::Value
+  generateDKGPolyV3Impl(const string &_polyName,
+                        const string &_previousBLSPrivateKeyName, int _t);
 
   static Json::Value getVerificationVectorImpl(const string &_polyName, int _t);
 
@@ -275,12 +275,10 @@ public:
                                                const std::string &SecretShare,
                                                int t, int n);
 
-  static Json::Value
-  createBLSPrivateKeyV3Impl(const std::string &blsKeyName,
-                            const std::string &ethKeyName,
-                            const std::string &polyName,
-                            const Json::Value &secretContributions, int t,
-                            int n);
+  static Json::Value createBLSPrivateKeyV3Impl(
+      const std::string &blsKeyName, const std::string &ethKeyName,
+      const std::string &polyName, const Json::Value &secretContributions,
+      int t, int n);
 
   static Json::Value generateBLSPrivateKeyImpl(const string &blsKeyName);
 

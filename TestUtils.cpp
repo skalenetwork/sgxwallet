@@ -57,6 +57,7 @@
 #include "third_party/catch.hpp"
 #include <algorithm>
 #include <limits>
+#include <thread>
 #include <threshold_encryption/CipheredKey.h>
 #include <threshold_encryption/Ciphertext.h>
 #include <threshold_encryption/TEDecryptSet.h>
@@ -64,7 +65,6 @@
 #include <threshold_encryption/TEPublicKey.h>
 #include <threshold_encryption/TEPublicKeyShare.h>
 #include <threshold_encryption/ThresholdEncryption.h>
-#include <thread>
 
 using namespace jsonrpc;
 using namespace std;
@@ -83,10 +83,10 @@ struct RotationDkgData {
   vector<string> polyNames;
   // Each index contains BLS key name for node index i
   vector<string> blsKeyNames;
-  // each index contains public shares of node index i, concatenated as hex string
-  // public shares are coeff of polynomial * G
-  // it follows this format:
-  // <coeff1 * G serialized into 4 components> <coeff2 * G serialized into 4 components>
+  // each index contains public shares of node index i, concatenated as hex
+  // string public shares are coeff of polynomial * G it follows this format:
+  // <coeff1 * G serialized into 4 components> <coeff2 * G serialized into 4
+  // components>
   // [hex(a00)||hex(a01)||hex(a02)||hex(a03)]||[hex(a10)||hex(a11)||hex(a12)||hex(a13)]||...
   vector<string> publicShares;
   vector<libBLS::algebra::G2Point> blsPublicKeyShares;
@@ -107,7 +107,8 @@ blsPublicKeyShareFromResponse(const Json::Value &response) {
 
 /**
  * @brief Calculate the binomial coefficient "n choose k".
- * @return Number of possible combinations of k elements from a set of n elements.
+ * @return Number of possible combinations of k elements from a set of n
+ * elements.
  */
 unsigned long long binomialCoefficient(int n, int k) {
   CHECK_STATE(n >= 0);
@@ -123,21 +124,19 @@ unsigned long long binomialCoefficient(int n, int k) {
   // PROD(i=1 to k) (n-k+i)/i
   unsigned long long result = 1;
   for (int i = 1; i <= k; ++i) {
-    const __uint128_t next =
-        static_cast<__uint128_t>(result) *
-        static_cast<unsigned long long>(n - k + i) /
-        static_cast<unsigned long long>(i);
-    CHECK_STATE(next <=
-                static_cast<__uint128_t>(
-                    numeric_limits<unsigned long long>::max()));
+    const __uint128_t next = static_cast<__uint128_t>(result) *
+                             static_cast<unsigned long long>(n - k + i) /
+                             static_cast<unsigned long long>(i);
+    CHECK_STATE(next <= static_cast<__uint128_t>(
+                            numeric_limits<unsigned long long>::max()));
     result = static_cast<unsigned long long>(next);
   }
   return result;
 }
 
 /**
- * @brief Given n, k and a rank in the range [0, C(n, k) - 1], return the k-combination
- * corresponding to that rank in lexicographic order.
+ * @brief Given n, k and a rank in the range [0, C(n, k) - 1], return the
+ * k-combination corresponding to that rank in lexicographic order.
  */
 vector<size_t> unrankCombination(int n, int k, unsigned long long rank) {
   vector<size_t> combination;
@@ -239,11 +238,12 @@ vector<vector<size_t>> selectedThresholdSubsets(int n, int t,
 
 /**
  * @brief Reconstruct common BLS public key from threshold of BLS public keys.
- * Works exactly the same for both V2 and V3, since the differences between the 
- * global polynomials are already included in the encoding of each individual 
+ * Works exactly the same for both V2 and V3, since the differences between the
+ * global polynomials are already included in the encoding of each individual
  * BLS public key.
- * From this level of execution, both V2 and V3 public BLS keys are P(i) evaluations
- * of some global polynomial. So laggrange interpolation works in both cases
+ * From this level of execution, both V2 and V3 public BLS keys are P(i)
+ * evaluations of some global polynomial. So laggrange interpolation works in
+ * both cases
  */
 libBLS::algebra::G2Point reconstructCommonPublicKeyV2(
     const vector<libBLS::algebra::G2Point> &publicKeyShares,
@@ -253,8 +253,8 @@ libBLS::algebra::G2Point reconstructCommonPublicKeyV2(
   map<size_t, libBLS::BLSPublicKeyShare> publicKeyShareMap;
   for (int i = 0; i < t; ++i) {
     const size_t nodeIndex = subset.at(i);
-    vector<string> pubKeyVect =
-        publicKeyShares.at(nodeIndex).toStringVector(libBLS::algebra::Base::DEC);
+    vector<string> pubKeyVect = publicKeyShares.at(nodeIndex).toStringVector(
+        libBLS::algebra::Base::DEC);
     libBLS::BLSPublicKeyShare pubKey(pubKeyVect, t, n);
     publicKeyShareMap.insert(make_pair(nodeIndex + 1, pubKey));
   }
@@ -299,20 +299,21 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
 
     verificationVectors[i] = c.getVerificationVector(data.polyNames[i], t);
     CHECK_STATE(verificationVectors[i]["status"] == 0);
-    data.publicShares[i] =
-        TestUtils::publicSharesFromVerificationVector(verificationVectors[i], t);
+    data.publicShares[i] = TestUtils::publicSharesFromVerificationVector(
+        verificationVectors[i], t);
   }
 
   // each secretShares[i] contains all secret shares from node i.
-  // encrypted with ECDH shared key between node i and recipient node j, for j=0..n-1, concatenated as hex string.
+  // encrypted with ECDH shared key between node i and recipient node j, for
+  // j=0..n-1, concatenated as hex string.
   for (int contributor = 0; contributor < n; ++contributor) {
-    secretShares[contributor] =
-        c.getSecretShareV2(data.polyNames[contributor], data.publicEcdsaKeys, t,
-                           n);
+    secretShares[contributor] = c.getSecretShareV2(data.polyNames[contributor],
+                                                   data.publicEcdsaKeys, t, n);
     CHECK_STATE(secretShares[contributor]["status"] == 0);
   }
 
-  // for node i, hold all secret shares from secretShares[i] (all shares for node i from other nodes)
+  // for node i, hold all secret shares from secretShares[i] (all shares for
+  // node i from other nodes)
   vector<string> recipientSecretShares(n);
 
   for (int contributor = 0; contributor < n; ++contributor) {
@@ -356,8 +357,8 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
   for (int i = 0; i < t; ++i) {
     defaultSubset.push_back(static_cast<size_t>(i));
   }
-  data.commonBlsPublicKey =
-      reconstructCommonPublicKeyV2(data.blsPublicKeyShares, defaultSubset, t, n);
+  data.commonBlsPublicKey = reconstructCommonPublicKeyV2(
+      data.blsPublicKeyShares, defaultSubset, t, n);
 
   return data;
 }
@@ -367,8 +368,8 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
  * while keeping the exact same nodes (no node is rotated)
  */
 RotationDkgData runDKGV3ForRotation(StubClient &c,
-                                    const RotationDkgData &v2Data, int n,
-                                    int t, int schainID, int dkgID) {
+                                    const RotationDkgData &v2Data, int n, int t,
+                                    int schainID, int dkgID) {
   RotationDkgData data;
   data.ecdsaKeyNames = v2Data.ecdsaKeyNames;
   data.publicEcdsaKeys = v2Data.publicEcdsaKeys;
@@ -393,13 +394,13 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         c.getVerificationVector(data.polyNames[contributor], t);
     CHECK_STATE(verificationVectors[contributor]["status"] == 0);
     data.publicShares[contributor] =
-        TestUtils::publicSharesFromVerificationVector(verificationVectors[contributor], t);
+        TestUtils::publicSharesFromVerificationVector(
+            verificationVectors[contributor], t);
   }
 
   for (int contributor = 0; contributor < n; ++contributor) {
-    secretShares[contributor] =
-        c.getSecretShareV2(data.polyNames[contributor], data.publicEcdsaKeys, t,
-                           n);
+    secretShares[contributor] = c.getSecretShareV2(data.polyNames[contributor],
+                                                   data.publicEcdsaKeys, t, n);
     CHECK_STATE(secretShares[contributor]["status"] == 0);
   }
 
@@ -453,24 +454,27 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
   for (int i = 0; i < t; ++i) {
     defaultSubset.push_back(static_cast<size_t>(i));
   }
-  data.commonBlsPublicKey =
-      reconstructCommonPublicKeyV2(data.blsPublicKeyShares, defaultSubset, t, n);
+  data.commonBlsPublicKey = reconstructCommonPublicKeyV2(
+      data.blsPublicKeyShares, defaultSubset, t, n);
 
   return data;
 }
 
 /**
  * @brief Runs DKG V3 rotation, allowing nodes to be rotated out & in
- * @param newCommitteeOldIndices maps each new committee position to the old committee index of the node that takes that position.
- * For example, if newCommitteeOldIndices = [2, 0, 5, 1] means that new node in position 0 is old node 2, 
- * new node in position 1 is old node 0, new node in position 2 is old node 5, etc.
+ * @param newCommitteeOldIndices maps each new committee position to the old
+ * committee index of the node that takes that position. For example, if
+ * newCommitteeOldIndices = [2, 0, 5, 1] means that new node in position 0 is
+ * old node 2, new node in position 1 is old node 0, new node in position 2 is
+ * old node 5, etc.
  * @param oldN number of nodes in old committee
  * @param newN number of nodes in new committee
  */
-RotationDkgData runDKGV3ForRotationWithNewNodes(
-    StubClient &c, const RotationDkgData &v2Data,
-    const vector<size_t> &newCommitteeOldIndices, int oldN, int newN, int t,
-    int schainID, int dkgID) {
+RotationDkgData
+runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
+                                const vector<size_t> &newCommitteeOldIndices,
+                                int oldN, int newN, int t, int schainID,
+                                int dkgID) {
   CHECK_STATE(oldN > 0);
   CHECK_STATE(newN > 0);
   CHECK_STATE(t > 0);
@@ -512,12 +516,11 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
   for (size_t oldDealerIndex = 0; oldDealerIndex < dealerCount;
        ++oldDealerIndex) {
     // generate new polynomial for each dealer
-    dealerPolyNames[oldDealerIndex] =
-        TestUtils::makeDKGPolyName(schainID,
-                                   static_cast<int>(oldDealerIndex), dkgID);
-    Json::Value response = c.generateDKGPolyV3(
-        dealerPolyNames[oldDealerIndex], v2Data.blsKeyNames.at(oldDealerIndex),
-        t);
+    dealerPolyNames[oldDealerIndex] = TestUtils::makeDKGPolyName(
+        schainID, static_cast<int>(oldDealerIndex), dkgID);
+    Json::Value response =
+        c.generateDKGPolyV3(dealerPolyNames[oldDealerIndex],
+                            v2Data.blsKeyNames.at(oldDealerIndex), t);
     CHECK_STATE(response["status"] == 0);
 
     // get verification vectors
@@ -526,7 +529,7 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
     CHECK_STATE(verificationVector["status"] == 0);
     dealerPublicShares[oldDealerIndex] =
         TestUtils::publicSharesFromVerificationVector(verificationVector, t);
-    
+
     // get secret contributions from this dealer - using 'newN' number of points
     // one for each new node
     dealerSecretShares[oldDealerIndex] = c.getSecretShareV2(
@@ -572,9 +575,8 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
   for (int recipient = 0; recipient < newN; ++recipient) {
     const size_t nodeLabel = newCommitteeOldIndices.at(recipient);
     // create BLS key name for new node
-    const string syntheticPolyName =
-        TestUtils::makeDKGPolyName(schainID, static_cast<int>(nodeLabel),
-                                   dkgID);
+    const string syntheticPolyName = TestUtils::makeDKGPolyName(
+        schainID, static_cast<int>(nodeLabel), dkgID);
     data.blsKeyNames[recipient] =
         TestUtils::blsNameFromPolyName(syntheticPolyName);
 
@@ -611,9 +613,8 @@ RotationDkgData runDKGV3ForRotationWithNewNodes(
   for (int i = 0; i < t; ++i) {
     defaultSubset.push_back(static_cast<size_t>(i));
   }
-  data.commonBlsPublicKey =
-      reconstructCommonPublicKeyV2(data.blsPublicKeyShares, defaultSubset, t,
-                                    newN);
+  data.commonBlsPublicKey = reconstructCommonPublicKeyV2(
+      data.blsPublicKeyShares, defaultSubset, t, newN);
 
   return data;
 }
@@ -636,14 +637,15 @@ vector<vector<uint8_t>> buildRotationPlaintexts(int n, int t,
 /**
  * @brief Helper function that collects decryption shares for a given ciphertext
  * from all nodes.
- * @return A 2D vector of hex-encoded decryption shares, indexed by [node][ciphertext].
+ * @return A 2D vector of hex-encoded decryption shares, indexed by
+ * [node][ciphertext].
  */
-vector<vector<string>> collectDecryptionShares(
-    StubClient &c, const vector<string> &blsKeyNames,
-    const vector<libBLS::algebra::G2Point> &publicKeyShares,
-    const vector<libBLS::CipheredKey> &cipheredKeys, int t, int n) {
-  vector<vector<string>> sharesByNode(
-      n, vector<string>(cipheredKeys.size()));
+vector<vector<string>>
+collectDecryptionShares(StubClient &c, const vector<string> &blsKeyNames,
+                        const vector<libBLS::algebra::G2Point> &publicKeyShares,
+                        const vector<libBLS::CipheredKey> &cipheredKeys, int t,
+                        int n) {
+  vector<vector<string>> sharesByNode(n, vector<string>(cipheredKeys.size()));
 
   Json::Value publicDecryptionValues;
   publicDecryptionValues["publicDecryptionValues"] =
@@ -684,14 +686,14 @@ vector<vector<string>> collectDecryptionShares(
   return sharesByNode;
 }
 
-void assertMixedV2V3SharesFail(
-    const vector<libBLS::Ciphertext> &ciphertexts,
-    const vector<vector<uint8_t>> &plaintexts,
-    const vector<libBLS::CipheredKey> &cipheredKeys,
-    const vector<vector<string>> &v2DecryptionShares,
-    const vector<vector<string>> &v3DecryptionShares,
-    const vector<vector<size_t>> &selectedSubsets,
-    const libBLS::TEPublicKey &commonPublicKey, int t, int n) {
+void assertMixedV2V3SharesFail(const vector<libBLS::Ciphertext> &ciphertexts,
+                               const vector<vector<uint8_t>> &plaintexts,
+                               const vector<libBLS::CipheredKey> &cipheredKeys,
+                               const vector<vector<string>> &v2DecryptionShares,
+                               const vector<vector<string>> &v3DecryptionShares,
+                               const vector<vector<size_t>> &selectedSubsets,
+                               const libBLS::TEPublicKey &commonPublicKey,
+                               int t, int n) {
   if (t < 2 || selectedSubsets.empty()) {
     return;
   }
@@ -885,24 +887,24 @@ bool shareRefsDecryptToPlaintext(
   }
 }
 
-void assertShareRefsDecrypt(
-    const vector<libBLS::Ciphertext> &ciphertexts,
-    const vector<vector<uint8_t>> &plaintexts,
-    const vector<libBLS::CipheredKey> &cipheredKeys,
-    const vector<DecryptionShareRef> &shareRefs,
-    const libBLS::TEPublicKey &commonPublicKey, int t, int n) {
+void assertShareRefsDecrypt(const vector<libBLS::Ciphertext> &ciphertexts,
+                            const vector<vector<uint8_t>> &plaintexts,
+                            const vector<libBLS::CipheredKey> &cipheredKeys,
+                            const vector<DecryptionShareRef> &shareRefs,
+                            const libBLS::TEPublicKey &commonPublicKey, int t,
+                            int n) {
   CHECK_STATE(shareRefsDecryptToPlaintext(ciphertexts, plaintexts, cipheredKeys,
                                           shareRefs, commonPublicKey, t, n));
 }
 
-void assertShareRefsFail(
-    const vector<libBLS::Ciphertext> &ciphertexts,
-    const vector<vector<uint8_t>> &plaintexts,
-    const vector<libBLS::CipheredKey> &cipheredKeys,
-    const vector<DecryptionShareRef> &shareRefs,
-    const libBLS::TEPublicKey &commonPublicKey, int t, int n) {
-  CHECK_STATE(!shareRefsDecryptToPlaintext(ciphertexts, plaintexts, cipheredKeys,
-                                           shareRefs, commonPublicKey, t, n));
+void assertShareRefsFail(const vector<libBLS::Ciphertext> &ciphertexts,
+                         const vector<vector<uint8_t>> &plaintexts,
+                         const vector<libBLS::CipheredKey> &cipheredKeys,
+                         const vector<DecryptionShareRef> &shareRefs,
+                         const libBLS::TEPublicKey &commonPublicKey, int t,
+                         int n) {
+  CHECK_STATE(!shareRefsDecryptToPlaintext(
+      ciphertexts, plaintexts, cipheredKeys, shareRefs, commonPublicKey, t, n));
 }
 
 vector<size_t> takeFirstNodes(const vector<size_t> &nodes, int count) {
@@ -984,8 +986,7 @@ string TestUtils::encryptedDkgSecretContributionForRecipient(
   const size_t offset =
       TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipientIndex;
   CHECK_STATE(secretShares.length() >=
-              offset +
-                  TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+              offset + TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
   return secretShares.substr(
       offset, TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 }
@@ -997,8 +998,9 @@ Json::Value TestUtils::dkgV3SecretContributionsForRecipient(
        ++contributor) {
     Json::Value entry;
     entry["contributorIndex"] = static_cast<Json::UInt>(contributor);
-    entry["secretShare"] = TestUtils::encryptedDkgSecretContributionForRecipient(
-        dealerSecretShares[contributor], recipientIndex);
+    entry["secretShare"] =
+        TestUtils::encryptedDkgSecretContributionForRecipient(
+            dealerSecretShares[contributor], recipientIndex);
     secretContributions.append(entry);
   }
   return secretContributions;
@@ -1742,8 +1744,8 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
 }
 
 void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
-                                int dkgV2ID, int dkgV3ID,
-                                int coveragePercent, int ciphertextCount) {
+                                int dkgV2ID, int dkgV3ID, int coveragePercent,
+                                int ciphertextCount) {
   CHECK_STATE(n > 0);
   CHECK_STATE(t > 0);
   CHECK_STATE(t <= n);
@@ -1751,8 +1753,7 @@ void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
   CHECK_STATE(ciphertextCount > 0);
 
   // run DKGV2 to get initial keys and set up for rotation
-  RotationDkgData v2Data =
-      runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
+  RotationDkgData v2Data = runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
   CHECK_STATE(v2Data.blsKeyNames.size() == static_cast<size_t>(n));
   CHECK_STATE(v2Data.blsPublicKeyShares.size() == static_cast<size_t>(n));
 
@@ -1806,7 +1807,7 @@ void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
       c, v3Data.blsKeyNames, v3Data.blsPublicKeyShares, cipheredKeys, t, n);
 
   for (const auto &subset : selectedSubsets) {
-    // reconstructing common public from node's public key shares should yield 
+    // reconstructing common public from node's public key shares should yield
     // same common public key for both DKGV2 and DKGV3 keys
     const libBLS::algebra::G2Point subsetV2CommonPublicKey =
         reconstructCommonPublicKeyV2(v2Data.blsPublicKeyShares, subset, t, n);
@@ -1827,17 +1828,18 @@ void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
 
       libBLS::AES256Key aesKey = libBLS::ThresholdEncryption::combineShares(
           cipheredKeys[ciphertextIndex], decryptSet);
-      vector<uint8_t> decrypted = libBLS::ThresholdEncryption::validateAndDecrypt(
-          ciphertexts[ciphertextIndex], aesKey, thresholdEncryptionPublicKey);
+      vector<uint8_t> decrypted =
+          libBLS::ThresholdEncryption::validateAndDecrypt(
+              ciphertexts[ciphertextIndex], aesKey,
+              thresholdEncryptionPublicKey);
       CHECK_STATE(decrypted == plaintexts[ciphertextIndex]);
     }
   }
 
   // try decrypting using mix of decryption shares from V2 and V3 - should fail
-  assertMixedV2V3SharesFail(ciphertexts, plaintexts, cipheredKeys,
-                            v2DecryptionShares, v3DecryptionShares,
-                            selectedSubsets, thresholdEncryptionPublicKey, t,
-                            n);
+  assertMixedV2V3SharesFail(
+      ciphertexts, plaintexts, cipheredKeys, v2DecryptionShares,
+      v3DecryptionShares, selectedSubsets, thresholdEncryptionPublicKey, t, n);
 }
 
 void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
@@ -1859,8 +1861,7 @@ void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
   CHECK_STATE(retainedCount + rotatedCount == newN);
 
   // run initial DKG2 to get keys for old committee and set up for rotation
-  RotationDkgData v2Data =
-      runDKGV2ForRotation(c, oldN, t, schainID, dkgV2ID);
+  RotationDkgData v2Data = runDKGV2ForRotation(c, oldN, t, schainID, dkgV2ID);
   CHECK_STATE(v2Data.blsKeyNames.size() == static_cast<size_t>(oldN));
   CHECK_STATE(v2Data.blsPublicKeyShares.size() == static_cast<size_t>(oldN));
 
@@ -1920,7 +1921,8 @@ void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
   vector<vector<string>> v3DecryptionShares = collectDecryptionShares(
       c, v3Data.blsKeyNames, v3Data.blsPublicKeyShares, cipheredKeys, t, newN);
 
-  // test 30% of all possible subsets of size t from the new committee - should all work
+  // test 30% of all possible subsets of size t from the new committee - should
+  // all work
   vector<vector<size_t>> selectedSubsets =
       selectedThresholdSubsets(newN, t, 30);
   CHECK_STATE(!selectedSubsets.empty());
@@ -1928,7 +1930,7 @@ void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
   for (const auto &subset : selectedSubsets) {
     const libBLS::algebra::G2Point subsetV3CommonPublicKey =
         reconstructCommonPublicKeyV2(v3Data.blsPublicKeyShares, subset, t,
-                                      newN);
+                                     newN);
     CHECK_STATE(subsetV3CommonPublicKey == v2CommonPublicKey);
 
     for (size_t ciphertextIndex = 0; ciphertextIndex < ciphertexts.size();
@@ -1942,24 +1944,26 @@ void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
 
       libBLS::AES256Key aesKey = libBLS::ThresholdEncryption::combineShares(
           cipheredKeys[ciphertextIndex], decryptSet);
-      vector<uint8_t> decrypted = libBLS::ThresholdEncryption::validateAndDecrypt(
-          ciphertexts[ciphertextIndex], aesKey, thresholdEncryptionPublicKey);
+      vector<uint8_t> decrypted =
+          libBLS::ThresholdEncryption::validateAndDecrypt(
+              ciphertexts[ciphertextIndex], aesKey,
+              thresholdEncryptionPublicKey);
       CHECK_STATE(decrypted == plaintexts[ciphertextIndex]);
     }
   }
 }
 
-void TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(
-    StubClient &c, int n, int t, int rotatedCount, int schainID,
-    int dkgV2ID, int dkgV3ID) {
+void TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
+                                                    int rotatedCount,
+                                                    int schainID, int dkgV2ID,
+                                                    int dkgV3ID) {
   CHECK_STATE(n > 0);
   CHECK_STATE(t > 0);
   CHECK_STATE(t <= n);
   CHECK_STATE(rotatedCount >= t);
   CHECK_STATE(rotatedCount < n);
 
-  RotationDkgData v2Data =
-      runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
+  RotationDkgData v2Data = runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
   CHECK_STATE(v2Data.blsKeyNames.size() == static_cast<size_t>(n));
   CHECK_STATE(v2Data.blsPublicKeyShares.size() == static_cast<size_t>(n));
 
@@ -1983,23 +1987,22 @@ void TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(
 
   vector<vector<string>> v3DecryptionShares = collectDecryptionShares(
       c, v3Data.blsKeyNames, v3Data.blsPublicKeyShares, cipheredKeys, t, n);
-  assertShareRefsDecrypt(ciphertexts, plaintexts, cipheredKeys,
-                         shareRefsFromNodes(v3DecryptionShares,
-                                            firstThresholdNodes(t), 0),
-                         thresholdEncryptionPublicKey, t, n);
+  assertShareRefsDecrypt(
+      ciphertexts, plaintexts, cipheredKeys,
+      shareRefsFromNodes(v3DecryptionShares, firstThresholdNodes(t), 0),
+      thresholdEncryptionPublicKey, t, n);
 
   const vector<size_t> retiredThresholdNodes =
       takeFirstNodes(retiredLastNodes(n, rotatedCount), t);
-  assertShareRefsDecrypt(ciphertexts, plaintexts, cipheredKeys,
-                         shareRefsFromNodes(v2DecryptionShares,
-                                            retiredThresholdNodes, 0),
-                         thresholdEncryptionPublicKey, t, n);
+  assertShareRefsDecrypt(
+      ciphertexts, plaintexts, cipheredKeys,
+      shareRefsFromNodes(v2DecryptionShares, retiredThresholdNodes, 0),
+      thresholdEncryptionPublicKey, t, n);
 }
 
 void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
-    StubClient &c, int n, int t, int firstRotatedCount,
-    int secondRotatedCount, int schainID, int dkgV2ID, int dkgV3ID,
-    int dkgV4ID) {
+    StubClient &c, int n, int t, int firstRotatedCount, int secondRotatedCount,
+    int schainID, int dkgV2ID, int dkgV3ID, int dkgV4ID) {
   CHECK_STATE(n > 0);
   CHECK_STATE(t > 0);
   CHECK_STATE(t <= n);
@@ -2011,8 +2014,7 @@ void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
   CHECK_STATE(firstRotatedCount < n);
   CHECK_STATE(secondRotatedCount < n);
 
-  RotationDkgData v2Data =
-      runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
+  RotationDkgData v2Data = runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
   CHECK_STATE(v2Data.blsKeyNames.size() == static_cast<size_t>(n));
   CHECK_STATE(v2Data.blsPublicKeyShares.size() == static_cast<size_t>(n));
 
@@ -2029,16 +2031,16 @@ void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
       c, v2Data.blsKeyNames, v2Data.blsPublicKeyShares, cipheredKeys, t, n);
 
   RotationDkgData v3Data = runDKGV3ForRotationWithNewNodes(
-      c, v2Data, buildCommitteeRotatingLastNodes(n, n, firstRotatedCount), n,
-      n, t, schainID, dkgV3ID);
+      c, v2Data, buildCommitteeRotatingLastNodes(n, n, firstRotatedCount), n, n,
+      t, schainID, dkgV3ID);
   CHECK_STATE(v3Data.commonBlsPublicKey == v2CommonPublicKey);
 
   vector<vector<string>> v3DecryptionShares = collectDecryptionShares(
       c, v3Data.blsKeyNames, v3Data.blsPublicKeyShares, cipheredKeys, t, n);
-  assertShareRefsDecrypt(ciphertexts, plaintexts, cipheredKeys,
-                         shareRefsFromNodes(v3DecryptionShares,
-                                            firstThresholdNodes(t), 0),
-                         thresholdEncryptionPublicKey, t, n);
+  assertShareRefsDecrypt(
+      ciphertexts, plaintexts, cipheredKeys,
+      shareRefsFromNodes(v3DecryptionShares, firstThresholdNodes(t), 0),
+      thresholdEncryptionPublicKey, t, n);
 
   RotationDkgData v4Data = runDKGV3ForRotationWithNewNodes(
       c, v3Data, buildCommitteeRotatingFirstNodes(n, secondRotatedCount), n, n,
@@ -2047,17 +2049,15 @@ void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
 
   vector<vector<string>> v4DecryptionShares = collectDecryptionShares(
       c, v4Data.blsKeyNames, v4Data.blsPublicKeyShares, cipheredKeys, t, n);
-  assertShareRefsDecrypt(ciphertexts, plaintexts, cipheredKeys,
-                         shareRefsFromNodes(v4DecryptionShares,
-                                            firstThresholdNodes(t), 0),
-                         thresholdEncryptionPublicKey, t, n);
+  assertShareRefsDecrypt(
+      ciphertexts, plaintexts, cipheredKeys,
+      shareRefsFromNodes(v4DecryptionShares, firstThresholdNodes(t), 0),
+      thresholdEncryptionPublicKey, t, n);
 
-  vector<DecryptionShareRef> retiredShareRefs =
-      shareRefsFromNodes(v2DecryptionShares,
-                         retiredLastNodes(n, firstRotatedCount), 0);
-  vector<DecryptionShareRef> secondEpochRetiredShareRefs =
-      shareRefsFromNodes(v3DecryptionShares,
-                         retiredFirstNodes(secondRotatedCount), 0);
+  vector<DecryptionShareRef> retiredShareRefs = shareRefsFromNodes(
+      v2DecryptionShares, retiredLastNodes(n, firstRotatedCount), 0);
+  vector<DecryptionShareRef> secondEpochRetiredShareRefs = shareRefsFromNodes(
+      v3DecryptionShares, retiredFirstNodes(secondRotatedCount), 0);
   retiredShareRefs.insert(retiredShareRefs.end(),
                           secondEpochRetiredShareRefs.begin(),
                           secondEpochRetiredShareRefs.end());
@@ -2090,8 +2090,7 @@ void TestUtils::doDKGV3RotationWithNonRespondingNodes(
   CHECK_STATE(nonRespondingCount >= 0);
   CHECK_STATE(nonRespondingCount < n);
 
-  RotationDkgData v2Data =
-      runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
+  RotationDkgData v2Data = runDKGV2ForRotation(c, n, t, schainID, dkgV2ID);
   CHECK_STATE(v2Data.blsKeyNames.size() == static_cast<size_t>(n));
   CHECK_STATE(v2Data.blsPublicKeyShares.size() == static_cast<size_t>(n));
 
@@ -2111,9 +2110,8 @@ void TestUtils::doDKGV3RotationWithNonRespondingNodes(
 
   vector<vector<string>> v3DecryptionShares = collectDecryptionShares(
       c, v3Data.blsKeyNames, v3Data.blsPublicKeyShares, cipheredKeys, t, n);
-  const vector<DecryptionShareRef> availableShareRefs =
-      shareRefsFromNodes(v3DecryptionShares,
-                         respondingNodes(n, nonRespondingCount), 0);
+  const vector<DecryptionShareRef> availableShareRefs = shareRefsFromNodes(
+      v3DecryptionShares, respondingNodes(n, nonRespondingCount), 0);
 
   if (shouldDecrypt) {
     CHECK_STATE(availableShareRefs.size() >= static_cast<size_t>(t));

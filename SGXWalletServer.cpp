@@ -1120,8 +1120,8 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV2Impl(
 
 Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
     const string &_blsKeyName, const string &_ethKeyName,
-    const string &_polyName, const Json::Value &_secretContributions,
-    int _t, int _n) {
+    const string &_polyName, const Json::Value &_secretContributions, int _t,
+    int _n) {
   COUNT_STATISTICS
   spdlog::info("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
@@ -1158,12 +1158,11 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
     const size_t contributionCount = _secretContributions.size();
     if (contributionCount < static_cast<size_t>(_t) ||
         contributionCount > static_cast<size_t>(_n)) {
-      throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
-                         string(__FUNCTION__) +
-                             ":Invalid secret contribution count, got: " +
-                             to_string(contributionCount) +
-                             ", expected: between " + to_string(_t) +
-                             " and " + to_string(_n));
+      throw SGXException(
+          INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
+          string(__FUNCTION__) + ":Invalid secret contribution count, got: " +
+              to_string(contributionCount) + ", expected: between " +
+              to_string(_t) + " and " + to_string(_n));
     }
 
     vector<char> seenIndices(_n, 0);
@@ -1173,26 +1172,24 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
     for (Json::ArrayIndex i = 0; i < _secretContributions.size(); ++i) {
       const Json::Value &entry = _secretContributions[i];
       if (!entry.isObject()) {
-        throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
-                           string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) + "], expected: object, got: " +
-                               jsonTypeName(entry));
+        throw SGXException(
+            INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
+            string(__FUNCTION__) + ":Invalid secretContributions[" +
+                to_string(i) +
+                "], expected: object, got: " + jsonTypeName(entry));
       }
 
       // Validate 'contributorIndex' field
       if (!entry.isMember("contributorIndex")) {
         throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
                            string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
+                               ":Invalid secretContributions[" + to_string(i) +
                                "], missing required field: contributorIndex");
       }
       if (!entry["contributorIndex"].isUInt()) {
         throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
                            string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
+                               ":Invalid secretContributions[" + to_string(i) +
                                "].contributorIndex, expected: unsigned "
                                "integer, got: " +
                                jsonTypeName(entry["contributorIndex"]));
@@ -1202,52 +1199,45 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
       if (!entry.isMember("secretShare")) {
         throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
                            string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
+                               ":Invalid secretContributions[" + to_string(i) +
                                "], missing required field: secretShare");
       }
       if (!entry["secretShare"].isString()) {
         throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
                            string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
+                               ":Invalid secretContributions[" + to_string(i) +
                                "].secretShare, expected: string, got: " +
                                jsonTypeName(entry["secretShare"]));
       }
 
       const auto contributorIndex = entry["contributorIndex"].asUInt();
       if (contributorIndex >= static_cast<Json::UInt>(_n)) {
-        throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
-                           string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
-                               "].contributorIndex, got: " +
-                               to_string(contributorIndex) +
-                               ", expected: value in range [0, " +
-                               to_string(_n - 1) + "]");
+        throw SGXException(
+            INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
+            string(__FUNCTION__) + ":Invalid secretContributions[" +
+                to_string(i) +
+                "].contributorIndex, got: " + to_string(contributorIndex) +
+                ", expected: value in range [0, " + to_string(_n - 1) + "]");
       }
       if (seenIndices.at(contributorIndex)) {
         throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
                            string(__FUNCTION__) +
                                ":Duplicate secret contribution index at "
                                "secretContributions[" +
-                               to_string(i) + "], got: " +
-                               to_string(contributorIndex));
+                               to_string(i) +
+                               "], got: " + to_string(contributorIndex));
       }
 
       string secretShare = entry["secretShare"].asString();
       if (!checkHex(secretShare, SECRET_SHARE_NUM_BYTES)) {
-        throw SGXException(INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
-                           string(__FUNCTION__) +
-                               ":Invalid secretContributions[" +
-                               to_string(i) +
-                               "].secretShare for contributorIndex " +
-                               to_string(contributorIndex) +
-                               ", got length: " +
-                               to_string(secretShare.size()) +
-                               ", expected: " +
-                               to_string(SECRET_SHARE_NUM_BYTES * 2) +
-                               " hex characters");
+        throw SGXException(
+            INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
+            string(__FUNCTION__) + ":Invalid secretContributions[" +
+                to_string(i) + "].secretShare for contributorIndex " +
+                to_string(contributorIndex) +
+                ", got length: " + to_string(secretShare.size()) +
+                ", expected: " + to_string(SECRET_SHARE_NUM_BYTES * 2) +
+                " hex characters");
       }
 
       seenIndices.at(contributorIndex) = 1;
@@ -1274,8 +1264,7 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
       for (int i = 0; i < _n; i++) {
         string name = _polyName + "_" + to_string(i) + ":";
         LevelDB::getLevelDb()->deleteDHDKGKey(name);
-        string shareG2_name =
-            "shareG2_" + _polyName + "_" + to_string(i) + ":";
+        string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
         LevelDB::getLevelDb()->deleteKey(shareG2_name);
       }
       LevelDB::getLevelDb()->deleteKey(_polyName);
@@ -1481,7 +1470,8 @@ Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
   return generateDKGPolyImpl(_polyName, _t);
 }
 
-Json::Value SGXWalletServer::generateDKGPolyV3(const string& _polyName, const string& _previousBLSPrivateKeyName, int _t) {
+Json::Value SGXWalletServer::generateDKGPolyV3(
+    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t) {
   return generateDKGPolyV3Impl(_polyName, _previousBLSPrivateKeyName, _t);
 }
 
@@ -1582,8 +1572,8 @@ Json::Value SGXWalletServer::getSecretShareV2(const string &_polyName,
 
 Json::Value SGXWalletServer::dkgVerificationV2(const string &_publicShares,
                                                const string &ethKeyName,
-                                               const string &SecretShare,
-                                               int t, int n, int index) {
+                                               const string &SecretShare, int t,
+                                               int n, int index) {
   return dkgVerificationV2Impl(_publicShares, ethKeyName, SecretShare, t, n,
                                index);
 }
@@ -1597,17 +1587,12 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV2(const string &blsKeyName,
                                    SecretShare, t, n);
 }
 
-Json::Value SGXWalletServer::createBLSPrivateKeyV3(const string &blsKeyName,
-                                                   const string &ethKeyName,
-                                                   const string &polyName,
-                                                   const Json::Value
-                                                       &secretContributions,
-                                                   int t, int n) {
+Json::Value SGXWalletServer::createBLSPrivateKeyV3(
+    const string &blsKeyName, const string &ethKeyName, const string &polyName,
+    const Json::Value &secretContributions, int t, int n) {
   return createBLSPrivateKeyV3Impl(blsKeyName, ethKeyName, polyName,
                                    secretContributions, t, n);
 }
-
-
 
 Json::Value SGXWalletServer::generateBLSPrivateKey(const string &blsKeyName) {
   return generateBLSPrivateKeyImpl(blsKeyName);

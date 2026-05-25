@@ -120,8 +120,7 @@ public:
                            const string &polyName, const string &secretShare,
                            int t, int n);
 
-  bool createBLSPrivateKeyV3(const string &blsKeyName,
-                             const string &ethKeyName,
+  bool createBLSPrivateKeyV3(const string &blsKeyName, const string &ethKeyName,
                              const string &polyName,
                              const Json::Value &secretContributions, int t,
                              int n);

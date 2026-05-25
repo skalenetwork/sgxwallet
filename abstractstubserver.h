@@ -76,11 +76,10 @@ public:
             "polyName", jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::generateDKGPolyI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("generateDKGPolyV3", jsonrpc::PARAMS_BY_NAME,
-                           jsonrpc::JSON_OBJECT, "polyName",
-                           jsonrpc::JSON_STRING, "previousBLSPrivateKeyName",
-                           jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER,
-                           NULL),
+        jsonrpc::Procedure(
+            "generateDKGPolyV3", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,
+            "polyName", jsonrpc::JSON_STRING, "previousBLSPrivateKeyName",
+            jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::generateDKGPolyV3I);
     this->bindAndAddMethod(jsonrpc::Procedure("getVerificationVector",
                                               jsonrpc::PARAMS_BY_NAME,
@@ -174,12 +173,12 @@ public:
             jsonrpc::JSON_INTEGER, "n", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::createBLSPrivateKeyV2I);
 
-    // input set as JSON_OBJET instead of explicit parameters because there is an optional
-    // field - 'polyName'
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("createBLSPrivateKeyV3", jsonrpc::PARAMS_BY_NAME,
-                           jsonrpc::JSON_OBJECT, NULL),
-        &AbstractStubServer::createBLSPrivateKeyV3I);
+    // input set as JSON_OBJET instead of explicit parameters because there is
+    // an optional field - 'polyName'
+    this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKeyV3",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, NULL),
+                           &AbstractStubServer::createBLSPrivateKeyV3I);
 
     this->bindAndAddMethod(
         jsonrpc::Procedure("getDecryptionShares", jsonrpc::PARAMS_BY_NAME,
@@ -242,8 +241,7 @@ public:
                                          Json::Value &response) {
     response = this->generateDKGPolyV3(
         request["polyName"].asString(),
-        request["previousBLSPrivateKeyName"].asString(),
-        request["t"].asInt());
+        request["previousBLSPrivateKeyName"].asString(), request["t"].asInt());
   }
   inline virtual void getVerificationVectorI(const Json::Value &request,
                                              Json::Value &response) {
@@ -413,12 +411,10 @@ public:
                                             const std::string &polyName,
                                             const std::string &SecretShare,
                                             int t, int n) = 0;
-  virtual Json::Value
-  createBLSPrivateKeyV3(const std::string &blsKeyName,
-                        const std::string &ethKeyName,
-                        const std::string &polyName,
-                        const Json::Value &secretContributions, int t,
-                        int n) = 0;
+  virtual Json::Value createBLSPrivateKeyV3(
+      const std::string &blsKeyName, const std::string &ethKeyName,
+      const std::string &polyName, const Json::Value &secretContributions,
+      int t, int n) = 0;
 
   virtual Json::Value
   getDecryptionShares(const std::string &KeyName,

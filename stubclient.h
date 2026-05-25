@@ -254,11 +254,11 @@ public:
           result.toStyledString());
   }
 
-  Json::Value
-  createBLSPrivateKeyV3(const std::string &blsKeyName,
-                        const std::string &ethKeyName,
-                        const std::string &polyName,
-                        const Json::Value &secretContributions, int t, int n) {
+  Json::Value createBLSPrivateKeyV3(const std::string &blsKeyName,
+                                    const std::string &ethKeyName,
+                                    const std::string &polyName,
+                                    const Json::Value &secretContributions,
+                                    int t, int n) {
     Json::Value p;
     p["blsKeyName"] = blsKeyName;
     p["ethKeyName"] = ethKeyName;

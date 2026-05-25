@@ -69,11 +69,13 @@ public:
   static string publicSharesFromVerificationVector(
       const Json::Value &verificationVectorResponse, int t);
 
-  static string encryptedDkgSecretContributionForRecipient(
-      const string &secretShares, int recipientIndex);
+  static string
+  encryptedDkgSecretContributionForRecipient(const string &secretShares,
+                                             int recipientIndex);
 
-  static Json::Value dkgV3SecretContributionsForRecipient(
-      const vector<string> &dealerSecretShares, int recipientIndex);
+  static Json::Value
+  dkgV3SecretContributionsForRecipient(const vector<string> &dealerSecretShares,
+                                       int recipientIndex);
 
   static void genTestKeys();
 
@@ -103,27 +105,27 @@ public:
                       vector<string> &_blsKeyNames, int schainID, int dkgID);
 
   /**
-   * @brief Executes DKG V3 rotation, maintaining the exact same nodes in the group.
-   * simply regenerates keys and shares.
-   * Internally does 1 DKG V2 before DKG V3, since V3 requires existing BLS keys
-   * from previous rotation to be present.
+   * @brief Executes DKG V3 rotation, maintaining the exact same nodes in the
+   * group. simply regenerates keys and shares. Internally does 1 DKG V2 before
+   * DKG V3, since V3 requires existing BLS keys from previous rotation to be
+   * present.
    */
   static void doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
-                              int dkgV2ID, int dkgV3ID,
-                              int coveragePercent, int ciphertextCount);
+                              int dkgV2ID, int dkgV3ID, int coveragePercent,
+                              int ciphertextCount);
 
   /**
    * @brief Executes DKG V3 rotation with new nodes added to the group.
    * Allows nodes to be rotated out of old group, and new nodes rotated in.
    * New nodes will not participate actively in DKG V3 - will not submit
    * secret contributions.
-   * Allows new group to be of different size than old group, as long as 
+   * Allows new group to be of different size than old group, as long as
    * threshold is maintained.
    */
   static void doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
-                                          int t, int rotatedCount,
-                                          int schainID, int dkgV2ID,
-                                          int dkgV3ID, int ciphertextCount);
+                                          int t, int rotatedCount, int schainID,
+                                          int dkgV2ID, int dkgV3ID,
+                                          int ciphertextCount);
 
   /**
    * @brief Demonstrates why rotating out a full threshold is unsafe.
@@ -132,9 +134,10 @@ public:
    * can also collude and decrypt ciphertext encrypted before rotation.
    * This is a security proof test, not a production policy check.
    */
-  static void doDKGV3UnsafeRotatedNodesCanDecrypt(
-      StubClient &c, int n, int t, int rotatedCount, int schainID,
-      int dkgV2ID, int dkgV3ID);
+  static void doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
+                                                  int rotatedCount,
+                                                  int schainID, int dkgV2ID,
+                                                  int dkgV3ID);
 
   /**
    * @brief Verifies retired nodes from separate rotations cannot mix shares.
