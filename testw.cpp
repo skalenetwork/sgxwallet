@@ -770,20 +770,35 @@ TEST_CASE_METHOD(TestFixture, "DKG AES V3 create BLS key",
   REQUIRE(status == SGX_SUCCESS);
   REQUIRE(errStatus == SGX_SUCCESS);
 
-  // generate ECDSA key to encrypt the secret contribution A->B
-  // only B will be able to use it using its own ECDSA key to decrypt
-  // the secret share
+  // Generate a recipient ECDSA keypair: only the holder of recipient_sk can
+  // decrypt the secret share (via ECDH with the sender's ephemeral pubkey).
   vector<uint8_t> encryptedRecipientKey(BUF_LEN, 0);
   uint64_t encryptedRecipientKeyLen = 0;
+  vector<char> recipientPubKeyX(BUF_LEN, 0);
+  vector<char> recipientPubKeyY(BUF_LEN, 0);
+  int recipientExportable = 0;
+  status = trustedGenerateEcdsaKey(
+      eid, &errStatus, errMsg.data(), &recipientExportable,
+      encryptedRecipientKey.data(), &encryptedRecipientKeyLen,
+      recipientPubKeyX.data(), recipientPubKeyY.data());
+  REQUIRE(status == SGX_SUCCESS);
+  REQUIRE(errStatus == SGX_SUCCESS);
+
+  // Construct recipient public key in the 128-char (64X+64Y) format expected
+  // by trustedGetEncryptedSecretShareV2.
+  string recipientPublicKey =
+      string(recipientPubKeyX.data()) + string(recipientPubKeyY.data());
+
   vector<char> encryptedSecretShare(193, 0);
   vector<char> secretShareG2(320, 0);
-  string recipientPublicKey = SAMPLE_PUBLIC_KEY_B;
+  vector<uint8_t> encryptedSenderKey(BUF_LEN, 0);
+  uint64_t encryptedSenderKeyLen = 0;
 
   status = trustedGetEncryptedSecretShareV2(
       eid, &errStatus, errMsg.data(), encryptedDKGSecret.data(),
-      encryptedDKGSecretLen, encryptedRecipientKey.data(),
-      &encryptedRecipientKeyLen, encryptedSecretShare.data(),
-      secretShareG2.data(), (char *)recipientPublicKey.data(), 2, 2, 1);
+      encryptedDKGSecretLen, encryptedSenderKey.data(), &encryptedSenderKeyLen,
+      encryptedSecretShare.data(), secretShareG2.data(),
+      (char *)recipientPublicKey.data(), 2, 2, 1);
   REQUIRE(status == SGX_SUCCESS);
   REQUIRE(errStatus == SGX_SUCCESS);
 
@@ -791,8 +806,9 @@ TEST_CASE_METHOD(TestFixture, "DKG AES V3 create BLS key",
   vector<uint8_t> encryptedBlsKey(BUF_LEN, 0);
   uint64_t encryptedBlsKeyLen = 0;
 
-  // use the ECDH public value to decrypt the secret contribution and generate
-  // a private BLSKey
+  // Decrypt using the recipient's private key: ECDH(recipient_sk, sender_pk)
+  // recovers the same session key as ECDH(sender_sk, recipient_pk) used during
+  // encryption.
   status = trustedCreateBlsKeyV3(
       eid, &errStatus, errMsg.data(), encryptedSecretShare.data(),
       contributorIndices.data(), contributorIndices.size(),
