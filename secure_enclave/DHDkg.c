@@ -83,7 +83,8 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
         goto clean;
     }
 
-    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0 ||
+        !point_is_on_curve(pub_keyB, curve)) {
         LOG_ERROR("gen_session_key: invalid public key point");
         goto clean;
     }
@@ -148,7 +149,8 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
         goto clean;
     }
 
-    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0 ||
+        !point_is_on_curve(pub_keyB, curve)) {
         LOG_ERROR("session_key_recover: invalid public key point");
         goto clean;
     }

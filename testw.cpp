@@ -949,7 +949,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
         dkgV2ID, dkgV3ID);
   };
 
-  // should work - 4 nodes, 1 rotated, 1 fautly
+  // should work - 4 nodes, 1 rotated, 1 faulty
   runScenario(4, 3, 1, 1, true);
   // should not work - 4 nodes, 1 rotated, 2 faulty
   runScenario(4, 3, 1, 2, false);

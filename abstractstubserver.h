@@ -173,7 +173,7 @@ public:
             jsonrpc::JSON_INTEGER, "n", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::createBLSPrivateKeyV2I);
 
-    // input set as JSON_OBJET instead of explicit parameters because there is
+    // input set as JSON_OBJECT instead of explicit parameters because there is
     // an optional field - 'polyName'
     this->bindAndAddMethod(jsonrpc::Procedure("createBLSPrivateKeyV3",
                                               jsonrpc::PARAMS_BY_NAME,
