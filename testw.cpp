@@ -777,6 +777,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES V3 create BLS key",
   vector<char> recipientPubKeyX(BUF_LEN, 0);
   vector<char> recipientPubKeyY(BUF_LEN, 0);
   int recipientExportable = 0;
+
   status = trustedGenerateEcdsaKey(
       eid, &errStatus, errMsg.data(), &recipientExportable,
       encryptedRecipientKey.data(), &encryptedRecipientKeyLen,
