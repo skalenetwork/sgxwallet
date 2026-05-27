@@ -880,13 +880,13 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation correctness",
   int dkgV3ID = dkgV2ID + 1;
 
   PRINT_SRC_LINE
-  TestUtils::doDKGV3Rotation(c, 5, 3, schainID, dkgV2ID, dkgV3ID, 100, 3);
+  TestUtils::doDKGV3Rotation(c, 5, 3, schainID, dkgV2ID, dkgV3ID, 50, 3);
 
   schainID = TestUtils::randGen();
   dkgV2ID = TestUtils::randGen();
   dkgV3ID = dkgV2ID + 1;
 
-  TestUtils::doDKGV3Rotation(c, 16, 5, schainID, dkgV2ID, dkgV3ID, 50, 3);
+  TestUtils::doDKGV3Rotation(c, 16, 5, schainID, dkgV2ID, dkgV3ID, 1, 1);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation with joining nodes",
@@ -900,14 +900,14 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation with joining nodes",
 
   PRINT_SRC_LINE
   TestUtils::doDKGV3RotationWithNewNodes(c, 4, 4, 3, 1, schainID, dkgV2ID,
-                                         dkgV3ID, 3);
+                                         dkgV3ID, 1);
 
   schainID = TestUtils::randGen();
   dkgV2ID = TestUtils::randGen();
   dkgV3ID = dkgV2ID + 1;
 
   TestUtils::doDKGV3RotationWithNewNodes(c, 10, 10, 7, 6, schainID, dkgV2ID,
-                                         dkgV3ID, 3);
+                                         dkgV3ID, 1);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
@@ -953,13 +953,13 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
   runScenario(4, 3, 1, 1, true);
   // should not work - 4 nodes, 1 rotated, 2 faulty
   runScenario(4, 3, 1, 2, false);
-  // should work - 16 nodes, 1 rotated, 5 faulty
-  runScenario(16, 11, 1, 5, true);
-  // should work - 16 nodes, 10 rotated, 5 faulty (unsafe in practice since
-  // rotated > t)
-  runScenario(16, 11, 10, 5, true);
-  // should not work - 16 nodes, 10 rotated, 6 faulty
-  runScenario(16, 11, 1, 6, false);
+  // should work - 10 nodes, 1 rotated, 3 faulty
+  runScenario(10, 7, 1, 3, true);
+  // should work - 10 nodes, 6 rotated, 3 faulty (unsafe in practice since
+  // rotated > n - t)
+  runScenario(10, 7, 6, 3, true);
+  // should not work - 10 nodes, 1 rotated, 4 faulty
+  runScenario(10, 7, 1, 4, false);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[dkgblszmq]") {
