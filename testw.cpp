@@ -866,8 +866,7 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[dkg-bls-v2]") {
   REQUIRE(blsKeyNames.size() == 4);
 
   schainID = TestUtils::randGen();
-  dkgID = TestUtils::randGen();bass boosted
-   wiz khalifa
+  dkgID = TestUtils::randGen();
 
   TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 }
