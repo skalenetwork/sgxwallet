@@ -248,7 +248,7 @@ enclave {
         public void trustedCreateBlsKey(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 6145] const char* s_shares,
+                                [in, string] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
@@ -257,7 +257,7 @@ enclave {
         public void trustedCreateBlsKeyV2(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 6145] const char* s_shares,
+                                [in, string] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
