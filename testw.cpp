@@ -171,15 +171,7 @@ public:
     call_once(initOnce, [] {
       TestUtils::resetDB();
 
-      initConfig config{.logLevel = L_INFO,
-                        .autoconfirm = true,
-                        .checkCert = false,
-                        .checkZMQSig = false,
-                        .autoSign = true,
-                        .generateTestKeys = false,
-                        .checkKeyOwnership = true,
-                        .threadPoolSize =
-                            SGXWalletServer::DEFAULT_NUM_THREADS_SGX};
+      initConfig config = makeTestInitConfig(false, false, false, true, true);
 
       initAll(config);
     });
