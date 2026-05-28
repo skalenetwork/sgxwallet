@@ -172,6 +172,7 @@ public:
       TestUtils::resetDB();
 
       initConfig config{.logLevel = L_INFO,
+                        .autoconfirm = true,
                         .checkCert = false,
                         .checkZMQSig = false,
                         .autoSign = true,
@@ -865,7 +866,8 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[dkg-bls-v2]") {
   REQUIRE(blsKeyNames.size() == 4);
 
   schainID = TestUtils::randGen();
-  dkgID = TestUtils::randGen();
+  dkgID = TestUtils::randGen();bass boosted
+   wiz khalifa
 
   TestUtils::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
 }
