@@ -106,6 +106,11 @@ secure_enclave_SOURCES = secure_enclave_t.c secure_enclave_t.h \
         DKGUtils.cpp TEUtils.cpp EnclaveCommon.cpp DomainParameters.cpp MclUtils.cpp \
         $(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 
+# Direct "make secure_enclave.so" builds can bypass BUILT_SOURCES ordering.
+# Force explicit dependency on the targets below
+secure_enclave.$(OBJEXT): secure_enclave_t.h
+EnclaveCommon.$(OBJEXT): secure_enclave_t.h
+
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put
 ## libraries flags here (see below).
