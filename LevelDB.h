@@ -29,6 +29,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace leveldb {
@@ -56,6 +57,8 @@ class LevelDB {
 public:
   static void initDataFolderAndDBs();
 
+  static void closeDataFolderAndDBs();
+
   static const shared_ptr<LevelDB> &getLevelDb();
 
   static const shared_ptr<LevelDB> &getCsrDb();
@@ -63,7 +66,7 @@ public:
   static const shared_ptr<LevelDB> &getCsrStatusDb();
 
 public:
-  shared_ptr<string> readString(const string &_key);
+  shared_ptr<string> readString(std::string_view _key);
 
   shared_ptr<string> readNewStyleValue(const string &value);
 
@@ -71,20 +74,34 @@ public:
 
   pair<string, uint64_t> getLatestCreatedKey();
 
-  void writeString(const string &key1, const string &value1);
+  /**
+   * @brief Writes the value to the DB, wrapped in JSON with timestamp.
+   * This is the standard way of writing values to the DB, used everywhere
+   * except for SEK reencrypt, where we want to keep exact same value and
+   * timestamp for all keys except SEK.
+   */
+  void writeString(std::string_view key1, const string &value1);
 
-  void writeDataUnique(const string &Name, const string &value);
+  /**
+   * @brief Writes the value as is to the DB.
+   * This method is only used during reencryption DB to keep
+   * exact same value (without JSON wrapper), keeping original
+   * timestamp.
+   */
+  void writeRawString(std::string_view key1, const string &value1);
 
-  void deleteDHDKGKey(const string &_key);
+  void writeDataUnique(std::string_view Name, const string &value);
 
-  void deleteTempNEK(const string &_key);
+  void deleteDHDKGKey(std::string_view _key);
 
-  void deleteKey(const string &_key);
+  void deleteTempNEK(std::string_view _key);
+
+  void deleteKey(std::string_view _key);
 
 public:
   void throwExceptionOnError(leveldb::Status result);
 
-  LevelDB(string &filename);
+  LevelDB(const string &filename);
 
   class KeyVisitor {
   public:
@@ -94,6 +111,13 @@ public:
   };
 
   uint64_t visitKeys(KeyVisitor *_visitor, uint64_t _maxKeysToVisit);
+
+  class KeyValueVisitor {
+  public:
+    virtual void visitDBKeyValue(const string &_key, const string &_value) = 0;
+  };
+
+  uint64_t visitKeyValues(KeyValueVisitor *_visitor, uint64_t _maxKeysToVisit);
 
   vector<string> writeKeysToVector1(uint64_t _maxKeysToVisit);
 
