@@ -86,7 +86,7 @@ public:
 // if uknown error, the error is 10000 + line number
 
 #define INIT_RESULT(__RESULT__)                                                \
-  Json::Value __RESULT__;                                                      \
+  Json::Value __RESULT__(Json::objectValue);                                   \
   int errStatus = -1 * (10000 + __LINE__);                                     \
   boost::ignore_unused(errStatus);                                             \
   string errMsg(BUF_LEN, '\0');                                                \

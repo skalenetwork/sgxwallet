@@ -23,4 +23,17 @@
 
 #include "SGXException.h"
 
+SGXException::SGXException(int32_t _status, const string &_errString)
+    : status(_status), errString(_errString) {}
+
 const char *SGXException::what() const noexcept { return errString.c_str(); }
+
+const string SGXException::getMessage() const {
+  return "SGXException:status:" + to_string(status) + ":" + errString;
+}
+
+const std::string &SGXException::getErrString() const { return errString; }
+
+const int32_t SGXException::getStatus() const { return status; }
+
+SGXException::~SGXException() = default;

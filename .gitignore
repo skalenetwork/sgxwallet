@@ -30,8 +30,10 @@
 /sgx-gmp/
 /sgx-sdk-build/
 /secure_enclave/Makefile
+/secure_enclave/Makefile.in
 /secure_enclave/secure_enclave.signed.so
 /secure_enclave/secure_enclave.so
+/secure_enclave/secure_enclave.edl
 /secure_enclave/secure_enclave_t.c
 /secure_enclave/secure_enclave_t.h
 /sgxd
@@ -52,3 +54,13 @@
 /cert/*.crt
 /jsonrpc/
 /sgx-gmp/
+
+# performance test generated files
+tests/performance/plots/
+tests/performance/venv/
+tests/performance/utils/__pycache__/
+tests/performance/__pycache__/
+
+# backward compatibility generated binaries
+tests/backward_compatibility/api_golden_generator
+tests/backward_compatibility/api_validator

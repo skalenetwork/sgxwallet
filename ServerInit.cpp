@@ -32,9 +32,7 @@
 
 #include "bls.h"
 #include "leveldb/db.h"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_init.hpp"
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/common/profiling.hpp>
 
 #include "third_party/spdlog/spdlog.h"
 #include <gmp.h>
@@ -44,6 +42,7 @@
 #include "BLSCrypto.h"
 #include "BLSPrivateKeyShareSGX.h"
 #include "CSRManagerServer.h"
+#include "DBReencrypt.h"
 #include "ExitHandler.h"
 #include "LevelDB.h"
 #include "SEKManager.h"
@@ -91,11 +90,7 @@ void systemHealthCheck() {
 }
 
 void initUserSpace() {
-
-  libff::inhibit_profiling_counters = true;
-
-  libff::init_alt_bn128_params();
-
+  libBLS::init();
   LevelDB::initDataFolderAndDBs();
 
 #ifndef SGX_HW_SIM
@@ -163,12 +158,35 @@ uint64_t initEnclave() {
   return SGX_SUCCESS;
 }
 
-void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
-             bool _autoSign, bool _generateTestKeys, bool _checkKeyOwnership) {
+namespace {
+void setFullOptions(const initConfig &_config) {
+  spdlog::info("Entering {}", __FUNCTION__);
+
+  CHECK_STATE(_config.logLevel <= L_INFO)
+
+  if (_config.logLevel == L_TRACE) {
+    spdlog::set_level(spdlog::level::trace);
+  } else if (_config.logLevel == L_DEBUG) {
+    spdlog::set_level(spdlog::level::debug);
+  } else {
+    spdlog::set_level(spdlog::level::info);
+  }
+
+  useHTTPS = _config.useHTTPS;
+  spdlog::info("useHTTPS set to " + to_string(useHTTPS));
+  autoconfirm = _config.autoconfirm;
+  spdlog::info("autoconfirm set to " + to_string(autoconfirm));
+  enterBackupKey = _config.enterBackupKey;
+  spdlog::info("enterBackupKey set to " + to_string(enterBackupKey));
+}
+} // namespace
+
+void initAll(initConfig &_config) {
 
   static atomic<bool> sgxServerInited(false);
   static mutex initMutex;
-  enclaveLogLevel = _logLevel;
+  setFullOptions(_config);
+  enclaveLogLevel = _config.enclaveLogLevel;
 
   lock_guard<mutex> lock(initMutex);
 
@@ -196,14 +214,21 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
     }
 
     initUserSpace();
-    initSEK();
+
+    if (_config.reencryptDatabaseWithNewSEK) {
+      DBReencryptor dbReencryptor;
+      dbReencryptor.reencryptWithNewSEK();
+    } else {
+      initSEK();
+    }
 
     SGXWalletServer::createCertsIfNeeded();
+    SGXWalletServer::initThreadPool(_config.threadPoolSize);
 
-    if (useHTTPS) {
+    if (_config.useHTTPS) {
       spdlog::info("Initing JSON-RPC server over HTTPS");
-      spdlog::info("Check client cert: {}", _checkCert);
-      SGXWalletServer::initHttpsServer(_checkCert);
+      spdlog::info("Check client cert: {}", _config.checkCert);
+      SGXWalletServer::initHttpsServer(_config.checkCert);
       spdlog::info("Inited JSON-RPC server over HTTPS");
     } else {
       spdlog::info("Initing JSON-RPC server over HTTP");
@@ -211,11 +236,11 @@ void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
       spdlog::info("Inited JSON-RPC server over HTTP");
     }
 
-    SGXRegistrationServer::initRegistrationServer(_autoSign);
+    SGXRegistrationServer::initRegistrationServer(_config.autoSign);
     CSRManagerServer::initCSRManagerServer();
-    SGXInfoServer::initInfoServer(_logLevel, _checkCert, _autoSign,
-                                  _generateTestKeys);
-    ZMQServer::initZMQServer(_checkZMQSig, _checkKeyOwnership);
+    SGXInfoServer::initInfoServer(_config.logLevel, _config.checkCert,
+                                  _config.autoSign, _config.generateTestKeys);
+    ZMQServer::initZMQServer(_config.checkZMQSig, _config.checkKeyOwnership);
 
     sgxServerInited = true;
   } catch (SGXException &_e) {
@@ -238,4 +263,5 @@ void exitAll() {
   CSRManagerServer::exitServer();
   SGXInfoServer::exitServer();
   ZMQServer::exitZMQServer();
+  trustedEnclaveClear(eid);
 }

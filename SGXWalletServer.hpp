@@ -27,9 +27,14 @@
 #include "memory"
 #include "mutex"
 
+#include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <string_view>
+#include <tbb/global_control.h>
+#include <tbb/task_arena.h>
 
 #include "abstractstubserver.h"
+#include "common.h"
 
 using namespace jsonrpc;
 using namespace std;
@@ -38,6 +43,34 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 class SGXWalletServer : public AbstractStubServer {
+  // used to control number of max allowed parallel tasks
+  // Else, default policy can limit to number of CPU cores
+  static std::unique_ptr<tbb::global_control> globalSGXThreadpoolControl;
+
+  // Thread pool for parallel processing of tasks
+  struct thread_pool {
+    size_t size;
+
+    void initialize(size_t _size = DEFAULT_NUM_THREADS_SGX) {
+      CHECK_STATE(_size > 0);
+
+      if (!initialized) {
+        arena.initialize(_size);
+        size = _size;
+        initialized = true;
+      }
+    }
+
+    bool isInitialized() const { return initialized; }
+
+    // delegate task execution to TBB task arena
+    void execute(function<void()> task) { arena.execute(task); }
+
+  private:
+    bool initialized = false;
+    tbb::task_arena arena;
+  };
+
   static shared_ptr<SGXWalletServer> server;
   static shared_ptr<HttpServer> httpServer;
 
@@ -46,10 +79,20 @@ class SGXWalletServer : public AbstractStubServer {
   static map<string, string> ecdsaRequests;
   static recursive_mutex ecdsaRequestsLock;
 
+  // Task arena for parallel processing
+  // Can be used by each of SGXWalletServer calls to create tasks
+  // to be executed in parallel by this thread pool
+  // Must be initialized before any calls to the server
+  static thread_pool threadPool;
+
   static void checkForDuplicate(map<string, string> &_map, recursive_mutex &_m,
                                 const string &_key, const string &_value);
 
 public:
+  /// Defines number of threads to be used by SGX on each call (for the ones
+  /// with thread pool support)
+  static const size_t DEFAULT_NUM_THREADS_SGX = 32;
+
   static bool verifyCert(string &_certFileName);
 
   static const char *getVersion() { return TOSTRING(SGXWALLET_VERSION); }
@@ -135,11 +178,11 @@ public:
 
   virtual Json::Value popProve(const std::string &blsKeyName);
 
-  static shared_ptr<string> readFromDb(const string &name,
-                                       const string &prefix = "");
+  static shared_ptr<string> readFromDb(std::string_view name,
+                                       std::string_view prefix = "");
 
-  static shared_ptr<string> checkDataFromDb(const string &name,
-                                            const string &prefix = "");
+  static shared_ptr<string> checkDataFromDb(std::string_view name,
+                                            std::string_view prefix = "");
 
   static void writeDataToDB(const string &Name, const string &value);
 
@@ -227,6 +270,11 @@ public:
   static void initHttpServer();
 
   static void initHttpsServer(bool _checkCerts);
+
+  /**
+   * @brief Initializes `taskArena` field
+   */
+  static void initThreadPool(size_t _numThreads);
 
   static int exitServer();
 

@@ -24,7 +24,9 @@
 #ifndef SGXWALLET_SERVERINIT_H
 #define SGXWALLET_SERVERINIT_H
 
+#include "sgxwallet.h"
 #include "stdint.h"
+#include <cstddef>
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -32,9 +34,34 @@
 #define EXTERNC
 #endif
 
-EXTERNC void initAll(uint32_t _logLevel, bool _checkCert, bool _checkZMQSig,
-                     bool _autoSign, bool _generateTestKeys,
-                     bool _checkKeyOwnership);
+struct initConfig {
+  // -d/-v/-V: untrusted process log level.
+  uint32_t logLevel = log_level::L_INFO;
+  // -d/-v/-V: enclave log level.
+  uint32_t enclaveLogLevel = log_level::L_INFO;
+  // -0/-n: use HTTPS unless one of these flags disables it.
+  bool useHTTPS = true;
+  // -y: skip backup-key confirmation prompt.
+  bool autoconfirm = false;
+  // -b: import the SEK from the backup key file.
+  bool enterBackupKey = false;
+  // -r: reencrypt the wallet DB with a new SEK at startup.
+  bool reencryptDatabaseWithNewSEK = false;
+  // -c: verify client certificates unless this flag disables it.
+  bool checkCert = true;
+  // -e: verify ZMQ key ownership signatures.
+  bool checkZMQSig = false;
+  // -s: auto-sign client certificates.
+  bool autoSign = false;
+  // -T: generate test keys.
+  bool generateTestKeys = false;
+  // -e: require key ownership for protected operations.
+  bool checkKeyOwnership = false;
+  // -t: SGX worker thread pool size.
+  size_t threadPoolSize = 1;
+};
+
+EXTERNC void initAll(initConfig &config);
 
 void exitAll();
 

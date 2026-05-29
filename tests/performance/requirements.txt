@@ -1,0 +1,5 @@
+requests
+urllib3<2
+matplotlib
+pyzmq
+aiohttp

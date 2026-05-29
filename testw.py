@@ -28,7 +28,12 @@ username = getpass.getuser()
 
 topDir = os.getcwd() + "/sgxwallet"
 print("Top directory is:" + topDir)
-testList = [ "[zmq-ecdsa]",
+testList = [ "[http-healthcheck]",
+             "[https-healthcheck]",
+             "[https-wrong-ssl-certificate]",
+             "[https-without-certificate]",
+             "[https-certificate-not-in-db]",
+             "[zmq-ecdsa]",
              "[first-run]",
              "[second-run]",
              "[many-threads-crypto-v2]",
@@ -65,6 +70,7 @@ testList = [ "[zmq-ecdsa]",
              "[aes-dkg-v2-zmq]",
              "[te-decryption-share]",
              "[te-decryption-share-zmq]",
+             "[te-decryption-share-wrong-inputs]",
              "[bls-aggregated-key-decrypt]",
              "[bls-aggregated-key-generation]",
              "[bls-aggregated-key-generation-zmq]",

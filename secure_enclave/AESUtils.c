@@ -27,13 +27,23 @@
 #include <string.h>
 
 #include "AESUtils.h"
+#include "EnclaveCommon.h"
 
 sgx_aes_gcm_128bit_key_t AES_key[1024];
 
+#ifndef SAFE_CHAR_BUF
 #define SAFE_CHAR_BUF(__X__, __Y__)  ;char __X__ [ __Y__ ]; memset(__X__, 0, __Y__);
+#endif
 
-int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned char type,
-                unsigned char exportable, uint64_t* resultLen) {
+int AES_encrypt_with_key(const sgx_aes_gcm_128bit_key_t *aes_key,
+                         char *message, uint8_t *encr_message,
+                         uint64_t encrBufLen, unsigned char type,
+                         unsigned char exportable, uint64_t* resultLen) {
+    if (!aes_key) {
+        LOG_ERROR("Null aes_key in AES_encrypt_with_key");
+        return -5;
+    }
+
     if (!type) {
         LOG_ERROR("Null type in AES_encrypt");
         return -1;
@@ -66,14 +76,14 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
     fullMessage[0] = type;
     fullMessage[1] = exportable;
 
-    strncpy(fullMessage + 2, message, len );
+    memcpy(fullMessage + 2, message, len);
 
     len = len + 2;
     message = fullMessage;
 
     sgx_read_rand(encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE);
 
-    sgx_status_t status = sgx_rijndael128GCM_encrypt(&(AES_key[512]), (uint8_t*)message, len,
+    sgx_status_t status = sgx_rijndael128GCM_encrypt(aes_key, (uint8_t*)message, len,
                                                      encr_message + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE,
                                                      encr_message + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                      NULL, 0,
@@ -84,8 +94,21 @@ int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsig
     return status;
 }
 
-int AES_decrypt(uint8_t *encrMessage, uint64_t length, char *message, uint64_t msgLen,
-                uint8_t *type, uint8_t* exportable){
+
+int AES_encrypt(char *message, uint8_t *encr_message, uint64_t encrBufLen, unsigned char type,
+                unsigned char exportable, uint64_t* resultLen) {
+    return AES_encrypt_with_key(&(AES_key[512]), message, encr_message,
+                                encrBufLen, type, exportable, resultLen);
+}
+
+int AES_decrypt_with_key(const sgx_aes_gcm_128bit_key_t *aes_key,
+                         uint8_t *encrMessage, uint64_t length,
+                         char *message, uint64_t msgLen, uint8_t *type,
+                         uint8_t* exportable){
+    if (!aes_key) {
+        LOG_ERROR("Null aes_key in AES_decrypt_with_key");
+        return -7;
+    }
 
     if (!message) {
         LOG_ERROR("Null message in AES_decrypt");
@@ -124,12 +147,16 @@ int AES_decrypt(uint8_t *encrMessage, uint64_t length, char *message, uint64_t m
         return -6;
     }
 
-    sgx_status_t status = sgx_rijndael128GCM_decrypt(&(AES_key[512]),
+    sgx_status_t status = sgx_rijndael128GCM_decrypt(aes_key,
                                                     encrMessage + SGX_AESGCM_MAC_SIZE + SGX_AESGCM_IV_SIZE, len,
                                                     (unsigned char*) message,
                                                     encrMessage + SGX_AESGCM_MAC_SIZE, SGX_AESGCM_IV_SIZE,
                                                     NULL, 0,
                                                     (sgx_aes_gcm_128bit_tag_t *)encrMessage);
+
+    if (status != SGX_SUCCESS) {
+        return status;
+    }
 
     *type = message[0];
     *exportable = message[1];
@@ -138,4 +165,10 @@ int AES_decrypt(uint8_t *encrMessage, uint64_t length, char *message, uint64_t m
     }
 
     return status;
+}
+
+int AES_decrypt(uint8_t *encrMessage, uint64_t length, char *message, uint64_t msgLen,
+                uint8_t *type, uint8_t* exportable){
+    return AES_decrypt_with_key(&(AES_key[512]), encrMessage, length, message,
+                                msgLen, type, exportable);
 }

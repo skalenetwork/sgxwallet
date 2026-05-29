@@ -35,8 +35,23 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string>
-calculateDecryptionShare(const std::string &encryptedKeyShare,
-                         const std::string &publicDecryptionValue);
+/**
+ * Receives ciphertexts concatenated in a single string in the form:
+ *  - Each ciphertext is 256 bytes long (4 components, each of 64 bytes)
+ * This function parses ciphertexts in fixed-size batches and decrypts them.
+ * This fixed-size is necessary as the enclave has needs to allocate a fixed
+ * amount of memory for each batch.
+ *
+ * If the size is over the batch size, then it wraps around and decyphers the
+ * 1st batch, and then the remaining.
+ *
+ * @returns the decryptshares in the form of a vector of strings, each string
+ * 256 characters long, and a vector if int , one for each corresponding decrypt
+ * share, specifying the decryption status. 0 If successful, or an error status
+ * > 0 otherwise
+ */
+std::pair<std::vector<string>, std::vector<int>>
+calculateDecryptionShares(const std::string &encryptedKeyShare,
+                          const std::string &decryptionValueBatches);
 
 #endif // SGXWALLET_TECRYPTO_H

@@ -25,12 +25,14 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include "leveldb/db.h"
 #include <jsonrpccpp/client.h>
 
 #include "LevelDB.h"
 #include "SGXException.h"
+#include "WalletDBKeys.h"
 #include "sgxwallet_common.h"
 
 #include "ServerInit.h"
@@ -51,13 +53,14 @@ shared_ptr<string> LevelDB::readNewStyleValue(const string &value) {
   return std::make_shared<string>(key_data["value"].asString());
 }
 
-std::shared_ptr<string> LevelDB::readString(const string &_key) {
+std::shared_ptr<string> LevelDB::readString(std::string_view _key) {
 
   auto result = std::make_shared<string>();
 
   CHECK_STATE(db)
 
-  auto status = db->Get(readOptions, _key, result.get());
+  auto status =
+      db->Get(readOptions, Slice(_key.data(), _key.size()), result.get());
 
   throwExceptionOnError(status);
 
@@ -72,7 +75,7 @@ std::shared_ptr<string> LevelDB::readString(const string &_key) {
   return result;
 }
 
-void LevelDB::writeString(const string &_key, const string &_value) {
+void LevelDB::writeString(std::string_view _key, const string &_value) {
   Json::Value writerData;
   writerData["value"] = _value;
   writerData["timestamp"] = std::to_string(std::time(nullptr));
@@ -80,32 +83,41 @@ void LevelDB::writeString(const string &_key, const string &_value) {
   Json::FastWriter fastWriter;
   std::string output = fastWriter.write(writerData);
 
-  auto status = db->Put(writeOptions, Slice(_key), Slice(output));
+  auto status =
+      db->Put(writeOptions, Slice(_key.data(), _key.size()), Slice(output));
 
   throwExceptionOnError(status);
 }
 
-void LevelDB::deleteDHDKGKey(const string &_key) {
+void LevelDB::writeRawString(std::string_view _key, const string &_value) {
+  auto status =
+      db->Put(writeOptions, Slice(_key.data(), _key.size()), Slice(_value));
 
-  string full_key = "DKG_DH_KEY_" + _key;
+  throwExceptionOnError(status);
+}
+
+void LevelDB::deleteDHDKGKey(std::string_view _key) {
+
+  string full_key = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + string(_key);
 
   auto status = db->Delete(writeOptions, Slice(full_key));
 
   throwExceptionOnError(status);
 }
 
-void LevelDB::deleteTempNEK(const string &_key) {
+void LevelDB::deleteTempNEK(std::string_view _key) {
 
-  CHECK_STATE(_key.rfind("tmp_NEK", 0) == 0);
+  CHECK_STATE(_key.compare(0, WalletDBKeys::TEMP_ECDSA_KEY_PREFIX.size(),
+                           WalletDBKeys::TEMP_ECDSA_KEY_PREFIX) == 0);
 
-  auto status = db->Delete(writeOptions, Slice(_key));
+  auto status = db->Delete(writeOptions, Slice(_key.data(), _key.size()));
 
   throwExceptionOnError(status);
 }
 
-void LevelDB::deleteKey(const string &_key) {
+void LevelDB::deleteKey(std::string_view _key) {
 
-  auto status = db->Delete(writeOptions, Slice(_key));
+  auto status = db->Delete(writeOptions, Slice(_key.data(), _key.size()));
 
   throwExceptionOnError(status);
 }
@@ -128,7 +140,7 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor,
 
   uint64_t readCounter = 0;
 
-  shared_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     _visitor->visitDBKey(it->key().data());
     readCounter++;
@@ -140,11 +152,32 @@ uint64_t LevelDB::visitKeys(LevelDB::KeyVisitor *_visitor,
   return readCounter;
 }
 
+uint64_t LevelDB::visitKeyValues(LevelDB::KeyValueVisitor *_visitor,
+                                 uint64_t _maxKeysToVisit) {
+
+  CHECK_STATE(_visitor);
+
+  uint64_t readCounter = 0;
+
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    _visitor->visitDBKeyValue(it->key().ToString(), it->value().ToString());
+    readCounter++;
+    if (readCounter >= _maxKeysToVisit) {
+      break;
+    }
+  }
+
+  throwExceptionOnError(it->status());
+
+  return readCounter;
+}
+
 std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit) {
   uint64_t readCounter = 0;
   std::vector<string> keys;
 
-  shared_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     string cur_key(it->key().data(), it->key().size());
     keys.push_back(cur_key);
@@ -157,9 +190,9 @@ std::vector<string> LevelDB::writeKeysToVector1(uint64_t _maxKeysToVisit) {
   return keys;
 }
 
-void LevelDB::writeDataUnique(const string &name, const string &value) {
+void LevelDB::writeDataUnique(std::string_view name, const string &value) {
   if (readString(name)) {
-    spdlog::debug("Name {} already exists", name);
+    spdlog::debug("Name {} already exists", string(name));
     throw SGXException(KEY_SHARE_ALREADY_EXISTS,
                        "Data with this name already exists");
   }
@@ -170,7 +203,7 @@ void LevelDB::writeDataUnique(const string &name, const string &value) {
 pair<stringstream, uint64_t> LevelDB::getAllKeys() {
   stringstream keysInfo;
 
-  leveldb::Iterator *it = db->NewIterator(readOptions);
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
   uint64_t counter = 0;
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     ++counter;
@@ -197,7 +230,7 @@ pair<stringstream, uint64_t> LevelDB::getAllKeys() {
 }
 
 pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
-  leveldb::Iterator *it = db->NewIterator(readOptions);
+  unique_ptr<leveldb::Iterator> it(db->NewIterator(readOptions));
 
   int64_t latest_timestamp = 0;
   string latest_created_key_name = "";
@@ -222,17 +255,20 @@ pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
   return {latest_created_key_name, latest_timestamp};
 }
 
-LevelDB::LevelDB(string &filename) {
+LevelDB::LevelDB(const string &filename) {
   leveldb::Options options;
   options.create_if_missing = true;
 
-  if (!leveldb::DB::Open(options, filename, (leveldb::DB **)&db).ok()) {
+  leveldb::DB *raw_db = nullptr;
+  if (!leveldb::DB::Open(options, filename, &raw_db).ok()) {
     throw std::runtime_error("Unable to open levelDB database");
   }
 
-  if (db == nullptr) {
+  if (raw_db == nullptr) {
     throw std::runtime_error("Null levelDB object");
   }
+
+  db = shared_ptr<leveldb::DB>(raw_db);
 }
 
 LevelDB::~LevelDB() {}
@@ -303,6 +339,13 @@ void LevelDB::initDataFolderAndDBs() {
   csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
 
   spdlog::info("Successfully opened databases");
+}
+
+void LevelDB::closeDataFolderAndDBs() {
+  csrStatusDb.reset();
+  csrDb.reset();
+  levelDb.reset();
+  isInited = false;
 }
 
 const string &LevelDB::getSgxDataFolder() { return sgx_data_folder; }

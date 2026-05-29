@@ -33,20 +33,47 @@
 #include "DKGCrypto.h"
 #include "SEKManager.h"
 #include "SGXWalletServer.hpp"
+#include "WalletDBKeys.h"
 
 template <class T> string ConvertToString(T field_elem, int base = 10) {
   mpz_t t;
   mpz_init(t);
+  string result;
 
-  field_elem.as_bigint().to_mpz(t);
+  try {
+    field_elem.as_bigint().to_mpz(t);
 
-  SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
+    SAFE_CHAR_BUF(arr, mpz_sizeinbase(t, base) + 2);
 
-  mpz_get_str(arr, base, t);
+    mpz_get_str(arr, base, t);
 
-  mpz_clear(t);
-  string output = arr;
-  return output;
+    result = arr;
+
+    if (base == 16) {
+      if (result.length() > 64) {
+        throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                           "Hex string is too long");
+      }
+      // 64-characters long - fill 0's if needed
+      int n_zeroes = 64 - result.length();
+      result.insert(0, n_zeroes, '0');
+    }
+
+    mpz_clear(t);
+    return result;
+
+  } catch (SGXException &e) {
+    mpz_clear(t);
+    throw;
+  } catch (exception &e) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
+  } catch (...) {
+    mpz_clear(t);
+    throw SGXException(EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX,
+                       "Failed to convert field element to string");
+  }
 }
 
 string convertHexToDec(const string &hex_str) {
@@ -55,14 +82,17 @@ string convertHexToDec(const string &hex_str) {
 
   string ret = "";
 
+  if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
+    throw SGXException(EXCEPTION_IN_CONVERT_HEX_TO_DEC,
+                       "Bad formatted hex string provided");
+  }
+
   try {
-    if (mpz_set_str(dec, hex_str.c_str(), 16) == -1) {
-      goto clean;
-    }
 
     SAFE_CHAR_BUF(arr, mpz_sizeinbase(dec, 10) + 2);
     mpz_get_str(arr, 10, dec);
     ret = arr;
+
   } catch (exception &e) {
     mpz_clear(dec);
     throw SGXException(INCORRECT_STRING_CONVERSION, e.what());
@@ -72,38 +102,30 @@ string convertHexToDec(const string &hex_str) {
                        "Exception in convert hex to dec");
   }
 
-clean:
-
   mpz_clear(dec);
-
   return ret;
 }
 
-string convertG2ToString(const libff::alt_bn128_G2 &elem, int base,
+// Converts G2Point to colon-delimited decimal string
+string convertG2ToString(const libBLS::algebra::G2Point &elem, int base,
                          const string &delim) {
-  string result = "";
-
+  // G2Point.toString(Base::DEC) already outputs colon-delimited format
+  // and handles affine coordinate normalization internally
+  if (delim != ":" || base != 10) {
+    throw SGXException(
+        EXCEPTION_IN_CONVERT_G2_STRING,
+        "convertG2ToString only supports base 10 with : delimiter");
+  }
   try {
-    result += ConvertToString(elem.X.c0);
-    result += delim;
-    result += ConvertToString(elem.X.c1);
-    result += delim;
-    result += ConvertToString(elem.Y.c0);
-    result += delim;
-    result += ConvertToString(elem.Y.c1);
-
-    return result;
-
+    return elem.toString(libBLS::algebra::Base::DEC);
   } catch (exception &e) {
     throw SGXException(CONVERT_G2_INCORRECT_STRING_CONVERSION, e.what());
-    return result;
-  } catch (...) {
-    throw SGXException(EXCEPTION_IN_CONVERT_G2_STRING,
-                       "Exception in convert G2 to string");
-    return result;
   }
+}
 
-  return result;
+// Converts 256-char hex string (4x64 chars) to G2Point
+libBLS::algebra::G2Point convertStringToG2(const std::string &str) {
+  return libBLS::algebra::G2Point::fromString(str, libBLS::algebra::Base::HEXA);
 }
 
 string gen_dkg_poly(int _t) {
@@ -176,24 +198,17 @@ getVerificationVectorMult(const std::string &encryptedPolyHex, int t, int n,
   vector<vector<string>> result(t);
 
   for (int i = 0; i < t; ++i) {
-    libff::alt_bn128_G2 current_coefficient;
-    current_coefficient.X.c0 =
-        libff::alt_bn128_Fq(verificationVector[i][0].c_str());
-    current_coefficient.X.c1 =
-        libff::alt_bn128_Fq(verificationVector[i][1].c_str());
-    current_coefficient.Y.c0 =
-        libff::alt_bn128_Fq(verificationVector[i][2].c_str());
-    current_coefficient.Y.c1 =
-        libff::alt_bn128_Fq(verificationVector[i][3].c_str());
-    current_coefficient.Z = libff::alt_bn128_Fq2::one();
+    libBLS::algebra::G2Point current_coefficient =
+        libBLS::algebra::G2Point::fromString(verificationVector[i],
+                                             libBLS::algebra::Base::DEC);
 
     current_coefficient =
-        libff::power(libff::alt_bn128_Fr(ind + 1), i) * current_coefficient;
-    current_coefficient.to_affine_coordinates();
+        libBLS::algebra::power(libBLS::algebra::FrScalar(ind + 1), i) *
+        current_coefficient;
 
-    auto g2_str = convertG2ToString(current_coefficient);
-
-    result[i] = splitString(g2_str.c_str(), ':');
+    auto g2_arr =
+        current_coefficient.toStringVector(libBLS::algebra::Base::DEC);
+    result[i] = g2_arr;
   }
 
   return result;
@@ -244,7 +259,8 @@ string getSecretShares(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -302,7 +318,8 @@ string getSecretSharesV2(const string &_polyName, const char *_encryptedPolyHex,
     result += string(currentShare.data());
 
     hexEncrKey = carray2Hex(encryptedSkey.data(), decLen);
-    string dhKeyName = "DKG_DH_KEY_" + _polyName + "_" + to_string(i) + ":";
+    string dhKeyName = string(WalletDBKeys::DKG_DH_KEY_PREFIX) + _polyName +
+                       "_" + to_string(i) + ":";
 
     string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
 
@@ -326,7 +343,7 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t decKeyLen = 0;
-  int result = 0;
+  int statusCode = 0;
 
   SAFE_UINT8_BUF(encr_key, BUF_LEN);
   if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
@@ -335,23 +352,61 @@ bool verifyShares(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 
-  status = trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares,
-                            encr_sshare, encr_key, decKeyLen, t, ind, &result);
+  status =
+      trustedDkgVerify(eid, &errStatus, errMsg.data(), pshares, encr_sshare,
+                       encr_key, decKeyLen, t, ind, &statusCode);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  if (result == 2) {
-    throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
-                       string(__FUNCTION__) + +":Invalid public shares");
+  bool dkgVerifiedSuccessfully = (statusCode == 1);
+
+  if (!dkgVerifiedSuccessfully) {
+    // status code 1 indicates validation failed
+    if (statusCode == 0) {
+      return false;
+    }
+    // status codes 2 & 3 indicate errors
+    else if (statusCode >= 2) {
+      throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                         string(__FUNCTION__) + ":Invalid public shares");
+    }
   }
 
-  return result;
+  return true;
 }
 
+/**
+ * @brief Verifies DKG shares using version 2 of the verification algorithm
+ *
+ * @param publicShares String containing the public shares to verify
+ * @param encr_sshare Encrypted secret share data
+ * @param encryptedKeyHex Encrypted key in hexadecimal format
+ * @param t Threshold value for the DKG scheme
+ * @param n Total number of participants
+ * @param ind Index of the participant
+ *
+ * @throws SGXException if encryptedKeyHex is invalid or if public shares are
+ * invalid
+ * @throws SGXException if trusted function call fails
+ *
+ * @return bool True if verification succeeds, false otherwise
+ *
+ * @details This function performs verification of DKG shares by:
+ *          1. Converting encrypted key from hex to byte array
+ *          2. Copying public shares to a safe buffer
+ *          3. Calling trusted enclave function for verification
+ *          4. Handling any errors from the verification process
+ */
 bool verifySharesV2(const char *publicShares, const char *encr_sshare,
                     const char *encryptedKeyHex, int t, int n, int ind) {
 
@@ -362,7 +417,7 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t decKeyLen = 0;
-  int result = 0;
+  int statusCode = 0;
 
   SAFE_UINT8_BUF(encr_key, BUF_LEN);
   if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
@@ -371,22 +426,37 @@ bool verifySharesV2(const char *publicShares, const char *encr_sshare,
   }
 
   SAFE_CHAR_BUF(pshares, 8193);
-  strncpy(pshares, publicShares, strlen(publicShares));
+  size_t publicSharesLen = strnlen(publicShares, sizeof(pshares));
+  if (publicSharesLen >= sizeof(pshares)) {
+    throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
+                       string(__FUNCTION__) + ":Public shares are too long");
+  }
+  memcpy(pshares, publicShares, publicSharesLen);
+  pshares[publicSharesLen] = '\0';
 
   sgx_status_t status = SGX_SUCCESS;
 
   status =
       trustedDkgVerifyV2(eid, &errStatus, errMsg.data(), pshares, encr_sshare,
-                         encr_key, decKeyLen, t, ind, &result);
+                         encr_key, decKeyLen, t, ind, &statusCode);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
-  if (result == 2) {
-    throw SGXException(VERIFY_SHARES_V2_INVALID_PUBLIC_SHARES,
-                       string(__FUNCTION__) + ":Invalid public shares");
+  bool dkgVerifiedSuccessfully = (statusCode == 1);
+
+  if (!dkgVerifiedSuccessfully) {
+    // status code 1 indicates validation failed
+    if (statusCode == 0) {
+      return false;
+    }
+    // status codes 2 & 3 indicate errors
+    else if (statusCode >= 2) {
+      throw SGXException(VERIFY_SHARES_INVALID_PUBLIC_SHARES,
+                         string(__FUNCTION__) + ":Invalid public shares");
+    }
   }
 
-  return result;
+  return true;
 }
 
 bool createBLSShare(const string &blsKeyName, const char *s_shares,
@@ -493,37 +563,21 @@ vector<string> getBLSPubKey(const char *encryptedKeyHex) {
 vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares) {
   size_t n = public_shares.size();
   size_t t = public_shares[0].length() / 256;
-  uint64_t share_length = 256;
-  uint8_t coord_length = 64;
+  constexpr uint64_t share_length = 256;
 
-  vector<libff::alt_bn128_G2> public_keys(n, libff::alt_bn128_G2::zero());
+  vector<libBLS::algebra::G2Point> public_keys(
+      n, libBLS::algebra::G2Point::identity());
 
-  vector<libff::alt_bn128_G2> public_values(t, libff::alt_bn128_G2::zero());
+  vector<libBLS::algebra::G2Point> public_values(
+      t, libBLS::algebra::G2Point::identity());
+
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < t; ++j) {
-      libff::alt_bn128_G2 public_share;
-
       uint64_t pos0 = share_length * j;
-      string x_c0_str =
-          convertHexToDec(public_shares[i].substr(pos0, coord_length));
-      string x_c1_str = convertHexToDec(
-          public_shares[i].substr(pos0 + coord_length, coord_length));
-      string y_c0_str = convertHexToDec(
-          public_shares[i].substr(pos0 + 2 * coord_length, coord_length));
-      string y_c1_str = convertHexToDec(
-          public_shares[i].substr(pos0 + 3 * coord_length, coord_length));
-
-      if (x_c0_str == "" || x_c1_str == "" || y_c0_str == "" ||
-          y_c1_str == "") {
-        return {};
-      }
-
-      public_share.X.c0 = libff::alt_bn128_Fq(x_c0_str.c_str());
-      public_share.X.c1 = libff::alt_bn128_Fq(x_c1_str.c_str());
-      public_share.Y.c0 = libff::alt_bn128_Fq(y_c0_str.c_str());
-      public_share.Y.c1 = libff::alt_bn128_Fq(y_c1_str.c_str());
-      public_share.Z = libff::alt_bn128_Fq2::one();
-
+      string g2_hex_str = public_shares[i].substr(pos0, share_length);
+      libBLS::algebra::G2Point public_share =
+          libBLS::algebra::G2Point::fromString(g2_hex_str,
+                                               libBLS::algebra::Base::HEXA);
       public_values[j] = public_values[j] + public_share;
     }
   }
@@ -532,14 +586,14 @@ vector<string> calculateAllBlsPublicKeys(const vector<string> &public_shares) {
     for (size_t j = 0; j < t; ++j) {
       public_keys[i] =
           public_keys[i] +
-          libff::power(libff::alt_bn128_Fr(i + 1), j) * public_values[j];
+          libBLS::algebra::power(libBLS::algebra::FrScalar(i + 1), j) *
+              public_values[j];
     }
-    public_keys[i].to_affine_coordinates();
   }
 
   vector<string> result(n);
   for (size_t i = 0; i < n; ++i) {
-    result[i] = convertG2ToString(public_keys[i]);
+    result[i] = public_keys[i].toString(libBLS::algebra::Base::DEC);
   }
 
   return result;
@@ -551,7 +605,7 @@ string decryptDHKey(const string &polyName, int ind) {
 
   string DH_key_name = polyName + "_" + to_string(ind) + ":";
   shared_ptr<string> hexEncrKeyPtr =
-      SGXWalletServer::readFromDb(DH_key_name, "DKG_DH_KEY_");
+      SGXWalletServer::readFromDb(DH_key_name, WalletDBKeys::DKG_DH_KEY_PREFIX);
 
   spdlog::debug("encr DH key is {}", *hexEncrKeyPtr);
   spdlog::debug("encr DH key length is {}", hexEncrKeyPtr->length());
@@ -579,13 +633,8 @@ string decryptDHKey(const string &polyName, int ind) {
 }
 
 vector<string> mult_G2(const string &x) {
-  vector<string> result(4);
-  libff::alt_bn128_Fr el(x.c_str());
-  libff::alt_bn128_G2 elG2 = el * libff::alt_bn128_G2::one();
-  elG2.to_affine_coordinates();
-  result[0] = ConvertToString(elG2.X.c0);
-  result[1] = ConvertToString(elG2.X.c1);
-  result[2] = ConvertToString(elG2.Y.c0);
-  result[3] = ConvertToString(elG2.Y.c1);
-  return result;
+  libBLS::algebra::FrScalar el =
+      libBLS::algebra::FrScalar::fromString(x, libBLS::algebra::Base::DEC);
+  libBLS::algebra::G2Point elG2 = el * libBLS::algebra::G2Point::generator();
+  return elG2.toStringVector(libBLS::algebra::Base::DEC);
 }

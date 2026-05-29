@@ -41,11 +41,21 @@
 
 using namespace std;
 
+// factory constructors for shared_ptrs
+inline std::shared_ptr<EVP_PKEY> make_shared_evp_pkey(EVP_PKEY *p) {
+  return std::shared_ptr<EVP_PKEY>(p, EVP_PKEY_free);
+}
+
+inline std::shared_ptr<X509> make_shared_x509(X509 *p) {
+  return std::shared_ptr<X509>(p, X509_free);
+}
+
 class ZMQMessage {
 
   shared_ptr<rapidjson::Document> d;
 
-  static cache::lru_cache<string, pair<EVP_PKEY *, X509 *>> verifiedCerts;
+  static cache::lru_cache<string, pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>>
+      verifiedCerts;
 
 protected:
   bool checkKeyOwnership = true;
@@ -167,6 +177,14 @@ public:
   uint64_t getInt64Rapid(const char *_name);
 
   Json::Value getJsonValueRapid(const char *_name);
+
+  /**
+   * Builds a Json::Value from the rapidjson::Document.
+   * Fetches the value of the given name from the document and returns it as a
+   * Json::Value. If field is optional, may return an empty Json::Value if the
+   * field is not present.
+   */
+  Json::Value getJsonValueRapid(const char *_name, bool optional);
 
   bool getBoolRapid(const char *_name);
 

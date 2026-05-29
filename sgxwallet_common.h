@@ -48,7 +48,16 @@ extern bool useHTTPS;
 extern bool enterBackupKey;
 extern bool autoconfirm;
 
+// default number of threads for http server as per libjson-rpc-cpp
+#define DEFAULT_HTTP_SERVER_THREADS 50
+
 #define BUF_LEN 4096
+
+#define ENCLAVE_MAX_CIPHERTEXT_BATCH 100
+#define CIPHERTEXT_CHARACTER_LENGTH 256
+// +1 for null terminator
+#define ENCLAVE_MAX_BATCH_BUFFER_SIZE                                          \
+  (ENCLAVE_MAX_CIPHERTEXT_BATCH * CIPHERTEXT_CHARACTER_LENGTH + 1)
 
 #define MAX_KEY_LENGTH 128
 #define MAX_COMPONENT_LENGTH 80
@@ -190,6 +199,9 @@ extern bool autoconfirm;
 #define COULD_NOT_CREATE_POP_PROVE -118
 #define GENERATE_BLS_KEY_INVALID_NAME -119
 #define INVALID_CREATE_BLS_AGGREGATED_KEY -120
+#define TOO_MANY_DECRYPTION_VALUES -121
+#define EXCEPTION_IN_CONVERT_FIELD_ELEMENT_TO_HEX -122
+#define EXCEPTION_IN_STRING_TO_G2 -123
 
 #define SGX_ENCLAVE_ERROR -666
 
@@ -200,6 +212,9 @@ extern bool autoconfirm;
 #define WALLETDB_NAME "sgxwallet.db"
 #define ENCLAVE_NAME "secure_enclave.signed.so"
 #define SGXDATA_FOLDER "sgx_data/"
+#define SGXWALLET_BACKUP_KEY_FILE "sgxwallet_backup_key.txt"
+#define SGXWALLET_BACKUP_KEY_PATH "./" SGXDATA_FOLDER SGXWALLET_BACKUP_KEY_FILE
+#define SGXWALLET_BACKUP_KEY_TMP_PATH SGXWALLET_BACKUP_KEY_PATH ".tmp"
 
 #define TEST_VALUE "1234567890"
 

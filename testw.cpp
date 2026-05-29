@@ -30,7 +30,7 @@
 #include <gmp.h>
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <jsonrpccpp/server/connectors/httpserver.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+
 #include <sgx_tcrypto.h>
 #include <sgx_urts.h>
 #include <stdio.h>
@@ -58,68 +58,148 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "TestUtils.h"
+#include "secure_enclave/TEUtils.h"
 #include "sgxwallet.h"
 #include "testw.h"
 #include "zmq_src/ZMQClient.h"
 #include "zmq_src/ZMQServer.h"
+#include <condition_variable>
+#include <mutex>
 
 #define PRINT_SRC_LINE cerr << "Executing line " << to_string(__LINE__) << endl;
 
 using namespace jsonrpc;
 using namespace std;
 
+/**
+ * @brief Sends a curl request with the provided jsonData to the specified url
+ * If keyPath and certPath are provided, they are used for the request
+ * @return the response as a string
+ * @note Needed since current `HttpClient` class does not allow to use
+ * self-signed certificates
+ */
+std::string httpsRequest(const std::string &url, const std::string &jsonData,
+                         bool expectedError, const std::string &keyPath = "",
+                         const std::string &certPath = "") {
+  std::ostringstream command;
+  command << "curl -X POST --data '" << jsonData << "' "
+          << "-H 'content-type:application/json;' -v ";
+
+  // If keyPath and certPath are provided, add them to the command
+  if (!keyPath.empty() && !certPath.empty()) {
+    command << "--key " << keyPath << " "
+            << "--key " << keyPath << " --cert " << certPath << " ";
+  }
+
+  command << url << " -k ";
+  if (expectedError) {
+    //            vv--redirect stderr to stdout
+    command << "2>&1";
+  }
+
+  // Open a pipe to read the command's standard output.
+  FILE *fp = popen(command.str().c_str(), "r");
+  if (fp == nullptr) {
+    std::cerr << "Error opening pipe for curl command." << std::endl;
+    return "";
+  }
+
+  // Read the output of the curl command in chunks.
+  constexpr size_t bufferSize = 128;
+  char buffer[bufferSize];
+  std::string response;
+  while (fgets(buffer, bufferSize, fp) != nullptr) {
+    response += buffer;
+  }
+
+  // Close the pipe.
+  pclose(fp);
+  return response;
+}
+
+/**
+ * @brief Check if a string ends with a given suffix
+ */
+bool endsWith(const std::string &str, const std::string &suffix) {
+  if (suffix.size() > str.size())
+    return false;
+  return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
+initConfig makeTestInitConfig(bool useHTTPS, bool checkCert, bool checkZMQSig,
+                              bool autoSign, bool checkKeyOwnership,
+                              bool enterBackupKey = false) {
+  initConfig config;
+  config.logLevel = L_INFO;
+  config.enclaveLogLevel = L_INFO;
+  config.useHTTPS = useHTTPS;
+  config.autoconfirm = true;
+  config.enterBackupKey = enterBackupKey;
+  config.checkCert = checkCert;
+  config.checkZMQSig = checkZMQSig;
+  config.autoSign = autoSign;
+  config.generateTestKeys = false;
+  config.checkKeyOwnership = checkKeyOwnership;
+  config.threadPoolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
+  return config;
+}
+
+// Test Fixtures
+
 class TestFixture {
 public:
   TestFixture() {
     TestUtils::resetDB();
-    setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, false, true, false, true);
+    initConfig config = makeTestInitConfig(false, false, false, true, true);
+
+    initAll(config);
   }
 
-  ~TestFixture() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixture() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureHTTPS {
 public:
   TestFixtureHTTPS() {
     TestUtils::resetDB();
-    setOptions(L_INFO, true, true);
-    initAll(L_INFO, false, true, true, false, true);
+    initConfig config = makeTestInitConfig(true, true, true, true, true);
+
+    initAll(config);
   }
 
-  ~TestFixtureHTTPS() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureHTTPS() { TestUtils::destroyEnclave(); }
+
+  // Used for all HTTPS requests - simplest request possible
+  // Any request would do - this is only used for heatlhchecks &
+  // checking for errors on malformed https requests
+  static constexpr const char *REQUEST_DATA =
+      "{\"jsonrpc\":\"2.0\",\"method\":\"getServerVersion\",\"params\":[],"
+      "\"id\":1}";
 };
 
 class TestFixtureZMQSign {
 public:
   TestFixtureZMQSign() {
     TestUtils::resetDB();
-    setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, true, true, false, false);
+    initConfig config = makeTestInitConfig(false, false, true, true, false);
+
+    initAll(config);
   }
 
-  ~TestFixtureZMQSign() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureZMQSign() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureNoResetFromBackup {
 public:
   TestFixtureNoResetFromBackup() {
-    setFullOptions(L_INFO, false, true, true);
-    initAll(L_INFO, false, false, true, false, true);
+    initConfig config =
+        makeTestInitConfig(false, false, false, true, true, true);
+
+    initAll(config);
   }
 
   ~TestFixtureNoResetFromBackup() {
     sleep(3);
-    //        ZMQServer::exitZMQServer();
     TestUtils::destroyEnclave();
   }
 };
@@ -127,15 +207,147 @@ public:
 class TestFixtureNoReset {
 public:
   TestFixtureNoReset() {
-    setOptions(L_INFO, false, true);
-    initAll(L_INFO, false, false, true, false, true);
+    initConfig config = makeTestInitConfig(false, false, false, true, true);
+
+    initAll(config);
   }
 
-  ~TestFixtureNoReset() {
-    //        ZMQServer::exitZMQServer();
-    TestUtils::destroyEnclave();
-  }
+  ~TestFixtureNoReset() { TestUtils::destroyEnclave(); }
 };
+
+TEST_CASE_METHOD(TestFixture, "HTTP Healthcheck", "[http-healthcheck]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
+  sleep(3);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS Healthcheck", "[https-healthcheck]") {
+  REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  ifstream infile(csrFile);
+  infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  ostringstream ss;
+  ss << infile.rdbuf();
+  infile.close();
+
+  auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
+  std::string hash = result["hash"].asString();
+
+  result = SGXRegistrationServer::getServer()->GetCertificate(hash);
+  std::string cert = result["cert"].asString();
+
+  // Write certificate to file
+  std::ofstream out(certFile);
+  if (!out) {
+    throw std::runtime_error("Failed to open file for writing certificate");
+  }
+  out << cert;
+  out.close();
+
+  // make the request
+  bool expectedError = false;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+
+  Json::Value json;
+  Json::CharReaderBuilder reader;
+  std::istringstream iss(resp);
+  std::string errs;
+  if (!Json::parseFromStream(reader, iss, &json, &errs)) {
+    std::cerr << "Failed to parse JSON: " << errs << std::endl;
+    throw std::runtime_error("Failed to parse JSON response");
+  }
+
+  REQUIRE(json.isObject());
+  REQUIRE(json["jsonrpc"] == "2.0");
+  REQUIRE(json["id"] == 1);
+  REQUIRE(json["result"].isObject());
+  REQUIRE(json["result"]["version"].asString() ==
+          SGXWalletServer::getVersion());
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS wrong certificate",
+                 "[https-wrong-ssl-certificate]") {
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  // signed with wrong key
+  std::ostringstream selfSign;
+  selfSign << "openssl x509 -req -in " << csrFile << " -signkey " << keyFile
+           << " -out " << certFile;
+  REQUIRE(system(selfSign.str().c_str()) == 0);
+
+  bool expectedError = true;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS without certificate",
+                 "[https-without-certificate]") {
+  // request with no certificate / key
+  bool expectedError = true;
+  std::string resp = httpsRequest(
+      RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA, expectedError);
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS certificate not in database",
+                 "[https-certificate-not-in-db]") {
+  REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
+
+  string keyFile = "insecure-samples/yourdomain.key";
+  string csrFile = "insecure-samples/yourdomain.csr";
+  string certFile = "insecure-samples/yourdomain.crt";
+
+  // sign certificate
+  ifstream infile(csrFile);
+  infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  ostringstream ss;
+  ss << infile.rdbuf();
+  infile.close();
+
+  auto result = SGXRegistrationServer::getServer()->SignCertificate(ss.str());
+  std::string hash = result["hash"].asString();
+
+  result = SGXRegistrationServer::getServer()->GetCertificate(hash);
+  std::string cert = result["cert"].asString();
+
+  // Write certificate to file
+  std::ofstream out(certFile);
+  if (!out) {
+    throw std::runtime_error("Failed to open file for writing certificate");
+  }
+  out << cert;
+  out.close();
+
+  // kill enclave
+  TestUtils::destroyEnclave();
+
+  // reset db & init enclave again
+  TestUtils::resetDB();
+  initConfig config = makeTestInitConfig(true, true, true, true, true);
+
+  initAll(config);
+
+  // make the request
+  bool expectedError = true;
+  std::string resp =
+      httpsRequest(RPC_ENDPOINT_HTTPS, TestFixtureHTTPS::REQUEST_DATA,
+                   expectedError, keyFile, certFile);
+  REQUIRE(resp.find("curl: (") != std::string::npos);
+}
+
+/// Functionality tests
 
 TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test",
                  "[ecdsa-aes-key-sig-gen]") {
@@ -219,8 +431,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key",
 /* Do later
 TEST_CASE_METHOD("BLS key encrypt/decrypt", "[bls-key-encrypt-decrypt]") {
     resetDB();
-    setOptions(false, false, false, true);
-    initAll(0, false, true);
+    initConfig config = makeTestInitConfig(false, false, false, true, true);
+    initAll(config);
 
     //init_enclave();
 
@@ -350,7 +562,7 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test",
   REQUIRE(errStatus == SGX_SUCCESS);
 
   vector<string> g2Strings = splitString(pubShares.data(), ',');
-  vector<libff::alt_bn128_G2> pubSharesG2;
+  vector<libBLS::algebra::G2Point> pubSharesG2;
   for (u_int64_t i = 0; i < g2Strings.size(); i++) {
     vector<string> coeffStr = splitString(g2Strings.at(i).c_str(), ':');
 
@@ -367,13 +579,10 @@ TEST_CASE_METHOD(TestFixture, "DKG AES public shares test",
 
   libBLS::Dkg dkgObj(t, n);
 
-  vector<libff::alt_bn128_Fr> poly =
+  vector<libBLS::algebra::FrScalar> poly =
       TestUtils::splitStringToFr(secret.data(), colon);
-  vector<libff::alt_bn128_G2> pubSharesDkg = dkgObj.VerificationVector(poly);
-  for (uint32_t i = 0; i < pubSharesDkg.size(); i++) {
-    libff::alt_bn128_G2 el = pubSharesDkg.at(i);
-    el.to_affine_coordinates();
-  }
+  vector<libBLS::algebra::G2Point> pubSharesDkg =
+      dkgObj.VerificationVector(poly);
   REQUIRE(pubSharesG2 == pubSharesDkg);
 }
 
@@ -436,19 +645,6 @@ TEST_CASE_METHOD(TestFixture, "DKG AES encrypted secret shares version 2 test",
   REQUIRE(status == SGX_SUCCESS);
   REQUIRE(errStatus == SGX_SUCCESS);
 }
-
-/*
- * ( "verification test", "[verify]" ) {
-    char*  pubshares =
-"0d72c21fc5a43452ad5f36699822309149ce6ce2cdce50dafa896e873f1b8ddd12f65a2e9c39c617a1f695f076b33b236b47ed773901fc2762f8b6f63277f5e30d7080be8e98c97f913d1920357f345dc0916c1fcb002b7beb060aa8b6b473a011bfafe9f8a5d8ea4c643ca4101e5119adbef5ae64f8dfb39cd10f1e69e31c591858d7eaca25b4c412fe909ca87ca7aadbf6d97d32d9b984e93d436f13d43ec31f40432cc750a64ac239cad6b8f78c1f1dd37427e4ff8c1cc4fe1c950fcbcec10ebfd79e0c19d0587adafe6db4f3c63ea9a329724a8804b63a9422e6898c0923209e828facf3a073254ec31af4231d999ba04eb5b7d1e0056d742a65b766f2f3";
-    char *sec_share =
-"11592366544581417165283270001305852351194685098958224535357729125789505948557";
-    mpz_t sshare;
-    mpz_init(sshare);
-    mpz_set_str(sshare,
-"11592366544581417165283270001305852351194685098958224535357729125789505948557",
-10); int result = Verification(pubshares, sshare, 2, 0); REQUIRE(result == 1);
-}*/
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[dkg-bls]") {
   HttpClient client(RPC_ENDPOINT);
@@ -522,10 +718,11 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[delete-bls-key]") {
   StubClient c(client, JSONRPC_CLIENT_V2);
 
   std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
-  libff::alt_bn128_Fr key =
-      libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
-                          "438182864059942098934847");
-  std::string key_str = TestUtils::stringFromFr(key);
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::fromString(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847",
+      libBLS::algebra::Base::DEC);
+  std::string key_str = key.toString(libBLS::algebra::Base::DEC);
   auto response = c.importBLSKeyShare(key_str, name);
   REQUIRE(response["status"] != 0);
 
@@ -544,10 +741,11 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key Zmq", "[delete-bls-key-zmq]") {
                                        "./sgx_data/cert_data/rootCA.key");
 
   std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
-  libff::alt_bn128_Fr key =
-      libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
-                          "438182864059942098934847");
-  std::string key_str = TestUtils::stringFromFr(key);
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::fromString(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847",
+      libBLS::algebra::Base::DEC);
+  std::string key_str = key.toString(libBLS::algebra::Base::DEC);
   REQUIRE(!client->importBLSKeyShare(key_str, name));
 
   key_str = "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
@@ -907,47 +1105,43 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
 
   REQUIRE(xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
 
-  mpz_t hex_share;
-  mpz_init(hex_share);
-  mpz_set_str(hex_share, message.data(), 16);
+  libBLS::algebra::FrScalar share = libBLS::algebra::FrScalar::fromString(
+      string(message.data()), libBLS::algebra::Base::HEXA);
+  libBLS::algebra::G2Point decrypted_share_G2 =
+      share * libBLS::algebra::G2Point::generator();
 
-  libff::alt_bn128_Fr share(hex_share);
-  libff::alt_bn128_G2 decrypted_share_G2 = share * libff::alt_bn128_G2::one();
-  decrypted_share_G2.to_affine_coordinates();
-
-  mpz_clear(hex_share);
-
-  REQUIRE(convertG2ToString(decrypted_share_G2) == shareG2);
+  REQUIRE(decrypted_share_G2.toString(libBLS::algebra::Base::DEC) == shareG2);
 
   Json::Value verificationVectorMult =
       complaintResponse["verificationVectorMult"];
 
-  libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+  libBLS::algebra::G2Point verificationValue =
+      libBLS::algebra::G2Point::identity();
   for (int i = 0; i < t; ++i) {
-    libff::alt_bn128_G2 value;
-    value.Z = libff::alt_bn128_Fq2::one();
-    value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
-    value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
-    value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
-    value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+    std::vector<std::string> vvMultVec = {
+        verificationVectorMult[i][0].asString(),
+        verificationVectorMult[i][1].asString(),
+        verificationVectorMult[i][2].asString(),
+        verificationVectorMult[i][3].asString()};
+    libBLS::algebra::G2Point value = libBLS::algebra::G2Point::fromString(
+        vvMultVec, libBLS::algebra::Base::DEC);
     verificationValue = verificationValue + value;
   }
-  verificationValue.to_affine_coordinates();
   REQUIRE(verificationValue == decrypted_share_G2);
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
-  auto hash_arr = make_shared<array<uint8_t, 32>>();
+  array<uint8_t, 32> hash_arr;
 
   uint64_t binLen;
 
-  if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+  if (!hex2carray(hash.c_str(), &binLen, hash_arr.data(), 32)) {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+  map<size_t, libBLS::BLSPublicKeyShare> coeffs_pkeys_map;
 
   for (int i = 0; i < t; i++) {
     string endName = polyNames[i].substr(4);
@@ -965,27 +1159,23 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[aes-dkg-v2]") {
     blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
     REQUIRE(blsSigShares[i]["status"] == 0);
 
-    shared_ptr<string> sig_share_ptr =
-        make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    string sig_share = blsSigShares[i]["signatureShare"].asString();
+    libBLS::BLSSigShare sig(sig_share, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
 
     vector<string> pubKey_vect;
     for (uint8_t j = 0; j < 4; j++) {
       pubKey_vect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
     }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
+    libBLS::BLSPublicKeyShare pubKey(pubKey_vect, t, n);
     PRINT_SRC_LINE
-    REQUIRE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig),
-                                       t, n));
+    REQUIRE(pubKey.VerifySigWithHelper(hash_arr, sig, t, n));
 
-    coeffs_pkeys_map[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    coeffs_pkeys_map.insert(std::make_pair(i + 1, pubKey));
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-  BLSPublicKey common_public(
-      make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(coeffs_pkeys_map),
-      t, n);
+  libBLS::BLSSignature commonSig = sigShareSet.merge();
+  libBLS::BLSPublicKey common_public(coeffs_pkeys_map, t, n);
   REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
@@ -1072,46 +1262,42 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
 
   REQUIRE(xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
 
-  mpz_t hex_share;
-  mpz_init(hex_share);
-  mpz_set_str(hex_share, message.data(), 16);
+  libBLS::algebra::FrScalar share = libBLS::algebra::FrScalar::fromString(
+      string(message.data()), libBLS::algebra::Base::HEXA);
+  libBLS::algebra::G2Point decrypted_share_G2 =
+      share * libBLS::algebra::G2Point::generator();
 
-  libff::alt_bn128_Fr share(hex_share);
-  libff::alt_bn128_G2 decrypted_share_G2 = share * libff::alt_bn128_G2::one();
-  decrypted_share_G2.to_affine_coordinates();
-
-  mpz_clear(hex_share);
-
-  REQUIRE(convertG2ToString(decrypted_share_G2) == shareG2);
+  REQUIRE(decrypted_share_G2.toString(libBLS::algebra::Base::DEC) == shareG2);
 
   Json::Value verificationVectorMult = std::get<2>(complaintResponse);
 
-  libff::alt_bn128_G2 verificationValue = libff::alt_bn128_G2::zero();
+  libBLS::algebra::G2Point verificationValue =
+      libBLS::algebra::G2Point::identity();
   for (int i = 0; i < t; ++i) {
-    libff::alt_bn128_G2 value;
-    value.Z = libff::alt_bn128_Fq2::one();
-    value.X.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][0].asCString());
-    value.X.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][1].asCString());
-    value.Y.c0 = libff::alt_bn128_Fq(verificationVectorMult[i][2].asCString());
-    value.Y.c1 = libff::alt_bn128_Fq(verificationVectorMult[i][3].asCString());
+    std::vector<std::string> vvMultVec = {
+        verificationVectorMult[i][0].asString(),
+        verificationVectorMult[i][1].asString(),
+        verificationVectorMult[i][2].asString(),
+        verificationVectorMult[i][3].asString()};
+    libBLS::algebra::G2Point value = libBLS::algebra::G2Point::fromString(
+        vvMultVec, libBLS::algebra::Base::DEC);
     verificationValue = verificationValue + value;
   }
-  verificationValue.to_affine_coordinates();
   REQUIRE(verificationValue == decrypted_share_G2);
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
-  auto hash_arr = make_shared<array<uint8_t, 32>>();
+  array<uint8_t, 32> hash_arr;
 
   uint64_t binLen;
 
-  if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
+  if (!hex2carray(hash.c_str(), &binLen, hash_arr.data(), 32)) {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+  map<size_t, libBLS::BLSPublicKeyShare> coeffs_pkeys_map;
 
   for (int i = 0; i < t; i++) {
     string blsName = "BLS_KEY" + polyNames[i].substr(4);
@@ -1124,25 +1310,21 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[aes-dkg-v2-zmq]") {
     blsSigShares[i] = client->blsSignMessageHash(blsName, hash, t, n);
     REQUIRE(blsSigShares[i].length() > 0);
 
-    shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]);
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    libBLS::BLSSigShare sig(blsSigShares[i], i + 1, t, n);
+    sigShareSet.addSigShare(sig);
 
     vector<string> pubKey_vect;
     for (uint8_t j = 0; j < 4; j++) {
       pubKey_vect.push_back(pubBLSKeys[i][j].asString());
     }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKey_vect), t, n);
-    REQUIRE(pubKey.VerifySigWithHelper(hash_arr, make_shared<BLSSigShare>(sig),
-                                       t, n));
+    libBLS::BLSPublicKeyShare pubKey(pubKey_vect, t, n);
+    REQUIRE(pubKey.VerifySigWithHelper(hash_arr, sig, t, n));
 
-    coeffs_pkeys_map[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    coeffs_pkeys_map.insert(std::make_pair(i + 1, pubKey));
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
-  BLSPublicKey common_public(
-      make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(coeffs_pkeys_map),
-      t, n);
+  libBLS::BLSSignature commonSig = sigShareSet.merge();
+  libBLS::BLSPublicKey common_public(coeffs_pkeys_map, t, n);
   REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
@@ -1293,9 +1475,42 @@ TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[second-run]") {
   }
 }
 
+const std::vector<int> BATCH_TEST_VALUES = {
+    1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH / 2,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH - 1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH + 1,
+    ENCLAVE_MAX_CIPHERTEXT_BATCH + ENCLAVE_MAX_CIPHERTEXT_BATCH / 2,
+    2 * ENCLAVE_MAX_CIPHERTEXT_BATCH,
+    3 * ENCLAVE_MAX_CIPHERTEXT_BATCH};
+
+TEST_CASE_METHOD(TestFixture,
+                 "Test decryption share for empty threshold encryption",
+                 "[te-empty-decryption-share]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues;
+  publicDecryptionValues["publicDecryptionValues"] = Json::arrayValue;
+  auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  REQUIRE(decryptionShares["decryptionShares"].empty());
+}
+
 TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
                  "[te-decryption-share]") {
   HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
   std::string key_str =
@@ -1304,47 +1519,132 @@ TEST_CASE_METHOD(TestFixture, "Test decryption share for threshold encryption",
   c.importBLSKeyShare(key_str, name);
 
   // the same key writtn in decimal
-  libff::alt_bn128_Fr key =
-      libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
-                          "438182864059942098934847");
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::fromString(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847",
+      libBLS::algebra::Base::DEC);
 
-  libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
-  libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
+  for (int num_requests : BATCH_TEST_VALUES) {
+    Json::Value publicDecryptionValues;
 
-  decryption_value1.to_affine_coordinates();
-  decryption_value2.to_affine_coordinates();
+    std::vector<libBLS::algebra::G2Point> decryption_values;
+    for (int i = 0; i < num_requests; i++) {
+      libBLS::algebra::G2Point decryption_value =
+          libBLS::algebra::G2Point::random();
+      decryption_values.push_back(decryption_value);
+      auto decrytion_value_str =
+          decryption_value.toString(libBLS::algebra::Base::HEXA);
+      publicDecryptionValues["publicDecryptionValues"][i] = decrytion_value_str;
+    }
 
-  auto decrytion_value_str1 = convertG2ToString(decryption_value1, ':');
-  auto decrytion_value_str2 = convertG2ToString(decryption_value2, ':');
+    auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
+
+    REQUIRE(decryptionShares.isObject());
+    // should have no failed requests
+    REQUIRE(!decryptionShares.isMember("failedRequests"));
+
+    for (int i = 0; i < num_requests; i++) {
+      auto decryption_share =
+          decryptionShares["decryptionShares"][i].asString();
+      libBLS::algebra::G2Point share = libBLS::algebra::G2Point::fromString(
+          decryption_share, libBLS::algebra::Base::HEXA);
+      REQUIRE(share == key * decryption_values[i]);
+    }
+  }
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share for faulty shares",
+                 "[te-decryption-share-error]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
 
   Json::Value publicDecryptionValues;
-  publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
-  publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
-
+  publicDecryptionValues["publicDecryptionValues"][0] =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
   auto decryptionShares = c.getDecryptionShares(name, publicDecryptionValues);
 
-  auto decryption_share1 = decryptionShares["decryptionShares"][0];
-  auto decryption_share2 = decryptionShares["decryptionShares"][1];
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  // response should also be all 0's
+  REQUIRE(decryptionShares["decryptionShares"][0] ==
+          publicDecryptionValues["publicDecryptionValues"][0]);
 
-  libff::alt_bn128_G2 share1;
-  share1.Z = libff::alt_bn128_Fq2::one();
+  // check for failed requests status code
+  REQUIRE(decryptionShares.isMember("failedRequests"));
+  REQUIRE(decryptionShares["failedRequests"].isObject());
+  REQUIRE(decryptionShares["failedRequests"].isMember("0"));
+  REQUIRE(decryptionShares["failedRequests"]["0"].isInt());
+  REQUIRE(decryptionShares["failedRequests"]["0"].asInt() ==
+          STATUS_G2_NOT_WELL_FORMED);
+}
 
-  share1.X.c0 = libff::alt_bn128_Fq(decryption_share1[0].asCString());
-  share1.X.c1 = libff::alt_bn128_Fq(decryption_share1[1].asCString());
-  share1.Y.c0 = libff::alt_bn128_Fq(decryption_share1[2].asCString());
-  share1.Y.c1 = libff::alt_bn128_Fq(decryption_share1[3].asCString());
+TEST_CASE_METHOD(TestFixture,
+                 "Test decryption share for empty threshold encryption via zmq",
+                 "[te-empty-decryption-share-zmq]") {
+  auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
+                                       "./sgx_data/cert_data/rootCA.pem",
+                                       "./sgx_data/cert_data/rootCA.key");
 
-  REQUIRE(share1 == key * decryption_value1);
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  client->importBLSKeyShare(key_str, name);
 
-  libff::alt_bn128_G2 share2;
-  share2.Z = libff::alt_bn128_Fq2::one();
+  Json::Value publicDecryptionValues(Json::objectValue);
+  publicDecryptionValues["publicDecryptionValues"] = Json::arrayValue;
+  Json::Value decryptionShares =
+      client->getDecryptionShares(name, publicDecryptionValues);
 
-  share2.X.c0 = libff::alt_bn128_Fq(decryption_share2[0].asCString());
-  share2.X.c1 = libff::alt_bn128_Fq(decryption_share2[1].asCString());
-  share2.Y.c0 = libff::alt_bn128_Fq(decryption_share2[2].asCString());
-  share2.Y.c1 = libff::alt_bn128_Fq(decryption_share2[3].asCString());
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  REQUIRE(decryptionShares["decryptionShares"].empty());
+}
 
-  REQUIRE(share2 == key * decryption_value2);
+TEST_CASE_METHOD(TestFixture, "Test decryption share for faulty shares via zmq",
+                 "[te-decryption-share-error-zmq]") {
+  auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
+                                       "./sgx_data/cert_data/rootCA.pem",
+                                       "./sgx_data/cert_data/rootCA.key");
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  client->importBLSKeyShare(key_str, name);
+
+  Json::Value publicDecryptionValues;
+  publicDecryptionValues["publicDecryptionValues"][0] =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
+  auto decryptionShares =
+      client->getDecryptionShares(name, publicDecryptionValues);
+
+  REQUIRE(decryptionShares.isObject());
+  REQUIRE(decryptionShares.isMember("decryptionShares"));
+  REQUIRE(decryptionShares["decryptionShares"].isArray());
+  // response should also be all 0's
+  REQUIRE(decryptionShares["decryptionShares"][0] ==
+          publicDecryptionValues["publicDecryptionValues"][0]);
+
+  // check for failed requests status code
+  REQUIRE(decryptionShares.isMember("failedRequests"));
+  REQUIRE(decryptionShares["failedRequests"].isObject());
+  REQUIRE(decryptionShares["failedRequests"].isMember("0"));
+  REQUIRE(decryptionShares["failedRequests"]["0"].isInt());
+  REQUIRE(decryptionShares["failedRequests"]["0"].asInt() ==
+          STATUS_G2_NOT_WELL_FORMED);
 }
 
 TEST_CASE_METHOD(TestFixture,
@@ -1360,48 +1660,283 @@ TEST_CASE_METHOD(TestFixture,
   client->importBLSKeyShare(key_str, name);
 
   // the same key writtn in decimal
-  libff::alt_bn128_Fr key =
-      libff::alt_bn128_Fr("6507625568967977077291849236396320012317305261598035"
-                          "438182864059942098934847");
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::fromString(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847",
+      libBLS::algebra::Base::DEC);
 
-  libff::alt_bn128_G2 decryption_value1 = libff::alt_bn128_G2::random_element();
-  libff::alt_bn128_G2 decryption_value2 = libff::alt_bn128_G2::random_element();
+  for (int num_requests : BATCH_TEST_VALUES) {
+    Json::Value publicDecryptionValues;
 
-  decryption_value1.to_affine_coordinates();
-  decryption_value2.to_affine_coordinates();
+    std::vector<libBLS::algebra::G2Point> decryption_values;
+    for (int i = 0; i < num_requests; i++) {
+      libBLS::algebra::G2Point decryption_value =
+          libBLS::algebra::G2Point::random();
+      decryption_values.push_back(decryption_value);
+      decryption_value.toAffineCoordinates();
+      auto decrytion_value_str =
+          decryption_value.toString(libBLS::algebra::Base::HEXA);
+      publicDecryptionValues["publicDecryptionValues"][i] = decrytion_value_str;
+    }
 
-  auto decrytion_value_str1 = convertG2ToString(decryption_value1, ':');
-  auto decrytion_value_str2 = convertG2ToString(decryption_value2, ':');
+    auto decryptionShares =
+        client->getDecryptionShares(name, publicDecryptionValues);
 
+    REQUIRE(decryptionShares.isObject());
+    // should have no failed requests
+    REQUIRE(!decryptionShares.isMember("failedRequests"));
+
+    for (int i = 0; i < num_requests; i++) {
+      auto decryption_share =
+          decryptionShares["decryptionShares"][i].asString();
+      libBLS::algebra::G2Point share = libBLS::algebra::G2Point::fromString(
+          decryption_share, libBLS::algebra::Base::HEXA);
+      REQUIRE(share == key * decryption_values[i]);
+    }
+  }
+}
+
+TEST_CASE_METHOD(TestFixture,
+                 "Test 15 concurrent decryption share calls via zmq",
+                 "[te-load-test-decryption-share-zmq]") {
+  // Root client for key import (server-side state); do this once.
+  auto rootClient = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, /*verify=*/true,
+                                           "./sgx_data/cert_data/rootCA.pem",
+                                           "./sgx_data/cert_data/rootCA.key");
+
+  const std::string key_hex =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  const std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  rootClient->importBLSKeyShare(key_hex, name);
+
+  // Same key in decimal (G2 * Fr verification)
+  const libBLS::algebra::FrScalar key(libBLS::algebra::FrScalar::fromString(
+      "6507625568967977077291849236396320012317305261598035"
+      "438182864059942098934847",
+      libBLS::algebra::Base::DEC));
+
+  // For each configured batch size, launch 15 concurrent requests
+  for (int num_requests : BATCH_TEST_VALUES) {
+    // Ensure small-ish test to keep it lightweight; adjust or remove if
+    // unneeded.
+    REQUIRE(num_requests > 0);
+
+    constexpr int kNumThreads = 22;
+    TestUtils::start_barrier start_gate(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+
+    std::mutex first_exc_m;
+    std::exception_ptr first_exc = nullptr;
+
+    for (int t = 0; t < kNumThreads; ++t) {
+      threads.emplace_back([&, t]() {
+        try {
+          // Per-thread client (ZMQ socket/thread safety)
+          auto client =
+              std::make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, /*verify=*/true,
+                                          "./sgx_data/cert_data/rootCA.pem",
+                                          "./sgx_data/cert_data/rootCA.key");
+
+          // Build thread-local inputs
+          Json::Value publicDecryptionValues;
+          std::vector<libBLS::algebra::G2Point> decryption_values;
+          decryption_values.reserve(num_requests);
+
+          for (int i = 0; i < num_requests; ++i) {
+            libBLS::algebra::G2Point g = libBLS::algebra::G2Point::random();
+            decryption_values.push_back(g);
+            auto g_str = g.toString(libBLS::algebra::Base::HEXA);
+            publicDecryptionValues["publicDecryptionValues"][i] = g_str;
+          }
+
+          // Synchronize start so all 22 hit the server together
+          start_gate.wait();
+          // Request + validate
+          auto decryptionShares =
+              client->getDecryptionShares(name, publicDecryptionValues);
+
+          // Basic shape checks
+          REQUIRE(decryptionShares.isObject());
+          REQUIRE(!decryptionShares.isMember("failedRequests"));
+          REQUIRE(decryptionShares.isMember("decryptionShares"));
+          REQUIRE(decryptionShares["decryptionShares"].isArray());
+          REQUIRE(
+              static_cast<int>(decryptionShares["decryptionShares"].size()) ==
+              num_requests);
+
+          // Verify each share: share == key * G2_i
+          for (int i = 0; i < num_requests; ++i) {
+            const auto share_hex =
+                decryptionShares["decryptionShares"][i].asString();
+            libBLS::algebra::G2Point share =
+                libBLS::algebra::G2Point::fromString(
+                    share_hex, libBLS::algebra::Base::HEXA);
+            REQUIRE(share == key * decryption_values[i]);
+          }
+        } catch (...) {
+          // Capture first exception for clean failure after joins
+          std::lock_guard<std::mutex> lk(first_exc_m);
+          if (!first_exc)
+            first_exc = std::current_exception();
+        }
+      });
+    }
+
+    // Join all workers
+    for (auto &th : threads)
+      th.join();
+
+    // Surface any error observed in threads
+    if (first_exc)
+      std::rethrow_exception(first_exc);
+  }
+}
+
+// create random 64-character hexadecimal string
+std::string generateHexString(size_t length) {
+  const char hexChars[] = "0123456789ABCDEF";
+  std::string hexString;
+  hexString.reserve(64);
+
+  std::srand(std::time(nullptr));
+
+  for (size_t i = 0; i < length; ++i) {
+    hexString += hexChars[std::rand() % 16];
+  }
+
+  return hexString;
+}
+
+TEST_CASE_METHOD(TestFixture, "Test decryption share with wrong ciphertext",
+                 "[te-decryption-share-wrong-inputs]") {
+  HttpClient client(RPC_ENDPOINT);
+  client.SetTimeout(5000);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+
+  std::string key_str =
+      "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+  std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
+  c.importBLSKeyShare(key_str, name);
+
+  // Invalid bls key name
   Json::Value publicDecryptionValues;
-  publicDecryptionValues["publicDecryptionValues"][0] = decrytion_value_str1;
-  publicDecryptionValues["publicDecryptionValues"][1] = decrytion_value_str2;
+  REQUIRE_THROWS(c.getDecryptionShares(
+      "BLS_KY:SCHAI_ID:123456789:NOD_ID:0:DG_I:0", publicDecryptionValues));
 
-  auto decryptionShares =
-      client->getDecryptionShares(name, publicDecryptionValues);
+  // invalid decryption shares format
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
 
-  auto decryption_share1 = decryptionShares[0];
-  auto decryption_share2 = decryptionShares[1];
+  publicDecryptionValues[0] = "invalid";
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
 
-  libff::alt_bn128_G2 share1;
-  share1.Z = libff::alt_bn128_Fq2::one();
+  // share has wrong size
+  publicDecryptionValues.clear();
 
-  share1.X.c0 = libff::alt_bn128_Fq(decryption_share1[0].asCString());
-  share1.X.c1 = libff::alt_bn128_Fq(decryption_share1[1].asCString());
-  share1.Y.c0 = libff::alt_bn128_Fq(decryption_share1[2].asCString());
-  share1.Y.c1 = libff::alt_bn128_Fq(decryption_share1[3].asCString());
+  publicDecryptionValues[0] =
+      generateHexString(CIPHERTEXT_CHARACTER_LENGTH - 1);
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
 
-  REQUIRE(share1 == key * decryption_value1);
+  publicDecryptionValues[0] =
+      generateHexString(CIPHERTEXT_CHARACTER_LENGTH + 1);
+  REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
 
-  libff::alt_bn128_G2 share2;
-  share2.Z = libff::alt_bn128_Fq2::one();
+  // share is not in hexadecimal format
+  for (int i = 0; i < CIPHERTEXT_CHARACTER_LENGTH; i++) {
+    std::string value = generateHexString(CIPHERTEXT_CHARACTER_LENGTH);
+    value[i] = 'G';
+    publicDecryptionValues[0] = value;
+    REQUIRE_THROWS(c.getDecryptionShares(name, publicDecryptionValues));
+  }
 
-  share2.X.c0 = libff::alt_bn128_Fq(decryption_share2[0].asCString());
-  share2.X.c1 = libff::alt_bn128_Fq(decryption_share2[1].asCString());
-  share2.Y.c0 = libff::alt_bn128_Fq(decryption_share2[2].asCString());
-  share2.Y.c1 = libff::alt_bn128_Fq(decryption_share2[3].asCString());
+  // share is not well formed
+  std::string zeroG2String =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000";
+  libBLS::algebra::G2Point invalid_g2;
+  invalid_g2.setZC0(libBLS::algebra::FqElement::zero());
+  invalid_g2.setZC1(libBLS::algebra::FqElement::zero());
+  invalid_g2.setXC0(
+      libBLS::algebra::FqElement::fromString("1", libBLS::algebra::Base::DEC));
+  invalid_g2.setXC1(
+      libBLS::algebra::FqElement::fromString("1", libBLS::algebra::Base::DEC));
+  invalid_g2.setYC0(
+      libBLS::algebra::FqElement::fromString("1", libBLS::algebra::Base::DEC));
+  invalid_g2.setYC1(
+      libBLS::algebra::FqElement::fromString("1", libBLS::algebra::Base::DEC));
+  invalid_g2.toAffineCoordinates();
 
-  REQUIRE(share2 == key * decryption_value2);
+  Json::Value decriptionValues;
+  std::string value;
+  std::vector<int> corruptedIdx;
+
+  // tamper random requests at random indices
+  for (int i = 0; i < 50; i++) {
+    int random = rand() % 3 + 1;
+    if (i % random == 1) {
+      // corrupted
+      value = invalid_g2.toString(libBLS::algebra::Base::HEXA);
+      corruptedIdx.push_back(i);
+    } else {
+      libBLS::algebra::G2Point decryption_value =
+          libBLS::algebra::G2Point::random();
+      value = decryption_value.toString(libBLS::algebra::Base::HEXA);
+    }
+    decriptionValues["publicDecryptionValues"][i] = value;
+  }
+
+  Json::Value resp = c.getDecryptionShares(name, decriptionValues);
+
+  REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
+
+  for (size_t i = 0; i < corruptedIdx.size(); i++) {
+    std::string decryptionShares =
+        resp["decryptionShares"][corruptedIdx[i]].asString();
+    REQUIRE(decryptionShares == zeroG2String);
+    int idx = corruptedIdx[i];
+    std::string corruptedIdxStr = std::to_string(idx);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
+            STATUS_G2_NOT_WELL_FORMED);
+  }
+
+  // share is zero
+  invalid_g2 = libBLS::algebra::G2Point::identity();
+  invalid_g2.toAffineCoordinates();
+
+  // clear from previous test
+  corruptedIdx.clear();
+  decriptionValues.clear();
+
+  // tamper random requests at random indices
+  for (int i = 0; i < 50; i++) {
+    int random = rand() % 3 + 1;
+    if (i % random == 1) {
+      // corrupted
+      value = invalid_g2.toString(libBLS::algebra::Base::HEXA);
+      corruptedIdx.push_back(i);
+    } else {
+      libBLS::algebra::G2Point decryption_value =
+          libBLS::algebra::G2Point::random();
+      value = decryption_value.toString(libBLS::algebra::Base::HEXA);
+    }
+    decriptionValues["publicDecryptionValues"][i] = value;
+  }
+
+  resp = c.getDecryptionShares(name, decriptionValues);
+
+  REQUIRE(resp["failedRequests"].size() == corruptedIdx.size());
+
+  for (size_t i = 0; i < corruptedIdx.size(); i++) {
+    std::string decryptionShares =
+        resp["decryptionShares"][corruptedIdx[i]].asString();
+    REQUIRE(decryptionShares == zeroG2String);
+    int idx = corruptedIdx[i];
+    std::string corruptedIdxStr = std::to_string(idx);
+    REQUIRE(resp["failedRequests"][corruptedIdxStr] ==
+            STATUS_G2_NOT_WELL_FORMED);
+  }
 }
 
 TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
@@ -1430,19 +1965,10 @@ TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
   REQUIRE(status == 0);
   REQUIRE(errStatus == 0);
 
-  mpz_t blsKey;
-  mpz_init(blsKey);
-  REQUIRE(mpz_set_str(blsKey, decrKey.data(), 16) == 0);
+  libBLS::algebra::FrScalar blsKey = libBLS::algebra::FrScalar::fromString(
+      decrKey.data(), libBLS::algebra::Base::HEXA);
 
-  mpz_t q;
-  mpz_init(q);
-  mpz_set_str(q,
-              "2188824287183927522224640574525727508854836440041603434369820418"
-              "6575808495617",
-              10);
-
-  REQUIRE(mpz_cmp_ui(blsKey, 0) > 0);
-  REQUIRE(mpz_cmp(blsKey, q) < 0);
+  REQUIRE(blsKey != libBLS::algebra::FrScalar::zero());
 
   SAFE_UINT8_BUF(encrBlsKeySecond, BUF_LEN)
 
@@ -1453,11 +1979,11 @@ TEST_CASE_METHOD(TestFixture, "Test generated bls key decrypt",
   status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encrBlsKeySecond,
                              encBlsLen, decrKeySecond.data());
 
-  mpz_t blsKeySecond;
-  mpz_init(blsKeySecond);
-  mpz_set_str(blsKeySecond, decrKeySecond.data(), 16);
+  libBLS::algebra::FrScalar blsKeySecond =
+      libBLS::algebra::FrScalar::fromString(decrKeySecond.data(),
+                                            libBLS::algebra::Base::HEXA);
 
-  REQUIRE(mpz_cmp(blsKey, blsKeySecond) != 0);
+  REQUIRE(blsKey != blsKeySecond);
 }
 
 TEST_CASE_METHOD(TestFixture,
@@ -1524,23 +2050,19 @@ TEST_CASE_METHOD(TestFixture,
 
   std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
 
-  libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
-  while (key == libff::alt_bn128_Fr::zero()) {
-    key = libff::alt_bn128_Fr::random_element();
-  }
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::random();
 
-  std::string keyStr = TestUtils::stringFromFr(key, 16);
+  std::string keyStr = key.toString(libBLS::algebra::Base::HEXA);
   auto response = c.importBLSKeyShare(keyStr, name);
   REQUIRE(response["status"] == 0);
 
-  libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+  libBLS::algebra::G1Point popProveLocal = libBLS::Bls::PopProve(key);
 
   response = c.popProve(name);
   REQUIRE(response["status"] == 0);
-  shared_ptr<string> sigSharePtr =
-      make_shared<string>(response["popProve"].asString());
-  BLSSigShare sig(sigSharePtr, 1, 1, 1);
-  libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+  string sigShare = response["popProve"].asString();
+  libBLS::BLSSigShare sig(sigShare, 1, 1, 1);
+  libBLS::algebra::G1Point popProveEnclave = sig.getSigShare();
 
   REQUIRE(popProveLocal == popProveEnclave);
 }
@@ -1554,21 +2076,17 @@ TEST_CASE_METHOD(TestFixture,
 
   std::string name = "BLS_KEY:SCHAIN_ID:123456789:NODE_ID:0:DKG_ID:0";
 
-  libff::alt_bn128_Fr key = libff::alt_bn128_Fr::random_element();
-  while (key == libff::alt_bn128_Fr::zero()) {
-    key = libff::alt_bn128_Fr::random_element();
-  }
+  libBLS::algebra::FrScalar key = libBLS::algebra::FrScalar::random();
 
-  std::string keyStr = TestUtils::stringFromFr(key, 16);
+  std::string keyStr = key.toString(libBLS::algebra::Base::HEXA);
   auto response = client->importBLSKeyShare(keyStr, name);
   REQUIRE(response);
 
-  libff::alt_bn128_G1 popProveLocal = libBLS::Bls::PopProve(key);
+  libBLS::algebra::G1Point popProveLocal = libBLS::Bls::PopProve(key);
 
   std::string pop_prove_response = client->popProve(name);
-  shared_ptr<string> sigSharePtr = make_shared<string>(pop_prove_response);
-  BLSSigShare sig(sigSharePtr, 1, 1, 1);
-  libff::alt_bn128_G1 popProveEnclave = *sig.getSigShare();
+  libBLS::BLSSigShare sig(pop_prove_response, 1, 1, 1);
+  libBLS::algebra::G1Point popProveEnclave = sig.getSigShare();
 
   REQUIRE(popProveLocal == popProveEnclave);
 }

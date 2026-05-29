@@ -47,7 +47,7 @@ shared_ptr<ZMQMessage> ZMQClient::doRequestReply(Json::Value &_req) {
 
     string msgToSign = fastWriter.write(_req);
 
-    _req["msgSig"] = signString(pkey, msgToSign);
+    _req["msgSig"] = signString(pkey.get(), msgToSign);
   }
 
   string reqStr = fastWriter.write(_req);
@@ -139,9 +139,6 @@ void ZMQClient::verifySig(EVP_PKEY *_pubkey, const string &_str,
   CHECK_STATE(binLen > 0);
 
   EVP_MD_CTX *mdctx = NULL;
-  int ret = 0;
-
-  size_t slen = 0;
 
   CHECK_STATE(mdctx = EVP_MD_CTX_create());
 
@@ -168,9 +165,7 @@ string ZMQClient::signString(EVP_PKEY *_pkey, const string &_str) {
   auto msgToSign = std::regex_replace(_str, r, "");
 
   EVP_MD_CTX *mdctx = NULL;
-  int ret = 0;
   unsigned char *signature = NULL;
-  auto sig = &signature;
   size_t slen = 0;
 
   CHECK_STATE(mdctx = EVP_MD_CTX_create());
@@ -202,7 +197,7 @@ string ZMQClient::signString(EVP_PKEY *_pkey, const string &_str) {
   return hexStringSig;
 }
 
-pair<EVP_PKEY *, X509 *>
+pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>
 ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
   CHECK_STATE(!_certStr.empty())
 
@@ -216,13 +211,13 @@ ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
   auto key = X509_get_pubkey(cert);
   BIO_free(bo);
   CHECK_STATE(key);
-  return {key, cert};
+  return {make_shared_evp_pkey(key), make_shared_x509(cert)};
 };
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
                      const string &_certFileName, const string &_certKeyName)
-    : ctx(1), sign(_sign), certKeyName(_certKeyName),
-      certFileName(_certFileName) {
+    : sign(_sign), certFileName(_certFileName), certKeyName(_certKeyName),
+      ctx(1) {
   spdlog::info("Initing ZMQClient. Sign:{} ", _sign);
 
   if (sign) {
@@ -239,8 +234,11 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
     CHECK_STATE(bo);
     BIO_write(bo, key.c_str(), key.size());
 
-    PEM_read_bio_PrivateKey(bo, &pkey, 0, 0);
-    CHECK_STATE(pkey);
+    EVP_PKEY *tmpKey = nullptr;
+    PEM_read_bio_PrivateKey(bo, &tmpKey, 0, 0);
+    CHECK_STATE(tmpKey);
+    pkey = make_shared_evp_pkey(tmpKey);
+
     BIO_free(bo);
 
     auto pubKeyStr = readFileIntoString(_certFileName);
@@ -248,8 +246,8 @@ ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,
 
     tie(pubkey, x509Cert) = readPublicKeyFromCertStr(pubKeyStr);
 
-    auto sig = signString(pkey, "sample");
-    verifySig(pubkey, "sample", sig);
+    auto sig = signString(pkey.get(), "sample");
+    verifySig(pubkey.get(), "sample", sig);
 
   } else {
     CHECK_STATE(_certFileName.empty());
@@ -277,10 +275,10 @@ void ZMQClient::reconnect() {
   string identity = to_string(135) + ":" + to_string(randNumber);
 
   auto clientSocket = make_shared<zmq::socket_t>(ctx, ZMQ_DEALER);
-  clientSocket->setsockopt(ZMQ_IDENTITY, identity.c_str(), identity.size() + 1);
+  clientSocket->set(zmq::sockopt::routing_id, identity);
   //  Configure socket to not wait at close time
   int linger = 0;
-  clientSocket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+  clientSocket->set(zmq::sockopt::linger, linger);
   clientSocket->connect(url);
   clientSockets.insert({pid, clientSocket});
 }
@@ -534,7 +532,7 @@ ZMQClient::getDecryptionShares(const string &blsKeyName,
       dynamic_pointer_cast<GetDecryptionShareRspMessage>(doRequestReply(p));
   CHECK_STATE(result);
   CHECK_STATE(result->getStatus() == 0);
-  return result->getShare();
+  return result->getResponse();
 }
 
 bool ZMQClient::generateBLSPrivateKey(const string &blsKeyName) {

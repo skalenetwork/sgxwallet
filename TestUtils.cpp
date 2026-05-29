@@ -62,15 +62,9 @@ using namespace std;
 
 default_random_engine TestUtils::randGen((unsigned int)time(0));
 
-string TestUtils::stringFromFr(libff::alt_bn128_Fr &el, size_t base) {
-  mpz_t t;
-  mpz_init(t);
-  el.as_bigint().to_mpz(t);
-  char arr[mpz_sizeinbase(t, 10) + 2];
-  mpz_get_str(arr, base, t);
-  mpz_clear(t);
-
-  return string(arr);
+string TestUtils::stringFromFr(libBLS::algebra::FrScalar &el,
+                               libBLS::algebra::Base base) {
+  return el.toString(base);
 }
 
 string TestUtils::convertDecToHex(string dec, int numBytes) {
@@ -104,12 +98,12 @@ shared_ptr<string> TestUtils::encryptTestKey() {
   return make_shared<string>(encryptedKeyHex);
 }
 
-vector<libff::alt_bn128_Fr> TestUtils::splitStringToFr(const char *coeffs,
-                                                       const char symbol) {
+vector<libBLS::algebra::FrScalar>
+TestUtils::splitStringToFr(const char *coeffs, const char symbol) {
   string str(coeffs);
   string delim;
   delim.push_back(symbol);
-  vector<libff::alt_bn128_Fr> tokens;
+  vector<libBLS::algebra::FrScalar> tokens;
   size_t prev = 0, pos = 0;
   do {
     pos = str.find(delim, prev);
@@ -117,7 +111,8 @@ vector<libff::alt_bn128_Fr> TestUtils::splitStringToFr(const char *coeffs,
       pos = str.length();
     string token = str.substr(prev, pos - prev);
     if (!token.empty()) {
-      libff::alt_bn128_Fr coeff(token.c_str());
+      libBLS::algebra::FrScalar coeff(libBLS::algebra::FrScalar::fromString(
+          token, libBLS::algebra::Base::DEC));
       tokens.push_back(coeff);
     }
     prev = pos + delim.length();
@@ -148,15 +143,20 @@ vector<string> TestUtils::splitStringTest(const char *coeffs,
   return g2Strings;
 }
 
-libff::alt_bn128_G2
+libBLS::algebra::G2Point
 TestUtils::vectStringToG2(const vector<string> &G2_str_vect) {
-  libff::alt_bn128_G2 coeff = libff::alt_bn128_G2::zero();
-  coeff.X.c0 = libff::alt_bn128_Fq(G2_str_vect.at(0).c_str());
-  coeff.X.c1 = libff::alt_bn128_Fq(G2_str_vect.at(1).c_str());
-  coeff.Y.c0 = libff::alt_bn128_Fq(G2_str_vect.at(2).c_str());
-  coeff.Y.c1 = libff::alt_bn128_Fq(G2_str_vect.at(3).c_str());
-  coeff.Z.c0 = libff::alt_bn128_Fq::one();
-  coeff.Z.c1 = libff::alt_bn128_Fq::zero();
+  libBLS::algebra::G2Point coeff = libBLS::algebra::G2Point::identity();
+  coeff.setZC0(libBLS::algebra::FqElement::one());
+  coeff.setZC1(libBLS::algebra::FqElement::zero());
+
+  coeff.setXC0(libBLS::algebra::FqElement::fromString(
+      G2_str_vect.at(0), libBLS::algebra::Base::DEC));
+  coeff.setXC1(libBLS::algebra::FqElement::fromString(
+      G2_str_vect.at(1), libBLS::algebra::Base::DEC));
+  coeff.setYC0(libBLS::algebra::FqElement::fromString(
+      G2_str_vect.at(2), libBLS::algebra::Base::DEC));
+  coeff.setYC1(libBLS::algebra::FqElement::fromString(
+      G2_str_vect.at(3), libBLS::algebra::Base::DEC));
 
   return coeff;
 }
@@ -242,7 +242,7 @@ void TestUtils::sendRPCRequest() {
       }
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
@@ -252,7 +252,7 @@ void TestUtils::sendRPCRequest() {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+  map<size_t, shared_ptr<libBLS::BLSPublicKeyShare>> coeffs_pkeys_map;
 
   Json::Value publicShares;
   for (int i = 0; i < n; ++i) {
@@ -281,18 +281,14 @@ void TestUtils::sendRPCRequest() {
     }
     CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
-    libff::alt_bn128_G2 publicKey(
-        libff::alt_bn128_Fq2(
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][1].asCString())),
-        libff::alt_bn128_Fq2(
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][2].asCString()),
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][3].asCString())),
-        libff::alt_bn128_Fq2::one());
+    // Use G2Point::fromString with vector of decimal strings
+    std::vector<std::string> pubKeyVec = {
+        pubBLSKeys[i]["blsPublicKeyShare"][0].asString(),
+        pubBLSKeys[i]["blsPublicKeyShare"][1].asString(),
+        pubBLSKeys[i]["blsPublicKeyShare"][2].asString(),
+        pubBLSKeys[i]["blsPublicKeyShare"][3].asString()};
+    libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
+        pubKeyVec, libBLS::algebra::Base::DEC);
 
     string public_key_str = convertG2ToString(publicKey);
 
@@ -302,10 +298,9 @@ void TestUtils::sendRPCRequest() {
     blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
     CHECK_STATE(blsSigShares[i]["status"] == 0);
 
-    shared_ptr<string> sig_share_ptr =
-        make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    string sig_share_ptr = blsSigShares[i]["signatureShare"].asString();
+    libBLS::BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
   }
 
   sigShareSet.merge();
@@ -367,7 +362,7 @@ void TestUtils::sendRPCRequestV2() {
       CHECK_STATE(verif["status"] == 0);
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
@@ -377,7 +372,7 @@ void TestUtils::sendRPCRequestV2() {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+  map<size_t, shared_ptr<libBLS::BLSPublicKeyShare>> coeffs_pkeys_map;
 
   Json::Value publicShares;
   for (int i = 0; i < n; ++i) {
@@ -399,18 +394,13 @@ void TestUtils::sendRPCRequestV2() {
     pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
     CHECK_STATE(pubBLSKeys[i]["status"] == 0);
 
-    libff::alt_bn128_G2 publicKey(
-        libff::alt_bn128_Fq2(
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][0].asCString()),
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][1].asCString())),
-        libff::alt_bn128_Fq2(
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][2].asCString()),
-            libff::alt_bn128_Fq(
-                pubBLSKeys[i]["blsPublicKeyShare"][3].asCString())),
-        libff::alt_bn128_Fq2::one());
+    // Use G2Point::fromString with colon-delimited decimal string
+    string pubKeyStr = pubBLSKeys[i]["blsPublicKeyShare"][0].asString() + ":" +
+                       pubBLSKeys[i]["blsPublicKeyShare"][1].asString() + ":" +
+                       pubBLSKeys[i]["blsPublicKeyShare"][2].asString() + ":" +
+                       pubBLSKeys[i]["blsPublicKeyShare"][3].asString();
+    libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
+        pubKeyStr, libBLS::algebra::Base::DEC);
 
     string public_key_str = convertG2ToString(publicKey);
 
@@ -420,10 +410,9 @@ void TestUtils::sendRPCRequestV2() {
     blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
     CHECK_STATE(blsSigShares[i]["status"] == 0);
 
-    shared_ptr<string> sig_share_ptr =
-        make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    string sig_share_ptr = blsSigShares[i]["signatureShare"].asString();
+    libBLS::BLSSigShare sig(sig_share_ptr, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
   }
 
   sigShareSet.merge();
@@ -482,7 +471,7 @@ void TestUtils::sendRPCRequestZMQ() {
       CHECK_STATE(verif);
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
@@ -492,7 +481,7 @@ void TestUtils::sendRPCRequestZMQ() {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> coeffs_pkeys_map;
+  map<size_t, shared_ptr<libBLS::BLSPublicKeyShare>> coeffs_pkeys_map;
 
   Json::Value publicShares;
   for (int i = 0; i < n; ++i) {
@@ -509,12 +498,12 @@ void TestUtils::sendRPCRequestZMQ() {
                                             secShares[i], t, n));
     pubBLSKeys[i] = client->getBLSPublicKey(blsName);
 
-    libff::alt_bn128_G2 publicKey(
-        libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i][0].asCString()),
-                             libff::alt_bn128_Fq(pubBLSKeys[i][1].asCString())),
-        libff::alt_bn128_Fq2(libff::alt_bn128_Fq(pubBLSKeys[i][2].asCString()),
-                             libff::alt_bn128_Fq(pubBLSKeys[i][3].asCString())),
-        libff::alt_bn128_Fq2::one());
+    // Use G2Point::fromString with colon-delimited decimal string
+    string pubKeyStr =
+        pubBLSKeys[i][0].asString() + ":" + pubBLSKeys[i][1].asString() + ":" +
+        pubBLSKeys[i][2].asString() + ":" + pubBLSKeys[i][3].asString();
+    libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
+        pubKeyStr, libBLS::algebra::Base::DEC);
 
     string public_key_str = convertG2ToString(publicKey);
 
@@ -524,9 +513,8 @@ void TestUtils::sendRPCRequestZMQ() {
     blsSigShares[i] = client->blsSignMessageHash(blsName, hash, t, n);
     CHECK_STATE(blsSigShares[i].length() > 0);
 
-    shared_ptr<string> sig_share_ptr = make_shared<string>(blsSigShares[i]);
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    libBLS::BLSSigShare sig(blsSigShares[i], i + 1, t, n);
+    sigShareSet.addSigShare(sig);
   }
 
   sigShareSet.merge();
@@ -617,7 +605,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
       CHECK_STATE(!res);
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
@@ -627,7 +615,7 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
+  map<size_t, libBLS::BLSPublicKeyShare> pubKeyShares;
 
   for (int i = 0; i < n; i++) {
     string endName = polyNames[i].substr(4);
@@ -648,16 +636,14 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     for (uint8_t j = 0; j < 4; j++) {
       pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
     }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
+    libBLS::BLSPublicKeyShare pubKey(pubKeyVect, t, n);
 
-    pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    pubKeyShares.insert(std::make_pair(i + 1, pubKey));
   }
 
   // create pub key
 
-  BLSPublicKey blsPublicKey(
-      make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(pubKeyShares), t,
-      n);
+  libBLS::BLSPublicKey blsPublicKey(pubKeyShares, t, n);
 
   // sign verify a sample sig
 
@@ -666,20 +652,18 @@ void TestUtils::doDKG(StubClient &c, int n, int t,
     string blsName = "BLS_KEY" + polyNames[i].substr(4);
     blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
     CHECK_STATE(blsSigShares[i]["status"] == 0);
-    shared_ptr<string> sig_share_ptr =
-        make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    string sig_share = blsSigShares[i]["signatureShare"].asString();
+    libBLS::BLSSigShare sig(sig_share, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
 
-    auto pubKey = pubKeyShares[i + 1];
+    auto pubKey = pubKeyShares.at(i + 1);
 
-    CHECK_STATE(pubKey->VerifySigWithHelper(
-        hash_arr, make_shared<BLSSigShare>(sig), t, n));
+    CHECK_STATE(pubKey.VerifySigWithHelper(*hash_arr, sig, t, n));
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+  libBLS::BLSSignature commonSig = sigShareSet.merge();
 
-  CHECK_STATE(blsPublicKey.VerifySigWithHelper(hash_arr, commonSig));
+  CHECK_STATE(blsPublicKey.VerifySigWithHelper(*hash_arr, commonSig));
 
   for (auto &&i : _ecdsaKeyNames)
     cerr << i << endl;
@@ -766,17 +750,17 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
       CHECK_STATE(!res);
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
-  auto hashArr = make_shared<array<uint8_t, 32>>();
+  array<uint8_t, 32> hashArr;
   uint64_t binLen;
-  if (!hex2carray(hash.c_str(), &binLen, hashArr->data(), 32)) {
+  if (!hex2carray(hash.c_str(), &binLen, hashArr.data(), 32)) {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
+  map<size_t, libBLS::BLSPublicKeyShare> pubKeyShares;
 
   for (int i = 0; i < n; i++) {
     string endName = polyNames[i].substr(4);
@@ -797,16 +781,14 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     for (uint8_t j = 0; j < 4; j++) {
       pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
     }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
+    libBLS::BLSPublicKeyShare pubKey(pubKeyVect, t, n);
 
-    pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    pubKeyShares.insert(std::make_pair(i + 1, pubKey));
   }
 
   // create pub key
 
-  BLSPublicKey blsPublicKey(
-      make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(pubKeyShares), t,
-      n);
+  libBLS::BLSPublicKey blsPublicKey(pubKeyShares, t, n);
 
   // sign verify a sample sig
 
@@ -815,18 +797,16 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     string blsName = "BLS_KEY" + polyNames[i].substr(4);
     blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
     CHECK_STATE(blsSigShares[i]["status"] == 0);
-    shared_ptr<string> sig_share_ptr =
-        make_shared<string>(blsSigShares[i]["signatureShare"].asString());
-    BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    string sig_share = blsSigShares[i]["signatureShare"].asString();
+    libBLS::BLSSigShare sig(sig_share, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
 
-    auto pubKey = pubKeyShares[i + 1];
+    auto pubKey = pubKeyShares.at(i + 1);
 
-    CHECK_STATE(pubKey->VerifySigWithHelper(
-        hashArr, make_shared<BLSSigShare>(sig), t, n));
+    CHECK_STATE(pubKey.VerifySigWithHelper(hashArr, sig, t, n));
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+  libBLS::BLSSignature commonSig = sigShareSet.merge();
 
   CHECK_STATE(blsPublicKey.VerifySigWithHelper(hashArr, commonSig));
 
@@ -916,17 +896,17 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
       CHECK_STATE(!res);
     }
 
-  BLSSigShareSet sigShareSet(t, n);
+  libBLS::BLSSigShareSet sigShareSet(t, n);
 
   string hash = SAMPLE_HASH;
 
-  auto hashArr = make_shared<array<uint8_t, 32>>();
+  array<uint8_t, 32> hashArr;
   uint64_t binLen;
-  if (!hex2carray(hash.c_str(), &binLen, hashArr->data(), 32)) {
+  if (!hex2carray(hash.c_str(), &binLen, hashArr.data(), 32)) {
     throw SGXException(TEST_INVALID_HEX, "Invalid hash");
   }
 
-  map<size_t, shared_ptr<BLSPublicKeyShare>> pubKeyShares;
+  map<size_t, libBLS::BLSPublicKeyShare> pubKeyShares;
 
   for (int i = 0; i < n; i++) {
     string endName = polyNames[i].substr(4);
@@ -947,34 +927,30 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
     for (uint8_t j = 0; j < 4; j++) {
       pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
     }
-    BLSPublicKeyShare pubKey(make_shared<vector<string>>(pubKeyVect), t, n);
+    libBLS::BLSPublicKeyShare pubKey(pubKeyVect, t, n);
 
-    pubKeyShares[i + 1] = make_shared<BLSPublicKeyShare>(pubKey);
+    pubKeyShares.insert(std::make_pair(i + 1, pubKey));
   }
 
   // create pub key
 
-  BLSPublicKey blsPublicKey(
-      make_shared<map<size_t, shared_ptr<BLSPublicKeyShare>>>(pubKeyShares), t,
-      n);
+  libBLS::BLSPublicKey blsPublicKey(pubKeyShares, t, n);
 
   // sign verify a sample sig
 
   for (int i = 0; i < t; i++) {
 
     string blsName = "BLS_KEY" + polyNames[i].substr(4);
-    auto sigShare = make_shared<string>(
-        _zmqClient->blsSignMessageHash(blsName, hash, t, n));
-    BLSSigShare sig(sigShare, i + 1, t, n);
-    sigShareSet.addSigShare(make_shared<BLSSigShare>(sig));
+    auto sigShare = _zmqClient->blsSignMessageHash(blsName, hash, t, n);
+    libBLS::BLSSigShare sig(sigShare, i + 1, t, n);
+    sigShareSet.addSigShare(sig);
 
-    auto pubKey = pubKeyShares[i + 1];
+    auto pubKey = pubKeyShares.at(i + 1);
 
-    CHECK_STATE(pubKey->VerifySigWithHelper(
-        hashArr, make_shared<BLSSigShare>(sig), t, n));
+    CHECK_STATE(pubKey.VerifySigWithHelper(hashArr, sig, t, n));
   }
 
-  shared_ptr<BLSSignature> commonSig = sigShareSet.merge();
+  libBLS::BLSSignature commonSig = sigShareSet.merge();
 
   CHECK_STATE(blsPublicKey.VerifySigWithHelper(hashArr, commonSig));
 
@@ -1041,6 +1017,10 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
   domain_parameters_load_curve(curve, secp256k1);
 
   if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+    domain_parameters_clear(curve);
     return ret;
   }
 
@@ -1060,6 +1040,7 @@ int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
   mpz_clear(skey);
   point_clear(pub_keyB);
   point_clear(session_key);
+  domain_parameters_clear(curve);
 
   return ret;
 }

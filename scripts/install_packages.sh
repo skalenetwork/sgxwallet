@@ -1,6 +1,11 @@
 #!/bin/bash
-sudo apt update
-sudo apt install -y build-essential \
+
+# This script is also used by docker files to install
+# the required packages for building the project.
+
+apt update
+apt install -y --no-install-recommends build-essential \
+    ca-certificates \
     ocaml \
     ocamlbuild \
     automake \
@@ -19,8 +24,16 @@ sudo apt install -y build-essential \
     reprepro \
     unzip \
     pkgconf \
+    liblzma-dev \
     libboost-dev \
     libboost-system-dev \
     libboost-thread-dev \
+    libtbb-dev \
     lsb-release \
-    libsystemd0
+    libsystemd0 \
+    clang \
+    llvm \
+    texinfo \
+    yasm \
+    libgcrypt20-dev \
+    libgnutls28-dev

@@ -31,8 +31,10 @@
 
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
+#include "SGXWalletServer.hpp"
 
 #include <fstream>
+#include <thread>
 
 #include "TestUtils.h"
 
@@ -42,7 +44,15 @@
 #include "sgxwallet.h"
 #include "testw.h"
 
+namespace {
+int getDefaultThreadPoolSize() {
+  const unsigned int cpuCount = std::thread::hardware_concurrency();
+  return cpuCount == 0 ? 1 : static_cast<int>(cpuCount);
+}
+} // namespace
+
 void SGXWallet::printUsage() {
+  const int maxThreadPoolSize = getDefaultThreadPoolSize();
   cerr << "\nAvailable flags:\n";
   cerr << "\nDebug flags:\n\n";
   cerr << "   -v  Verbose mode: turn on debug output\n";
@@ -59,6 +69,12 @@ void SGXWallet::printUsage() {
   cerr << "   -s  Sign client certificates without human confirmation. "
           "Insecure! \n";
   cerr << "   -e  Only owner of the key can access it.\n";
+  cerr << "\nConfiguration flags:\n\n";
+  cerr << "   -t  Set thread pool size. Default is " << maxThreadPoolSize
+       << ". Must be >= 1 and <= " << maxThreadPoolSize << ".\n";
+  cerr << "   -r  Load the plaintext SEK from a file, and reencrypt the entire "
+          "database with a brand new SEK. The file with old SEK will be "
+          "overwritten with the new SEK.\n";
 }
 
 void SGXWallet::serializeKeys(const vector<string> &_ecdsaKeyNames,
@@ -96,15 +112,10 @@ void SGXWallet::signalHandler(int signalNo) {
 }
 
 int main(int argc, char *argv[]) {
-  bool enterBackupKeyOption = false;
-  bool useHTTPSOption = true;
-  bool printDebugInfoOption = false;
-  bool printTraceInfoOption = false;
-  bool autoconfirmOption = false;
-  bool checkClientCertOption = true;
-  bool autoSignClientCertOption = false;
-  bool generateTestKeys = false;
-  bool checkKeyOwnership = false;
+  const size_t maxThreadPoolSize =
+      static_cast<size_t>(getDefaultThreadPoolSize());
+  initConfig config;
+  config.threadPoolSize = maxThreadPoolSize;
 
   std::signal(SIGABRT, SGXWallet::signalHandler);
 
@@ -115,48 +126,71 @@ int main(int argc, char *argv[]) {
     exit(-21);
   }
 
-  while ((opt = getopt(argc, argv, "cshd0abyvVneT")) != -1) {
+  while ((opt = getopt(argc, argv, "cshd0abyvVneTt:r")) != -1) {
     switch (opt) {
     case 'h':
       SGXWallet::printUsage();
       exit(-22);
     case 'c':
-      checkClientCertOption = false;
+      config.checkCert = false;
       break;
     case 's':
-      autoSignClientCertOption = true;
+      config.autoSign = true;
       break;
     case 'd':
-      printDebugInfoOption = true;
-      break;
     case 'v':
-      printDebugInfoOption = true;
+      config.logLevel = L_DEBUG;
+      config.enclaveLogLevel = L_DEBUG;
       break;
     case 'V':
-      printDebugInfoOption = true;
-      printTraceInfoOption = true;
+      config.logLevel = L_TRACE;
+      config.enclaveLogLevel = L_TRACE;
       break;
     case '0':
-      useHTTPSOption = false;
+      config.useHTTPS = false;
       break;
     case 'n':
-      useHTTPSOption = false;
-      checkKeyOwnership = false;
+      config.useHTTPS = false;
+      config.checkZMQSig = false;
+      config.checkKeyOwnership = false;
       break;
     case 'e':
-      checkKeyOwnership = true;
+      config.checkZMQSig = true;
+      config.checkKeyOwnership = true;
       break;
     case 'a':
-      enterBackupKeyOption = false;
+      config.enterBackupKey = false;
       break;
     case 'b':
-      enterBackupKeyOption = true;
+      config.enterBackupKey = true;
       break;
     case 'y':
-      autoconfirmOption = true;
+      config.autoconfirm = true;
       break;
     case 'T':
-      generateTestKeys = true;
+      config.generateTestKeys = true;
+      break;
+    case 't': {
+      try {
+        // parse as signed first
+        long long value = std::stoll(optarg);
+
+        if (value <= 0) {
+          throw std::invalid_argument("Thread pool size must be positive");
+        } else if (static_cast<size_t>(value) > maxThreadPoolSize) {
+          throw std::invalid_argument("Thread pool size must not exceed " +
+                                      std::to_string(maxThreadPoolSize));
+        }
+        config.threadPoolSize = static_cast<size_t>(value);
+      } catch (const std::exception &e) {
+        std::cerr << "Invalid thread pool size: " << optarg << "\n";
+        SGXWallet::printUsage();
+        exit(-24);
+      }
+      break;
+    }
+    case 'r':
+      config.reencryptDatabaseWithNewSEK = true;
       break;
     default:
       SGXWallet::printUsage();
@@ -165,32 +199,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  uint64_t logLevel = L_INFO;
-
-  if (printDebugInfoOption) {
-    logLevel = L_DEBUG;
-  }
-
-  if (printTraceInfoOption) {
-    logLevel = L_TRACE;
-  }
-
-  setFullOptions(logLevel, useHTTPSOption, autoconfirmOption,
-                 enterBackupKeyOption);
-
-  uint32_t enclaveLogLevel = L_INFO;
-
-  if (printDebugInfoOption) {
-    enclaveLogLevel = L_DEBUG;
-  }
-
-  if (printTraceInfoOption) {
-    enclaveLogLevel = L_TRACE;
-  }
-
   cerr << "Calling initAll ..." << endl;
-  initAll(enclaveLogLevel, checkClientCertOption, checkClientCertOption,
-          autoSignClientCertOption, generateTestKeys, checkKeyOwnership);
+  initAll(config);
   cerr << "Completed initAll." << endl;
 
   // check if test keys already exist
@@ -204,7 +214,7 @@ int main(int argc, char *argv[]) {
     cerr << "Found test keys." << endl;
   }
 
-  if (generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
+  if (config.generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
     cerr << "Generating test keys ..." << endl;
 
     HttpClient client(RPC_ENDPOINT);

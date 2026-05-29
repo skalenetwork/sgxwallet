@@ -1,0 +1,26 @@
+#define SMALL_BUF_SIZE 1024
+
+enclave {
+
+    from "secure_enclave_common.edl" import *;
+
+    trusted {
+
+        // ------------------------------------------------------------------------------------------
+        // Test-only ECALLs
+        // ------------------------------------------------------------------------------------------
+
+        // Decrypts encrypted_payload using sek_hex and checks whether the plaintext
+        // matches expected_plaintext. Nothing leaves the enclave — only a 0/1 match
+        // result is returned. errStatus != 0 means decryption itself failed (e.g. wrong key).
+        public void trustedTestDecryptAndMatch(
+                                [out] int *errStatus,
+                                [out, count = SMALL_BUF_SIZE] char *err_string,
+                                [in, string] const char *sek_hex,
+                                [in, count = SMALL_BUF_SIZE] uint8_t *encrypted_payload,
+                                uint64_t encrypted_payload_len,
+                                [in, string] const char *expected_plaintext,
+                                [out] int *matches);
+    };
+
+};
