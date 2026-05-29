@@ -65,4 +65,3 @@ jobs:
             bash ./scripts/publish_image.sh sgxwallet_sim
 
 
-
