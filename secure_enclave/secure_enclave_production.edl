@@ -1,0 +1,3 @@
+enclave {
+    from "secure_enclave_common.edl" import *;
+};

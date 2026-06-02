@@ -8,7 +8,12 @@ topDir = os.getcwd()
 print(topDir)
 
 cpp_extensions = (".cpp", ".cxx", ".cc", ".h", ".hpp", ".hxx", ".ipp")
-src_dirs = (topDir, topDir + "/zmq_src", topDir + "/secure_enclave", topDir + "/tests/backward_compatibility")
+src_dirs = (topDir, 
+            topDir + "/zmq_src", 
+            topDir + "/secure_enclave", 
+            topDir + "/tests/backward_compatibility",
+            topDir + "/tests/unit",
+            topDir + "/tests/integration/db")
 
 for directory in src_dirs:
     print(directory)

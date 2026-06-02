@@ -24,15 +24,4 @@
 #ifndef SGXWALLET_SGXWALLETSERVER_H
 #define SGXWALLET_SGXWALLETSERVER_H
 
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC void setFullOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm,
-                            int _enterBackupKey);
-
-EXTERNC void setOptions(uint64_t _logLevel, int _useHTTPS, int _autoconfirm);
-
 #endif // SGXWALLET_SGXWALLETSERVER_H

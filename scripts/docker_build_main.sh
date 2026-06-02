@@ -60,8 +60,15 @@ case "${BUILD_TYPE}" in
 		;;
 	simulation)
 		cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
-		./configure --enable-sgx-simulation
+		./configure --enable-sgx-simulation --enable-sgx-test-ecalls
 		make -j"${JOBS}"
+		# integration tests - require sgxwallet binary
+		make db_reencrypt_integration_tests -j"${JOBS}"
+		# new unit tests suite with cmake
+		cmake -S tests -B build-tests
+		cmake --build build-tests -j"${JOBS}"
+		# backward compatibility tests
+		make -C tests/backward_compatibility api_validator
 		;;
 	*)
 		echo "Unsupported build type: ${BUILD_TYPE}" >&2
@@ -69,8 +76,6 @@ case "${BUILD_TYPE}" in
 		exit 1
 		;;
 esac
-
-make -C tests/backward_compatibility api_validator
 
 ccache -sz
 mkdir -p sgx_data
