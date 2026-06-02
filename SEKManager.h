@@ -47,4 +47,8 @@ EXTERNC void initSEK();
 
 EXTERNC void setSEK();
 
+#ifdef __cplusplus
+void validate_SEK();
+#endif
+
 #endif // SGXD_SEKMANAGER_H

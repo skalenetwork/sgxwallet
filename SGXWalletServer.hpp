@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <string_view>
 #include <tbb/global_control.h>
 #include <tbb/task_arena.h>
 
@@ -177,11 +178,11 @@ public:
 
   virtual Json::Value popProve(const std::string &blsKeyName);
 
-  static shared_ptr<string> readFromDb(const string &name,
-                                       const string &prefix = "");
+  static shared_ptr<string> readFromDb(std::string_view name,
+                                       std::string_view prefix = "");
 
-  static shared_ptr<string> checkDataFromDb(const string &name,
-                                            const string &prefix = "");
+  static shared_ptr<string> checkDataFromDb(std::string_view name,
+                                            std::string_view prefix = "");
 
   static void writeDataToDB(const string &Name, const string &value);
 
