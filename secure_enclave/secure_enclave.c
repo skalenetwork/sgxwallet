@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
 
@@ -119,6 +120,9 @@ void free_function(void *, size_t);
 
 unsigned char *globalRandom = NULL;
 
+// -----------------------------------------------------------------------------------------
+// Helper functions
+// -----------------------------------------------------------------------------------------
 static sgx_thread_mutex_t migration_sek_mutex = SGX_THREAD_MUTEX_INITIALIZER;
 
 // temporary buffers set during database reencryption
@@ -346,6 +350,244 @@ static void sealHexSEK(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
+
+
+/**
+ * @brief Aggregates encrypted secret contributions into a single secret. This is called
+ * to compute a node's final private BLS secret key using all
+ * The process is as follows:
+ * 1. Decrypt each secret contribution using enclave's ECDSA key (using ECDH scheme)
+ * 2. Weight each decrypted contribution as sum( coefficient[i] * decrypted_contribution[i] )
+ * If coefficients is null, then the contributions are simply summed without weighting.
+ * @param secretShares Concatenated string of encrypted secret shares. Each share is expected to be
+ *                        <   used for the sum  >  <      used for ECDH session key recovery        >
+ * 192 characters long - [private_contribution:64][public_contribution_x:64][public_contribution_y:64]
+ * @param contributionCount Number of contributions concatenated in secretShares
+ * @param coefficients Array of coefficients to weight each contribution in the sum. Must be of length
+ * contributionCount. If null, contributions are summed without weighting (use default value of 1 for weight).
+ * @param skey Encrypted ECDSA private key of the enclave, used for ECDH session key recovery to decrypt
+ * each contribution
+ * @param q Modulus to perform the final sum mod operation
+ * @param sum Output parameter to hold the final aggregated secret share after decryption, weighting, and
+ * summation
+ * @param errString Output parameter to hold error message in case of failure
+ */
+static int aggregateEncryptedSecretContributions(
+    const char *secretShares, uint64_t contributionCount, mpz_t coefficients[],
+    const char *skey, mpz_t q, mpz_t sum, char *errString) {
+    int status = SGX_ERROR_UNEXPECTED;
+    const uint64_t secretShareLength = 192;
+    const uint64_t encryptedSecretShareLength = 64;
+
+    CHECK_ARG_CLEAN(secretShares);
+    CHECK_ARG_CLEAN(contributionCount > 0);
+    CHECK_ARG_CLEAN(skey);
+    CHECK_ARG_CLEAN(errString);
+
+    uint64_t expectedSecretSharesLength = contributionCount * secretShareLength;
+    if (strlen(secretShares) != expectedSecretSharesLength) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "invalid secret contributions length, got: %llu, expected: %llu",
+                 (unsigned long long)strlen(secretShares),
+                 (unsigned long long)expectedSecretSharesLength);
+        status = -1;
+        goto clean;
+    }
+
+    mpz_set_ui(sum, 0);
+
+    for (uint64_t i = 0; i < contributionCount; i++) {
+        // get secret part of secret contribution
+        SAFE_CHAR_BUF(encrSecretShare, 65);
+        strncpy(encrSecretShare, secretShares + secretShareLength * i,
+                encryptedSecretShareLength);
+        encrSecretShare[encryptedSecretShareLength] = 0;
+
+        // get full secret share for session key recovery
+        SAFE_CHAR_BUF(secretShare, 193);
+        strncpy(secretShare, secretShares + secretShareLength * i,
+                secretShareLength);
+        secretShare[secretShareLength] = 0;
+
+        // Recover the common key for this contribution
+        SAFE_CHAR_BUF(commonKey, 65);
+        status = session_key_recover(skey, secretShare, commonKey);
+        if (status != SGX_SUCCESS) {
+            snprintf(errString, ENCLAVE_BUF_LEN,
+                     "session_key_recover failed for contribution index %llu "
+                     "with status %d",
+                     (unsigned long long)i, status);
+            goto clean;
+        }
+        commonKey[64] = 0;
+
+        // Derive the key encryption key from the common key
+        SAFE_CHAR_BUF(derivedKey, ENCLAVE_BUF_LEN);
+        status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
+        if (status != SGX_SUCCESS) {
+            snprintf(errString, ENCLAVE_BUF_LEN,
+                     "hash_key failed for contribution index %llu with status %d",
+                     (unsigned long long)i, status);
+            goto clean;
+        }
+        derivedKey[ECDSA_BIN_LEN - 1] = 0;
+
+        // Decrypt the secret share
+        SAFE_CHAR_BUF(decrSecretShare, 65);
+        status = xor_decrypt_v2(derivedKey, encrSecretShare, decrSecretShare);
+        if (status != SGX_SUCCESS) {
+            snprintf(errString, ENCLAVE_BUF_LEN,
+                     "xor_decrypt_v2 failed for contribution index %llu with "
+                     "status %d",
+                     (unsigned long long)i, status);
+            goto clean;
+        }
+        decrSecretShare[64] = 0;
+
+        mpz_t decryptedSecretShare;
+        mpz_init(decryptedSecretShare);
+        mpz_t weightedSecretShare;
+        mpz_init(weightedSecretShare);
+
+        if (mpz_set_str(decryptedSecretShare, decrSecretShare, 16) == -1) {
+            snprintf(errString, ENCLAVE_BUF_LEN,
+                     "invalid decrypted secret share for contribution index %llu",
+                     (unsigned long long)i);
+            mpz_clear(weightedSecretShare);
+            mpz_clear(decryptedSecretShare);
+            status = 111;
+            goto clean;
+        }
+
+        if (coefficients) {
+            mpz_mul(weightedSecretShare, decryptedSecretShare, coefficients[i]);
+            mpz_add(sum, sum, weightedSecretShare);
+        } else {
+            mpz_add(sum, sum, decryptedSecretShare);
+        }
+
+        mpz_mod(sum, sum, q);
+
+        mpz_clear(weightedSecretShare);
+        mpz_clear(decryptedSecretShare);
+    }
+
+    status = SGX_SUCCESS;
+
+clean:
+    return status;
+}
+
+/**
+ * @brief Helper function to calculate Lagrange coefficients for a given set of contributor indices.
+ * lambda_i = product( -x_j / (x_i - x_j) ) for all j != i, where x_k is the index of contributor
+ * k + 1 (1-based indexing)
+ * @param contributorIndices Array of contributor indices (0-based indexing, will be converted to
+ * 1-based indexing)
+ * @param contributionCount Number of contributors (length of contributorIndices array)
+ * @param q Modulus to perform the calculations mod q
+ * @param coefficients Array to store the calculated Lagrange coefficients
+ * @param errString Buffer to store error messages
+ */
+static int calculateLagrangeCoefficients(
+    const uint8_t *contributorIndices, uint64_t contributionCount, mpz_t q,
+    mpz_t coefficients[], char *errString) {
+    int status = SGX_ERROR_UNEXPECTED;
+
+    CHECK_ARG_CLEAN(contributorIndices);
+    CHECK_ARG_CLEAN(contributionCount > 0);
+    CHECK_ARG_CLEAN(coefficients);
+    CHECK_ARG_CLEAN(errString);
+
+    for (uint64_t i = 0; i < contributionCount; i++) {
+        mpz_set_ui(coefficients[i], 1);
+
+        // num = product of x_j for all j != i
+        // den = product of (x_j - x_i) for all j != i
+        // we accumulate all first, only then do the inversion on denominator
+        // for performance reasons
+        mpz_t num, den;
+        mpz_init(num);
+        mpz_init(den);
+
+        mpz_set_ui(num, 1);
+        mpz_set_ui(den, 1);
+
+        for (uint64_t j = 0; j < contributionCount; j++) {
+
+            // -xj / (x_i - x_j)
+            // skip division by 0
+            if (i == j) {
+                continue;
+            }
+
+            if (contributorIndices[i] == contributorIndices[j]) {
+                snprintf(errString, ENCLAVE_BUF_LEN,
+                         "duplicate contributor index %u at positions %llu and %llu",
+                         contributorIndices[i], (unsigned long long)i,
+                         (unsigned long long)j);
+                mpz_clear(den);
+                mpz_clear(num);
+                status = -1;
+                goto clean;
+            }
+
+            mpz_t xI;
+            mpz_init_set_ui(xI, contributorIndices[i] + 1); // we use 1-based indexing
+            mpz_t xJ;
+            mpz_init_set_ui(xJ, contributorIndices[j] + 1);
+
+            // -xj / (x_i - x_j) can be rewritten as
+            // xj / (xj - xi)
+
+            // Denominator computation (xj - xi)
+            mpz_t denominator;
+            mpz_init(denominator);
+            mpz_sub(denominator, xJ, xI);
+
+            // accumulate numerator and denominator for lagrange coefficient
+            // curr_coeff * xj / (xj - xi) = curr_coeff * xj * [ 1 / (xj - xi) ]
+            // at this point we are keeping all xj multiplied, and all (xj - xi) multiplied.
+            // at the end we will compute 1 / sum_prod(den)
+            mpz_mul(num, num, xJ);
+            mpz_mul(den, den, denominator);
+
+            mpz_clear(denominator);
+            mpz_clear(xJ);
+            mpz_clear(xI);
+        }
+
+        // compute inverse of accumualted denominator
+        if (mpz_invert(den, den, q) == 0) {
+            snprintf(errString, ENCLAVE_BUF_LEN,
+                        "could not invert Lagrange denominator for coefficient %llu",
+                        (unsigned long long)i);
+            mpz_clear(den);
+            mpz_clear(num);
+            status = -1;
+            goto clean;
+        }
+
+        // coefficient = prod(xj) / prod(xj - xi) = prod(xj) * [ 1 / prod(xj - xi) ]
+        mpz_mul(coefficients[i], coefficients[i], num);
+        mpz_mul(coefficients[i], coefficients[i], den);
+        mpz_mod(coefficients[i], coefficients[i], q);
+
+        mpz_clear(den);
+        mpz_clear(num);
+    }
+
+    status = SGX_SUCCESS;
+
+clean:
+    return status;
+}
+
+
+
+// -----------------------------------------------------------------------------
+// Trusted functions
+// -----------------------------------------------------------------------------
 
 static void sealHexSEKOnce(int *errStatus, char *errString,
                         uint8_t *encrypted_sek, uint64_t *enc_len, char *sek_hex) {
@@ -998,6 +1240,64 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
     LOG_INFO("SGX call completed");
 }
 
+void trustedGenDkgSecretV3(int *errStatus, char *errString,
+                      uint8_t *encrypted_free_term, uint64_t encrypted_free_term_length,
+                      uint8_t *encrypted_dkg_secret, uint64_t *enc_len, size_t _t) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encrypted_free_term);
+    CHECK_STATE(encrypted_dkg_secret);
+
+    // Decrypt the previous BLS private key to get the hex-encoded Fr scalar
+    SAFE_CHAR_BUF(prev_bls_key_hex, ENCLAVE_BUF_LEN);
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encrypted_free_term, encrypted_free_term_length,
+                             prev_bls_key_hex, ENCLAVE_BUF_LEN, &type, &exportable);
+    CHECK_STATUS2("trustedGenDkgSecretV3: AES_decrypt of previous BLS key failed with status %d");
+
+    if (type != BLS) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "trustedGenDkgSecretV3: encrypted free term is not a BLS key");
+        *errStatus = -1;
+        goto clean;
+    }
+
+    // Generate the poly, anchoring the free coefficient to the previous BLS key
+    SAFE_CHAR_BUF(dkg_secret, DKG_BUFER_LENGTH);
+
+    status = gen_dkg_poly_with_free_coef(dkg_secret, _t, prev_bls_key_hex);
+    CHECK_STATUS("trustedGenDkgSecretV3: gen_dkg_poly_with_free_coef failed");
+
+    status = AES_encrypt(dkg_secret, encrypted_dkg_secret, 3 * ENCLAVE_BUF_LEN,
+                         DKG, EXPORTABLE, enc_len);
+    CHECK_STATUS("trustedGenDkgSecretV3: AES encrypt DKG poly failed");
+
+    SAFE_CHAR_BUF(decr_dkg_secret, DKG_BUFER_LENGTH);
+    type = 0;
+    exportable = 0;
+
+    status = AES_decrypt(encrypted_dkg_secret, *enc_len, decr_dkg_secret,
+                         DKG_BUFER_LENGTH, &type, &exportable);
+    CHECK_STATUS("trustedGenDkgSecretV3: aes decrypt dkg poly failed");
+
+    if (strcmp(dkg_secret, decr_dkg_secret) != 0) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "encrypted poly is not equal to decrypted poly");
+        LOG_ERROR(errString);
+        *errStatus = -333;
+        goto clean;
+    }
+
+    SET_SUCCESS
+    clean:
+    ;
+    LOG_INFO(__FUNCTION__);
+    LOG_INFO("SGX call completed");
+}
+
 void
 trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
                            uint64_t enc_len,
@@ -1479,49 +1779,19 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
 
     int numShares = strlen(secretShares) / 192;
 
-    for (int i = 0; i < numShares; i++) {
-        SAFE_CHAR_BUF(encrSecretShare, 65);
-        strncpy(encrSecretShare, secretShares + 192 * i, 64);
-        encrSecretShare[64] = 0;
-
-        SAFE_CHAR_BUF(secretShare, 193);
-        strncpy(secretShare, secretShares + 192 * i, 192);
-        secretShare[192] = 0;
-
-        SAFE_CHAR_BUF(commonKey, 65);
-
-        status = session_key_recover(skey, secretShare, commonKey);
-
-        CHECK_STATUS("session_key_recover failed");
-
-        commonKey[64] = 0;
-
-        SAFE_CHAR_BUF(derivedKey, ENCLAVE_BUF_LEN);
-        status = hash_key(commonKey, derivedKey, ECDSA_BIN_LEN - 1, true);
-        CHECK_STATUS("hash key failed")
-        derivedKey[ECDSA_BIN_LEN - 1] = 0;
-
-        SAFE_CHAR_BUF(decrSecretShare, 65);
-
-        status = xor_decrypt_v2(derivedKey, encrSecretShare, decrSecretShare);
-
-        CHECK_STATUS("xor_decrypt failed");
-
-        decrSecretShare[64] = 0;
-
-        mpz_t decryptedSecretShare;
-        mpz_init(decryptedSecretShare);
-        if (mpz_set_str(decryptedSecretShare, decrSecretShare, 16) == -1) {
-            *errStatus = 111;
-            snprintf(errString, ENCLAVE_BUF_LEN, "invalid decrypted secret share");
-            LOG_ERROR(errString);
-
-            mpz_clear(decryptedSecretShare);
-            goto clean;
-        }
-
-        mpz_addmul_ui(sum, decryptedSecretShare, 1);
-        mpz_clear(decryptedSecretShare);
+    status = aggregateEncryptedSecretContributions(
+        secretShares,
+        numShares,
+        NULL, // pass no coefficients -> equivalent to all coefficients being 1
+        skey,
+        q,
+        sum,
+        errString
+    );
+    if (status != SGX_SUCCESS) {
+        *errStatus = status;
+        LOG_ERROR(errString);
+        goto clean;
     }
 
     mpz_mod(blsKey, sum, q);
@@ -1540,6 +1810,122 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     SET_SUCCESS
     clean:
 
+    mpz_clear(blsKey);
+    mpz_clear(sum);
+    mpz_clear(q);
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
+
+void trustedCreateBlsKeyV3(int *errStatus, char *errString,
+                            const char *encryptedSecretContributions,
+                            uint8_t *contributorIndices,
+                            uint64_t contributionCount,
+                            uint8_t *encryptedPrivateKey, uint64_t keyLen,
+                            uint8_t *encrBlsKey, uint64_t *encBlsKeyLen) {
+
+    LOG_INFO(__FUNCTION__);
+
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encryptedSecretContributions);
+    CHECK_STATE(contributorIndices);
+    CHECK_STATE(contributionCount > 0);
+    CHECK_STATE(contributionCount <= 32);
+    CHECK_STATE(encryptedPrivateKey);
+    CHECK_STATE(encrBlsKey);
+
+    SAFE_CHAR_BUF(skey, ENCLAVE_BUF_LEN);
+
+    mpz_t sum;
+    mpz_init(sum);
+    mpz_set_ui(sum, 0);
+
+    mpz_t q;
+    mpz_init(q);
+    mpz_set_str(q, "21888242871839275222246405745257275088548364400416034343698204186575808495617", 10);
+
+    mpz_t blsKey;
+    mpz_init(blsKey);
+
+    mpz_t *lagrangeCoefficients = NULL;
+
+    uint8_t type = 0;
+    uint8_t exportable = 0;
+
+    int status = AES_decrypt(encryptedPrivateKey, keyLen, skey, ENCLAVE_BUF_LEN,
+                             &type, &exportable);
+    CHECK_STATUS2("aes decrypt failed with status %d");
+
+    if (type != ECDSA) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "trustedCreateBlsKeyV3: encrypted private key is not an ECDSA key");
+        *errStatus = -1;
+        goto clean;
+    }
+
+    skey[ECDSA_SKEY_LEN - 1] = 0;
+
+    lagrangeCoefficients = (mpz_t *)malloc(sizeof(mpz_t) * contributionCount);
+    if (!lagrangeCoefficients) {
+        snprintf(errString, ENCLAVE_BUF_LEN,
+                 "could not allocate Lagrange coefficients");
+        *errStatus = -1;
+        goto clean;
+    }
+
+    for (uint64_t i = 0; i < contributionCount; i++) {
+        mpz_init(lagrangeCoefficients[i]);
+    }
+
+    status = calculateLagrangeCoefficients(
+        contributorIndices, contributionCount, q, lagrangeCoefficients,
+        errString);
+
+    if (status != SGX_SUCCESS) {
+        *errStatus = status;
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    status = aggregateEncryptedSecretContributions(
+        encryptedSecretContributions,
+        contributionCount,
+        lagrangeCoefficients,
+        skey,
+        q,
+        sum,
+        errString
+    );
+
+    if (status != SGX_SUCCESS) {
+        *errStatus = status;
+        LOG_ERROR(errString);
+        goto clean;
+    }
+
+    mpz_mod(blsKey, sum, q);
+
+    SAFE_CHAR_BUF(keyShare, BLS_KEY_LENGTH);
+
+    SAFE_CHAR_BUF(arrSkeyStr, ENCLAVE_BUF_LEN);
+
+    mpz_get_str(arrSkeyStr, 16, blsKey);
+    copy_fixed_hex(keyShare, BLS_KEY_LENGTH, arrSkeyStr, BLS_KEY_LENGTH - 1);
+
+    status = AES_encrypt(keyShare, encrBlsKey, ENCLAVE_BUF_LEN, BLS, NON_EXPORTABLE, encBlsKeyLen);
+
+    CHECK_STATUS2("aes encrypt bls private key failed with status %d ");
+
+    SET_SUCCESS
+    clean:
+
+    if (lagrangeCoefficients) {
+        for (uint64_t i = 0; i < contributionCount; i++) {
+            mpz_clear(lagrangeCoefficients[i]);
+        }
+        free(lagrangeCoefficients);
+    }
     mpz_clear(blsKey);
     mpz_clear(sum);
     mpz_clear(q);

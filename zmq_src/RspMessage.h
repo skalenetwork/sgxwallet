@@ -90,6 +90,14 @@ public:
   virtual Json::Value process();
 };
 
+class generateDKGPolyV3RspMessage : public ZMQMessage {
+public:
+  generateDKGPolyV3RspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
+
+  virtual Json::Value process();
+};
+
 class getVerificationVectorRspMessage : public ZMQMessage {
 public:
   getVerificationVectorRspMessage(shared_ptr<rapidjson::Document> &_d)
@@ -125,6 +133,14 @@ public:
 class createBLSPrivateKeyRspMessage : public ZMQMessage {
 public:
   createBLSPrivateKeyRspMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
+
+  virtual Json::Value process();
+};
+
+class createBLSPrivateKeyV3RspMessage : public ZMQMessage {
+public:
+  createBLSPrivateKeyV3RspMessage(shared_ptr<rapidjson::Document> &_d)
       : ZMQMessage(_d){};
 
   virtual Json::Value process();

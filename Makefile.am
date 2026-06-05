@@ -135,9 +135,9 @@ secure_enclave.signed.so: secure_enclave/secure_enclave.signed.so
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends \
+sgxwallet_LDADD=libthirdpartyintel.a -l$(SGX_URTS_LIB) -l$(SGX_UAE_SERVICE_LIB) -LlibBLS/deps/deps_inst/x86_or_x64/lib -Lleveldb/build -LlibBLS/build -LlibBLS/build/backends -LlibBLS/build/threshold_encryption \
    -Llibzmq/build/lib/ \
-   -l:libbls.a -l:libcommon_utils.a -l:libleveldb.a \
+   -l:libbls.a -l:libte.a -l:libcommon_utils.a -l:libleveldb.a \
    -l:libbackend.a -l:libmcl.a -l:libgmp.a \
    -l:libsgx_capable.a -l:libsgx_tprotected_fs.a \
    -l:libzmq.a \
