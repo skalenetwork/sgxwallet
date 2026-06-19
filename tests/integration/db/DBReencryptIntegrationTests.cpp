@@ -432,7 +432,7 @@ static const std::map<std::string, std::string> EXPECTED_PLAINTEXT = {
 TEST_CASE_METHOD(DBReencryptIntegrationFixture,
                  "DB reencryption preserves keys, changes ciphertexts, and "
                  "keeps plaintexts identical",
-                 "[db-reencrypt][integration]") {
+                 "[integration][db][db-reencrypt]") {
   writeRepresentativeRows();
 
   const std::string oldSEK = readBackupSEK();

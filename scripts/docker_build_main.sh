@@ -64,9 +64,8 @@ case "${BUILD_TYPE}" in
 		make -j"${JOBS}"
 		# integration tests - require sgxwallet binary
 		make db_reencrypt_integration_tests -j"${JOBS}"
-		# new unit tests suite with cmake
-		cmake -S tests -B build-tests
-		cmake --build build-tests -j"${JOBS}"
+		# standalone unit tests
+		make unit_tests -j"${JOBS}"
 		# backward compatibility tests
 		make -C tests/backward_compatibility api_validator
 		;;

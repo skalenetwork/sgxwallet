@@ -2,25 +2,39 @@
 
 Tests require SGXWallet to have been built locally in simulation mode, as described in [this document](building.md).
 
-Tests can be run in two ways. 
+Tests can be run in two ways.
 
 ## Run all tests
 
-To run over all tests, run:
+To run all unit and integration tests that are part of the default check suite,
+run:
+```
+make check
+```
+
+The default check suite runs Catch2 tests tagged `[unit]` or `[integration]`
+and excludes tests tagged `[performance]`.
+
+The legacy Python wrapper is still available during migration:
 ```
 python3 testw.py
 ```
 
-Tests can be added to the script by simply adding the test name to the list of tests in the script.
-
 
 ## Run individual tests
-To run an individual test named `[test_ex]`:
+To run an individual integration test named `[test_ex]`:
 ```bash
 ./testw [test_ex]
 ```
 
-We follow the convention of naming tests like `[test-name]`.
+To run a full category:
+```bash
+./unit_tests "[unit]~[performance]" --reporter compact
+./testw "[integration]~[performance]" --reporter compact
+```
+
+We follow the convention of tagging tests by type, component, and scenario, for
+example `[integration][te][te-decryption-share]`.
 
 ---
 
@@ -28,13 +42,12 @@ We follow the convention of naming tests like `[test-name]`.
 
 ## DB Unit Tests
 
-DB unit tests are built with the standalone CMake test project under `tests/`.
-They do not require an SGX enclave.
+DB unit tests are built by the top-level Autotools build. They do not require
+an SGX enclave.
 
 ```bash
-cmake -S tests -B build-tests
-cmake --build build-tests --target unit_tests -j"$(nproc)"
-ctest --test-dir build-tests -L unit --output-on-failure
+make unit_tests
+./unit_tests "[unit]~[performance]" --reporter compact
 ```
 
 ## DB Reencryption Integration Tests
@@ -48,7 +61,7 @@ source /opt/intel/sgxsdk/environment
 ./autoconf.bash
 ./configure --enable-sgx-test-ecalls --enable-sgx-simulation
 make db_reencrypt_integration_tests
-./db_reencrypt_integration_tests --reporter compact
+./db_reencrypt_integration_tests "[integration]~[performance]" --reporter compact
 ```
 
 If running against hardware SGX instead of simulation mode, omit

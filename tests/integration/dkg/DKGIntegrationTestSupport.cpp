@@ -15,49 +15,38 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
-
-    @file TestUtils.cpp
-    @author Stan Kladko
-    @date 2020
 */
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
 
-#include "secure_enclave_u.h"
-#include "sgxwallet_common.h"
-#include "third_party/intel/create_enclave.h"
-#include "third_party/intel/sgx_detect.h"
-#include "third_party/spdlog/spdlog.h"
-#include <gmp.h>
-#include <jsonrpccpp/client/connectors/httpclient.h>
-#include <sgx_tcrypto.h>
-#include <sgx_urts.h>
-#include <stdio.h>
+#include "tests/integration/dkg/DKGIntegrationTestSupport.h"
+
+#include "tests/TestSupport.h"
 
 #include "BLSCrypto.h"
-#include "CryptoTools.h"
-#include "DKGCrypto.h"
-#include "LevelDB.h"
-#include "SGXException.h"
-#include "SGXWalletServer.hpp"
-#include "ServerInit.h"
-
 #include "BLSPublicKey.h"
 #include "BLSPublicKeyShare.h"
 #include "BLSSigShare.h"
 #include "BLSSigShareSet.h"
-#include "SEKManager.h"
-#include "SGXRegistrationServer.h"
-#include "SGXWalletServer.h"
-#include "TestUtils.h"
+#include "CryptoTools.h"
+#include "DKGCrypto.h"
+#include "SGXException.h"
+#include "TestKeyGenerator.h"
 #include "common.h"
-#include "sgxwallet.h"
-#include "stubclient.h"
-#include "testw.h"
-#include "third_party/catch.hpp"
+#include "secure_enclave/DHDkg.h"
+#include "tests/TestConstants.h"
+#include "zmq_src/ZMQClient.h"
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <cstring>
+#include <gmp.h>
 #include <limits>
+#include <map>
+#include <memory>
+#include <string>
 #include <thread>
+#include <vector>
+#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <threshold_encryption/CipheredKey.h>
 #include <threshold_encryption/Ciphertext.h>
 #include <threshold_encryption/TEDecryptSet.h>
@@ -293,13 +282,13 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
     CHECK_STATE(data.ecdsaKeyNames[i].size() == ECDSA_KEY_NAME_SIZE);
     data.publicEcdsaKeys.append(ethKeys[i]["publicKey"]);
 
-    data.polyNames[i] = TestUtils::makeDKGPolyName(schainID, i, dkgID);
+    data.polyNames[i] = DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgID);
     Json::Value response = c.generateDKGPoly(data.polyNames[i], t);
     CHECK_STATE(response["status"] == 0);
 
     verificationVectors[i] = c.getVerificationVector(data.polyNames[i], t);
     CHECK_STATE(verificationVectors[i]["status"] == 0);
-    data.publicShares[i] = TestUtils::publicSharesFromVerificationVector(
+    data.publicShares[i] = DKGIntegrationTestSupport::publicSharesFromVerificationVector(
         verificationVectors[i], t);
   }
 
@@ -321,11 +310,11 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
       const string contribution =
-          TestUtils::encryptedDkgSecretContributionForRecipient(
+          DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
               contributorShares, recipient);
       recipientSecretShares[recipient] += contribution;
 
@@ -339,7 +328,7 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
 
   for (int recipient = 0; recipient < n; ++recipient) {
     data.blsKeyNames[recipient] =
-        TestUtils::blsNameFromPolyName(data.polyNames[recipient]);
+        DKGIntegrationTestSupport::blsNameFromPolyName(data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV2(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], recipientSecretShares[recipient], t, n);
@@ -383,7 +372,7 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
 
   for (int contributor = 0; contributor < n; ++contributor) {
     data.polyNames[contributor] =
-        TestUtils::makeDKGPolyName(schainID, contributor, dkgID);
+        DKGIntegrationTestSupport::makeDKGPolyName(schainID, contributor, dkgID);
     // use previous' DKG BLS private key name
     Json::Value response = c.generateDKGPolyV3(
         data.polyNames[contributor], v2Data.blsKeyNames[contributor], t);
@@ -394,7 +383,7 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         c.getVerificationVector(data.polyNames[contributor], t);
     CHECK_STATE(verificationVectors[contributor]["status"] == 0);
     data.publicShares[contributor] =
-        TestUtils::publicSharesFromVerificationVector(
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(
             verificationVectors[contributor], t);
   }
 
@@ -414,11 +403,11 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
       const string contribution =
-          TestUtils::encryptedDkgSecretContributionForRecipient(
+          DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
               contributorShares, recipient);
 
       Json::Value verification = c.dkgVerificationV2(
@@ -436,7 +425,7 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
 
   for (int recipient = 0; recipient < n; ++recipient) {
     data.blsKeyNames[recipient] =
-        TestUtils::blsNameFromPolyName(data.polyNames[recipient]);
+        DKGIntegrationTestSupport::blsNameFromPolyName(data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV3(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], secretContributions[recipient], t, n);
@@ -516,7 +505,7 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
   for (size_t oldDealerIndex = 0; oldDealerIndex < dealerCount;
        ++oldDealerIndex) {
     // generate new polynomial for each dealer
-    dealerPolyNames[oldDealerIndex] = TestUtils::makeDKGPolyName(
+    dealerPolyNames[oldDealerIndex] = DKGIntegrationTestSupport::makeDKGPolyName(
         schainID, static_cast<int>(oldDealerIndex), dkgID);
     Json::Value response =
         c.generateDKGPolyV3(dealerPolyNames[oldDealerIndex],
@@ -528,7 +517,7 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
         c.getVerificationVector(dealerPolyNames[oldDealerIndex], t);
     CHECK_STATE(verificationVector["status"] == 0);
     dealerPublicShares[oldDealerIndex] =
-        TestUtils::publicSharesFromVerificationVector(verificationVector, t);
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(verificationVector, t);
 
     // get secret contributions from this dealer - using 'newN' number of points
     // one for each new node
@@ -551,12 +540,12 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
         dealerSecretShares[oldDealerIndex]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(newN) *
-                    TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     // for each new node - save the secret contribution from 'oldDealerIndex'
     for (int recipient = 0; recipient < newN; ++recipient) {
       const string contribution =
-          TestUtils::encryptedDkgSecretContributionForRecipient(
+          DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
               contributorShares, recipient);
 
       Json::Value verification = c.dkgVerificationV2(
@@ -575,15 +564,15 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
   for (int recipient = 0; recipient < newN; ++recipient) {
     const size_t nodeLabel = newCommitteeOldIndices.at(recipient);
     // create BLS key name for new node
-    const string syntheticPolyName = TestUtils::makeDKGPolyName(
+    const string syntheticPolyName = DKGIntegrationTestSupport::makeDKGPolyName(
         schainID, static_cast<int>(nodeLabel), dkgID);
     data.blsKeyNames[recipient] =
-        TestUtils::blsNameFromPolyName(syntheticPolyName);
+        DKGIntegrationTestSupport::blsNameFromPolyName(syntheticPolyName);
 
     // set polyName for new nodes that contributed as dealers
     string cleanupPolyName;
     if (nodeLabel < static_cast<size_t>(t)) {
-      cleanupPolyName = TestUtils::makeDKGPolyName(
+      cleanupPolyName = DKGIntegrationTestSupport::makeDKGPolyName(
           schainID, static_cast<int>(nodeLabel), dkgID);
       data.polyNames[recipient] = cleanupPolyName;
     }
@@ -914,42 +903,21 @@ vector<size_t> takeFirstNodes(const vector<size_t> &nodes, int count) {
 }
 
 } // namespace
-
-default_random_engine TestUtils::randGen((unsigned int)time(0));
-
-string TestUtils::stringFromFr(libBLS::algebra::FrScalar &el,
-                               libBLS::algebra::Base base) {
-  return el.toString(base);
-}
-
-string TestUtils::convertDecToHex(string dec, int numBytes) {
-  mpz_t num;
-  mpz_init(num);
-  mpz_set_str(num, dec.c_str(), 10);
-  vector<char> tmp(mpz_sizeinbase(num, 16) + 2, 0);
-  char *hex = mpz_get_str(tmp.data(), 16, num);
-  string result = hex;
-  int n_zeroes = numBytes * 2 - result.length();
-  result.insert(0, n_zeroes, '0');
-  mpz_clear(num);
-  return result;
-}
-
-string TestUtils::makeDKGPolyName(int schainID, int nodeID, int dkgID) {
+string DKGIntegrationTestSupport::makeDKGPolyName(int schainID, int nodeID, int dkgID) {
   return "POLY:SCHAIN_ID:" + to_string(schainID) +
          ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
 }
 
-string TestUtils::makeBLSKeyName(int schainID, int nodeID, int dkgID) {
+string DKGIntegrationTestSupport::makeBLSKeyName(int schainID, int nodeID, int dkgID) {
   return "BLS_KEY:SCHAIN_ID:" + to_string(schainID) +
          ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
 }
 
-string TestUtils::blsNameFromPolyName(const string &polyName) {
+string DKGIntegrationTestSupport::blsNameFromPolyName(const string &polyName) {
   return "BLS_KEY" + polyName.substr(4);
 }
 
-string TestUtils::publicSharesFromVerificationVector(
+string DKGIntegrationTestSupport::publicSharesFromVerificationVector(
     const Json::Value &verificationVectorResponse, int t) {
   CHECK_STATE(t > 0);
 
@@ -974,24 +942,24 @@ string TestUtils::publicSharesFromVerificationVector(
     for (int coord = 0; coord < 4; ++coord) {
       const string publicShare = verificationVector[coeff][coord].asString();
       CHECK_STATE(publicShare.length() > 60);
-      publicShares += TestUtils::convertDecToHex(publicShare);
+      publicShares += TestSupport::convertDecToHex(publicShare);
     }
   }
   return publicShares;
 }
 
-string TestUtils::encryptedDkgSecretContributionForRecipient(
+string DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
     const string &secretShares, int recipientIndex) {
   CHECK_STATE(recipientIndex >= 0);
   const size_t offset =
-      TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipientIndex;
+      DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipientIndex;
   CHECK_STATE(secretShares.length() >=
-              offset + TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+              offset + DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
   return secretShares.substr(
-      offset, TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      offset, DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 }
 
-Json::Value TestUtils::dkgV3SecretContributionsForRecipient(
+Json::Value DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
     const vector<string> &dealerSecretShares, int recipientIndex) {
   Json::Value secretContributions(Json::arrayValue);
   for (size_t contributor = 0; contributor < dealerSecretShares.size();
@@ -999,240 +967,180 @@ Json::Value TestUtils::dkgV3SecretContributionsForRecipient(
     Json::Value entry;
     entry["contributorIndex"] = static_cast<Json::UInt>(contributor);
     entry["secretShare"] =
-        TestUtils::encryptedDkgSecretContributionForRecipient(
+        DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
             dealerSecretShares[contributor], recipientIndex);
     secretContributions.append(entry);
   }
   return secretContributions;
 }
 
-void TestUtils::resetDB() {
-  CHECK_STATE(system("bash -c \"rm -rf " SGXDATA_FOLDER "* \"") == 0);
+int DKGIntegrationTestSupport::sessionKeyRecoverDH(const char *skey_str,
+                                                   const char *sshare,
+                                                   char *common_key) {
+
+  int ret = -1;
+
+  SAFE_CHAR_BUF(pb_keyB_x, 65);
+  SAFE_CHAR_BUF(pb_keyB_y, 65);
+
+  mpz_t skey;
+  mpz_init(skey);
+  point pub_keyB = point_init();
+  point session_key = point_init();
+
+  pb_keyB_x[64] = 0;
+  strncpy(pb_keyB_x, sshare, 64);
+  strncpy(pb_keyB_y, sshare + 64, 64);
+  pb_keyB_y[64] = 0;
+
+  if (!common_key) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+
+    return ret;
+  }
+
+  common_key[0] = 0;
+
+  if (!skey_str) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+    return ret;
+  }
+
+  if (!sshare) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+
+    return ret;
+  }
+
+  if (mpz_set_str(skey, skey_str, 16) == -1) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+
+    return ret;
+  }
+
+  domain_parameters curve;
+  curve = domain_parameters_init();
+  domain_parameters_load_curve(curve, secp256k1);
+
+  if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+    mpz_clear(skey);
+    point_clear(pub_keyB);
+    point_clear(session_key);
+    domain_parameters_clear(curve);
+    return ret;
+  }
+
+  point_multiplication(session_key, skey, pub_keyB, curve);
+
+  SAFE_CHAR_BUF(arr_x, BUF_LEN);
+
+  mpz_get_str(arr_x, 16, session_key->x);
+  int n_zeroes = 64 - strlen(arr_x);
+  for (int i = 0; i < n_zeroes; i++) {
+    common_key[i] = '0';
+  }
+  strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
+
+  ret = 0;
+
+  mpz_clear(skey);
+  point_clear(pub_keyB);
+  point_clear(session_key);
+  domain_parameters_clear(curve);
+
+  return ret;
 }
 
-shared_ptr<string> TestUtils::encryptTestKey() {
-  const char *key = TEST_BLS_KEY_SHARE;
-  int errStatus = -1;
-  vector<char> errMsg(BUF_LEN, 0);
-  ;
-  string encryptedKeyHex =
-      encryptBLSKeyShare2Hex(&errStatus, errMsg.data(), key);
+int DKGIntegrationTestSupport::xorDecryptDH(char *key, const char *cypher,
+                                            vector<char> &message) {
 
-  CHECK_STATE(!encryptedKeyHex.empty());
-  CHECK_STATE(errStatus == 0);
+  int ret = -1;
 
-  return make_shared<string>(encryptedKeyHex);
+  if (!cypher) {
+    return ret;
+  }
+
+  if (!key) {
+    return ret;
+  }
+
+  if (!message.data()) {
+    return ret;
+  }
+
+  SAFE_CHAR_BUF(msg_bin, 33)
+
+  SAFE_CHAR_BUF(key_bin, 33)
+
+  uint64_t key_length;
+  if (!hex2carray(key, &key_length, (uint8_t *)key_bin, 33)) {
+    return ret;
+  }
+
+  uint64_t cypher_length;
+
+  SAFE_CHAR_BUF(cypher_bin, 33);
+  if (!hex2carray(cypher, &cypher_length, (uint8_t *)cypher_bin, 33)) {
+    return ret;
+  }
+
+  for (int i = 0; i < 32; i++) {
+    msg_bin[i] = cypher_bin[i] ^ key_bin[i];
+  }
+
+  message = carray2Hex((unsigned char *)msg_bin, 32);
+
+  ret = 0;
+
+  return ret;
 }
 
-vector<libBLS::algebra::FrScalar>
-TestUtils::splitStringToFr(const char *coeffs, const char symbol) {
-  string str(coeffs);
-  string delim;
-  delim.push_back(symbol);
-  vector<libBLS::algebra::FrScalar> tokens;
-  size_t prev = 0, pos = 0;
-  do {
-    pos = str.find(delim, prev);
-    if (pos == string::npos)
-      pos = str.length();
-    string token = str.substr(prev, pos - prev);
-    if (!token.empty()) {
-      libBLS::algebra::FrScalar coeff(libBLS::algebra::FrScalar::fromString(
-          token, libBLS::algebra::Base::DEC));
-      tokens.push_back(coeff);
-    }
-    prev = pos + delim.length();
-  } while (pos < str.length() && prev < str.length());
+int DKGIntegrationTestSupport::xorDecryptDHV2(char *key, const char *cypher,
+                                              vector<char> &message) {
 
-  return tokens;
+  int ret = -1;
+
+  if (!cypher) {
+    return ret;
+  }
+
+  if (!key) {
+    return ret;
+  }
+
+  if (!message.data()) {
+    return ret;
+  }
+
+  SAFE_CHAR_BUF(msg_bin, 33)
+
+  uint64_t cypher_length;
+
+  SAFE_CHAR_BUF(cypher_bin, 33);
+  if (!hex2carray(cypher, &cypher_length, (uint8_t *)cypher_bin, 33)) {
+    return ret;
+  }
+
+  for (int i = 0; i < 32; i++) {
+    msg_bin[i] = cypher_bin[i] ^ (uint8_t)key[i];
+  }
+
+  message = carray2Hex((unsigned char *)msg_bin, 32);
+
+  ret = 0;
+
+  return ret;
 }
 
-vector<string> TestUtils::splitStringTest(const char *coeffs,
-                                          const char symbol) {
-  string str(coeffs);
-  string delim;
-  delim.push_back(symbol);
-  vector<string> g2Strings;
-  size_t prev = 0, pos = 0;
-  do {
-    pos = str.find(delim, prev);
-    if (pos == string::npos)
-      pos = str.length();
-    string token = str.substr(prev, pos - prev);
-    if (!token.empty()) {
-      string coeff(token.c_str());
-      g2Strings.push_back(coeff);
-    }
-    prev = pos + delim.length();
-  } while (pos < str.length() && prev < str.length());
-
-  return g2Strings;
-}
-
-libBLS::algebra::G2Point
-TestUtils::vectStringToG2(const vector<string> &G2_str_vect) {
-  libBLS::algebra::G2Point coeff = libBLS::algebra::G2Point::identity();
-  coeff.setZC0(libBLS::algebra::FqElement::one());
-  coeff.setZC1(libBLS::algebra::FqElement::zero());
-
-  coeff.setXC0(libBLS::algebra::FqElement::fromString(
-      G2_str_vect.at(0), libBLS::algebra::Base::DEC));
-  coeff.setXC1(libBLS::algebra::FqElement::fromString(
-      G2_str_vect.at(1), libBLS::algebra::Base::DEC));
-  coeff.setYC0(libBLS::algebra::FqElement::fromString(
-      G2_str_vect.at(2), libBLS::algebra::Base::DEC));
-  coeff.setYC1(libBLS::algebra::FqElement::fromString(
-      G2_str_vect.at(3), libBLS::algebra::Base::DEC));
-
-  return coeff;
-}
-
-void TestUtils::sendRPCRequest() {
-  HttpClient client(RPC_ENDPOINT);
-  StubClient c(client, JSONRPC_CLIENT_V2);
-
-  int n = 16, t = 16;
-  Json::Value ethKeys[n];
-  Json::Value verifVects[n];
-  Json::Value pubEthKeys;
-  Json::Value secretShares[n];
-  Json::Value pubBLSKeys[n];
-  Json::Value blsSigShares[n];
-  vector<string> pubShares(n);
-  vector<string> polyNames(n);
-
-  static atomic<int> counter(1);
-
-  int schainID = counter.fetch_add(1);
-  int dkgID = counter.fetch_add(1);
-
-  int testCount = 1;
-
-  if (getenv("NIGHTLY_TESTS")) {
-    testCount = 10;
-  }
-
-  for (uint8_t i = 0; i < n; i++) {
-    usleep(100000);
-    ethKeys[i] = c.generateECDSAKey();
-
-    for (int i2 = 0; i2 < testCount; i2++) {
-      auto keyName = ethKeys[i]["keyName"].asString();
-      Json::Value sig = c.ecdsaSignMessageHash(16, keyName, SAMPLE_HASH);
-      CHECK_STATE(sig["status"].asInt() == 0);
-    }
-
-    CHECK_STATE(ethKeys[i]["status"] == 0);
-    string polyName = "POLY:SCHAIN_ID:" + to_string(schainID) +
-                      ":NODE_ID:" + to_string(i) +
-                      ":DKG_ID:" + to_string(dkgID);
-    auto response = c.generateDKGPoly(polyName, t);
-    CHECK_STATE(response["status"] == 0);
-    polyNames[i] = polyName;
-
-    for (int i3 = 0; i3 <= testCount; i3++) {
-      verifVects[i] = c.getVerificationVector(polyName, t);
-      CHECK_STATE(verifVects[i]["status"] == 0);
-    }
-
-    pubEthKeys.append(ethKeys[i]["publicKey"]);
-  }
-
-  for (uint8_t i = 0; i < n; i++) {
-    usleep(100000);
-    for (int i4 = 0; i4 <= testCount; i4++) {
-      secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
-    }
-    for (uint8_t k = 0; k < t; k++) {
-      for (uint8_t j = 0; j < 4; j++) {
-        string pubShare = verifVects[i]["verificationVector"][k][j].asString();
-        pubShares[i] += convertDecToHex(pubShare);
-      }
-    }
-  }
-
-  vector<string> secShares(n);
-
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++) {
-      string secretShare =
-          secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-      secShares[i] +=
-          secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-      usleep(100000);
-      for (int i5 = 0; i5 <= testCount; i5++) {
-        Json::Value verif =
-            c.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(),
-                              secretShare, t, n, j);
-        CHECK_STATE(verif["status"] == 0);
-      }
-    }
-
-  libBLS::BLSSigShareSet sigShareSet(t, n);
-
-  string hash = SAMPLE_HASH;
-
-  auto hash_arr = make_shared<array<uint8_t, 32>>();
-  uint64_t binLen;
-  if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-    throw SGXException(TEST_INVALID_HEX, "Invalid hash");
-  }
-
-  map<size_t, shared_ptr<libBLS::BLSPublicKeyShare>> coeffs_pkeys_map;
-
-  Json::Value publicShares;
-  for (int i = 0; i < n; ++i) {
-    publicShares["publicShares"][i] = pubShares[i];
-  }
-
-  Json::Value blsPublicKeys;
-
-  for (int i6 = 0; i6 <= testCount; i6++) {
-    blsPublicKeys = c.calculateAllBLSPublicKeys(publicShares, t, n);
-    CHECK_STATE(blsPublicKeys["status"] == 0);
-  }
-
-  for (int i = 0; i < t; i++) {
-    string endName = polyNames[i].substr(4);
-    string blsName = "BLS_KEY" + polyNames[i].substr(4);
-    string secretShare = secretShares[i]["secretShare"].asString();
-
-    auto response =
-        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(),
-                              polyNames[i], secShares[i], t, n);
-    CHECK_STATE(response["status"] == 0);
-
-    for (int i7 = 0; i7 <= testCount; i7++) {
-      pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
-    }
-    CHECK_STATE(pubBLSKeys[i]["status"] == 0);
-
-    // Use G2Point::fromString with vector of decimal strings
-    std::vector<std::string> pubKeyVec = {
-        pubBLSKeys[i]["blsPublicKeyShare"][0].asString(),
-        pubBLSKeys[i]["blsPublicKeyShare"][1].asString(),
-        pubBLSKeys[i]["blsPublicKeyShare"][2].asString(),
-        pubBLSKeys[i]["blsPublicKeyShare"][3].asString()};
-    libBLS::algebra::G2Point publicKey = libBLS::algebra::G2Point::fromString(
-        pubKeyVec, libBLS::algebra::Base::DEC);
-
-    string public_key_str = convertG2ToString(publicKey);
-
-    CHECK_STATE(public_key_str == blsPublicKeys["publicKeys"][i].asString());
-
-    string hash = SAMPLE_HASH;
-    blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
-    CHECK_STATE(blsSigShares[i]["status"] == 0);
-
-    string sig_share_ptr = blsSigShares[i]["signatureShare"].asString();
-    libBLS::BLSSigShare sig(sig_share_ptr, i + 1, t, n);
-    sigShareSet.addSigShare(sig);
-  }
-
-  sigShareSet.merge();
-}
-
-void TestUtils::sendRPCRequestV2() {
+void DKGIntegrationTestSupport::sendRPCRequestV2() {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -1270,7 +1178,7 @@ void TestUtils::sendRPCRequestV2() {
     for (uint8_t k = 0; k < t; k++) {
       for (uint8_t j = 0; j < 4; j++) {
         string pubShare = verifVects[i]["verificationVector"][k][j].asString();
-        pubShares[i] += convertDecToHex(pubShare);
+        pubShares[i] += TestSupport::convertDecToHex(pubShare);
       }
     }
   }
@@ -1344,7 +1252,7 @@ void TestUtils::sendRPCRequestV2() {
   sigShareSet.merge();
 }
 
-void TestUtils::sendRPCRequestZMQ() {
+void DKGIntegrationTestSupport::sendRPCRequestZMQ() {
   auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
                                        "./sgx_data/cert_data/rootCA.pem",
                                        "./sgx_data/cert_data/rootCA.key");
@@ -1381,7 +1289,7 @@ void TestUtils::sendRPCRequestZMQ() {
     for (uint8_t k = 0; k < t; k++) {
       for (uint8_t j = 0; j < 4; j++) {
         string pubShare = verifVects[i][k][j].asString();
-        pubShares[i] += convertDecToHex(pubShare);
+        pubShares[i] += TestSupport::convertDecToHex(pubShare);
       }
     }
   }
@@ -1446,159 +1354,16 @@ void TestUtils::sendRPCRequestZMQ() {
   sigShareSet.merge();
 }
 
-void TestUtils::destroyEnclave() {
-  if (eid != 0) {
-    sgx_destroy_enclave(eid);
-    eid = 0;
-  }
+
+void DKGIntegrationTestSupport::doDKG(StubClient &c, int n, int t,
+                                      vector<string> &_ecdsaKeyNames,
+                                      vector<string> &_blsKeyNames,
+                                      int schainID, int dkgID) {
+  TestKeyGenerator::generateDkgKeys(c, n, t, _ecdsaKeyNames, _blsKeyNames,
+                                    schainID, dkgID);
 }
 
-void TestUtils::doDKG(StubClient &c, int n, int t,
-                      vector<string> &_ecdsaKeyNames,
-                      vector<string> &_blsKeyNames, int schainID, int dkgID) {
-  Json::Value ethKeys[n];
-  Json::Value verifVects[n];
-  Json::Value pubEthKeys;
-  Json::Value secretShares[n];
-  Json::Value pubBLSKeys[n];
-  Json::Value blsSigShares[n];
-  vector<string> pubShares(n);
-  vector<string> polyNames(n);
-
-  _ecdsaKeyNames.clear();
-  _blsKeyNames.clear();
-
-  for (uint8_t i = 0; i < n; i++) {
-    ethKeys[i] = c.generateECDSAKey();
-
-    CHECK_STATE(ethKeys[i]["status"] == 0);
-
-    auto keyName = ethKeys[i]["keyName"].asString();
-    CHECK_STATE(keyName.size() == ECDSA_KEY_NAME_SIZE);
-
-    _ecdsaKeyNames.push_back(keyName);
-
-    string polyName = "POLY:SCHAIN_ID:" + to_string(schainID) +
-                      ":NODE_ID:" + to_string(i) +
-                      ":DKG_ID:" + to_string(dkgID);
-
-    Json::Value response = c.generateDKGPoly(polyName, t);
-    CHECK_STATE(response["status"] == 0);
-    polyNames[i] = polyName;
-    verifVects[i] = c.getVerificationVector(polyName, t);
-    CHECK_STATE(verifVects[i]["status"] == 0);
-    pubEthKeys.append(ethKeys[i]["publicKey"]);
-  }
-
-  for (uint8_t i = 0; i < n; i++) {
-    secretShares[i] = c.getSecretShare(polyNames[i], pubEthKeys, t, n);
-    CHECK_STATE(secretShares[i]["status"] == 0);
-    for (uint8_t k = 0; k < t; k++) {
-      for (uint8_t j = 0; j < 4; j++) {
-        string pubShare = verifVects[i]["verificationVector"][k][j].asString();
-        CHECK_STATE(pubShare.length() > 60);
-        pubShares[i] += TestUtils::convertDecToHex(pubShare);
-      }
-    }
-  }
-
-  int k = 0;
-
-  vector<string> secShares(n);
-
-  vector<string> pSharesBad(pubShares);
-
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++) {
-      string secretShare =
-          secretShares[i]["secretShare"].asString().substr(192 * j, 192);
-      secShares[i] +=
-          secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-      Json::Value response = c.dkgVerification(
-          pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
-      CHECK_STATE(response["status"] == 0);
-
-      bool res = response["result"].asBool();
-      CHECK_STATE(res);
-
-      k++;
-
-      pSharesBad[i][0] = 'q';
-      Json::Value wrongVerif =
-          c.dkgVerification(pSharesBad[i], ethKeys[j]["keyName"].asString(),
-                            secretShare, t, n, j);
-      res = wrongVerif["result"].asBool();
-      CHECK_STATE(!res);
-    }
-
-  libBLS::BLSSigShareSet sigShareSet(t, n);
-
-  string hash = SAMPLE_HASH;
-
-  auto hash_arr = make_shared<array<uint8_t, 32>>();
-  uint64_t binLen;
-  if (!hex2carray(hash.c_str(), &binLen, hash_arr->data(), 32)) {
-    throw SGXException(TEST_INVALID_HEX, "Invalid hash");
-  }
-
-  map<size_t, libBLS::BLSPublicKeyShare> pubKeyShares;
-
-  for (int i = 0; i < n; i++) {
-    string endName = polyNames[i].substr(4);
-    string blsName = "BLS_KEY" + polyNames[i].substr(4);
-    _blsKeyNames.push_back(blsName);
-    string secretShare = secretShares[i]["secretShare"].asString();
-
-    auto response =
-        c.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(),
-                              polyNames[i], secShares[i], t, n);
-    CHECK_STATE(response["status"] == 0);
-    pubBLSKeys[i] = c.getBLSPublicKeyShare(blsName);
-    CHECK_STATE(pubBLSKeys[i]["status"] == 0);
-  }
-
-  for (int i = 0; i < t; i++) {
-    vector<string> pubKeyVect;
-    for (uint8_t j = 0; j < 4; j++) {
-      pubKeyVect.push_back(pubBLSKeys[i]["blsPublicKeyShare"][j].asString());
-    }
-    libBLS::BLSPublicKeyShare pubKey(pubKeyVect, t, n);
-
-    pubKeyShares.insert(std::make_pair(i + 1, pubKey));
-  }
-
-  // create pub key
-
-  libBLS::BLSPublicKey blsPublicKey(pubKeyShares, t, n);
-
-  // sign verify a sample sig
-
-  for (int i = 0; i < t; i++) {
-
-    string blsName = "BLS_KEY" + polyNames[i].substr(4);
-    blsSigShares[i] = c.blsSignMessageHash(blsName, hash, t, n);
-    CHECK_STATE(blsSigShares[i]["status"] == 0);
-    string sig_share = blsSigShares[i]["signatureShare"].asString();
-    libBLS::BLSSigShare sig(sig_share, i + 1, t, n);
-    sigShareSet.addSigShare(sig);
-
-    auto pubKey = pubKeyShares.at(i + 1);
-
-    CHECK_STATE(pubKey.VerifySigWithHelper(*hash_arr, sig, t, n));
-  }
-
-  libBLS::BLSSignature commonSig = sigShareSet.merge();
-
-  CHECK_STATE(blsPublicKey.VerifySigWithHelper(*hash_arr, commonSig));
-
-  for (auto &&i : _ecdsaKeyNames)
-    cerr << i << endl;
-
-  for (auto &&i : _blsKeyNames)
-    cerr << i << endl;
-}
-
-void TestUtils::doDKGV2(StubClient &c, int n, int t,
+void DKGIntegrationTestSupport::doDKGV2(StubClient &c, int n, int t,
                         vector<string> &_ecdsaKeyNames,
                         vector<string> &_blsKeyNames, int schainID, int dkgID) {
   Json::Value ethKeys[n];
@@ -1642,7 +1407,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
       for (uint8_t j = 0; j < 4; j++) {
         string pubShare = verifVects[i]["verificationVector"][k][j].asString();
         CHECK_STATE(pubShare.length() > 60);
-        pubShares[i] += TestUtils::convertDecToHex(pubShare);
+        pubShares[i] += TestSupport::convertDecToHex(pubShare);
       }
     }
   }
@@ -1743,7 +1508,7 @@ void TestUtils::doDKGV2(StubClient &c, int n, int t,
     cerr << i << endl;
 }
 
-void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
+void DKGIntegrationTestSupport::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
                                 int dkgV2ID, int dkgV3ID, int coveragePercent,
                                 int ciphertextCount) {
   CHECK_STATE(n > 0);
@@ -1842,7 +1607,7 @@ void TestUtils::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
       v3DecryptionShares, selectedSubsets, thresholdEncryptionPublicKey, t, n);
 }
 
-void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
+void DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
                                             int t, int rotatedCount,
                                             int schainID, int dkgV2ID,
                                             int dkgV3ID, int ciphertextCount) {
@@ -1953,7 +1718,7 @@ void TestUtils::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
   }
 }
 
-void TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
+void DKGIntegrationTestSupport::doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
                                                     int rotatedCount,
                                                     int schainID, int dkgV2ID,
                                                     int dkgV3ID) {
@@ -2000,7 +1765,7 @@ void TestUtils::doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
       thresholdEncryptionPublicKey, t, n);
 }
 
-void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
+void DKGIntegrationTestSupport::doDKGV3CrossEpochRetiredNodesCannotCollude(
     StubClient &c, int n, int t, int firstRotatedCount, int secondRotatedCount,
     int schainID, int dkgV2ID, int dkgV3ID, int dkgV4ID) {
   CHECK_STATE(n > 0);
@@ -2079,7 +1844,7 @@ void TestUtils::doDKGV3CrossEpochRetiredNodesCannotCollude(
   }
 }
 
-void TestUtils::doDKGV3RotationWithNonRespondingNodes(
+void DKGIntegrationTestSupport::doDKGV3RotationWithNonRespondingNodes(
     StubClient &c, int n, int t, int rotatedCount, int nonRespondingCount,
     bool shouldDecrypt, int schainID, int dkgV2ID, int dkgV3ID) {
   CHECK_STATE(n > 0);
@@ -2125,7 +1890,7 @@ void TestUtils::doDKGV3RotationWithNonRespondingNodes(
   }
 }
 
-void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
+void DKGIntegrationTestSupport::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
                          int t, vector<string> &_ecdsaKeyNames,
                          vector<string> &_blsKeyNames, int schainID,
                          int dkgID) {
@@ -2170,7 +1935,7 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
       for (uint8_t j = 0; j < 4; j++) {
         string pubShare = verifVects[i]["verificationVector"][k][j].asString();
         CHECK_STATE(pubShare.length() > 60);
-        pubShares[i] += TestUtils::convertDecToHex(pubShare);
+        pubShares[i] += TestSupport::convertDecToHex(pubShare);
       }
     }
   }
@@ -2267,167 +2032,4 @@ void TestUtils::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
 
   for (auto &&i : _blsKeyNames)
     cerr << i << endl;
-}
-
-int sessionKeyRecoverDH(const char *skey_str, const char *sshare,
-                        char *common_key) {
-
-  int ret = -1;
-
-  SAFE_CHAR_BUF(pb_keyB_x, 65);
-  SAFE_CHAR_BUF(pb_keyB_y, 65);
-
-  mpz_t skey;
-  mpz_init(skey);
-  point pub_keyB = point_init();
-  point session_key = point_init();
-
-  pb_keyB_x[64] = 0;
-  strncpy(pb_keyB_x, sshare, 64);
-  strncpy(pb_keyB_y, sshare + 64, 64);
-  pb_keyB_y[64] = 0;
-
-  if (!common_key) {
-    mpz_clear(skey);
-    point_clear(pub_keyB);
-    point_clear(session_key);
-
-    return ret;
-  }
-
-  common_key[0] = 0;
-
-  if (!skey_str) {
-    mpz_clear(skey);
-    point_clear(pub_keyB);
-    point_clear(session_key);
-    return ret;
-  }
-
-  if (!sshare) {
-    mpz_clear(skey);
-    point_clear(pub_keyB);
-    point_clear(session_key);
-
-    return ret;
-  }
-
-  if (mpz_set_str(skey, skey_str, 16) == -1) {
-    mpz_clear(skey);
-    point_clear(pub_keyB);
-    point_clear(session_key);
-
-    return ret;
-  }
-
-  domain_parameters curve;
-  curve = domain_parameters_init();
-  domain_parameters_load_curve(curve, secp256k1);
-
-  if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
-    mpz_clear(skey);
-    point_clear(pub_keyB);
-    point_clear(session_key);
-    domain_parameters_clear(curve);
-    return ret;
-  }
-
-  point_multiplication(session_key, skey, pub_keyB, curve);
-
-  SAFE_CHAR_BUF(arr_x, BUF_LEN);
-
-  mpz_get_str(arr_x, 16, session_key->x);
-  int n_zeroes = 64 - strlen(arr_x);
-  for (int i = 0; i < n_zeroes; i++) {
-    common_key[i] = '0';
-  }
-  strncpy(common_key + n_zeroes, arr_x, strlen(arr_x));
-
-  ret = 0;
-
-  mpz_clear(skey);
-  point_clear(pub_keyB);
-  point_clear(session_key);
-  domain_parameters_clear(curve);
-
-  return ret;
-}
-
-int xorDecryptDH(char *key, const char *cypher, vector<char> &message) {
-
-  int ret = -1;
-
-  if (!cypher) {
-    return ret;
-  }
-
-  if (!key) {
-    return ret;
-  }
-
-  if (!message.data()) {
-    return ret;
-  }
-
-  SAFE_CHAR_BUF(msg_bin, 33)
-
-  SAFE_CHAR_BUF(key_bin, 33)
-
-  uint64_t key_length;
-  if (!hex2carray(key, &key_length, (uint8_t *)key_bin, 33)) {
-    return ret;
-  }
-
-  uint64_t cypher_length;
-
-  SAFE_CHAR_BUF(cypher_bin, 33);
-  if (!hex2carray(cypher, &cypher_length, (uint8_t *)cypher_bin, 33)) {
-    return ret;
-  }
-
-  for (int i = 0; i < 32; i++) {
-    msg_bin[i] = cypher_bin[i] ^ key_bin[i];
-  }
-
-  message = carray2Hex((unsigned char *)msg_bin, 32);
-
-  ret = 0;
-
-  return ret;
-}
-
-int xorDecryptDHV2(char *key, const char *cypher, vector<char> &message) {
-
-  int ret = -1;
-
-  if (!cypher) {
-    return ret;
-  }
-
-  if (!key) {
-    return ret;
-  }
-
-  if (!message.data()) {
-    return ret;
-  }
-
-  SAFE_CHAR_BUF(msg_bin, 33)
-
-  uint64_t cypher_length;
-
-  SAFE_CHAR_BUF(cypher_bin, 33);
-  if (!hex2carray(cypher, &cypher_length, (uint8_t *)cypher_bin, 33)) {
-    return ret;
-  }
-
-  for (int i = 0; i < 32; i++) {
-    msg_bin[i] = cypher_bin[i] ^ (uint8_t)key[i];
-  }
-
-  message = carray2Hex((unsigned char *)msg_bin, 32);
-
-  ret = 0;
-
-  return ret;
 }

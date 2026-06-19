@@ -17,7 +17,7 @@
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <catch2/catch.hpp>
+#include "third_party/catch.hpp"
 
 #include <ctime>
 #include <experimental/filesystem>
@@ -114,7 +114,7 @@ static Json::Value parseJson(const std::string &value) {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("parseDBValue - old style: plain payload is returned as-is",
-          "[DBReencryptor][parseDBValue]") {
+          "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   auto parsed = t.parseDBValue("deadbeef0123456789abcdef");
 
@@ -123,7 +123,7 @@ TEST_CASE("parseDBValue - old style: plain payload is returned as-is",
 }
 
 TEST_CASE("parseDBValue - new style: extracts value from JSON wrapper",
-          "[DBReencryptor][parseDBValue]") {
+          "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   auto parsed = t.parseDBValue(
       R"({"value":"deadbeef0123456789abcdef","timestamp":"1746547200"})");
@@ -134,7 +134,7 @@ TEST_CASE("parseDBValue - new style: extracts value from JSON wrapper",
 
 TEST_CASE(
     "parseDBValue - new style: preserves full JSON object for re-encoding",
-    "[DBReencryptor][parseDBValue]") {
+    "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   auto parsed =
       t.parseDBValue(R"({"value":"aabbcc","timestamp":"1746547200"})");
@@ -144,7 +144,7 @@ TEST_CASE(
 }
 
 TEST_CASE("parseDBValue - empty string is treated as old style",
-          "[DBReencryptor][parseDBValue]") {
+          "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   auto parsed = t.parseDBValue("");
 
@@ -154,14 +154,14 @@ TEST_CASE("parseDBValue - empty string is treated as old style",
 
 TEST_CASE(
     "parseDBValue - malformed JSON starting with '{' throws CORRUPT_DATABASE",
-    "[DBReencryptor][parseDBValue]") {
+    "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   REQUIRE_THROWS_AS(t.parseDBValue("{not valid json}"), SGXException);
 }
 
 TEST_CASE("parseDBValue - valid JSON but missing 'value' field throws "
           "CORRUPT_DATABASE",
-          "[DBReencryptor][parseDBValue]") {
+          "[unit][DBReencryptor][parseDBValue]") {
   DBReencryptorTests t;
   REQUIRE_THROWS_AS(t.parseDBValue(R"({"timestamp":"123"})"), SGXException);
 }
@@ -171,7 +171,7 @@ TEST_CASE("parseDBValue - valid JSON but missing 'value' field throws "
 // ---------------------------------------------------------------------------
 
 TEST_CASE("encodeDBValue - old style: returns new payload directly",
-          "[DBReencryptor][encodeDBValue]") {
+          "[unit][DBReencryptor][encodeDBValue]") {
   DBReencryptorTests t;
   auto parsed = t.parseDBValue("old_payload");
 
@@ -180,7 +180,7 @@ TEST_CASE("encodeDBValue - old style: returns new payload directly",
 }
 
 TEST_CASE("encodeDBValue - new style: replaces value field, keeps other fields",
-          "[DBReencryptor][encodeDBValue]") {
+          "[unit][DBReencryptor][encodeDBValue]") {
   DBReencryptorTests t;
   auto parsed =
       t.parseDBValue(R"({"value":"old_payload","timestamp":"1746547200"})");
@@ -193,7 +193,7 @@ TEST_CASE("encodeDBValue - new style: replaces value field, keeps other fields",
 }
 
 TEST_CASE("encodeDBValue - roundtrip: parse then re-encode with same payload",
-          "[DBReencryptor][encodeDBValue]") {
+          "[unit][DBReencryptor][encodeDBValue]") {
   DBReencryptorTests t;
   std::string original = R"({"value":"abc123","timestamp":"999"})";
   auto parsed = t.parseDBValue(original);
@@ -211,50 +211,50 @@ TEST_CASE("encodeDBValue - roundtrip: parse then re-encode with same payload",
 // ---------------------------------------------------------------------------
 
 TEST_CASE("isKeyHoldingEncryptedValue - TEST_KEY is encrypted",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue(WalletDBKeys::TEST_KEY));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - NEK: prefix matches",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue("NEK:0x1234abc"));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - tmp_NEK prefix matches",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue("tmp_NEKsomesuffix"));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - BLS_KEY: prefix matches",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue("BLS_KEY:node1:1:5:1:2"));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - POLY: prefix matches",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue("POLY:xyz"));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - DKG_DH_KEY_ prefix matches",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE(t.isKeyHoldingEncryptedValue("DKG_DH_KEY_abc"));
 }
 
 TEST_CASE(
     "isKeyHoldingEncryptedValue - SEK key is NOT an encrypted payload key",
-    "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+    "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE_FALSE(t.isKeyHoldingEncryptedValue(WalletDBKeys::SEK));
 }
 
 TEST_CASE("isKeyHoldingEncryptedValue - unknown key is not encrypted",
-          "[DBReencryptor][isKeyHoldingEncryptedValue]") {
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue]") {
   DBReencryptorTests t;
   REQUIRE_FALSE(t.isKeyHoldingEncryptedValue("SOME_RANDOM_KEY"));
   REQUIRE_FALSE(t.isKeyHoldingEncryptedValue("CSR_abc"));
@@ -266,7 +266,7 @@ TEST_CASE("isKeyHoldingEncryptedValue - unknown key is not encrypted",
 // ---------------------------------------------------------------------------
 
 TEST_CASE("migrationSuffix - has expected format .<timestamp>.<pid>",
-          "[DBReencryptor][migrationSuffix]") {
+          "[unit][DBReencryptor][migrationSuffix]") {
   DBReencryptorTests t;
   std::string suffix = t.migrationSuffix();
 
@@ -279,7 +279,7 @@ TEST_CASE("migrationSuffix - has expected format .<timestamp>.<pid>",
 // ---------------------------------------------------------------------------
 
 TEST_CASE("writeBackupSEKTmp - writes content and truncates existing file",
-          "[DBReencryptor][writeBackupSEKTmp]") {
+          "[unit][DBReencryptor][writeBackupSEKTmp]") {
   DBReencryptorTests t;
   const std::string tempPath = makeTempPath("dbreencrypt.backupsek.tmp");
 
@@ -303,7 +303,7 @@ TEST_CASE("writeBackupSEKTmp - writes content and truncates existing file",
 }
 
 TEST_CASE("readBackupSEK - trims whitespace and validates hex",
-          "[DBReencryptor][readBackupSEK]") {
+          "[unit][DBReencryptor][readBackupSEK]") {
   DBReencryptorTests t;
   const std::string tempPath = makeTempPath("dbreencrypt.readsek.valid");
 
@@ -325,7 +325,7 @@ TEST_CASE("readBackupSEK - trims whitespace and validates hex",
 }
 
 TEST_CASE("readBackupSEK - throws for missing file",
-          "[DBReencryptor][readBackupSEK]") {
+          "[unit][DBReencryptor][readBackupSEK]") {
   DBReencryptorTests t;
   const std::string missingPath = makeTempPath("dbreencrypt.readsek.missing");
   if (fs::exists(missingPath)) {
@@ -336,7 +336,7 @@ TEST_CASE("readBackupSEK - throws for missing file",
 }
 
 TEST_CASE("readBackupSEK - throws for invalid SEK length",
-          "[DBReencryptor][readBackupSEK]") {
+          "[unit][DBReencryptor][readBackupSEK]") {
   DBReencryptorTests t;
   const std::string tempPath = makeTempPath("dbreencrypt.readsek.badlen");
 
@@ -357,7 +357,7 @@ TEST_CASE("readBackupSEK - throws for invalid SEK length",
 }
 
 TEST_CASE("readBackupSEK - throws for non-hex SEK",
-          "[DBReencryptor][readBackupSEK]") {
+          "[unit][DBReencryptor][readBackupSEK]") {
   DBReencryptorTests t;
   const std::string tempPath = makeTempPath("dbreencrypt.readsek.badhex");
 
@@ -382,7 +382,7 @@ TEST_CASE("readBackupSEK - throws for non-hex SEK",
 // ---------------------------------------------------------------------------
 
 TEST_CASE("swapWalletDB - swaps source and temporary DB paths",
-          "[DBReencryptor][swapWalletDB]") {
+          "[unit][DBReencryptor][swapWalletDB]") {
   DBReencryptorTests t;
   const std::string root = makeTempPath("dbreencrypt.swap");
   const std::string sourcePath = root + "/source.db";
@@ -422,7 +422,7 @@ TEST_CASE("swapWalletDB - swaps source and temporary DB paths",
 
 TEST_CASE(
     "rollbackWalletDBSwapNoThrow - restores original DB and keeps failed DB",
-    "[DBReencryptor][rollbackWalletDBSwapNoThrow]") {
+    "[unit][DBReencryptor][rollbackWalletDBSwapNoThrow]") {
   DBReencryptorTests t;
   const std::string root = makeTempPath("dbreencrypt.rollback");
   const std::string sourcePath = root + "/source.db";
@@ -469,25 +469,25 @@ TEST_CASE(
 // startsWith
 // ---------------------------------------------------------------------------
 
-TEST_CASE("startsWith - matches exact prefix", "[DBReencryptor][startsWith]") {
+TEST_CASE("startsWith - matches exact prefix", "[unit][DBReencryptor][startsWith]") {
   DBReencryptorTests t;
   REQUIRE(t.startsWith("NEK:foo", "NEK:"));
 }
 
 TEST_CASE("startsWith - empty prefix always matches",
-          "[DBReencryptor][startsWith]") {
+          "[unit][DBReencryptor][startsWith]") {
   DBReencryptorTests t;
   REQUIRE(t.startsWith("anything", ""));
 }
 
 TEST_CASE("startsWith - no match when value is shorter than prefix",
-          "[DBReencryptor][startsWith]") {
+          "[unit][DBReencryptor][startsWith]") {
   DBReencryptorTests t;
   REQUIRE_FALSE(t.startsWith("NE", "NEK:"));
 }
 
 TEST_CASE("startsWith - no match for wrong prefix",
-          "[DBReencryptor][startsWith]") {
+          "[unit][DBReencryptor][startsWith]") {
   DBReencryptorTests t;
   REQUIRE_FALSE(t.startsWith("BLS_KEY:x", "NEK:"));
 }

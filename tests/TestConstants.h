@@ -21,15 +21,15 @@
     @date 2020
 */
 
-#ifndef SGXWALLET_TESTW_H
-#define SGXWALLET_TESTW_H
+#pragma once
+
+#include "WalletConstants.h"
 
 #define TEST_BLS_KEY_SHARE                                                     \
   "41607802314451608892376643913822236041848571538142757705987918646499719198" \
   "44"
 #define TEST_BLS_KEY_NAME "SCHAIN:17:INDEX:5:KEY:1"
-#define SAMPLE_HASH                                                            \
-  "09c6137b97cdf159b9950f1492ee059d1e2b10eaf7d51f3a97d61f2eee2e81db"
+#define SAMPLE_HASH WalletConstants::SAMPLE_MESSAGE_HASH
 #define SAMPLE_HEX_HASH                                                        \
   "3F891FDA3704F0368DAB65FA81EBE616F4AA2A0854995DA4DC0B59D2CADBD64F"
 #define SAMPLE_KEY_NAME                                                        \
@@ -37,10 +37,10 @@
 #define SAMPLE_AES_KEY "123456789"
 
 #define SAMPLE_POLY_NAME "POLY:SCHAIN_ID:1:NODE_ID:1:DKG_ID:1"
-#define RPC_ENDPOINT "http://localhost:1029"
-#define RPC_ENDPOINT_HTTPS "https://localhost:1026"
-#define ZMQ_IP "127.0.0.1"
-#define ZMQ_PORT 1031
+#define RPC_ENDPOINT WalletConstants::LOCAL_HTTP_RPC_ENDPOINT
+#define RPC_ENDPOINT_HTTPS WalletConstants::LOCAL_HTTPS_RPC_ENDPOINT
+#define ZMQ_IP WalletConstants::LOCAL_ZMQ_IP
+#define ZMQ_PORT WalletConstants::ZMQ_PORT
 
 #define SAMPLE_PUBLIC_KEY_B                                                    \
   "c0152c48bf640449236036075d65898fded1e242c00acb45519ad5f788ea7cbf9a5df1559e" \
@@ -57,6 +57,4 @@
 // yourdomain.csr^
 #define SAMPLE_CSR_FILE_NAME "samples/yourdomain.csr"
 
-#define ECDSA_KEY_NAME_SIZE 68
-
-#endif // SGXWALLET_TESTW_H
+#define ECDSA_KEY_NAME_SIZE WalletConstants::ECDSA_KEY_NAME_SIZE

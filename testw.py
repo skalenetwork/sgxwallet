@@ -22,73 +22,64 @@
 #    @date 2020
 #
 
-import getpass, os, subprocess
+import os
+import subprocess
 
-username = getpass.getuser()
+DEFAULT_CHECK_FILTER = "~[performance]"
+UNIT_CHECK_FILTER = "[unit]" + DEFAULT_CHECK_FILTER
+INTEGRATION_CHECK_FILTER = "[integration]" + DEFAULT_CHECK_FILTER
 
-topDir = os.getcwd() + "/sgxwallet"
-print("Top directory is:" + topDir)
-testList = [ "[http-healthcheck]",
-             "[https-healthcheck]",
-             "[https-wrong-ssl-certificate]",
-             "[https-without-certificate]",
-             "[https-certificate-not-in-db]",
-             "[zmq-ecdsa]",
-             "[first-run]",
-             "[second-run]",
-             "[many-threads-crypto-v2]",
-             "[many-threads-crypto-v2-zmq]",
-             "[backup-restore]",
-             "[cert-sign]",
-             "[get-server-status]",
-             "[get-server-status-zmq]",
-             "[get-server-version]",
-             "[get-server-version-zmq]",
-             "[backup-key]",
-             "[delete-bls-key]",
-             "[delete-bls-key-zmq]",
-             "[import-ecdsa-key]",
-             "[import-ecdsa-key-zmq]",
-             "[ecdsa-aes-key-gen]",
-             "[ecdsa-aes-key-sig-gen]",
-             "[ecdsa-aes-get-pub-key]",
-             "[ecdsa-key-gen-api]",
-             "[bls-key-encrypt]",
-             "[dkg-aes-gen]",
-             "[dkg-aes-gen-v3]",
-             "[dkg-aes-encr-sshares]",
-             "[dkg-aes-encr-sshares-v2]",
-             "[dkg-aes-create-bls-v3]",
-             "[dkg-api-v2]",
-             "[dkg-api-v2-zmq]",
-             "[dkg-api-v3]",
-             "[dkg-api-v3-zmq]",
-             "[dkg-bls]",
-             "[dkg-bls-v2]",
-             "[dkg-bls-v2-v3-rotation]",
-             "[dkg-bls-v2-v3-rotation-new-nodes]",
-             "[dkg-bls-v2-v3-rotation-security]",
-             "[dkg-poly-exists]",
-             "[dkg-poly-exists-zmq]",
-             "[dkg-aes-pub-shares]",
-             "[aes-encrypt-decrypt]",
-             "[exportable-nonexportable-keys]",
-             "[aes-dkg-v2]",
-             "[aes-dkg-v2-zmq]",
-             "[te-decryption-share]",
-             "[te-decryption-share-zmq]",
-             "[te-decryption-share-wrong-inputs]",
-             "[bls-aggregated-key-decrypt]",
-             "[bls-aggregated-key-generation]",
-             "[bls-aggregated-key-generation-zmq]",
-             "[bls-aggregated-signing]",
-             "[bls-aggregated-signing-zmq]",
-             "[bls-aggregated-pop-prove]",
-             "[bls-aggregated-pop-prove-zmq]"
-            ]
+unitTestCommands = [
+    ("unit-tests", ["./unit_tests", UNIT_CHECK_FILTER, "--reporter", "compact"]),
+]
+
+optionalIntegrationTestCommands = [
+    (
+        "db-reencrypt-integration-tests",
+        ["./db_reencrypt_integration_tests", INTEGRATION_CHECK_FILTER, "--reporter", "compact"],
+    ),
+]
+
+integrationTestCommands = [
+    ("integration-tests", ["./testw", INTEGRATION_CHECK_FILTER, "--reporter", "compact"]),
+]
 
 
-for t in testList:
-    print("Starting " + t)
-    assert subprocess.call(["./testw", t]) == 0
-    print("Ending " + t)
+def runTestCommand(name, command):
+    print("Starting " + name)
+    assert subprocess.call(command) == 0
+    print("Ending " + name)
+
+
+def has_test_ecall_support():
+    """
+    Return True only when the currently generated untrusted SGX bindings
+    include the DB reencryption test ECALLs.
+
+    This prevents running stale db_reencrypt_integration_tests binaries built
+    in a different configuration (for example, --enable-sgx-test-ecalls).
+    """
+    generated_header = "./secure_enclave_u.h"
+    if not os.path.exists(generated_header):
+        return False
+
+    with open(generated_header, "r", encoding="utf-8") as header:
+        contents = header.read()
+
+    required_symbols = [
+        "trustedTestDecryptAndMatch",
+    ]
+    return all(symbol in contents for symbol in required_symbols)
+
+
+for name, command in unitTestCommands:
+    runTestCommand(name, command)
+
+for name, command in optionalIntegrationTestCommands:
+    if os.path.exists(command[0]) and has_test_ecall_support():
+        runTestCommand(name, command)
+    elif os.path.exists(command[0]):
+        print("Skipping " + name + " (binary exists but current build has no SGX test ECALL support)")
+
+for name, command in integrationTestCommands:
+    runTestCommand(name, command)
