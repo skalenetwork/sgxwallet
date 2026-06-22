@@ -577,7 +577,8 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
     vector<string> pubKeyStrs;
     pubKeyStrs.reserve(_n);
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_publicKeys[i].asString(), 64)) {
+      if (!checkHex(_publicKeys[i].asString(),
+                    DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
         throw SGXException(GENERATE_DKGV3_POLY_INVALID_PUBKEY_HEX,
                            string(__FUNCTION__) +
                                ":Invalid public key at index " + to_string(i));
@@ -690,7 +691,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName,
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      if (!checkHex(_pubKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
         throw SGXException(INVALID_DKG_GETSS_KEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
@@ -1093,7 +1094,7 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName,
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      if (!checkHex(_pubKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
         throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
@@ -1146,13 +1147,49 @@ Json::Value SGXWalletServer::getSecretShareV3Impl(const string &_polyName) {
                              ":Failed to parse DKG metadata for: " + _polyName);
     }
 
+    if (!meta.isObject() || !meta.isMember("t") || !meta["t"].isInt() ||
+        !meta.isMember("n") || !meta["n"].isInt()) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Invalid DKG metadata structure for: " + _polyName);
+    }
+
     int t = meta["t"].asInt();
     int n = meta["n"].asInt();
+
+    if (!check_n_t(t, n)) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Invalid DKG metadata params n/t for: " + _polyName);
+    }
+
+    if (!meta.isMember("publicKeys") || !meta["publicKeys"].isArray()) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Missing metadata publicKeys array for: " + _polyName);
+    }
+
     const Json::Value &boundKeys = meta["publicKeys"];
+    if ((int)boundKeys.size() != n) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Metadata publicKeys size mismatch for: " + _polyName);
+    }
 
     vector<string> pubKeyStrs;
     pubKeyStrs.reserve(n);
     for (int i = 0; i < n; i++) {
+      if (!boundKeys[i].isString() ||
+          !checkHex(boundKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
+        throw SGXException(INVALID_DKG_GETSS_V3_NO_METADATA,
+                           string(__FUNCTION__) +
+                               ":Invalid metadata public key at index " +
+                               to_string(i));
+      }
       pubKeyStrs.push_back(boundKeys[i].asString());
     }
 

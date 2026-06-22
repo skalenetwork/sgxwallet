@@ -98,7 +98,12 @@
       "previousBLSPrivateKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID",
       "t": 3,
       "n": 4,
-      "publicKeys": ["hex_pubkey_0", "hex_pubkey_1"]
+      "publicKeys": [
+        "hex_pubkey_0",
+        "hex_pubkey_1",
+        "hex_pubkey_2",
+        "hex_pubkey_3"
+      ]
     },
     "returns": {
       "status": 0,
@@ -153,7 +158,7 @@
   {
     "name": "getSecretShareV3",
     "params": {
-      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID: "
+      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID"
     },
     "returns": {
       "status": 0,

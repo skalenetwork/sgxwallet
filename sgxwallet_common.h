@@ -75,6 +75,8 @@ extern bool autoconfirm;
 #define ECDSA_SKEY_BASE 16
 #define ECDSA_ENCR_LEN 93
 #define ECDSA_BIN_LEN 33
+// Uncompressed ECDSA public key without prefix: X(32 bytes) || Y(32 bytes)
+#define DKG_ECDSA_PUBLIC_KEY_NUM_BYTES 64
 
 #define PLAINTEXT_KEY_TOO_LONG -2
 #define UNPADDED_KEY -3

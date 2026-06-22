@@ -106,9 +106,9 @@ void LevelDB::writeBatch(const vector<pair<string, string>> &puts,
   if (requireNewPutKeys) {
     for (const auto &it : puts) {
       if (readString(it.first) != nullptr) {
-        throw SGXException(KEY_NAME_ALREADY_EXISTS, string(__FUNCTION__) +
-                                                        ":Name already exists" +
-                                                        it.first);
+        throw SGXException(KEY_NAME_ALREADY_EXISTS,
+                           string(__FUNCTION__) +
+                               ":Name already exists: " + it.first);
       }
     }
   }
