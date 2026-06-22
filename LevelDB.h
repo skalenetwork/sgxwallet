@@ -90,6 +90,15 @@ public:
    */
   void writeRawString(std::string_view key1, const string &value1);
 
+  /**
+   * @brief Atomically writes and deletes keys in a single LevelDB batch.
+   * Values in puts are wrapped in the standard JSON envelope with timestamp.
+   * If requireNewPutKeys is true, all put keys must not already exist.
+   */
+  void writeBatch(const vector<pair<string, string>> &puts,
+                  const vector<string> &deletes,
+                  bool requireNewPutKeys = false);
+
   void writeDataUnique(std::string_view Name, const string &value);
 
   void deleteDHDKGKey(std::string_view _key);

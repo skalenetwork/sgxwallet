@@ -113,11 +113,13 @@ public:
 
   Json::Value generateDKGPolyV3(const std::string &polyName,
                                 const std::string &previousBLSPrivateKeyName,
-                                int t) {
+                                int t, int n, const Json::Value &publicKeys) {
     Json::Value p;
     p["polyName"] = polyName;
     p["previousBLSPrivateKeyName"] = previousBLSPrivateKeyName;
     p["t"] = t;
+    p["n"] = n;
+    p["publicKeys"] = publicKeys;
     Json::Value result = this->CallMethod("generateDKGPolyV3", p);
     if (result.isObject())
       return result;
@@ -164,6 +166,18 @@ public:
     p["n"] = n;
     p["t"] = t;
     Json::Value result = this->CallMethod("getSecretShareV2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
+
+  Json::Value getSecretShareV3(const std::string &polyName) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    Json::Value result = this->CallMethod("getSecretShareV3", p);
     if (result.isObject())
       return result;
     else

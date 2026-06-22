@@ -43,6 +43,7 @@
 #include "SGXException.h"
 #include "TECrypto.h"
 #include "WalletDBKeys.h"
+#include <third_party/cryptlite/sha256.h>
 
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
@@ -536,7 +537,8 @@ Json::Value SGXWalletServer::generateDKGPolyImpl(const string &_polyName,
 }
 
 Json::Value SGXWalletServer::generateDKGPolyV3Impl(
-    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t) {
+    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t,
+    int _n, const Json::Value &_publicKeys) {
   COUNT_STATISTICS
   spdlog::info("Entering {}", __FUNCTION__);
   INIT_RESULT(result)
@@ -561,12 +563,68 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
                          string(__FUNCTION__) + ":Invalid gen dkg param t ");
     }
 
+    if (!check_n_t(_t, _n)) {
+      throw SGXException(GENERATE_DKGV3_POLY_INVALID_PARAMS,
+                         string(__FUNCTION__) + ":Invalid gen dkg params n/t");
+    }
+
+    if (!_publicKeys.isArray() || (int)_publicKeys.size() != _n) {
+      throw SGXException(GENERATE_DKGV3_POLY_INVALID_PUBKEY_COUNT,
+                         string(__FUNCTION__) +
+                             ":publicKeys size must equal n");
+    }
+
+    vector<string> pubKeyStrs;
+    pubKeyStrs.reserve(_n);
+    for (int i = 0; i < _n; i++) {
+      if (!checkHex(_publicKeys[i].asString(),
+                    DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
+        throw SGXException(GENERATE_DKGV3_POLY_INVALID_PUBKEY_HEX,
+                           string(__FUNCTION__) +
+                               ":Invalid public key at index " + to_string(i));
+      }
+      pubKeyStrs.push_back(_publicKeys[i].asString());
+    }
+
     std::shared_ptr<std::string> encryptedBLSKey =
         readFromDb(_previousBLSPrivateKeyName);
     CHECK_STATE(encryptedBLSKey);
 
     encrPolyHex = genDkgPolyV3(_t, *encryptedBLSKey);
-    writeDataToDB(_polyName, encrPolyHex);
+
+    // Build and persist binding metadata
+    string joinedKeys;
+    for (const auto &k : pubKeyStrs) {
+      joinedKeys += k;
+      joinedKeys += ",";
+    }
+    if (!joinedKeys.empty())
+      joinedKeys.pop_back();
+    string recipientsHash = cryptlite::sha256::hash_hex(joinedKeys);
+
+    Json::Value meta;
+    meta["version"] = 1;
+    meta["polyName"] = _polyName;
+    meta["t"] = _t;
+    meta["n"] = _n;
+    for (int i = 0; i < _n; i++) {
+      meta["publicKeys"][i] = pubKeyStrs[i];
+    }
+    meta["recipientsHash"] = recipientsHash;
+    meta["previousBLSPrivateKeyName"] = _previousBLSPrivateKeyName;
+    meta["createdAt"] = (Json::Int64)chrono::duration_cast<chrono::seconds>(
+                            chrono::system_clock::now().time_since_epoch())
+                            .count();
+
+    Json::FastWriter writer;
+    string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+
+    vector<pair<string, string>> puts;
+    puts.emplace_back(_polyName, encrPolyHex);
+    puts.emplace_back(metaKey, writer.write(meta));
+
+    // Poly and metadata must be persisted atomically to avoid fail-open paths.
+    LevelDB::getLevelDb()->writeBatch(puts, {}, true);
   }
   HANDLE_SGX_EXCEPTION(result)
 
@@ -633,7 +691,7 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName,
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      if (!checkHex(_pubKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
         throw SGXException(INVALID_DKG_GETSS_KEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
@@ -876,16 +934,24 @@ Json::Value SGXWalletServer::complaintResponseImpl(const string &_polyName,
       }
     }
 
+    vector<string> keysToDelete;
+    keysToDelete.reserve(static_cast<size_t>(_n) * 2 + 3);
+
     for (int i = 0; i < _n; i++) {
       string name = _polyName + "_" + to_string(i) + ":";
-      LevelDB::getLevelDb()->deleteDHDKGKey(name);
+      keysToDelete.push_back(string(WalletDBKeys::DKG_DH_KEY_PREFIX) + name);
       string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-      LevelDB::getLevelDb()->deleteKey(shareG2_name);
+      keysToDelete.push_back(shareG2_name);
     }
-    LevelDB::getLevelDb()->deleteKey(_polyName);
+    keysToDelete.push_back(_polyName);
 
     string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
-    LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
+    keysToDelete.push_back(encryptedSecretShareName);
+
+    string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+    keysToDelete.push_back(metaKey);
+
+    LevelDB::getLevelDb()->writeBatch({}, keysToDelete, false);
   }
   HANDLE_SGX_EXCEPTION(result)
 
@@ -988,11 +1054,47 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName,
                              ":Invalid DKG parameters: n or t ");
     }
 
+    // If V3 binding metadata exists for this poly, enforce exact match -
+    // Enforce same security guarantees as new getSecretShareV3Impl
+    string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+    shared_ptr<string> metaStr = checkDataFromDb(metaKey);
+    // If exists, then poly was created as V3 - need same security guarantees
+    if (metaStr != nullptr) {
+      Json::Value meta;
+      Json::Reader reader;
+      if (!reader.parse(*metaStr, meta)) {
+        throw SGXException(INVALID_DKG_GETSS_V2_POLY_NAME,
+                           string(__FUNCTION__) +
+                               ":Failed to parse DKG metadata");
+      }
+      if (meta["t"].asInt() != _t || meta["n"].asInt() != _n) {
+        throw SGXException(INVALID_DKG_GETSS_V2_META_PARAMS_MISMATCH,
+                           string(__FUNCTION__) +
+                               ":t/n mismatch with bound metadata");
+      }
+      const Json::Value &boundKeys = meta["publicKeys"];
+      if (boundKeys.size() != _pubKeys.size()) {
+        throw SGXException(
+            INVALID_DKG_GETSS_V2_META_PUBKEYS_MISMATCH,
+            string(__FUNCTION__) +
+                ":publicKeys count mismatch with bound metadata");
+      }
+      for (Json::ArrayIndex i = 0; i < boundKeys.size(); i++) {
+        if (boundKeys[i].asString() != _pubKeys[i].asString()) {
+          throw SGXException(
+              INVALID_DKG_GETSS_V2_META_PUBKEYS_MISMATCH,
+              string(__FUNCTION__) +
+                  ":publicKey mismatch with bound metadata at index " +
+                  to_string(i));
+        }
+      }
+    }
+
     shared_ptr<string> encrPoly = readFromDb(_polyName);
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      if (!checkHex(_pubKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
         throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
@@ -1008,6 +1110,100 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName,
     } else {
       string s =
           getSecretSharesV2(_polyName, encrPoly->c_str(), pubKeysStrs, _t, _n);
+      result["secretShare"] = s;
+    }
+  }
+  HANDLE_SGX_EXCEPTION(result)
+
+  RETURN_SUCCESS(result)
+}
+
+Json::Value SGXWalletServer::getSecretShareV3Impl(const string &_polyName) {
+  COUNT_STATISTICS
+  spdlog::info("Entering {}", __FUNCTION__);
+  INIT_RESULT(result);
+  result["secretShare"] = "";
+
+  try {
+    if (!checkName(_polyName, "POLY")) {
+      throw SGXException(INVALID_DKG_GETSS_V3_POLY_NAME,
+                         string(__FUNCTION__) + ":Invalid polynomial name");
+    }
+
+    string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+    shared_ptr<string> metaStr = checkDataFromDb(metaKey);
+    if (metaStr == nullptr) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":No V3 binding metadata found for poly: " + _polyName);
+    }
+
+    Json::Value meta;
+    Json::Reader reader;
+    if (!reader.parse(*metaStr, meta)) {
+      throw SGXException(INVALID_DKG_GETSS_V3_NO_METADATA,
+                         string(__FUNCTION__) +
+                             ":Failed to parse DKG metadata for: " + _polyName);
+    }
+
+    if (!meta.isObject() || !meta.isMember("t") || !meta["t"].isInt() ||
+        !meta.isMember("n") || !meta["n"].isInt()) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Invalid DKG metadata structure for: " + _polyName);
+    }
+
+    int t = meta["t"].asInt();
+    int n = meta["n"].asInt();
+
+    if (!check_n_t(t, n)) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Invalid DKG metadata params n/t for: " + _polyName);
+    }
+
+    if (!meta.isMember("publicKeys") || !meta["publicKeys"].isArray()) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Missing metadata publicKeys array for: " + _polyName);
+    }
+
+    const Json::Value &boundKeys = meta["publicKeys"];
+    if ((int)boundKeys.size() != n) {
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":Metadata publicKeys size mismatch for: " + _polyName);
+    }
+
+    vector<string> pubKeyStrs;
+    pubKeyStrs.reserve(n);
+    for (int i = 0; i < n; i++) {
+      if (!boundKeys[i].isString() ||
+          !checkHex(boundKeys[i].asString(), DKG_ECDSA_PUBLIC_KEY_NUM_BYTES)) {
+        throw SGXException(INVALID_DKG_GETSS_V3_NO_METADATA,
+                           string(__FUNCTION__) +
+                               ":Invalid metadata public key at index " +
+                               to_string(i));
+      }
+      pubKeyStrs.push_back(boundKeys[i].asString());
+    }
+
+    shared_ptr<string> encrPoly = readFromDb(_polyName);
+
+    string secret_share_name = "encryptedSecretShare:" + _polyName;
+    shared_ptr<string> encryptedSecretShare =
+        checkDataFromDb(secret_share_name);
+
+    if (encryptedSecretShare != nullptr) {
+      result["secretShare"] = *encryptedSecretShare.get();
+    } else {
+      string s =
+          getSecretSharesV2(_polyName, encrPoly->c_str(), pubKeyStrs, t, n);
       result["secretShare"] = s;
     }
   }
@@ -1261,16 +1457,24 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
 
     // Delete SGX data related to the DKG process only if polyName was passed
     if (hasCleanupPolyName) {
+      vector<string> keysToDelete;
+      keysToDelete.reserve(static_cast<size_t>(_n) * 2 + 3);
+
       for (int i = 0; i < _n; i++) {
         string name = _polyName + "_" + to_string(i) + ":";
-        LevelDB::getLevelDb()->deleteDHDKGKey(name);
+        keysToDelete.push_back(string(WalletDBKeys::DKG_DH_KEY_PREFIX) + name);
         string shareG2_name = "shareG2_" + _polyName + "_" + to_string(i) + ":";
-        LevelDB::getLevelDb()->deleteKey(shareG2_name);
+        keysToDelete.push_back(shareG2_name);
       }
-      LevelDB::getLevelDb()->deleteKey(_polyName);
+      keysToDelete.push_back(_polyName);
 
       string encryptedSecretShareName = "encryptedSecretShare:" + _polyName;
-      LevelDB::getLevelDb()->deleteKey(encryptedSecretShareName);
+      keysToDelete.push_back(encryptedSecretShareName);
+
+      string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+      keysToDelete.push_back(metaKey);
+
+      LevelDB::getLevelDb()->writeBatch({}, keysToDelete, false);
     }
   }
   HANDLE_SGX_EXCEPTION(result)
@@ -1471,8 +1675,10 @@ Json::Value SGXWalletServer::generateDKGPoly(const string &_polyName, int _t) {
 }
 
 Json::Value SGXWalletServer::generateDKGPolyV3(
-    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t) {
-  return generateDKGPolyV3Impl(_polyName, _previousBLSPrivateKeyName, _t);
+    const string &_polyName, const string &_previousBLSPrivateKeyName, int _t,
+    int _n, const Json::Value &_publicKeys) {
+  return generateDKGPolyV3Impl(_polyName, _previousBLSPrivateKeyName, _t, _n,
+                               _publicKeys);
 }
 
 Json::Value SGXWalletServer::getVerificationVector(const string &_polynomeName,
@@ -1568,6 +1774,10 @@ Json::Value SGXWalletServer::getSecretShareV2(const string &_polyName,
                                               const Json::Value &_publicKeys,
                                               int t, int n) {
   return getSecretShareV2Impl(_polyName, _publicKeys, t, n);
+}
+
+Json::Value SGXWalletServer::getSecretShareV3(const string &_polyName) {
+  return getSecretShareV3Impl(_polyName);
 }
 
 Json::Value SGXWalletServer::dkgVerificationV2(const string &_publicShares,

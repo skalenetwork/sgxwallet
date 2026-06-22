@@ -369,12 +369,14 @@ bool ZMQClient::generateDKGPoly(const string &polyName, int t) {
 
 bool ZMQClient::generateDKGPolyV3(const string &polyName,
                                   const string &previousBLSPrivateKeyName,
-                                  int t) {
+                                  int t, int n, const Json::Value &publicKeys) {
   Json::Value p;
   p["type"] = ZMQMessage::GENERATE_DKG_POLY_V3_REQ;
   p["polyName"] = polyName;
   p["previousBLSPrivateKeyName"] = previousBLSPrivateKeyName;
   p["t"] = t;
+  p["n"] = n;
+  p["publicKeys"] = publicKeys;
   auto result =
       dynamic_pointer_cast<generateDKGPolyV3RspMessage>(doRequestReply(p));
   CHECK_STATE(result);
@@ -401,6 +403,17 @@ string ZMQClient::getSecretShare(const string &polyName,
   p["publicKeys"] = pubKeys;
   p["t"] = t;
   p["n"] = n;
+  auto result =
+      dynamic_pointer_cast<getSecretShareRspMessage>(doRequestReply(p));
+  CHECK_STATE(result);
+  CHECK_STATE(result->getStatus() == 0);
+  return result->getSecretShare();
+}
+
+string ZMQClient::getSecretShareV3(const string &polyName) {
+  Json::Value p;
+  p["type"] = ZMQMessage::GET_SECRET_SHARE_V3_REQ;
+  p["polyName"] = polyName;
   auto result =
       dynamic_pointer_cast<getSecretShareRspMessage>(doRequestReply(p));
   CHECK_STATE(result);

@@ -79,7 +79,8 @@ public:
         jsonrpc::Procedure(
             "generateDKGPolyV3", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,
             "polyName", jsonrpc::JSON_STRING, "previousBLSPrivateKeyName",
-            jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER, NULL),
+            jsonrpc::JSON_STRING, "t", jsonrpc::JSON_INTEGER, "n",
+            jsonrpc::JSON_INTEGER, "publicKeys", jsonrpc::JSON_ARRAY, NULL),
         &AbstractStubServer::generateDKGPolyV3I);
     this->bindAndAddMethod(jsonrpc::Procedure("getVerificationVector",
                                               jsonrpc::PARAMS_BY_NAME,
@@ -156,6 +157,11 @@ public:
             "polyName", jsonrpc::JSON_STRING, "publicKeys", jsonrpc::JSON_ARRAY,
             "n", jsonrpc::JSON_INTEGER, "t", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::getSecretShareV2I);
+    this->bindAndAddMethod(jsonrpc::Procedure("getSecretShareV3",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, "polyName",
+                                              jsonrpc::JSON_STRING, NULL),
+                           &AbstractStubServer::getSecretShareV3I);
     this->bindAndAddMethod(
         jsonrpc::Procedure(
             "dkgVerificationV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,
@@ -241,7 +247,8 @@ public:
                                          Json::Value &response) {
     response = this->generateDKGPolyV3(
         request["polyName"].asString(),
-        request["previousBLSPrivateKeyName"].asString(), request["t"].asInt());
+        request["previousBLSPrivateKeyName"].asString(), request["t"].asInt(),
+        request["n"].asInt(), request["publicKeys"]);
   }
   inline virtual void getVerificationVectorI(const Json::Value &request,
                                              Json::Value &response) {
@@ -315,6 +322,10 @@ public:
         request["polyName"].asString(), request["publicKeys"],
         request["t"].asInt(), request["n"].asInt());
   }
+  inline virtual void getSecretShareV3I(const Json::Value &request,
+                                        Json::Value &response) {
+    response = this->getSecretShareV3(request["polyName"].asString());
+  }
   inline virtual void dkgVerificationV2I(const Json::Value &request,
                                          Json::Value &response) {
     response = this->dkgVerificationV2(
@@ -372,7 +383,8 @@ public:
   virtual Json::Value generateDKGPoly(const std::string &polyName, int t) = 0;
   virtual Json::Value
   generateDKGPolyV3(const std::string &polyName,
-                    const std::string &previousBLSPrivateKeyName, int t) = 0;
+                    const std::string &previousBLSPrivateKeyName, int t, int n,
+                    const Json::Value &publicKeys) = 0;
   virtual Json::Value getVerificationVector(const std::string &polyName,
                                             int t) = 0;
   virtual Json::Value getSecretShare(const std::string &polyName,
@@ -402,6 +414,7 @@ public:
   virtual Json::Value getSecretShareV2(const std::string &polyName,
                                        const Json::Value &publicKeys, int t,
                                        int n) = 0;
+  virtual Json::Value getSecretShareV3(const std::string &polyName) = 0;
   virtual Json::Value dkgVerificationV2(const std::string &publicShares,
                                         const std::string &ethKeyName,
                                         const std::string &SecretShare, int t,

@@ -122,10 +122,13 @@ public:
   /**
    * Generates a DKG polynomial using '_previousBLSPrivateKeyName' BLS key
    * as the polynomial's free coefficient.
+   * Requires ECDH keys of all recipients to tie them to this polynomial
+   * for later usage (sharing encrypted secret contribution shares)
    */
   virtual Json::Value
   generateDKGPolyV3(const string &_polyName,
-                    const string &_previousBLSPrivateKeyName, int _t);
+                    const string &_previousBLSPrivateKeyName, int _t, int _n,
+                    const Json::Value &_publicKeys);
 
   virtual Json::Value getVerificationVector(const string &_polynomeName,
                                             int _t);
@@ -168,6 +171,14 @@ public:
   virtual Json::Value getSecretShareV2(const string &_polyName,
                                        const Json::Value &_publicKeys, int t,
                                        int n);
+
+  /**
+   * @brief Retrieves secret share contributions for the given polynomial name,
+   * using the ECDH public keys set on 'generateDKGPolyV3'.
+   * This call differs from 'getSecretShareV2' by not allowing caller passed
+   * ECDH keys.
+   */
+  virtual Json::Value getSecretShareV3(const string &_polyName);
 
   virtual Json::Value dkgVerificationV2(const string &_publicShares,
                                         const string &ethKeyName,
@@ -223,7 +234,8 @@ public:
 
   static Json::Value
   generateDKGPolyV3Impl(const string &_polyName,
-                        const string &_previousBLSPrivateKeyName, int _t);
+                        const string &_previousBLSPrivateKeyName, int _t,
+                        int _n, const Json::Value &_publicKeys);
 
   static Json::Value getVerificationVectorImpl(const string &_polyName, int _t);
 
@@ -263,6 +275,8 @@ public:
   static Json::Value getSecretShareV2Impl(const string &_polyName,
                                           const Json::Value &_pubKeys, int _t,
                                           int _n);
+
+  static Json::Value getSecretShareV3Impl(const string &_polyName);
 
   static Json::Value dkgVerificationV2Impl(const string &_publicShares,
                                            const string &_ethKeyName,

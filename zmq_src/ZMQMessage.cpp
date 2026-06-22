@@ -216,6 +216,9 @@ ZMQMessage::buildRequest(string &_type, shared_ptr<rapidjson::Document> _d,
   case ENUM_GET_SECRET_SHARE_REQ:
     ret = make_shared<getSecretShareReqMessage>(_d);
     break;
+  case ENUM_GET_SECRET_SHARE_V3_REQ:
+    ret = make_shared<getSecretShareV3ReqMessage>(_d);
+    break;
   case ENUM_DKG_VERIFY_REQ:
     ret = make_shared<dkgVerificationReqMessage>(_d);
     break;
@@ -393,6 +396,7 @@ const std::map<string, int> ZMQMessage::requests{
     {GENERATE_DKG_POLY_V3_REQ, ENUM_GENERATE_DKG_POLY_V3_REQ},
     {GET_VV_REQ, ENUM_GET_VV_REQ},
     {GET_SECRET_SHARE_REQ, ENUM_GET_SECRET_SHARE_REQ},
+    {GET_SECRET_SHARE_V3_REQ, ENUM_GET_SECRET_SHARE_V3_REQ},
     {DKG_VERIFY_REQ, ENUM_DKG_VERIFY_REQ},
     {CREATE_BLS_PRIVATE_REQ, ENUM_CREATE_BLS_PRIVATE_REQ},
     {CREATE_BLS_PRIVATE_V3_REQ, ENUM_CREATE_BLS_PRIVATE_V3_REQ},
