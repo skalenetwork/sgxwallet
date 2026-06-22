@@ -61,6 +61,11 @@
 
 uint32_t enclaveLogLevel = 0;
 
+namespace {
+atomic<bool> sgxServerInited(false);
+mutex initMutex;
+}
+
 using namespace std;
 
 void systemHealthCheck() {
@@ -182,13 +187,15 @@ void setFullOptions(const initConfig &_config) {
 } // namespace
 
 void initAll(initConfig &_config) {
-
-  static atomic<bool> sgxServerInited(false);
-  static mutex initMutex;
   setFullOptions(_config);
   enclaveLogLevel = _config.enclaveLogLevel;
 
   lock_guard<mutex> lock(initMutex);
+
+  // On-disk provisioning is idempotent and independent of the one-time,
+  // in-process server init below. Certs may be absent on a fresh data dir
+  // (or after external cleanup), so always ensure they exist before the guard.
+  SGXWalletServer::createCertsIfNeeded();
 
   if (sgxServerInited)
     return;
@@ -222,7 +229,6 @@ void initAll(initConfig &_config) {
       initSEK();
     }
 
-    SGXWalletServer::createCertsIfNeeded();
     SGXWalletServer::initThreadPool(_config.threadPoolSize);
 
     if (_config.useHTTPS) {
@@ -264,4 +270,13 @@ void exitAll() {
   SGXInfoServer::exitServer();
   ZMQServer::exitZMQServer();
   trustedEnclaveClear(eid);
+  if (eid != 0) {
+    const sgx_status_t status = sgx_destroy_enclave(eid);
+    if (status != SGX_SUCCESS) {
+      spdlog::warn("Could not destroy enclave in exitAll: {}", status);
+    }
+    eid = 0;
+  }
+  LevelDB::closeDataFolderAndDBs();
+  sgxServerInited = false;
 }

@@ -104,10 +104,7 @@ void resetTestDB() {
 }
 
 void destroyTestEnclave() {
-  if (eid != 0) {
-    sgx_destroy_enclave(eid);
-    eid = 0;
-  }
+  exitAll();
 }
 
 std::shared_ptr<std::string> encryptTestKey() {
