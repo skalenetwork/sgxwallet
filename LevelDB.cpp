@@ -28,6 +28,7 @@
 #include <string_view>
 
 #include "leveldb/db.h"
+#include "leveldb/write_batch.h"
 #include <jsonrpccpp/client.h>
 
 #include "LevelDB.h"
@@ -93,6 +94,42 @@ void LevelDB::writeRawString(std::string_view _key, const string &_value) {
   auto status =
       db->Put(writeOptions, Slice(_key.data(), _key.size()), Slice(_value));
 
+  throwExceptionOnError(status);
+}
+
+void LevelDB::writeBatch(const vector<pair<string, string>> &puts,
+                        const vector<string> &deletes,
+                        bool requireNewPutKeys) {
+  lock_guard<recursive_mutex> lock(mutex);
+
+  // make sure no keys with same names existed before
+  if (requireNewPutKeys) {
+    for (const auto &it : puts) {
+      if (readString(it.first) != nullptr) {
+        throw SGXException(KEY_NAME_ALREADY_EXISTS,
+                           string(__FUNCTION__) + ":Name already exists" +
+                               it.first);
+      }
+    }
+  }
+
+  leveldb::WriteBatch batch;
+  Json::FastWriter fastWriter;
+
+  for (const auto &it : puts) {
+    Json::Value writerData;
+    writerData["value"] = it.second;
+    writerData["timestamp"] = std::to_string(std::time(nullptr));
+    std::string output = fastWriter.write(writerData);
+
+    batch.Put(Slice(it.first), Slice(output));
+  }
+
+  for (const auto &key : deletes) {
+    batch.Delete(Slice(key));
+  }
+
+  auto status = db->Write(writeOptions, &batch);
   throwExceptionOnError(status);
 }
 

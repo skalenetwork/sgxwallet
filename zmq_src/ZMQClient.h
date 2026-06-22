@@ -106,12 +106,15 @@ public:
   bool generateDKGPoly(const string &polyName, int t);
 
   bool generateDKGPolyV3(const string &polyName,
-                         const string &previousBLSPrivateKeyName, int t);
+                         const string &previousBLSPrivateKeyName, int t,
+                         int n, const Json::Value &publicKeys);
 
   Json::Value getVerificationVector(const string &polyName, int t);
 
   string getSecretShare(const string &polyName, const Json::Value &pubKeys,
                         int t, int n);
+
+  string getSecretShareV3(const string &polyName);
 
   bool dkgVerification(const string &publicShares, const string &ethKeyName,
                        const string &secretShare, int t, int n, int idx);

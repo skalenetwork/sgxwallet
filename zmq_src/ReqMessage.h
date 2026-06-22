@@ -102,6 +102,14 @@ public:
   virtual Json::Value process();
 };
 
+class getSecretShareV3ReqMessage : public ZMQMessage {
+public:
+  getSecretShareV3ReqMessage(shared_ptr<rapidjson::Document> &_d)
+      : ZMQMessage(_d){};
+
+  virtual Json::Value process();
+};
+
 class dkgVerificationReqMessage : public ZMQMessage {
 public:
   dkgVerificationReqMessage(shared_ptr<rapidjson::Document> &_d)
