@@ -98,17 +98,17 @@ void LevelDB::writeRawString(std::string_view _key, const string &_value) {
 }
 
 void LevelDB::writeBatch(const vector<pair<string, string>> &puts,
-                        const vector<string> &deletes,
-                        bool requireNewPutKeys) {
+                         const vector<string> &deletes,
+                         bool requireNewPutKeys) {
   lock_guard<recursive_mutex> lock(mutex);
 
   // make sure no keys with same names existed before
   if (requireNewPutKeys) {
     for (const auto &it : puts) {
       if (readString(it.first) != nullptr) {
-        throw SGXException(KEY_NAME_ALREADY_EXISTS,
-                           string(__FUNCTION__) + ":Name already exists" +
-                               it.first);
+        throw SGXException(KEY_NAME_ALREADY_EXISTS, string(__FUNCTION__) +
+                                                        ":Name already exists" +
+                                                        it.first);
       }
     }
   }

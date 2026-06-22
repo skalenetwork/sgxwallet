@@ -580,8 +580,7 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
       if (!checkHex(_publicKeys[i].asString(), 64)) {
         throw SGXException(GENERATE_DKGV3_POLY_INVALID_PUBKEY_HEX,
                            string(__FUNCTION__) +
-                               ":Invalid public key at index " +
-                               to_string(i));
+                               ":Invalid public key at index " + to_string(i));
       }
       pubKeyStrs.push_back(_publicKeys[i].asString());
     }
@@ -598,7 +597,8 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
       joinedKeys += k;
       joinedKeys += ",";
     }
-    if (!joinedKeys.empty()) joinedKeys.pop_back();
+    if (!joinedKeys.empty())
+      joinedKeys.pop_back();
     string recipientsHash = cryptlite::sha256::hash_hex(joinedKeys);
 
     Json::Value meta;
@@ -611,21 +611,19 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
     }
     meta["recipientsHash"] = recipientsHash;
     meta["previousBLSPrivateKeyName"] = _previousBLSPrivateKeyName;
-    meta["createdAt"] =
-        (Json::Int64)chrono::duration_cast<chrono::seconds>(
-            chrono::system_clock::now().time_since_epoch())
-            .count();
+    meta["createdAt"] = (Json::Int64)chrono::duration_cast<chrono::seconds>(
+                            chrono::system_clock::now().time_since_epoch())
+                            .count();
 
     Json::FastWriter writer;
-    string metaKey =
-        string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
+    string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
 
-  vector<pair<string, string>> puts;
-  puts.emplace_back(_polyName, encrPolyHex);
-  puts.emplace_back(metaKey, writer.write(meta));
+    vector<pair<string, string>> puts;
+    puts.emplace_back(_polyName, encrPolyHex);
+    puts.emplace_back(metaKey, writer.write(meta));
 
-  // Poly and metadata must be persisted atomically to avoid fail-open paths.
-  LevelDB::getLevelDb()->writeBatch(puts, {}, true);
+    // Poly and metadata must be persisted atomically to avoid fail-open paths.
+    LevelDB::getLevelDb()->writeBatch(puts, {}, true);
   }
   HANDLE_SGX_EXCEPTION(result)
 
@@ -1075,9 +1073,10 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName,
       }
       const Json::Value &boundKeys = meta["publicKeys"];
       if (boundKeys.size() != _pubKeys.size()) {
-        throw SGXException(INVALID_DKG_GETSS_V2_META_PUBKEYS_MISMATCH,
-                           string(__FUNCTION__) +
-                               ":publicKeys count mismatch with bound metadata");
+        throw SGXException(
+            INVALID_DKG_GETSS_V2_META_PUBKEYS_MISMATCH,
+            string(__FUNCTION__) +
+                ":publicKeys count mismatch with bound metadata");
       }
       for (Json::ArrayIndex i = 0; i < boundKeys.size(); i++) {
         if (boundKeys[i].asString() != _pubKeys[i].asString()) {
@@ -1133,10 +1132,10 @@ Json::Value SGXWalletServer::getSecretShareV3Impl(const string &_polyName) {
     string metaKey = string(WalletDBKeys::DKG_META_V1_PREFIX) + _polyName;
     shared_ptr<string> metaStr = checkDataFromDb(metaKey);
     if (metaStr == nullptr) {
-      throw SGXException(INVALID_DKG_GETSS_V3_NO_METADATA,
-                         string(__FUNCTION__) +
-                             ":No V3 binding metadata found for poly: " +
-                             _polyName);
+      throw SGXException(
+          INVALID_DKG_GETSS_V3_NO_METADATA,
+          string(__FUNCTION__) +
+              ":No V3 binding metadata found for poly: " + _polyName);
     }
 
     Json::Value meta;
@@ -1160,7 +1159,8 @@ Json::Value SGXWalletServer::getSecretShareV3Impl(const string &_polyName) {
     shared_ptr<string> encrPoly = readFromDb(_polyName);
 
     string secret_share_name = "encryptedSecretShare:" + _polyName;
-    shared_ptr<string> encryptedSecretShare = checkDataFromDb(secret_share_name);
+    shared_ptr<string> encryptedSecretShare =
+        checkDataFromDb(secret_share_name);
 
     if (encryptedSecretShare != nullptr) {
       result["secretShare"] = *encryptedSecretShare.get();

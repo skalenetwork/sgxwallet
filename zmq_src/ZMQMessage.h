@@ -90,8 +90,7 @@ public:
   static constexpr const char *GET_VV_REQ = "getVerificationVectorReq";
   static constexpr const char *GET_VV_RSP = "getVerificationVectorRsp";
   static constexpr const char *GET_SECRET_SHARE_REQ = "getSecretShareReq";
-  static constexpr const char *GET_SECRET_SHARE_V3_REQ =
-      "getSecretShareV3Req";
+  static constexpr const char *GET_SECRET_SHARE_V3_REQ = "getSecretShareV3Req";
   static constexpr const char *GET_SECRET_SHARE_RSP = "getSecretShareRsp";
   static constexpr const char *DKG_VERIFY_REQ = "dkgVerificationReq";
   static constexpr const char *DKG_VERIFY_RSP = "dkgVerificationRsp";

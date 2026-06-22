@@ -1256,14 +1256,14 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api,
   Json::Value previousBlsKey = c.generateBLSPrivateKey(previousBlsKeyName);
   REQUIRE(previousBlsKey["status"].asInt() == 0);
 
-    Json::Value dkgV3PublicKeys(Json::arrayValue);
-    dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
-    dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_2);
+  Json::Value dkgV3PublicKeys(Json::arrayValue);
+  dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+  dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_2);
 
   const string polyName = TestUtils::makeDKGPolyName(schainID, 0, dkgV3ID);
-    Json::Value genPoly = c.generateDKGPolyV3(polyName, previousBlsKeyName,
-                        DKG_V3_API_T, DKG_V3_API_N,
-                        dkgV3PublicKeys);
+  Json::Value genPoly =
+      c.generateDKGPolyV3(polyName, previousBlsKeyName, DKG_V3_API_T,
+                          DKG_V3_API_N, dkgV3PublicKeys);
   REQUIRE(genPoly["status"].asInt() == 0);
 
   Json::Value verificationVector =
@@ -1273,25 +1273,24 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api,
                                                          DKG_V3_API_T)
                .empty());
 
-    Json::Value v3SecretShares = c.getSecretShareV3(polyName);
-    REQUIRE(v3SecretShares["status"].asInt() == 0);
+  Json::Value v3SecretShares = c.getSecretShareV3(polyName);
+  REQUIRE(v3SecretShares["status"].asInt() == 0);
 
-    Json::Value wrongPublicKeys(Json::arrayValue);
-    wrongPublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
-    wrongPublicKeys.append(
+  Json::Value wrongPublicKeys(Json::arrayValue);
+  wrongPublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+  wrongPublicKeys.append(
       "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-    Json::Value mismatchedV2Share =
+  Json::Value mismatchedV2Share =
       c.getSecretShareV2(polyName, wrongPublicKeys, DKG_V3_API_T, DKG_V3_API_N);
-    REQUIRE(mismatchedV2Share["status"].asInt() != 0);
+  REQUIRE(mismatchedV2Share["status"].asInt() != 0);
 
-    Json::Value genPolyWrongName = c.generateDKGPolyV3(
-      "poly", previousBlsKeyName, DKG_V3_API_T, DKG_V3_API_N,
-      dkgV3PublicKeys);
+  Json::Value genPolyWrongName = c.generateDKGPolyV3(
+      "poly", previousBlsKeyName, DKG_V3_API_T, DKG_V3_API_N, dkgV3PublicKeys);
   REQUIRE(genPolyWrongName["status"].asInt() != 0);
 
-  Json::Value genPolyWrongPreviousBls = c.generateDKGPolyV3(
-      TestUtils::makeDKGPolyName(schainID, 1, dkgV3ID), "bls", DKG_V3_API_T,
-      DKG_V3_API_N, dkgV3PublicKeys);
+  Json::Value genPolyWrongPreviousBls =
+      c.generateDKGPolyV3(TestUtils::makeDKGPolyName(schainID, 1, dkgV3ID),
+                          "bls", DKG_V3_API_T, DKG_V3_API_N, dkgV3PublicKeys);
   REQUIRE(genPolyWrongPreviousBls["status"].asInt() != 0);
 
   Json::Value genPolyWrongT = c.generateDKGPolyV3(
@@ -1328,9 +1327,12 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
     REQUIRE(previousBlsKey["status"].asInt() == 0);
 
     polyNames[i] = TestUtils::makeDKGPolyName(schainID, i, dkgV3ID);
-    Json::Value genPoly = c.generateDKGPolyV3(
-      polyNames[i], previousBlsKeyNames[i], DKG_V3_API_T, DKG_V3_API_N,
-      publicEcdsaKeys);
+  }
+
+  for (int i = 0; i < DKG_V3_API_N; ++i) {
+    Json::Value genPoly =
+        c.generateDKGPolyV3(polyNames[i], previousBlsKeyNames[i], DKG_V3_API_T,
+                            DKG_V3_API_N, publicEcdsaKeys);
     REQUIRE(genPoly["status"].asInt() == 0);
 
     Json::Value verificationVector =
@@ -1431,14 +1433,13 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API generates DKG polynomial",
       TestUtils::makeBLSKeyName(schainID, 0, dkgV2ID);
   REQUIRE(client->generateBLSPrivateKey(previousBlsKeyName));
 
-    Json::Value dkgV3PublicKeys(Json::arrayValue);
-    dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
-    dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_2);
+  Json::Value dkgV3PublicKeys(Json::arrayValue);
+  dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+  dkgV3PublicKeys.append(SAMPLE_DKG_PUB_KEY_2);
 
   const string polyName = TestUtils::makeDKGPolyName(schainID, 0, dkgV3ID);
-    REQUIRE(client->generateDKGPolyV3(polyName, previousBlsKeyName,
-                    DKG_V3_API_T, DKG_V3_API_N,
-                    dkgV3PublicKeys));
+  REQUIRE(client->generateDKGPolyV3(polyName, previousBlsKeyName, DKG_V3_API_T,
+                                    DKG_V3_API_N, dkgV3PublicKeys));
 
   Json::Value verificationVector =
       client->getVerificationVector(polyName, DKG_V3_API_T);
@@ -1446,24 +1447,23 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API generates DKG polynomial",
                                                          DKG_V3_API_T)
                .empty());
 
-    REQUIRE_NOTHROW(client->getSecretShareV3(polyName));
+  REQUIRE_NOTHROW(client->getSecretShareV3(polyName));
 
-    Json::Value wrongPublicKeys(Json::arrayValue);
-    wrongPublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
-    wrongPublicKeys.append(
+  Json::Value wrongPublicKeys(Json::arrayValue);
+  wrongPublicKeys.append(SAMPLE_DKG_PUB_KEY_1);
+  wrongPublicKeys.append(
       "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-    REQUIRE_THROWS(client->getSecretShare(polyName, wrongPublicKeys, DKG_V3_API_T,
-                      DKG_V3_API_N));
+  REQUIRE_THROWS(client->getSecretShare(polyName, wrongPublicKeys, DKG_V3_API_T,
+                                        DKG_V3_API_N));
 
-    REQUIRE(!client->generateDKGPolyV3("poly", previousBlsKeyName,
-                     DKG_V3_API_T, DKG_V3_API_N,
-                     dkgV3PublicKeys));
+  REQUIRE(!client->generateDKGPolyV3("poly", previousBlsKeyName, DKG_V3_API_T,
+                                     DKG_V3_API_N, dkgV3PublicKeys));
   REQUIRE_THROWS(client->generateDKGPolyV3(
       TestUtils::makeDKGPolyName(schainID, 1, dkgV3ID), "bls", DKG_V3_API_T,
       DKG_V3_API_N, dkgV3PublicKeys));
   REQUIRE(!client->generateDKGPolyV3(
-      TestUtils::makeDKGPolyName(schainID, 2, dkgV3ID), previousBlsKeyName,
-      33, DKG_V3_API_N, dkgV3PublicKeys));
+      TestUtils::makeDKGPolyName(schainID, 2, dkgV3ID), previousBlsKeyName, 33,
+      DKG_V3_API_N, dkgV3PublicKeys));
 }
 
 TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
@@ -1483,18 +1483,21 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
   vector<string> publicShares(DKG_V3_API_N);
   vector<string> dealerSecretShares(DKG_V3_API_N);
 
-  // generate some BLSkeys and polys to simulate DKG process
+  // Generate all recipient keys and previous BLS keys first.
   for (int i = 0; i < DKG_V3_API_N; ++i) {
     auto ecdsaKey = client->generateECDSAKey();
     publicEcdsaKeys.append(ecdsaKey.first);
     ecdsaKeyNames[i] = ecdsaKey.second;
 
-    // generate some BLS key (simulate previous DKG keys)
+    // Generate previous DKG key material.
     previousBlsKeyNames[i] = TestUtils::makeBLSKeyName(schainID, i, dkgV2ID);
     REQUIRE(client->generateBLSPrivateKey(previousBlsKeyNames[i]));
 
-    // generate poly using previous DKG key
     polyNames[i] = TestUtils::makeDKGPolyName(schainID, i, dkgV3ID);
+  }
+
+  // Generate polys only after the full recipient set is available.
+  for (int i = 0; i < DKG_V3_API_N; ++i) {
     REQUIRE(client->generateDKGPolyV3(polyNames[i], previousBlsKeyNames[i],
                                       DKG_V3_API_T, DKG_V3_API_N,
                                       publicEcdsaKeys));
@@ -1507,7 +1510,7 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
 
   for (int contributor = 0; contributor < DKG_V3_API_N; ++contributor) {
     dealerSecretShares[contributor] =
-      client->getSecretShareV3(polyNames[contributor]);
+        client->getSecretShareV3(polyNames[contributor]);
     REQUIRE(dealerSecretShares[contributor].length() ==
             static_cast<size_t>(DKG_V3_API_N) *
                 TestUtils::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);

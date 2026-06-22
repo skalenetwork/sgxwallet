@@ -175,8 +175,9 @@ public:
   /**
    * @brief Retrieves secret share contributions for the given polynomial name,
    * using the ECDH public keys set on 'generateDKGPolyV3'.
-   * This call differs from 'getSecretShareV2' by not allowing caller passed ECDH keys.
-  */
+   * This call differs from 'getSecretShareV2' by not allowing caller passed
+   * ECDH keys.
+   */
   virtual Json::Value getSecretShareV3(const string &_polyName);
 
   virtual Json::Value dkgVerificationV2(const string &_publicShares,

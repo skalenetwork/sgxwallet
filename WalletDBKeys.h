@@ -36,8 +36,8 @@ static constexpr const std::string_view POLY_KEY_PREFIX = "POLY:";
 static constexpr const std::string_view DKG_DH_KEY_PREFIX = "DKG_DH_KEY_";
 
 // Plaintext metadata for V3 recipient-bound polynomials.
-// Stores t, n, ordered recipient public ECDH keys, and their deterministic hash.
-// Not encrypted at rest — contains only public key material.
+// Stores t, n, ordered recipient public ECDH keys, and their deterministic
+// hash. Not encrypted at rest — contains only public key material.
 static constexpr const std::string_view DKG_META_V1_PREFIX = "DKG_META_V1:";
 
 static constexpr const std::string_view SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[] = {

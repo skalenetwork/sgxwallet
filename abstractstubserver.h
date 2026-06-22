@@ -157,11 +157,11 @@ public:
             "polyName", jsonrpc::JSON_STRING, "publicKeys", jsonrpc::JSON_ARRAY,
             "n", jsonrpc::JSON_INTEGER, "t", jsonrpc::JSON_INTEGER, NULL),
         &AbstractStubServer::getSecretShareV2I);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("getSecretShareV3", jsonrpc::PARAMS_BY_NAME,
-                           jsonrpc::JSON_OBJECT, "polyName",
-                           jsonrpc::JSON_STRING, NULL),
-        &AbstractStubServer::getSecretShareV3I);
+    this->bindAndAddMethod(jsonrpc::Procedure("getSecretShareV3",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, "polyName",
+                                              jsonrpc::JSON_STRING, NULL),
+                           &AbstractStubServer::getSecretShareV3I);
     this->bindAndAddMethod(
         jsonrpc::Procedure(
             "dkgVerificationV2", jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,

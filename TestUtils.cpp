@@ -385,9 +385,9 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
     data.polyNames[contributor] =
         TestUtils::makeDKGPolyName(schainID, contributor, dkgID);
     // use previous' DKG BLS private key name
-    Json::Value response = c.generateDKGPolyV3(
-      data.polyNames[contributor], v2Data.blsKeyNames[contributor], t, n,
-      data.publicEcdsaKeys);
+    Json::Value response = c.generateDKGPolyV3(data.polyNames[contributor],
+                                               v2Data.blsKeyNames[contributor],
+                                               t, n, data.publicEcdsaKeys);
     CHECK_STATE(response["status"] == 0);
 
     // get verification vectors
@@ -518,10 +518,9 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
     // generate new polynomial for each dealer
     dealerPolyNames[oldDealerIndex] = TestUtils::makeDKGPolyName(
         schainID, static_cast<int>(oldDealerIndex), dkgID);
-    Json::Value response =
-        c.generateDKGPolyV3(dealerPolyNames[oldDealerIndex],
-                v2Data.blsKeyNames.at(oldDealerIndex), t, newN,
-                data.publicEcdsaKeys);
+    Json::Value response = c.generateDKGPolyV3(
+        dealerPolyNames[oldDealerIndex], v2Data.blsKeyNames.at(oldDealerIndex),
+        t, newN, data.publicEcdsaKeys);
     CHECK_STATE(response["status"] == 0);
 
     // get verification vectors
@@ -534,7 +533,7 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
     // get secret contributions from this dealer - using 'newN' number of points
     // one for each new node
     dealerSecretShares[oldDealerIndex] =
-      c.getSecretShareV3(dealerPolyNames[oldDealerIndex]);
+        c.getSecretShareV3(dealerPolyNames[oldDealerIndex]);
     CHECK_STATE(dealerSecretShares[oldDealerIndex]["status"] == 0);
   }
 

@@ -369,8 +369,7 @@ bool ZMQClient::generateDKGPoly(const string &polyName, int t) {
 
 bool ZMQClient::generateDKGPolyV3(const string &polyName,
                                   const string &previousBLSPrivateKeyName,
-                                  int t, int n,
-                                  const Json::Value &publicKeys) {
+                                  int t, int n, const Json::Value &publicKeys) {
   Json::Value p;
   p["type"] = ZMQMessage::GENERATE_DKG_POLY_V3_REQ;
   p["polyName"] = polyName;

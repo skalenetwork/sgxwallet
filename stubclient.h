@@ -113,8 +113,7 @@ public:
 
   Json::Value generateDKGPolyV3(const std::string &polyName,
                                 const std::string &previousBLSPrivateKeyName,
-                                int t, int n,
-                                const Json::Value &publicKeys) {
+                                int t, int n, const Json::Value &publicKeys) {
     Json::Value p;
     p["polyName"] = polyName;
     p["previousBLSPrivateKeyName"] = previousBLSPrivateKeyName;

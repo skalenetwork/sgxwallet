@@ -106,8 +106,8 @@ public:
   bool generateDKGPoly(const string &polyName, int t);
 
   bool generateDKGPolyV3(const string &polyName,
-                         const string &previousBLSPrivateKeyName, int t,
-                         int n, const Json::Value &publicKeys);
+                         const string &previousBLSPrivateKeyName, int t, int n,
+                         const Json::Value &publicKeys);
 
   Json::Value getVerificationVector(const string &polyName, int t);
 
