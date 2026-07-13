@@ -1,19 +1,32 @@
 # Functional Tests
 
-Tests require SGXWallet to have been built locally in simulation mode, as described in [this document](building.md).
+Tests require a simulation build configured with test binaries and test-only
+ECALLs:
+
+```bash
+./autoconf.bash
+./configure --enable-tests --enable-sgx-simulation
+make -j"$(nproc)"
+```
+
+Omit `--enable-tests` for normal and release builds; `make` will then not build
+any test binaries.
 
 Tests can be run in two ways.
 
 ## Run all tests
 
-To run all unit and integration tests that are part of the default check suite,
-run:
+To run all unit, integration, and backward-compatibility tests, run:
 ```
 make check
 ```
 
-The default check suite runs Catch2 tests tagged `[unit]` or `[integration]`
-and excludes tests tagged `[performance]`.
+The Catch2 portion of the default suite runs tests tagged `[unit]` or
+`[integration]` and excludes tests tagged `[performance]`.
+
+Container test runs use `make run-tests`, which executes the already-built
+test binaries without requiring their build dependencies to remain in the
+image after cleanup.
 
 The legacy Python wrapper is still available during migration:
 ```
@@ -24,13 +37,13 @@ python3 testw.py
 ## Run individual tests
 To run an individual integration test named `[test_ex]`:
 ```bash
-./testw [test_ex]
+./integration_tests [test_ex]
 ```
 
 To run a full category:
 ```bash
 ./unit_tests "[unit]~[performance]" --reporter compact
-./testw "[integration]~[performance]" --reporter compact
+./integration_tests "[integration]~[performance]" --reporter compact
 ```
 
 We follow the convention of tagging tests by type, component, and scenario, for
@@ -53,15 +66,15 @@ make unit_tests
 ## DB Reencryption Integration Tests
 
 DB reencryption integration tests exercise the full SGX enclave plus LevelDB
-reencryption path. These tests require a test enclave interface, so configure
-with `--enable-sgx-test-ecalls`.
+reencryption path. They are part of `integration_tests`; `--enable-tests`
+automatically selects the required test-only enclave interface.
 
 ```bash
 source /opt/intel/sgxsdk/environment
 ./autoconf.bash
-./configure --enable-sgx-test-ecalls --enable-sgx-simulation
-make db_reencrypt_integration_tests
-./db_reencrypt_integration_tests "[integration]~[performance]" --reporter compact
+./configure --enable-tests --enable-sgx-simulation
+make integration_tests
+./integration_tests "[integration][db]~[performance]" --reporter compact
 ```
 
 If running against hardware SGX instead of simulation mode, omit

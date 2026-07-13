@@ -47,15 +47,8 @@ fi
 if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 sleep 5
-echo "Running unit tests"
-# new cmake-based unit tests
-ctest --test-dir build-tests --output-on-failure
-# legacy unit tests
-./testw.py
-echo "Running DB reencryption integration tests"
-./db_reencrypt_integration_tests
-echo "Running backward compatibility tests"
-./tests/backward_compatibility/run.sh
+echo "Running default test suite"
+make check
 else
 if [[ -f "/var/hwmode" ]]; then
     /usr/src/sdk/check_firewall.py

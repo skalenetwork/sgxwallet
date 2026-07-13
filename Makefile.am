@@ -63,9 +63,8 @@ AM_LDFLAGS += \
 # Generated enclave files
 ########################################################################
 
-# The SGX_ENABLE_TEST_ECALLS Automake conditional is set when configure
-# receives --enable-sgx-test-ecalls. It selects either test ECALLs or the
-# production-only enclave interface.
+# Test builds select the test-only enclave interface; all other builds use
+# the production interface.
 if SGX_ENABLE_TEST_ECALLS
 ENCLAVE_EDL_SRC = secure_enclave/secure_enclave_test.edl
 else
@@ -109,21 +108,18 @@ bin_PROGRAMS = \
     sgxwallet \
     sgx_util
 
-# Test binaries should not be installed. The Python test runner owns test
-# execution for now; these variables only organize what Automake can build.
-UNIT_TEST_TARGETS = \
-    unit_tests
+# Test binaries are built only when configure receives --enable-tests.
+# They are never installed.
+TEST_BINARIES = \
+    unit_tests \
+    integration_tests
 
-INTEGRATION_TEST_TARGETS = \
-    testw
-
-if SGX_ENABLE_TEST_ECALLS
-INTEGRATION_TEST_TARGETS += \
-    db_reencrypt_integration_tests
+# Only build test binaries when tests are enabled.
+if BUILD_TESTS
+noinst_PROGRAMS = $(TEST_BINARIES)
+else
+EXTRA_PROGRAMS = $(TEST_BINARIES)
 endif
-
-noinst_PROGRAMS = $(INTEGRATION_TEST_TARGETS)
-EXTRA_PROGRAMS = $(UNIT_TEST_TARGETS)
 
 
 ########################################################################
@@ -336,69 +332,36 @@ unit_tests_LDADD = \
 
 
 ########################################################################
-# Test wallet binary
+# Integration test binary
 ########################################################################
 
-testw_SOURCES = \
+integration_tests_SOURCES = \
     tests/integration/test_main.cpp \
     tests/integration/IntegrationTestSupport.cpp \
     tests/integration/server/ServerHealthIntegrationTests.cpp \
     tests/integration/keys/ECDSAIntegrationTests.cpp \
     tests/integration/keys/BLSIntegrationTests.cpp \
+    tests/integration/keys/KeyManagementIntegrationTests.cpp \
     tests/integration/dkg/DKGIntegrationTestSupport.cpp \
     tests/integration/dkg/DKGIntegrationTests.cpp \
     tests/integration/te/ThresholdEncryptionIntegrationTests.cpp \
     tests/integration/backup/BackupIntegrationTests.cpp \
-    tests/integration/keys/KeyManagementIntegrationTests.cpp \
-    $(TEST_COMMON_SRC)
-
-testw_CPPFLAGS = $(AM_CPPFLAGS)
-
-if SGX_ENABLE_TEST_ECALLS
-testw_CPPFLAGS += \
-    -DSGX_ENABLE_TEST_ECALLS
-endif
-
-nodist_testw_SOURCES = $(nodist_sgxwallet_SOURCES)
-
-EXTRA_testw_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
-
-testw_LDADD = $(sgxwallet_LDADD)
-
-# Explicit target builds do not force Automake BUILT_SOURCES before object
-# compilation, but these sources include secure_enclave_u.h through sgxwallet.h.
-$(testw_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
-
-
-########################################################################
-# Integration tests
-########################################################################
-
-# Built only when SGX_ENABLE_TEST_ECALLS is enabled. Requires a live SGX
-# enclave. This can be migrated to CMake when the root build moves off
-# Autotools.
-if SGX_ENABLE_TEST_ECALLS
-
-db_reencrypt_integration_tests_CPPFLAGS = \
-    $(AM_CPPFLAGS) \
-    -DSGX_ENABLE_TEST_ECALLS
-
-db_reencrypt_integration_tests_SOURCES = \
     tests/integration/db/DBReencryptIntegrationTests.cpp \
     $(TEST_COMMON_SRC)
 
-nodist_db_reencrypt_integration_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
+integration_tests_CPPFLAGS = \
+    $(AM_CPPFLAGS) \
+    -DSGX_ENABLE_TEST_ECALLS
 
-EXTRA_db_reencrypt_integration_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
+nodist_integration_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
 
-db_reencrypt_integration_tests_LDADD = $(sgxwallet_LDADD)
+EXTRA_integration_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
+
+integration_tests_LDADD = $(sgxwallet_LDADD)
 
 # Explicit target builds do not force Automake BUILT_SOURCES before object
-# compilation, but these sources include secure_enclave_u.h directly or through
-# sgxwallet.h.
-$(db_reencrypt_integration_tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
-
-endif
+# compilation, but these sources include secure_enclave_u.h through sgxwallet.h.
+$(integration_tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 
 
 ########################################################################
@@ -410,24 +373,23 @@ UNIT_CHECK_FILTER = [unit]$(DEFAULT_CHECK_FILTER)
 INTEGRATION_CHECK_FILTER = [integration]$(DEFAULT_CHECK_FILTER)
 PERFORMANCE_CHECK_FILTER = [performance]
 
-CHECK_LOCAL_DEPS = \
-    unit_tests \
-    testw
-
-if SGX_ENABLE_TEST_ECALLS
-CHECK_LOCAL_DEPS += \
-    db_reencrypt_integration_tests
-endif
-
-check-local: $(CHECK_LOCAL_DEPS)
+if BUILD_TESTS
+check-local:
 	./unit_tests "$(UNIT_CHECK_FILTER)" --reporter compact
-	./testw "$(INTEGRATION_CHECK_FILTER)" --reporter compact
-if SGX_ENABLE_TEST_ECALLS
-	./db_reencrypt_integration_tests "$(INTEGRATION_CHECK_FILTER)" --reporter compact
-endif
+	./integration_tests "$(INTEGRATION_CHECK_FILTER)" --reporter compact
+	./tests/backward_compatibility/run.sh
 
-check-performance: testw
-	./testw "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
+check-performance:
+	./integration_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
+else
+check-local:
+    @echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
+	@false
+
+check-performance:
+    @echo "Tests were not built. Reconfigure with --enable-tests, then run make check-performance."
+	@false
+endif
 
 
 ########################################################################
@@ -491,12 +453,13 @@ sgx_util_LDADD = \
 # Local compatibility targets
 ########################################################################
 
-# Keep local top-level builds compatible with Docker images by building the
-# backward-compatibility validator as part of "make".
+# Backward compatibility is part of a test build, not a release build.
+if BUILD_TESTS
 all-local: tests/backward_compatibility/api_validator
 
 tests/backward_compatibility/api_validator:
 	$(MAKE) -C tests/backward_compatibility api_validator
+endif
 
 clean-local:
 	$(MAKE) -C tests/backward_compatibility clean

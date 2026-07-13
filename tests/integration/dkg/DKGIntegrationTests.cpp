@@ -510,10 +510,10 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[integration][dkg][dkg-bls-zm
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
-  string ip = ZMQ_IP;
-
   string empty = "";
-  auto zmqClient = make_shared<ZMQClient>(ip, ZMQ_PORT, false, empty, empty);
+  auto zmqClient = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
+                                       "./sgx_data/cert_data/rootCA.pem",
+                                       "./sgx_data/cert_data/rootCA.key");
 
   vector<string> ecdsaKeyNames;
   vector<string> blsKeyNames;

@@ -33,7 +33,8 @@
 
 using namespace std;
 
-TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
+TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt",
+                 "[integration][keys][aes-encrypt-decrypt]") {
   int errStatus = 0;
   vector<char> errMsg(BUF_LEN, 0);
   uint64_t encLen;
@@ -59,7 +60,7 @@ TEST_CASE_METHOD(TestFixture, "AES encrypt/decrypt", "[aes-encrypt-decrypt]") {
 }
 
 TEST_CASE_METHOD(TestFixture, "Exportable / non-exportable keys",
-                 "[exportable-nonexportable-keys]") {
+                 "[integration][keys][exportable-nonexportable-keys]") {
   int errStatus = 0;
   vector<char> errMsg(BUF_LEN, 0);
   vector<uint8_t> encPrivKey(BUF_LEN, 0);

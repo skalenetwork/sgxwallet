@@ -17,7 +17,6 @@
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_MAIN
 #include "../../../third_party/catch.hpp"
 
 #include <algorithm>

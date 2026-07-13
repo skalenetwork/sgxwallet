@@ -22,8 +22,31 @@ secure_enclave/.deps
 autom4te.cache
 
 # Autotools
-config.log
-config.status
+/Makefile
+/Makefile.in
+/aclocal.m4
+/am--include-marker
+/config.log
+/config.status
+/configure
+/compile
+/depcomp
+/install-sh
+/ltmain.sh
+/missing
+/test-driver
+/secure_enclave/Makefile
+/secure_enclave/Makefile.in
+/secure_enclave_u.c
+/secure_enclave_u.h
+/secure_enclave.edl
+
+# Local build outputs without extensions
+/sgxwallet
+/integration_tests
+/unit_tests
+/tests/backward_compatibility/api_golden_generator
+/tests/backward_compatibility/api_validator
 
 # Ignore all inside deps/ except pre_downloaded
 libBLS/deps/*
