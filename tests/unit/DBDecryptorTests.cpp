@@ -469,7 +469,8 @@ TEST_CASE(
 // startsWith
 // ---------------------------------------------------------------------------
 
-TEST_CASE("startsWith - matches exact prefix", "[unit][DBReencryptor][startsWith]") {
+TEST_CASE("startsWith - matches exact prefix",
+          "[unit][DBReencryptor][startsWith]") {
   DBReencryptorTests t;
   REQUIRE(t.startsWith("NEK:foo", "NEK:"));
 }

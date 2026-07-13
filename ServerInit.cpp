@@ -64,7 +64,7 @@ uint32_t enclaveLogLevel = 0;
 namespace {
 atomic<bool> sgxServerInited(false);
 mutex initMutex;
-}
+} // namespace
 
 using namespace std;
 

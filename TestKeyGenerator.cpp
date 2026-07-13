@@ -116,19 +116,17 @@ void TestKeyGenerator::generateDkgKeys(StubClient &client, int n, int t,
           secretShares[i]["secretShare"].asString().substr(192 * j, 192);
       secShares[i] +=
           secretShares[j]["secretShare"].asString().substr(192 * i, 192);
-      Json::Value response =
-          client.dkgVerification(pubShares[i], ethKeys[j]["keyName"].asString(),
-                                 secretShare, t, n, j);
+      Json::Value response = client.dkgVerification(
+          pubShares[i], ethKeys[j]["keyName"].asString(), secretShare, t, n, j);
       CHECK_STATE(response["status"] == 0);
 
       bool res = response["result"].asBool();
       CHECK_STATE(res);
 
       pSharesBad[i][0] = 'q';
-      Json::Value wrongVerif =
-          client.dkgVerification(pSharesBad[i],
-                                 ethKeys[j]["keyName"].asString(), secretShare,
-                                 t, n, j);
+      Json::Value wrongVerif = client.dkgVerification(
+          pSharesBad[i], ethKeys[j]["keyName"].asString(), secretShare, t, n,
+          j);
       res = wrongVerif["result"].asBool();
       CHECK_STATE(!res);
     }
@@ -149,9 +147,9 @@ void TestKeyGenerator::generateDkgKeys(StubClient &client, int n, int t,
     string blsName = "BLS_KEY" + polyNames[i].substr(4);
     blsKeyNames.push_back(blsName);
 
-    auto response = client.createBLSPrivateKey(
-        blsName, ethKeys[i]["keyName"].asString(), polyNames[i], secShares[i],
-        t, n);
+    auto response =
+        client.createBLSPrivateKey(blsName, ethKeys[i]["keyName"].asString(),
+                                   polyNames[i], secShares[i], t, n);
     CHECK_STATE(response["status"] == 0);
     pubBLSKeys[i] = client.getBLSPublicKeyShare(blsName);
     CHECK_STATE(pubBLSKeys[i]["status"] == 0);
