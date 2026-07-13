@@ -255,8 +255,7 @@ CRYPTO_NET_LIBS = \
     -l:libcurl.a \
     -l:libssl.a \
     -l:libcrypto.a \
-    -l:libz.a \
-    -lpsl
+    -l:libz.a
 
 SYSTEM_LIBS = \
     -ltbb \
@@ -265,7 +264,7 @@ SYSTEM_LIBS = \
     -lidn2 \
     -lpthread \
     -lstdc++fs \
-    -ldl -lpsl
+    -ldl
 
 SGXWALLET_LDADD = \
     libthirdpartyintel.a \
@@ -446,7 +445,7 @@ sgx_util_LDADD = \
     -lcrypto \
     -lz \
     -lpthread \
-    -ldl -lpsl
+    -ldl
 
 
 ########################################################################
