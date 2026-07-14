@@ -382,11 +382,11 @@ check-performance:
 	./integration_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
 else
 check-local:
-    @echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
+	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
 	@false
 
 check-performance:
-    @echo "Tests were not built. Reconfigure with --enable-tests, then run make check-performance."
+	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check-performance."
 	@false
 endif
 
