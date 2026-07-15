@@ -21,8 +21,8 @@
 
 #include "BLSCrypto.h"
 #include "secure_enclave/TEUtils.h"
-#include "tests/TestSupport.h"
 #include "tests/TestConstants.h"
+#include "tests/TestSupport.h"
 #include "third_party/catch.hpp"
 #include "zmq_src/ZMQClient.h"
 

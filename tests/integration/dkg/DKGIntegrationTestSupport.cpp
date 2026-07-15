@@ -17,7 +17,6 @@
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #include "tests/integration/dkg/DKGIntegrationTestSupport.h"
 
 #include "tests/TestSupport.h"
@@ -40,13 +39,12 @@
 #include <atomic>
 #include <cstring>
 #include <gmp.h>
+#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <limits>
 #include <map>
 #include <memory>
 #include <string>
 #include <thread>
-#include <vector>
-#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <threshold_encryption/CipheredKey.h>
 #include <threshold_encryption/Ciphertext.h>
 #include <threshold_encryption/TEDecryptSet.h>
@@ -54,6 +52,7 @@
 #include <threshold_encryption/TEPublicKey.h>
 #include <threshold_encryption/TEPublicKeyShare.h>
 #include <threshold_encryption/ThresholdEncryption.h>
+#include <vector>
 
 using namespace jsonrpc;
 using namespace std;
@@ -282,14 +281,16 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
     CHECK_STATE(data.ecdsaKeyNames[i].size() == ECDSA_KEY_NAME_SIZE);
     data.publicEcdsaKeys.append(ethKeys[i]["publicKey"]);
 
-    data.polyNames[i] = DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgID);
+    data.polyNames[i] =
+        DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgID);
     Json::Value response = c.generateDKGPoly(data.polyNames[i], t);
     CHECK_STATE(response["status"] == 0);
 
     verificationVectors[i] = c.getVerificationVector(data.polyNames[i], t);
     CHECK_STATE(verificationVectors[i]["status"] == 0);
-    data.publicShares[i] = DKGIntegrationTestSupport::publicSharesFromVerificationVector(
-        verificationVectors[i], t);
+    data.publicShares[i] =
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+            verificationVectors[i], t);
   }
 
   // each secretShares[i] contains all secret shares from node i.
@@ -310,7 +311,8 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::
+                        DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
       const string contribution =
@@ -328,7 +330,8 @@ RotationDkgData runDKGV2ForRotation(StubClient &c, int n, int t, int schainID,
 
   for (int recipient = 0; recipient < n; ++recipient) {
     data.blsKeyNames[recipient] =
-        DKGIntegrationTestSupport::blsNameFromPolyName(data.polyNames[recipient]);
+        DKGIntegrationTestSupport::blsNameFromPolyName(
+            data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV2(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], recipientSecretShares[recipient], t, n);
@@ -371,8 +374,8 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
   vector<Json::Value> secretShares(n);
 
   for (int contributor = 0; contributor < n; ++contributor) {
-    data.polyNames[contributor] =
-        DKGIntegrationTestSupport::makeDKGPolyName(schainID, contributor, dkgID);
+    data.polyNames[contributor] = DKGIntegrationTestSupport::makeDKGPolyName(
+        schainID, contributor, dkgID);
     // use previous' DKG BLS private key name
     Json::Value response = c.generateDKGPolyV3(
         data.polyNames[contributor], v2Data.blsKeyNames[contributor], t);
@@ -403,7 +406,8 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
         secretShares[contributor]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(n) *
-                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::
+                        DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     for (int recipient = 0; recipient < n; ++recipient) {
       const string contribution =
@@ -425,7 +429,8 @@ RotationDkgData runDKGV3ForRotation(StubClient &c,
 
   for (int recipient = 0; recipient < n; ++recipient) {
     data.blsKeyNames[recipient] =
-        DKGIntegrationTestSupport::blsNameFromPolyName(data.polyNames[recipient]);
+        DKGIntegrationTestSupport::blsNameFromPolyName(
+            data.polyNames[recipient]);
     Json::Value response = c.createBLSPrivateKeyV3(
         data.blsKeyNames[recipient], data.ecdsaKeyNames[recipient],
         data.polyNames[recipient], secretContributions[recipient], t, n);
@@ -505,8 +510,9 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
   for (size_t oldDealerIndex = 0; oldDealerIndex < dealerCount;
        ++oldDealerIndex) {
     // generate new polynomial for each dealer
-    dealerPolyNames[oldDealerIndex] = DKGIntegrationTestSupport::makeDKGPolyName(
-        schainID, static_cast<int>(oldDealerIndex), dkgID);
+    dealerPolyNames[oldDealerIndex] =
+        DKGIntegrationTestSupport::makeDKGPolyName(
+            schainID, static_cast<int>(oldDealerIndex), dkgID);
     Json::Value response =
         c.generateDKGPolyV3(dealerPolyNames[oldDealerIndex],
                             v2Data.blsKeyNames.at(oldDealerIndex), t);
@@ -517,7 +523,8 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
         c.getVerificationVector(dealerPolyNames[oldDealerIndex], t);
     CHECK_STATE(verificationVector["status"] == 0);
     dealerPublicShares[oldDealerIndex] =
-        DKGIntegrationTestSupport::publicSharesFromVerificationVector(verificationVector, t);
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+            verificationVector, t);
 
     // get secret contributions from this dealer - using 'newN' number of points
     // one for each new node
@@ -540,7 +547,8 @@ runDKGV3ForRotationWithNewNodes(StubClient &c, const RotationDkgData &v2Data,
         dealerSecretShares[oldDealerIndex]["secretShare"].asString();
     CHECK_STATE(contributorShares.length() ==
                 static_cast<size_t>(newN) *
-                    DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                    DKGIntegrationTestSupport::
+                        DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 
     // for each new node - save the secret contribution from 'oldDealerIndex'
     for (int recipient = 0; recipient < newN; ++recipient) {
@@ -903,12 +911,14 @@ vector<size_t> takeFirstNodes(const vector<size_t> &nodes, int count) {
 }
 
 } // namespace
-string DKGIntegrationTestSupport::makeDKGPolyName(int schainID, int nodeID, int dkgID) {
+string DKGIntegrationTestSupport::makeDKGPolyName(int schainID, int nodeID,
+                                                  int dkgID) {
   return "POLY:SCHAIN_ID:" + to_string(schainID) +
          ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
 }
 
-string DKGIntegrationTestSupport::makeBLSKeyName(int schainID, int nodeID, int dkgID) {
+string DKGIntegrationTestSupport::makeBLSKeyName(int schainID, int nodeID,
+                                                 int dkgID) {
   return "BLS_KEY:SCHAIN_ID:" + to_string(schainID) +
          ":NODE_ID:" + to_string(nodeID) + ":DKG_ID:" + to_string(dkgID);
 }
@@ -952,11 +962,15 @@ string DKGIntegrationTestSupport::encryptedDkgSecretContributionForRecipient(
     const string &secretShares, int recipientIndex) {
   CHECK_STATE(recipientIndex >= 0);
   const size_t offset =
-      DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN * recipientIndex;
-  CHECK_STATE(secretShares.length() >=
-              offset + DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN *
+      recipientIndex;
+  CHECK_STATE(
+      secretShares.length() >=
+      offset +
+          DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
   return secretShares.substr(
-      offset, DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+      offset,
+      DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
 }
 
 Json::Value DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
@@ -1354,7 +1368,6 @@ void DKGIntegrationTestSupport::sendRPCRequestZMQ() {
   sigShareSet.merge();
 }
 
-
 void DKGIntegrationTestSupport::doDKG(StubClient &c, int n, int t,
                                       vector<string> &_ecdsaKeyNames,
                                       vector<string> &_blsKeyNames,
@@ -1364,8 +1377,9 @@ void DKGIntegrationTestSupport::doDKG(StubClient &c, int n, int t,
 }
 
 void DKGIntegrationTestSupport::doDKGV2(StubClient &c, int n, int t,
-                        vector<string> &_ecdsaKeyNames,
-                        vector<string> &_blsKeyNames, int schainID, int dkgID) {
+                                        vector<string> &_ecdsaKeyNames,
+                                        vector<string> &_blsKeyNames,
+                                        int schainID, int dkgID) {
   Json::Value ethKeys[n];
   Json::Value verifVects[n];
   Json::Value pubEthKeys;
@@ -1508,9 +1522,11 @@ void DKGIntegrationTestSupport::doDKGV2(StubClient &c, int n, int t,
     cerr << i << endl;
 }
 
-void DKGIntegrationTestSupport::doDKGV3Rotation(StubClient &c, int n, int t, int schainID,
-                                int dkgV2ID, int dkgV3ID, int coveragePercent,
-                                int ciphertextCount) {
+void DKGIntegrationTestSupport::doDKGV3Rotation(StubClient &c, int n, int t,
+                                                int schainID, int dkgV2ID,
+                                                int dkgV3ID,
+                                                int coveragePercent,
+                                                int ciphertextCount) {
   CHECK_STATE(n > 0);
   CHECK_STATE(t > 0);
   CHECK_STATE(t <= n);
@@ -1607,10 +1623,9 @@ void DKGIntegrationTestSupport::doDKGV3Rotation(StubClient &c, int n, int t, int
       v3DecryptionShares, selectedSubsets, thresholdEncryptionPublicKey, t, n);
 }
 
-void DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(StubClient &c, int oldN, int newN,
-                                            int t, int rotatedCount,
-                                            int schainID, int dkgV2ID,
-                                            int dkgV3ID, int ciphertextCount) {
+void DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(
+    StubClient &c, int oldN, int newN, int t, int rotatedCount, int schainID,
+    int dkgV2ID, int dkgV3ID, int ciphertextCount) {
   CHECK_STATE(oldN > 0);
   CHECK_STATE(newN > 0);
   CHECK_STATE(t > 0);
@@ -1718,10 +1733,9 @@ void DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(StubClient &c, int o
   }
 }
 
-void DKGIntegrationTestSupport::doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
-                                                    int rotatedCount,
-                                                    int schainID, int dkgV2ID,
-                                                    int dkgV3ID) {
+void DKGIntegrationTestSupport::doDKGV3UnsafeRotatedNodesCanDecrypt(
+    StubClient &c, int n, int t, int rotatedCount, int schainID, int dkgV2ID,
+    int dkgV3ID) {
   CHECK_STATE(n > 0);
   CHECK_STATE(t > 0);
   CHECK_STATE(t <= n);
@@ -1890,10 +1904,11 @@ void DKGIntegrationTestSupport::doDKGV3RotationWithNonRespondingNodes(
   }
 }
 
-void DKGIntegrationTestSupport::doZMQBLS(shared_ptr<ZMQClient> _zmqClient, StubClient &c, int n,
-                         int t, vector<string> &_ecdsaKeyNames,
-                         vector<string> &_blsKeyNames, int schainID,
-                         int dkgID) {
+void DKGIntegrationTestSupport::doZMQBLS(shared_ptr<ZMQClient> _zmqClient,
+                                         StubClient &c, int n, int t,
+                                         vector<string> &_ecdsaKeyNames,
+                                         vector<string> &_blsKeyNames,
+                                         int schainID, int dkgID) {
   Json::Value ethKeys[n];
   Json::Value verifVects[n];
   Json::Value pubEthKeys;

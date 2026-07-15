@@ -103,9 +103,7 @@ void resetTestDB() {
   CHECK_STATE(system("bash -c \"rm -rf " SGXDATA_FOLDER "* \"") == 0);
 }
 
-void destroyTestEnclave() {
-  exitAll();
-}
+void destroyTestEnclave() { exitAll(); }
 
 std::shared_ptr<std::string> encryptTestKey() {
   const char *key = TEST_BLS_KEY_SHARE;

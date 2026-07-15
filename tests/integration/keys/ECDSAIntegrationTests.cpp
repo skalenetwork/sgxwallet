@@ -80,7 +80,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES keygen and signature test",
   }
 }
 
-TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen", "[integration][ecdsa][ecdsa-aes-key-gen]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA AES key gen",
+                 "[integration][ecdsa][ecdsa-aes-key-gen]") {
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   vector<uint8_t> encrPrivKey(BUF_LEN, 0);
@@ -124,7 +125,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA AES get public key",
   REQUIRE(errStatus == SGX_SUCCESS);
 }
 
-TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[integration][ecdsa][ecdsa-key-gen-api]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA key gen API",
+                 "[integration][ecdsa][ecdsa-key-gen-api]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -159,7 +161,8 @@ TEST_CASE_METHOD(TestFixture, "ECDSA key gen API", "[integration][ecdsa][ecdsa-k
   }
 }
 
-TEST_CASE_METHOD(TestFixture, "Import ECDSA Key", "[integration][ecdsa][import-ecdsa-key]") {
+TEST_CASE_METHOD(TestFixture, "Import ECDSA Key",
+                 "[integration][ecdsa][import-ecdsa-key]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -197,7 +200,8 @@ TEST_CASE_METHOD(TestFixture, "Import ECDSA Key Zmq",
   REQUIRE_NOTHROW(client->ecdsaSignMessageHash(16, name, SAMPLE_HASH));
 }
 
-TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[integration][ecdsa][zmq-ecdsa]") {
+TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa",
+                 "[integration][ecdsa][zmq-ecdsa]") {
   HttpClient htp(RPC_ENDPOINT);
   StubClient c(htp, JSONRPC_CLIENT_V2);
 

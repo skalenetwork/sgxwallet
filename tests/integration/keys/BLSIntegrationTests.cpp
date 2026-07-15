@@ -31,19 +31,21 @@
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unistd.h>
+#include <vector>
 
 using namespace jsonrpc;
 using namespace std;
 
-TEST_CASE_METHOD(TestFixture, "BLS key encrypt", "[integration][bls][bls-key-encrypt]") {
+TEST_CASE_METHOD(TestFixture, "BLS key encrypt",
+                 "[integration][bls][bls-key-encrypt]") {
   auto key = encryptTestKey();
   REQUIRE(key);
   sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[integration][bls][delete-bls-key]") {
+TEST_CASE_METHOD(TestFixture, "Delete Bls Key",
+                 "[integration][bls][delete-bls-key]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -65,7 +67,8 @@ TEST_CASE_METHOD(TestFixture, "Delete Bls Key", "[integration][bls][delete-bls-k
   REQUIRE(c.deleteBlsKey(name)["deleted"] == true);
 }
 
-TEST_CASE_METHOD(TestFixture, "Delete Bls Key Zmq", "[integration][bls][delete-bls-key-zmq]") {
+TEST_CASE_METHOD(TestFixture, "Delete Bls Key Zmq",
+                 "[integration][bls][delete-bls-key-zmq]") {
   auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
                                        "./sgx_data/cert_data/rootCA.pem",
                                        "./sgx_data/cert_data/rootCA.key");

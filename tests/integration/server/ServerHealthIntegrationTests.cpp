@@ -54,14 +54,16 @@ public:
       "\"id\":1}";
 };
 
-TEST_CASE_METHOD(TestFixture, "HTTP Healthcheck", "[integration][server][http-healthcheck]") {
+TEST_CASE_METHOD(TestFixture, "HTTP Healthcheck",
+                 "[integration][server][http-healthcheck]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
   REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
   sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS Healthcheck", "[integration][server][https-healthcheck]") {
+TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS Healthcheck",
+                 "[integration][server][https-healthcheck]") {
   REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
 
   string keyFile = "insecure-samples/yourdomain.key";
@@ -177,7 +179,8 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "HTTPS certificate not in database",
   REQUIRE(resp.find("curl: (") != std::string::npos);
 }
 
-TEST_CASE_METHOD(TestFixture, "Get ServerStatus", "[integration][server][get-server-status]") {
+TEST_CASE_METHOD(TestFixture, "Get ServerStatus",
+                 "[integration][server][get-server-status]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
   REQUIRE(c.getServerStatus()["status"] == 0);
@@ -193,7 +196,8 @@ TEST_CASE_METHOD(TestFixture, "Get ServerStatusZmq",
   sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixture, "Get ServerVersion", "[integration][server][get-server-version]") {
+TEST_CASE_METHOD(TestFixture, "Get ServerVersion",
+                 "[integration][server][get-server-version]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
   REQUIRE(c.getServerVersion()["version"] == SGXWalletServer::getVersion());
@@ -209,7 +213,8 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersionZmq",
   sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign", "[integration][server][cert-sign]") {
+TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign",
+                 "[integration][server][cert-sign]") {
 
   REQUIRE_NOTHROW(SGXRegistrationServer::getServer());
 

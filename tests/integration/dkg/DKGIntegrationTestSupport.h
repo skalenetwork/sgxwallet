@@ -41,15 +41,14 @@ std::string makeBLSKeyName(int schainID, int nodeID, int dkgID);
 
 std::string blsNameFromPolyName(const std::string &polyName);
 
+std::string publicSharesFromVerificationVector(
+    const Json::Value &verificationVectorResponse, int t);
+
 std::string
-publicSharesFromVerificationVector(const Json::Value &verificationVectorResponse,
-                                   int t);
+encryptedDkgSecretContributionForRecipient(const std::string &secretShares,
+                                           int recipientIndex);
 
-std::string encryptedDkgSecretContributionForRecipient(
-    const std::string &secretShares, int recipientIndex);
-
-Json::Value
-dkgV3SecretContributionsForRecipient(
+Json::Value dkgV3SecretContributionsForRecipient(
     const std::vector<std::string> &dealerSecretShares, int recipientIndex);
 
 void sendRPCRequestV2();
@@ -96,9 +95,11 @@ void doDKGV3UnsafeRotatedNodesCanDecrypt(StubClient &c, int n, int t,
 /**
  * @brief Verifies retired nodes from separate rotations cannot mix shares.
  */
-void doDKGV3CrossEpochRetiredNodesCannotCollude(
-    StubClient &c, int n, int t, int firstRotatedCount, int secondRotatedCount,
-    int schainID, int dkgV2ID, int dkgV3ID, int dkgV4ID);
+void doDKGV3CrossEpochRetiredNodesCannotCollude(StubClient &c, int n, int t,
+                                                int firstRotatedCount,
+                                                int secondRotatedCount,
+                                                int schainID, int dkgV2ID,
+                                                int dkgV3ID, int dkgV4ID);
 
 /**
  * @brief Verifies rotation behavior with non-responding nodes.

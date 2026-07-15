@@ -28,7 +28,6 @@
 #include <string>
 #include <unistd.h>
 
-
 using namespace jsonrpc;
 using namespace std;
 
@@ -58,7 +57,8 @@ public:
   ~TestFixtureNoReset() { destroyTestEnclave(); }
 };
 
-TEST_CASE_METHOD(TestFixture, "Backup Key", "[integration][backup][backup-key]") {
+TEST_CASE_METHOD(TestFixture, "Backup Key",
+                 "[integration][backup][backup-key]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
   std::ifstream sek_file("sgx_data/sgxwallet_backup_key.txt");
@@ -87,7 +87,8 @@ TEST_CASE_METHOD(TestFixture, "First run", "[integration][backup][first-run]") {
   sleep(3);
 }
 
-TEST_CASE_METHOD(TestFixtureNoReset, "Second run", "[integration][backup][second-run]") {
+TEST_CASE_METHOD(TestFixtureNoReset, "Second run",
+                 "[integration][backup][second-run]") {
 
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);

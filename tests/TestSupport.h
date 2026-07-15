@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <libBLS/backends/algebra.hpp>
 #include <condition_variable>
+#include <libBLS/backends/algebra.hpp>
 #include <mutex>
 #include <random>
 #include <string>
@@ -31,9 +31,9 @@ namespace TestSupport {
 
 extern std::default_random_engine randGen;
 
-std::string stringFromFr(libBLS::algebra::FrScalar &el,
-                         libBLS::algebra::Base base =
-                             libBLS::algebra::Base::DEC);
+std::string
+stringFromFr(libBLS::algebra::FrScalar &el,
+             libBLS::algebra::Base base = libBLS::algebra::Base::DEC);
 
 // Convert a decimal string into a zero-padded hex string of numBytes bytes.
 std::string convertDecToHex(const std::string &dec, int numBytes = 32);

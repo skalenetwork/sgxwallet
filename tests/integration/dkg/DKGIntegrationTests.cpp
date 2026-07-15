@@ -17,7 +17,6 @@
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #include "tests/TestSupport.h"
 #include "tests/integration/IntegrationTestSupport.h"
 #include "tests/integration/dkg/DKGIntegrationTestSupport.h"
@@ -29,9 +28,9 @@
 #include "BLSSigShareSet.h"
 #include "CryptoTools.h"
 #include "DKGCrypto.h"
-#include "libBLS/dkg/dkg.h"
 #include "SGXException.h"
 #include "common.h"
+#include "libBLS/dkg/dkg.h"
 #include "secure_enclave/DHDkg.h"
 #include "secure_enclave/TEUtils.h"
 #include "secure_enclave_u.h"
@@ -78,7 +77,8 @@ public:
 
 #ifdef SGX_ENABLE_TEST_ECALLS
 
-TEST_CASE_METHOD(TestFixture, "DKG AES gen test", "[integration][dkg][dkg-aes-gen]") {
+TEST_CASE_METHOD(TestFixture, "DKG AES gen test",
+                 "[integration][dkg][dkg-aes-gen]") {
   vector<uint8_t> encryptedDKGSecret(BUF_LEN, 0);
   vector<char> errMsg(BUF_LEN, 0);
 
@@ -383,17 +383,20 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS test", "[integration][dkg][dkg-bls]") {
   int dkgID = TestSupport::randGen();
 
   PRINT_SRC_LINE
-  DKGIntegrationTestSupport::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+  DKGIntegrationTestSupport::doDKG(c, 4, 1, ecdsaKeyNames, blsKeyNames,
+                                   schainID, dkgID);
 
   REQUIRE(blsKeyNames.size() == 4);
 
   schainID = TestSupport::randGen();
   dkgID = TestSupport::randGen();
 
-  DKGIntegrationTestSupport::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+  DKGIntegrationTestSupport::doDKG(c, 16, 5, ecdsaKeyNames, blsKeyNames,
+                                   schainID, dkgID);
 }
 
-TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[integration][dkg][dkg-bls-v2]") {
+TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test",
+                 "[integration][dkg][dkg-bls-v2]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -404,14 +407,16 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 test", "[integration][dkg][dkg-bls-v2]
   int dkgID = TestSupport::randGen();
 
   PRINT_SRC_LINE
-  DKGIntegrationTestSupport::doDKGV2(c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+  DKGIntegrationTestSupport::doDKGV2(c, 4, 1, ecdsaKeyNames, blsKeyNames,
+                                     schainID, dkgID);
 
   REQUIRE(blsKeyNames.size() == 4);
 
   schainID = TestSupport::randGen();
   dkgID = TestSupport::randGen();
 
-  DKGIntegrationTestSupport::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+  DKGIntegrationTestSupport::doDKGV2(c, 16, 5, ecdsaKeyNames, blsKeyNames,
+                                     schainID, dkgID);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation correctness",
@@ -424,13 +429,15 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation correctness",
   int dkgV3ID = dkgV2ID + 1;
 
   PRINT_SRC_LINE
-  DKGIntegrationTestSupport::doDKGV3Rotation(c, 5, 3, schainID, dkgV2ID, dkgV3ID, 50, 3);
+  DKGIntegrationTestSupport::doDKGV3Rotation(c, 5, 3, schainID, dkgV2ID,
+                                             dkgV3ID, 50, 3);
 
   schainID = TestSupport::randGen();
   dkgV2ID = TestSupport::randGen();
   dkgV3ID = dkgV2ID + 1;
 
-  DKGIntegrationTestSupport::doDKGV3Rotation(c, 16, 5, schainID, dkgV2ID, dkgV3ID, 1, 1);
+  DKGIntegrationTestSupport::doDKGV3Rotation(c, 16, 5, schainID, dkgV2ID,
+                                             dkgV3ID, 1, 1);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation with joining nodes",
@@ -443,15 +450,15 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation with joining nodes",
   int dkgV3ID = dkgV2ID + 1;
 
   PRINT_SRC_LINE
-  DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(c, 4, 4, 3, 1, schainID, dkgV2ID,
-                                         dkgV3ID, 1);
+  DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(
+      c, 4, 4, 3, 1, schainID, dkgV2ID, dkgV3ID, 1);
 
   schainID = TestSupport::randGen();
   dkgV2ID = TestSupport::randGen();
   dkgV3ID = dkgV2ID + 1;
 
-  DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(c, 10, 10, 7, 6, schainID, dkgV2ID,
-                                         dkgV3ID, 1);
+  DKGIntegrationTestSupport::doDKGV3RotationWithNewNodes(
+      c, 10, 10, 7, 6, schainID, dkgV2ID, dkgV3ID, 1);
 }
 
 TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
@@ -467,8 +474,8 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
 
   // Case 1: Rotate a threshold of nodes - the nodes rotated out should be able
   // to decrypt together
-  DKGIntegrationTestSupport::doDKGV3UnsafeRotatedNodesCanDecrypt(c, 10, 7, 7, schainID, dkgV2ID,
-                                                 dkgV3ID);
+  DKGIntegrationTestSupport::doDKGV3UnsafeRotatedNodesCanDecrypt(
+      c, 10, 7, 7, schainID, dkgV2ID, dkgV3ID);
 
   schainID = TestSupport::randGen();
   dkgV2ID = TestSupport::randGen();
@@ -506,14 +513,15 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS V2 to V3 rotation security",
   runScenario(10, 7, 1, 4, false);
 }
 
-TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[integration][dkg][dkg-bls-zmq]") {
+TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test",
+                 "[integration][dkg][dkg-bls-zmq]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
   string empty = "";
   auto zmqClient = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
-                                       "./sgx_data/cert_data/rootCA.pem",
-                                       "./sgx_data/cert_data/rootCA.key");
+                                          "./sgx_data/cert_data/rootCA.pem",
+                                          "./sgx_data/cert_data/rootCA.key");
 
   vector<string> ecdsaKeyNames;
   vector<string> blsKeyNames;
@@ -522,16 +530,17 @@ TEST_CASE_METHOD(TestFixture, "DKG_BLS ZMQ test", "[integration][dkg][dkg-bls-zm
   int dkgID = TestSupport::randGen();
 
   PRINT_SRC_LINE
-  DKGIntegrationTestSupport::doZMQBLS(zmqClient, c, 4, 1, ecdsaKeyNames, blsKeyNames, schainID,
-                      dkgID);
+  DKGIntegrationTestSupport::doZMQBLS(zmqClient, c, 4, 1, ecdsaKeyNames,
+                                      blsKeyNames, schainID, dkgID);
   REQUIRE(blsKeyNames.size() == 4);
   schainID = TestSupport::randGen();
   dkgID = TestSupport::randGen();
-  DKGIntegrationTestSupport::doZMQBLS(zmqClient, c, 16, 5, ecdsaKeyNames, blsKeyNames, schainID,
-                      dkgID);
+  DKGIntegrationTestSupport::doZMQBLS(zmqClient, c, 16, 5, ecdsaKeyNames,
+                                      blsKeyNames, schainID, dkgID);
 }
 
-TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[integration][dkg][dkg-api-v2]") {
+TEST_CASE_METHOD(TestFixture, "DKG API V2 test",
+                 "[integration][dkg][dkg-api-v2]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -591,7 +600,8 @@ TEST_CASE_METHOD(TestFixture, "DKG API V2 test", "[integration][dkg][dkg-api-v2]
   REQUIRE(verificationWrongSkeys["status"].asInt() != 0);
 }
 
-TEST_CASE_METHOD(TestFixture, "DKG API V2 ZMQ test", "[integration][dkg][dkg-api-v2-zmq]") {
+TEST_CASE_METHOD(TestFixture, "DKG API V2 ZMQ test",
+                 "[integration][dkg][dkg-api-v2-zmq]") {
   auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
                                        "./sgx_data/cert_data/rootCA.pem",
                                        "./sgx_data/cert_data/rootCA.key");
@@ -653,7 +663,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api,
   Json::Value previousBlsKey = c.generateBLSPrivateKey(previousBlsKeyName);
   REQUIRE(previousBlsKey["status"].asInt() == 0);
 
-  const string polyName = DKGIntegrationTestSupport::makeDKGPolyName(schainID, 0, dkgV3ID);
+  const string polyName =
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 0, dkgV3ID);
   Json::Value genPoly =
       c.generateDKGPolyV3(polyName, previousBlsKeyName, DKG_V3_API_T);
   REQUIRE(genPoly["status"].asInt() == 0);
@@ -661,8 +672,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api,
   Json::Value verificationVector =
       c.getVerificationVector(polyName, DKG_V3_API_T);
   REQUIRE(verificationVector["status"].asInt() == 0);
-  REQUIRE(!DKGIntegrationTestSupport::publicSharesFromVerificationVector(verificationVector,
-                                                         DKG_V3_API_T)
+  REQUIRE(!DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+               verificationVector, DKG_V3_API_T)
                .empty());
 
   Json::Value genPolyWrongName =
@@ -670,11 +681,13 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api,
   REQUIRE(genPolyWrongName["status"].asInt() != 0);
 
   Json::Value genPolyWrongPreviousBls = c.generateDKGPolyV3(
-      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 1, dkgV3ID), "bls", DKG_V3_API_T);
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 1, dkgV3ID), "bls",
+      DKG_V3_API_T);
   REQUIRE(genPolyWrongPreviousBls["status"].asInt() != 0);
 
   Json::Value genPolyWrongT = c.generateDKGPolyV3(
-      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 2, dkgV3ID), previousBlsKeyName, 33);
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 2, dkgV3ID),
+      previousBlsKeyName, 33);
   REQUIRE(genPolyWrongT["status"].asInt() != 0);
 }
 
@@ -700,12 +713,14 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
     ecdsaKeyNames[i] = ecdsaKey["keyName"].asString();
     publicEcdsaKeys.append(ecdsaKey["publicKey"]);
 
-    previousBlsKeyNames[i] = DKGIntegrationTestSupport::makeBLSKeyName(schainID, i, dkgV2ID);
+    previousBlsKeyNames[i] =
+        DKGIntegrationTestSupport::makeBLSKeyName(schainID, i, dkgV2ID);
     Json::Value previousBlsKey =
         c.generateBLSPrivateKey(previousBlsKeyNames[i]);
     REQUIRE(previousBlsKey["status"].asInt() == 0);
 
-    polyNames[i] = DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgV3ID);
+    polyNames[i] =
+        DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgV3ID);
     Json::Value genPoly =
         c.generateDKGPolyV3(polyNames[i], previousBlsKeyNames[i], DKG_V3_API_T);
     REQUIRE(genPoly["status"].asInt() == 0);
@@ -713,8 +728,9 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
     Json::Value verificationVector =
         c.getVerificationVector(polyNames[i], DKG_V3_API_T);
     REQUIRE(verificationVector["status"].asInt() == 0);
-    publicShares[i] = DKGIntegrationTestSupport::publicSharesFromVerificationVector(
-        verificationVector, DKG_V3_API_T);
+    publicShares[i] =
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+            verificationVector, DKG_V3_API_T);
   }
 
   for (int contributor = 0; contributor < DKG_V3_API_N; ++contributor) {
@@ -724,7 +740,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
     dealerSecretShares[contributor] = secretShares["secretShare"].asString();
     REQUIRE(dealerSecretShares[contributor].length() ==
             static_cast<size_t>(DKG_V3_API_N) *
-                DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                DKGIntegrationTestSupport::
+                    DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
   }
 
   for (int contributor = 0; contributor < DKG_V3_API_N; ++contributor) {
@@ -741,7 +758,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
   }
 
   Json::Value firstRecipientContributions =
-      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(dealerSecretShares, 0);
+      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
+          dealerSecretShares, 0);
   const string firstBlsKeyName =
       DKGIntegrationTestSupport::makeBLSKeyName(schainID, 0, dkgV3ID);
   Json::Value createFirst = c.createBLSPrivateKeyV3(
@@ -754,7 +772,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
   REQUIRE(firstPublicKey["blsPublicKeyShare"].isArray());
 
   Json::Value secondRecipientContributions =
-      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(dealerSecretShares, 1);
+      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
+          dealerSecretShares, 1);
   const string secondBlsKeyName =
       DKGIntegrationTestSupport::makeBLSKeyName(schainID, 1, dkgV3ID);
   Json::Value createSecond = c.createBLSPrivateKeyV3(
@@ -772,26 +791,27 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 JSONRPC API creates BLS key",
   REQUIRE(createWrongBlsName["status"].asInt() != 0);
 
   Json::Value createWrongEcdsaName = c.createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 2, dkgV3ID), "eth", "",
-      firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N);
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 2, dkgV3ID), "eth",
+      "", firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N);
   REQUIRE(createWrongEcdsaName["status"].asInt() != 0);
 
   Json::Value createWrongPolyName = c.createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 3, dkgV3ID), ecdsaKeyNames[0], "poly",
-      firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N);
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 3, dkgV3ID),
+      ecdsaKeyNames[0], "poly", firstRecipientContributions, DKG_V3_API_T,
+      DKG_V3_API_N);
   REQUIRE(createWrongPolyName["status"].asInt() != 0);
 
   Json::Value malformedContributions(Json::objectValue);
   Json::Value createMalformedContributions = c.createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 4, dkgV3ID), ecdsaKeyNames[0], "",
-      malformedContributions, DKG_V3_API_T, DKG_V3_API_N);
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 4, dkgV3ID),
+      ecdsaKeyNames[0], "", malformedContributions, DKG_V3_API_T, DKG_V3_API_N);
   REQUIRE(createMalformedContributions["status"].asInt() != 0);
 
   Json::Value tooFewContributions(Json::arrayValue);
   tooFewContributions.append(firstRecipientContributions[0]);
   Json::Value createTooFewContributions = c.createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 5, dkgV3ID), ecdsaKeyNames[0], "",
-      tooFewContributions, DKG_V3_API_T, DKG_V3_API_N);
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 5, dkgV3ID),
+      ecdsaKeyNames[0], "", tooFewContributions, DKG_V3_API_T, DKG_V3_API_N);
   REQUIRE(createTooFewContributions["status"].asInt() != 0);
 }
 
@@ -809,22 +829,24 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API generates DKG polynomial",
       DKGIntegrationTestSupport::makeBLSKeyName(schainID, 0, dkgV2ID);
   REQUIRE(client->generateBLSPrivateKey(previousBlsKeyName));
 
-  const string polyName = DKGIntegrationTestSupport::makeDKGPolyName(schainID, 0, dkgV3ID);
+  const string polyName =
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 0, dkgV3ID);
   REQUIRE(
       client->generateDKGPolyV3(polyName, previousBlsKeyName, DKG_V3_API_T));
 
   Json::Value verificationVector =
       client->getVerificationVector(polyName, DKG_V3_API_T);
-  REQUIRE(!DKGIntegrationTestSupport::publicSharesFromVerificationVector(verificationVector,
-                                                         DKG_V3_API_T)
+  REQUIRE(!DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+               verificationVector, DKG_V3_API_T)
                .empty());
 
   REQUIRE(!client->generateDKGPolyV3("poly", previousBlsKeyName, DKG_V3_API_T));
   REQUIRE_THROWS(client->generateDKGPolyV3(
-      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 1, dkgV3ID), "bls", DKG_V3_API_T));
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 1, dkgV3ID), "bls",
+      DKG_V3_API_T));
   REQUIRE(!client->generateDKGPolyV3(
-      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 2, dkgV3ID), previousBlsKeyName,
-      33));
+      DKGIntegrationTestSupport::makeDKGPolyName(schainID, 2, dkgV3ID),
+      previousBlsKeyName, 33));
 }
 
 TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
@@ -851,18 +873,21 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
     ecdsaKeyNames[i] = ecdsaKey.second;
 
     // generate some BLS key (simulate previous DKG keys)
-    previousBlsKeyNames[i] = DKGIntegrationTestSupport::makeBLSKeyName(schainID, i, dkgV2ID);
+    previousBlsKeyNames[i] =
+        DKGIntegrationTestSupport::makeBLSKeyName(schainID, i, dkgV2ID);
     REQUIRE(client->generateBLSPrivateKey(previousBlsKeyNames[i]));
 
     // generate poly using previous DKG key
-    polyNames[i] = DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgV3ID);
+    polyNames[i] =
+        DKGIntegrationTestSupport::makeDKGPolyName(schainID, i, dkgV3ID);
     REQUIRE(client->generateDKGPolyV3(polyNames[i], previousBlsKeyNames[i],
                                       DKG_V3_API_T));
 
     Json::Value verificationVector =
         client->getVerificationVector(polyNames[i], DKG_V3_API_T);
-    publicShares[i] = DKGIntegrationTestSupport::publicSharesFromVerificationVector(
-        verificationVector, DKG_V3_API_T);
+    publicShares[i] =
+        DKGIntegrationTestSupport::publicSharesFromVerificationVector(
+            verificationVector, DKG_V3_API_T);
   }
 
   for (int contributor = 0; contributor < DKG_V3_API_N; ++contributor) {
@@ -870,7 +895,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
         polyNames[contributor], publicEcdsaKeys, DKG_V3_API_T, DKG_V3_API_N);
     REQUIRE(dealerSecretShares[contributor].length() ==
             static_cast<size_t>(DKG_V3_API_N) *
-                DKGIntegrationTestSupport::DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
+                DKGIntegrationTestSupport::
+                    DKG_ENCRYPTED_SECRET_CONTRIBUTION_HEX_LEN);
   }
 
   for (int contributor = 0; contributor < DKG_V3_API_N; ++contributor) {
@@ -885,7 +911,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
   }
 
   Json::Value firstRecipientContributions =
-      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(dealerSecretShares, 0);
+      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
+          dealerSecretShares, 0);
   const string firstBlsKeyName =
       DKGIntegrationTestSupport::makeBLSKeyName(schainID, 0, dkgV3ID);
   REQUIRE(client->createBLSPrivateKeyV3(
@@ -896,7 +923,8 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
   REQUIRE(firstPublicKey.isArray());
 
   Json::Value secondRecipientContributions =
-      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(dealerSecretShares, 1);
+      DKGIntegrationTestSupport::dkgV3SecretContributionsForRecipient(
+          dealerSecretShares, 1);
   const string secondBlsKeyName =
       DKGIntegrationTestSupport::makeBLSKeyName(schainID, 1, dkgV3ID);
   REQUIRE(client->createBLSPrivateKeyV3(secondBlsKeyName, ecdsaKeyNames[1], "",
@@ -911,26 +939,29 @@ TEST_CASE_METHOD(TestFixtureDKGV3Api, "DKG V3 ZMQ API creates BLS key",
                                          DKG_V3_API_T, DKG_V3_API_N));
 
   REQUIRE_THROWS(client->createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 2, dkgV3ID), "eth", "",
-      firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N));
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 2, dkgV3ID), "eth",
+      "", firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N));
 
   REQUIRE_THROWS(client->createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 3, dkgV3ID), ecdsaKeyNames[0], "poly",
-      firstRecipientContributions, DKG_V3_API_T, DKG_V3_API_N));
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 3, dkgV3ID),
+      ecdsaKeyNames[0], "poly", firstRecipientContributions, DKG_V3_API_T,
+      DKG_V3_API_N));
 
   Json::Value malformedContributions(Json::objectValue);
   REQUIRE(!client->createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 4, dkgV3ID), ecdsaKeyNames[0], "",
-      malformedContributions, DKG_V3_API_T, DKG_V3_API_N));
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 4, dkgV3ID),
+      ecdsaKeyNames[0], "", malformedContributions, DKG_V3_API_T,
+      DKG_V3_API_N));
 
   Json::Value tooFewContributions(Json::arrayValue);
   tooFewContributions.append(firstRecipientContributions[0]);
   REQUIRE(!client->createBLSPrivateKeyV3(
-      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 5, dkgV3ID), ecdsaKeyNames[0], "",
-      tooFewContributions, DKG_V3_API_T, DKG_V3_API_N));
+      DKGIntegrationTestSupport::makeBLSKeyName(schainID, 5, dkgV3ID),
+      ecdsaKeyNames[0], "", tooFewContributions, DKG_V3_API_T, DKG_V3_API_N));
 }
 
-TEST_CASE_METHOD(TestFixture, "PolyExists test", "[integration][dkg][dkg-poly-exists]") {
+TEST_CASE_METHOD(TestFixture, "PolyExists test",
+                 "[integration][dkg][dkg-poly-exists]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -949,7 +980,8 @@ TEST_CASE_METHOD(TestFixture, "PolyExists test", "[integration][dkg][dkg-poly-ex
   REQUIRE(!polyDoesNotExist["IsExist"].asBool());
 }
 
-TEST_CASE_METHOD(TestFixture, "PolyExistsZmq test", "[integration][dkg][dkg-poly-exists-zmq]") {
+TEST_CASE_METHOD(TestFixture, "PolyExistsZmq test",
+                 "[integration][dkg][dkg-poly-exists-zmq]") {
   auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
                                        "./sgx_data/cert_data/rootCA.pem",
                                        "./sgx_data/cert_data/rootCA.key");
@@ -964,7 +996,8 @@ TEST_CASE_METHOD(TestFixture, "PolyExistsZmq test", "[integration][dkg][dkg-poly
   REQUIRE(!polyDoesNotExist);
 }
 
-TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[integration][dkg][aes-dkg-v2]") {
+TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test",
+                 "[integration][dkg][aes-dkg-v2]") {
   HttpClient client(RPC_ENDPOINT);
   StubClient c(client, JSONRPC_CLIENT_V2);
 
@@ -1042,7 +1075,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[integration][dkg][aes-dkg-v2]
   strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
 
   SAFE_CHAR_BUF(common_key, BUF_LEN);
-  REQUIRE(DKGIntegrationTestSupport::sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
+  REQUIRE(DKGIntegrationTestSupport::sessionKeyRecoverDH(
+              dhKey.c_str(), encr_sshare, common_key) == 0);
 
   uint8_t key_to_hash[33];
   uint64_t len;
@@ -1059,7 +1093,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[integration][dkg][aes-dkg-v2]
   SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
   strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
 
-  REQUIRE(DKGIntegrationTestSupport::xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
+  REQUIRE(DKGIntegrationTestSupport::xorDecryptDHV2(
+              derived_key, encr_sshare_check, message) == 0);
 
   libBLS::algebra::FrScalar share = libBLS::algebra::FrScalar::fromString(
       string(message.data()), libBLS::algebra::Base::HEXA);
@@ -1135,7 +1170,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 test", "[integration][dkg][aes-dkg-v2]
   REQUIRE(common_public.VerifySigWithHelper(hash_arr, commonSig));
 }
 
-TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[integration][dkg][aes-dkg-v2-zmq]") {
+TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test",
+                 "[integration][dkg][aes-dkg-v2-zmq]") {
   auto client = make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true,
                                        "./sgx_data/cert_data/rootCA.pem",
                                        "./sgx_data/cert_data/rootCA.key");
@@ -1199,7 +1235,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[integration][dkg][aes-dkg
   strncpy(encr_sshare, pubEthKeys[0].asString().c_str(), 128);
 
   SAFE_CHAR_BUF(common_key, BUF_LEN);
-  REQUIRE(DKGIntegrationTestSupport::sessionKeyRecoverDH(dhKey.c_str(), encr_sshare, common_key) == 0);
+  REQUIRE(DKGIntegrationTestSupport::sessionKeyRecoverDH(
+              dhKey.c_str(), encr_sshare, common_key) == 0);
 
   uint8_t key_to_hash[33];
   uint64_t len;
@@ -1216,7 +1253,8 @@ TEST_CASE_METHOD(TestFixture, "AES_DKG V2 ZMQ test", "[integration][dkg][aes-dkg
   SAFE_CHAR_BUF(encr_sshare_check, BUF_LEN)
   strncpy(encr_sshare_check, secretShare.c_str(), ECDSA_SKEY_LEN - 1);
 
-  REQUIRE(DKGIntegrationTestSupport::xorDecryptDHV2(derived_key, encr_sshare_check, message) == 0);
+  REQUIRE(DKGIntegrationTestSupport::xorDecryptDHV2(
+              derived_key, encr_sshare_check, message) == 0);
 
   libBLS::algebra::FrScalar share = libBLS::algebra::FrScalar::fromString(
       string(message.data()), libBLS::algebra::Base::HEXA);
