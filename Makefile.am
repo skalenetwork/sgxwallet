@@ -108,11 +108,9 @@ bin_PROGRAMS = \
     sgxwallet \
     sgx_util
 
-# Test binaries are built only when configure receives --enable-tests.
-# They are never installed.
-TEST_BINARIES = \
-    unit_tests \
-    integration_tests
+# Test binary is built only when configure receives --enable-tests.
+# It is never installed.
+TEST_BINARIES = tests
 
 # Only build test binaries when tests are enabled.
 if BUILD_TESTS
@@ -298,44 +296,12 @@ $(sgxwallet_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 
 
 ########################################################################
-# Unit tests
+# Test binary
 ########################################################################
 
-UNIT_TEST_SOURCES = \
-    tests/unit/DBDecryptorTests.cpp
-
-UNIT_TEST_SUPPORT_SOURCES = \
-    $(DB_REENCRYPT_SRC)
-
-unit_tests_SOURCES = \
+tests_SOURCES = \
     tests/test_main.cpp \
-    $(UNIT_TEST_SOURCES) \
-    $(UNIT_TEST_SUPPORT_SOURCES)
-
-unit_tests_CPPFLAGS = $(AM_CPPFLAGS)
-
-unit_tests_CXXFLAGS = \
-    $(AM_CXXFLAGS) \
-    -ffunction-sections \
-    -fdata-sections
-
-unit_tests_LDFLAGS = \
-    $(GMP_LDFLAGS) \
-    -L./libBLS/deps/deps_inst/x86_or_x64/lib \
-    -Wl,--gc-sections
-
-unit_tests_LDADD = \
-    -l:libjsoncpp.a \
-    -l:libgmp.a \
-    -lstdc++fs
-
-
-########################################################################
-# Integration test binary
-########################################################################
-
-integration_tests_SOURCES = \
-    tests/integration/test_main.cpp \
+    tests/unit/DBDecryptorTests.cpp \
     tests/integration/IntegrationTestSupport.cpp \
     tests/integration/server/ServerHealthIntegrationTests.cpp \
     tests/integration/keys/ECDSAIntegrationTests.cpp \
@@ -348,19 +314,19 @@ integration_tests_SOURCES = \
     tests/integration/db/DBReencryptIntegrationTests.cpp \
     $(TEST_COMMON_SRC)
 
-integration_tests_CPPFLAGS = \
+tests_CPPFLAGS = \
     $(AM_CPPFLAGS) \
     -DSGX_ENABLE_TEST_ECALLS
 
-nodist_integration_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
+nodist_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
 
-EXTRA_integration_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
+EXTRA_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
 
-integration_tests_LDADD = $(sgxwallet_LDADD)
+tests_LDADD = $(sgxwallet_LDADD)
 
 # Explicit target builds do not force Automake BUILT_SOURCES before object
 # compilation, but these sources include secure_enclave_u.h through sgxwallet.h.
-$(integration_tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
+$(tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 
 
 ########################################################################
@@ -368,18 +334,15 @@ $(integration_tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 ########################################################################
 
 DEFAULT_CHECK_FILTER = ~[performance]
-UNIT_CHECK_FILTER = [unit]$(DEFAULT_CHECK_FILTER)
-INTEGRATION_CHECK_FILTER = [integration]$(DEFAULT_CHECK_FILTER)
 PERFORMANCE_CHECK_FILTER = [performance]
 
 if BUILD_TESTS
 run-tests:
-	./unit_tests "$(UNIT_CHECK_FILTER)" --reporter compact
-	./integration_tests "$(INTEGRATION_CHECK_FILTER)" --reporter compact
+	./tests "$(DEFAULT_CHECK_FILTER)" --reporter compact
 	./tests/backward_compatibility/run.sh
 
 check-performance:
-	./integration_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
+	./tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
 else
 run-tests:
 	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
