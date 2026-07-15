@@ -110,7 +110,7 @@ bin_PROGRAMS = \
 
 # Test binary is built only when configure receives --enable-tests.
 # It is never installed.
-TEST_BINARIES = tests
+TEST_BINARIES = sgxwallet_tests
 
 # Only build test binaries when tests are enabled.
 if BUILD_TESTS
@@ -299,7 +299,7 @@ $(sgxwallet_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 # Test binary
 ########################################################################
 
-tests_SOURCES = \
+sgxwallet_tests_SOURCES = \
     tests/test_main.cpp \
     tests/unit/DBDecryptorTests.cpp \
     tests/integration/IntegrationTestSupport.cpp \
@@ -314,19 +314,19 @@ tests_SOURCES = \
     tests/integration/db/DBReencryptIntegrationTests.cpp \
     $(TEST_COMMON_SRC)
 
-tests_CPPFLAGS = \
+sgxwallet_tests_CPPFLAGS = \
     $(AM_CPPFLAGS) \
     -DSGX_ENABLE_TEST_ECALLS
 
-nodist_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
+nodist_sgxwallet_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
 
-EXTRA_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
+EXTRA_sgxwallet_tests_DEPENDENCIES = $(EXTRA_sgxwallet_DEPENDENCIES)
 
-tests_LDADD = $(sgxwallet_LDADD)
+sgxwallet_tests_LDADD = $(sgxwallet_LDADD)
 
 # Explicit target builds do not force Automake BUILT_SOURCES before object
 # compilation, but these sources include secure_enclave_u.h through sgxwallet.h.
-$(tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
+$(sgxwallet_tests_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 
 
 ########################################################################
@@ -338,11 +338,11 @@ PERFORMANCE_CHECK_FILTER = [performance]
 
 if BUILD_TESTS
 run-tests:
-	./tests "$(DEFAULT_CHECK_FILTER)" --reporter compact
+    ./sgxwallet_tests "$(DEFAULT_CHECK_FILTER)" --reporter compact
 	./tests/backward_compatibility/run.sh
 
 check-performance:
-	./tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
+    ./sgxwallet_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
 else
 run-tests:
 	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
