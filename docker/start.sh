@@ -48,7 +48,7 @@ if [[ "$1" == "-t" ]]; then
 echo "Test run requested"
 sleep 5
 echo "Running default test suite"
-make check
+make run-tests
 else
 if [[ -f "/var/hwmode" ]]; then
     /usr/src/sdk/check_firewall.py

@@ -373,7 +373,7 @@ INTEGRATION_CHECK_FILTER = [integration]$(DEFAULT_CHECK_FILTER)
 PERFORMANCE_CHECK_FILTER = [performance]
 
 if BUILD_TESTS
-check-local:
+run-tests:
 	./unit_tests "$(UNIT_CHECK_FILTER)" --reporter compact
 	./integration_tests "$(INTEGRATION_CHECK_FILTER)" --reporter compact
 	./tests/backward_compatibility/run.sh
@@ -381,7 +381,7 @@ check-local:
 check-performance:
 	./integration_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
 else
-check-local:
+run-tests:
 	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
 	@false
 
