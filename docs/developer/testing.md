@@ -28,22 +28,17 @@ Container test runs use `make run-tests`, which executes the already-built
 test binaries without requiring their build dependencies to remain in the
 image after cleanup.
 
-The legacy Python wrapper is still available during migration:
-```
-python3 testw.py
-```
-
 
 ## Run individual tests
 To run an individual integration test named `[test_ex]`:
 ```bash
-./integration_tests [test_ex]
+./sgxwallet_tests "[integration][test_ex]" --reporter compact
 ```
 
 To run a full category:
 ```bash
-./unit_tests "[unit]~[performance]" --reporter compact
-./integration_tests "[integration]~[performance]" --reporter compact
+./sgxwallet_tests "[unit]~[performance]" --reporter compact
+./sgxwallet_tests "[integration]~[performance]" --reporter compact
 ```
 
 We follow the convention of tagging tests by type, component, and scenario, for
@@ -55,26 +50,25 @@ example `[integration][te][te-decryption-share]`.
 
 ## DB Unit Tests
 
-DB unit tests are built by the top-level Autotools build. They do not require
-an SGX enclave.
+DB unit tests are part of `sgxwallet_tests` and can be filtered by tag.
 
 ```bash
-make unit_tests
-./unit_tests "[unit]~[performance]" --reporter compact
+make sgxwallet_tests
+./sgxwallet_tests "[unit][DBReencryptor]~[performance]" --reporter compact
 ```
 
 ## DB Reencryption Integration Tests
 
 DB reencryption integration tests exercise the full SGX enclave plus LevelDB
-reencryption path. They are part of `integration_tests`; `--enable-tests`
+reencryption path. They are part of `sgxwallet_tests`; `--enable-tests`
 automatically selects the required test-only enclave interface.
 
 ```bash
 source /opt/intel/sgxsdk/environment
 ./autoconf.bash
 ./configure --enable-tests --enable-sgx-simulation
-make integration_tests
-./integration_tests "[integration][db]~[performance]" --reporter compact
+make sgxwallet_tests
+./sgxwallet_tests "[integration][db]~[performance]" --reporter compact
 ```
 
 If running against hardware SGX instead of simulation mode, omit
@@ -97,4 +91,4 @@ To run the tests, please follow the instructions in the [performance-tests/READM
 
 # Backward Compatibility Tests
 
-To test that new sgxwallet versions with udpated backends are still compatible with old versions, [see this document](../../tests/backward_compatibility/README.md)
+To test that new sgxwallet versions with updated backends are still compatible with old versions, [see this document](../../tests/backward_compatibility/README.md)
