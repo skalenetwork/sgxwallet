@@ -338,11 +338,11 @@ PERFORMANCE_CHECK_FILTER = [performance]
 
 if BUILD_TESTS
 run-tests:
-    ./sgxwallet_tests "$(DEFAULT_CHECK_FILTER)" --reporter compact
+	./sgxwallet_tests "$(DEFAULT_CHECK_FILTER)" --reporter compact
 	./tests/backward_compatibility/run.sh
 
 check-performance:
-    ./sgxwallet_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
+	./sgxwallet_tests "$(PERFORMANCE_CHECK_FILTER)" --reporter compact
 else
 run-tests:
 	@echo "Tests were not built. Reconfigure with --enable-tests, then run make check."
