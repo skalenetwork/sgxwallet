@@ -41,8 +41,7 @@ std::string httpsRequest(const std::string &url, const std::string &jsonData,
           << "-H 'content-type:application/json;' -v ";
 
   if (!keyPath.empty() && !certPath.empty()) {
-    command << "--key " << keyPath << " "
-            << "--key " << keyPath << " --cert " << certPath << " ";
+    command << "--key " << keyPath << " --cert " << certPath << " ";
   }
 
   command << url << " -k ";

@@ -43,8 +43,7 @@ autom4te.cache
 
 # Local build outputs without extensions
 /sgxwallet
-/integration_tests
-/unit_tests
+/sgxwallet_tests
 /tests/backward_compatibility/api_golden_generator
 /tests/backward_compatibility/api_validator
 

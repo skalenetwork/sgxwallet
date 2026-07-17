@@ -23,6 +23,7 @@
 #include "tests/TestConstants.h"
 #include "third_party/catch.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -81,16 +82,16 @@ TEST_CASE_METHOD(TestFixture, "Exportable / non-exportable keys",
 
   exportable = 1;
 
-  encPrivKey.clear();
-  errMsg.clear();
-  pubKeyX.clear();
-  pubKeyY.clear();
+  std::fill(encPrivKey.begin(), encPrivKey.end(), 0);
+  std::fill(errMsg.begin(), errMsg.end(), 0);
+  std::fill(pubKeyX.begin(), pubKeyX.end(), 0);
+  std::fill(pubKeyY.begin(), pubKeyY.end(), 0);
 
   status = trustedGenerateEcdsaKey(eid, &errStatus, errMsg.data(), &exportable,
                                    encPrivKey.data(), &encLen, pubKeyX.data(),
                                    pubKeyY.data());
 
-  decrypted_key.clear();
+  std::fill(decrypted_key.begin(), decrypted_key.end(), 0);
   status = trustedDecryptKey(eid, &errStatus, errMsg.data(), encPrivKey.data(),
                              encLen, decrypted_key.data());
   REQUIRE(errStatus == 0);

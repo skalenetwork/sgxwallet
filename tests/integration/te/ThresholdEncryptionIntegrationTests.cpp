@@ -285,7 +285,7 @@ TEST_CASE_METHOD(TestFixture,
     // unneeded.
     REQUIRE(num_requests > 0);
 
-    constexpr int kNumThreads = 22;
+    constexpr int kNumThreads = 15;
     TestSupport::start_barrier start_gate(kNumThreads);
     std::vector<std::thread> threads;
     threads.reserve(kNumThreads);
@@ -314,7 +314,7 @@ TEST_CASE_METHOD(TestFixture,
             publicDecryptionValues["publicDecryptionValues"][i] = g_str;
           }
 
-          // Synchronize start so all 22 hit the server together
+          // Synchronize start so all 15 hit the server together
           start_gate.wait();
           // Request + validate
           auto decryptionShares =

@@ -8,10 +8,8 @@
 
 
 # Script will be executed in the project root.
-TEST_EXECUTABLE="./integration_tests"
+TEST_EXECUTABLE="./sgxwallet_tests"
 TEST_FILTER="[integration]~[performance]"
-
-cd ..
 
 echo "Memory Leak Detection Results"
 echo "============================"
@@ -37,5 +35,3 @@ if [ -n "$leak_info" ]; then
 else
     echo "No memory leaks detected"
 fi
-# go back to where it was
-cd -
