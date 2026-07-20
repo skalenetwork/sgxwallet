@@ -30,6 +30,7 @@ rm -rf "scripts/${DAL_DIR}"
 
 case "${BUILD_TYPE}" in
 	main)
+    	cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
 		touch /var/hwmode
 		./configure
 		make -j"${JOBS}"
