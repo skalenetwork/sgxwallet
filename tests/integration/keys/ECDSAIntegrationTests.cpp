@@ -269,9 +269,8 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa",
                 [](std::thread &t) { t.join(); });
 }
 
-TEST_CASE_METHOD(
-    TestFixture, "ECDSA global_random concurrency distinctness",
-    "[integration][ecdsa][security]") {
+TEST_CASE_METHOD(TestFixture, "ECDSA global_random concurrency distinctness",
+                 "[integration][ecdsa][security]") {
   constexpr int kThreads = 8;
   // A single burst of threads may not overlap on the RNG on any given run, so
   // repeat the burst several times to raise the odds of real contention. The
