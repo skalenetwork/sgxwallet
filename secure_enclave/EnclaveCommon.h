@@ -64,8 +64,6 @@ EXTERNC void LOG_TRACE(const char *_msg);
 
 extern uint32_t globalLogLevel_;
 
-extern unsigned char *globalRandom;
-
 extern domain_parameters curve;
 
 #define SAFE_FREE(__X__)                                                       \

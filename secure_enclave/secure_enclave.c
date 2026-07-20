@@ -118,8 +118,6 @@ void *reallocate_function(void *, size_t, size_t);
 
 void free_function(void *, size_t);
 
-unsigned char *globalRandom = NULL;
-
 // -----------------------------------------------------------------------------------------
 // Helper functions
 // -----------------------------------------------------------------------------------------
@@ -216,15 +214,17 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 
     enclave_init();
 
-    LOG_INFO("Reading random");
+    LOG_INFO("Verifying hardware RNG");
 
-    globalRandom = calloc(32,1);
-
-    int ret = sgx_read_rand(globalRandom, 32);
+    // Fail fast at init if the hardware RNG is unavailable, rather than
+    // discovering it later when generating keys. get_global_random reads from
+    // the same source on every call and also fails closed.
+    unsigned char rngSelfTest[32];
+    int ret = sgx_read_rand(rngSelfTest, sizeof(rngSelfTest));
 
     if(ret != SGX_SUCCESS)
     {
-        LOG_ERROR("sgx_read_rand failed. Aboring enclave.");
+        LOG_ERROR("sgx_read_rand failed. Aborting enclave.");
         abort();
     }
 
@@ -244,7 +244,6 @@ void trustedEnclaveInit(uint64_t _logLevel) {
 }
 
 void trustedEnclaveClear() {
-    free(globalRandom);
     enclave_clear();
 }
 
@@ -284,28 +283,21 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
     return (void *) nptr;
 }
 
-volatile uint64_t counter = 0;
-
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
-    char errString[ENCLAVE_BUF_LEN];
-    int status;
-    int *errStatus = &status;
+    // Randomness is read directly from the CPU's RDRAND-backed DRNG on every
+    // call. This is stateless and thread-safe: the hardware serves a distinct
+    // value per request across all logical cores, so concurrent callers can
+    // never observe the same output.
+    if (_randBuff == NULL || _size < 1 || _size > 32) {
+        LOG_ERROR("get_global_random called with invalid arguments. Aborting enclave.");
+        abort();
+    }
 
-    INIT_ERROR_STATE
-
-    CHECK_STATE(_size <= 32)
-    CHECK_STATE(_randBuff);
-
-    const uint64_t counter_snapshot = ++counter;
-    sgx_sha_state_handle_t shaStateHandle;
-    CHECK_STATE(sgx_sha256_init(&shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_update(globalRandom, 32, shaStateHandle) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_update((const uint8_t *)&counter_snapshot, sizeof(counter_snapshot), shaStateHandle) == SGX_SUCCESS);
-    unsigned char tmpBuffer[32];
-    CHECK_STATE(sgx_sha256_get_hash(shaStateHandle, (sgx_sha256_hash_t *)tmpBuffer) == SGX_SUCCESS);
-    CHECK_STATE(sgx_sha256_close(shaStateHandle) == SGX_SUCCESS);
-    
-    memcpy(_randBuff, tmpBuffer, _size);
+    sgx_status_t status = sgx_read_rand(_randBuff, _size);
+    if (status != SGX_SUCCESS) {
+        LOG_ERROR("sgx_read_rand failed in get_global_random. Aborting enclave.");
+        abort();
+    }
 }
 
 static void sealHexSEK(int *errStatus, char *errString,

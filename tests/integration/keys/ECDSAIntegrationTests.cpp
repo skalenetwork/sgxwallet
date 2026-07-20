@@ -26,17 +26,54 @@
 #include "zmq_src/ZMQClient.h"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <future>
 #include <json/value.h>
 #include <jsonrpccpp/client/connectors/httpclient.h>
 #include <jsonrpccpp/common/exception.h>
 #include <memory>
+#include <set>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 using namespace jsonrpc;
 using namespace std;
+
+namespace {
+
+struct EcdsaKeygenResult {
+  sgx_status_t status = SGX_ERROR_UNEXPECTED;
+  int errStatus = -1;
+  string pubKeyX;
+  string pubKeyY;
+};
+
+EcdsaKeygenResult generateEcdsaKeyOnceForRaceCheck() {
+  vector<char> errMsg(BUF_LEN, 0);
+  int errStatus = 0;
+  vector<uint8_t> encrPrivKey(BUF_LEN, 0);
+  vector<char> pubKeyX(BUF_LEN, 0);
+  vector<char> pubKeyY(BUF_LEN, 0);
+  uint64_t encLen = 0;
+  int exportable = 0;
+
+  sgx_status_t status = trustedGenerateEcdsaKey(
+      eid, &errStatus, errMsg.data(), &exportable, encrPrivKey.data(), &encLen,
+      pubKeyX.data(), pubKeyY.data());
+
+  EcdsaKeygenResult result;
+  result.status = status;
+  result.errStatus = errStatus;
+  result.pubKeyX = string(pubKeyX.data());
+  result.pubKeyY = string(pubKeyY.data());
+  return result;
+}
+
+} // namespace
 
 class TestFixtureZMQSign {
 public:
@@ -230,4 +267,54 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa",
 
   std::for_each(workers.begin(), workers.end(),
                 [](std::thread &t) { t.join(); });
+}
+
+TEST_CASE_METHOD(
+    TestFixture, "ECDSA global_random concurrency distinctness",
+    "[integration][ecdsa][security]") {
+  constexpr int kThreads = 8;
+  // A single burst of threads may not overlap on the RNG on any given run, so
+  // repeat the burst several times to raise the odds of real contention. The
+  // distinctness invariant holds across every attempt, not just within one.
+  constexpr int kAttempts = 15;
+
+  // Accumulates every public key produced across all attempts.
+  set<pair<string, string>> seenPubKeys;
+
+  for (int attempt = 0; attempt < kAttempts; ++attempt) {
+    INFO("attempt " << attempt);
+
+    atomic<bool> start{false};
+
+    auto worker = [&start]() {
+      while (!start.load(memory_order_acquire)) {
+        this_thread::yield();
+      }
+      return generateEcdsaKeyOnceForRaceCheck();
+    };
+
+    vector<future<EcdsaKeygenResult>> futures;
+    futures.reserve(kThreads);
+    for (int i = 0; i < kThreads; ++i) {
+      futures.push_back(async(launch::async, worker));
+    }
+    // Release all threads at once to maximize simultaneous pressure on the RNG.
+    start.store(true, memory_order_release);
+
+    for (auto &f : futures) {
+      REQUIRE(f.wait_for(chrono::seconds(10)) == future_status::ready);
+
+      EcdsaKeygenResult r = f.get();
+      REQUIRE(r.status == SGX_SUCCESS);
+      REQUIRE(r.errStatus == SGX_SUCCESS);
+      REQUIRE_FALSE(r.pubKeyX.empty());
+      REQUIRE_FALSE(r.pubKeyY.empty());
+
+      // Fail if this exact key was already produced by any other thread, in
+      // this attempt or an earlier one — that is a nonce/key collision.
+      auto pubKey = make_pair(r.pubKeyX, r.pubKeyY);
+      REQUIRE(seenPubKeys.count(pubKey) == 0);
+      seenPubKeys.insert(pubKey);
+    }
+  }
 }
