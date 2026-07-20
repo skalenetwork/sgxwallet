@@ -152,17 +152,22 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
         goto signature_sign_start;
 
 
-    //Calculate s
-    //s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
-    //number_theory_inverse(t1, k, curve->n);//t1 = k¯¹ mod n
-    mpz_invert(t1, k, curve->n);
-    mpz_mul(t2, private_key, r);    //t2 = d*r
-    mpz_add(t3, message, t2);    //t3 = e+t2
-    mpz_mod(t4, t3, curve->n);    //t2 = t3 mod n
-    mpz_mul(t5, t4, t1);        //t3 = t2 * t1
-    mpz_mod(s, t5, curve->n);    //s = t3 mod n
+    // Calculate s
+    // s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
+    
+    if (mpz_invert(t1, k, curve->n) == 0) // t1 = k¯¹ mod n
+        goto signature_sign_start; // should never happen - only a defensive check
 
-    //Calculate v
+    mpz_mul(t2, private_key, r);    // t2 = d*r
+    mpz_add(t3, message, t2);       // t3 = e+t2
+    mpz_mod(t4, t3, curve->n);      // t4 = t3 mod n
+    mpz_mul(t5, t4, t1);            // t5 = t4 * t1
+    mpz_mod(s, t5, curve->n);       // s = t5 mod n
+
+    if (mpz_sgn(s) == 0) // Start over if s=0
+        goto signature_sign_start;
+
+    // Calculate v
 
     mpz_mod_ui(rem, Q->y, 2);
 
