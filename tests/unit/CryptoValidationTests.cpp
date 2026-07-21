@@ -167,9 +167,8 @@ TEST_CASE("validate - a key shorter than 64 hex chars is rejected",
           "[unit][CryptoTools][validateScalar]") {
   REQUIRE(thrownStatus([] { validateBls("abcd"); }) ==
           BLS_IMPORT_INVALID_KEY_SHARE);
-  REQUIRE(thrownStatus([] {
-            validateBls(BLS_ORDER_MINUS_1_HEX.substr(1));
-          }) == BLS_IMPORT_INVALID_KEY_SHARE);
+  REQUIRE(thrownStatus([] { validateBls(BLS_ORDER_MINUS_1_HEX.substr(1)); }) ==
+          BLS_IMPORT_INVALID_KEY_SHARE);
 }
 
 TEST_CASE("validate - a key longer than 64 hex chars is rejected",

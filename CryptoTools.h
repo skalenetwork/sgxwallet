@@ -46,7 +46,8 @@ std::vector<std::string> splitString(const char *coeffs, const char symbol);
 
 // alt_bn128 scalar field order r, decimal (upper bound for BLS key shares).
 constexpr const char *ALT_BN128_ORDER_DEC =
-    "21888242871839275222246405745257275088548364400416034343698204186575808495617";
+    "21888242871839275222246405745257275088548364400416034343698204186575808495"
+    "617";
 
 // secp256k1 group order n, hex (upper bound for ECDSA key shares).
 constexpr const char *SECP256K1_ORDER_HEX =
@@ -61,8 +62,8 @@ std::string normalizeHexInput(const std::string &value);
 // exclusive upper bound; keyKind is used in the error message (e.g. "BLS key
 // share").
 std::string normalizeAndValidateScalarHex(const std::string &rawKey,
-                                           const char *orderStr, int orderBase,
-                                           int errCode,
-                                           const std::string &keyKind);
+                                          const char *orderStr, int orderBase,
+                                          int errCode,
+                                          const std::string &keyKind);
 
 #endif // SGXWALLET_CRYPTOTOOLS_H

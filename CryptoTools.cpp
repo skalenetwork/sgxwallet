@@ -100,9 +100,9 @@ std::string normalizeHexInput(const std::string &value) {
 }
 
 std::string normalizeAndValidateScalarHex(const std::string &rawKey,
-                                           const char *orderStr, int orderBase,
-                                           int errCode,
-                                           const std::string &keyKind) {
+                                          const char *orderStr, int orderBase,
+                                          int errCode,
+                                          const std::string &keyKind) {
   const std::string normalizedKey = normalizeHexInput(rawKey);
   if (normalizedKey.size() != 64) {
     throw SGXException(errCode,
