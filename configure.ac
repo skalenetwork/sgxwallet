@@ -18,14 +18,19 @@ AC_PROG_RANLIB
 
 SGX_INIT()
 
-AC_ARG_ENABLE([sgx-test-ecalls],
-	[AS_HELP_STRING([--enable-sgx-test-ecalls],
-		[Build test-only enclave ECALL interface])],
-	[enable_sgx_test_ecalls=$enableval],
-	[enable_sgx_test_ecalls=no])
+# Tests are opt-in so production builds do not compile test binaries.
+AC_ARG_ENABLE([tests],
+	[AS_HELP_STRING([--enable-tests],
+		[Build test binaries (default: no)])],
+	[enable_tests=$enableval],
+	[enable_tests=no])
+AM_CONDITIONAL([BUILD_TESTS],
+	[test "$enable_tests" = "yes"])
 
+# Test ECALLs are an implementation detail of a test build.
+# Only activate them if tests are enabled.
 AM_CONDITIONAL([SGX_ENABLE_TEST_ECALLS],
-	[test "x$enable_sgx_test_ecalls" = "xyes"])
+	[test "$enable_tests" = "yes"])
 
 gmpdir=${PWD}/gmp-build
 tgmpdir=${PWD}/tgmp-build

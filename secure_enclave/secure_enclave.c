@@ -1298,32 +1298,6 @@ void trustedGenDkgSecretV3(int *errStatus, char *errString,
     LOG_INFO("SGX call completed");
 }
 
-void
-trustedDecryptDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secret,
-                           uint64_t enc_len,
-                           uint8_t *decrypted_dkg_secret) {
-    LOG_INFO(__FUNCTION__);
-    INIT_ERROR_STATE
-
-    CHECK_STATE(encrypted_dkg_secret);
-    CHECK_STATE(decrypted_dkg_secret);
-
-    uint8_t  type;
-    uint8_t  exportable;
-
-    int status = AES_decrypt(encrypted_dkg_secret, enc_len, (char *) decrypted_dkg_secret,
-                             3072, &type, &exportable);
-
-    CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d")
-
-    SET_SUCCESS
-
-    clean:
-    ;
-    LOG_INFO(__FUNCTION__ );
-    LOG_INFO("SGX call completed");
-}
-
 
 void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encrypted_poly, uint64_t enc_len) {
     LOG_INFO(__FUNCTION__);
@@ -2130,6 +2104,32 @@ void trustedGenerateBLSKey(int *errStatus, char *errString, int *isExportable,
 }
 
 #ifdef SGX_ENABLE_TEST_ECALLS
+
+void trustedDecryptDkgSecret(int *errStatus, char *errString,
+                             uint8_t *encrypted_dkg_secret,
+                             uint64_t enc_len,
+                             uint8_t *decrypted_dkg_secret) {
+    LOG_INFO(__FUNCTION__);
+    INIT_ERROR_STATE
+
+    CHECK_STATE(encrypted_dkg_secret);
+    CHECK_STATE(decrypted_dkg_secret);
+
+    uint8_t  type;
+    uint8_t  exportable;
+
+    int status = AES_decrypt(encrypted_dkg_secret, enc_len, (char *) decrypted_dkg_secret,
+                             3072, &type, &exportable);
+
+    CHECK_STATUS2("aes decrypt data - encrypted_dkg_secret failed with status %d")
+
+    SET_SUCCESS
+
+    clean:
+    ;
+    LOG_INFO(__FUNCTION__ );
+    LOG_INFO("SGX call completed");
+}
 
 void trustedTestDecryptAndMatch(int *errStatus, char *errString,
                                 const char *sek_hex,
