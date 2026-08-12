@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 
 #include "secure_enclave_t.h"
+#include "sgx_error.h"
 #include "sgx_tcrypto.h"
 #include "sgx_tseal.h"
 #include <sgx_tgmp.h>
@@ -220,7 +221,7 @@ void trustedEnclaveInit(uint64_t _logLevel) {
     // discovering it later when generating keys. get_global_random reads from
     // the same source on every call and also fails closed.
     unsigned char rngSelfTest[32];
-    int ret = sgx_read_rand(rngSelfTest, sizeof(rngSelfTest));
+    sgx_status_t ret = sgx_read_rand(rngSelfTest, sizeof(rngSelfTest));
 
     if(ret != SGX_SUCCESS)
     {
@@ -286,8 +287,8 @@ void *reallocate_function(void *ptr, size_t osize, size_t nsize) {
 void get_global_random(unsigned char *_randBuff, uint64_t _size) {
     // Randomness is read directly from the CPU's RDRAND-backed DRNG on every
     // call. This is stateless and thread-safe: the hardware serves a distinct
-    // value per request across all logical cores, so concurrent callers can
-    // never observe the same output.
+    // value per request across all logical cores. It is cryptographically unlikely
+    // that two threads will receive the same value
     if (_randBuff == NULL || _size < 1 || _size > 32) {
         LOG_ERROR("get_global_random called with invalid arguments. Aborting enclave.");
         abort();
