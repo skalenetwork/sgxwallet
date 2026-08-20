@@ -1,10 +1,7 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh
-
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 # Install Intel SGX SDK and PSW
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx
@@ -31,7 +28,7 @@ RUN apt update && \
     apt install -yq apt-utils && \
     apt install -yq --no-install-recommends vim telnet ca-certificates perl \
         alien uuid-dev libxml2-dev ccache \
-        yasm libprocps-dev texinfo libsnappy-dev \
+        yasm libproc2-dev texinfo libsnappy-dev \
         graphviz doxygen libgnutls28-dev libgcrypt20-dev && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
@@ -39,6 +36,9 @@ RUN apt update && \
     ln -s /usr/bin/ccache /usr/local/bin/g++ && \
     ln -s /usr/bin/ccache /usr/local/bin/cc && \
     ln -s /usr/bin/ccache /usr/local/bin/c++
+
+ENV CC="/usr/bin/gcc-11" \
+    CXX="/usr/bin/g++-11"
 
 # build all sgxwallet deps
 WORKDIR /usr/src/sdk/scripts

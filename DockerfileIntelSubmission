@@ -1,20 +1,15 @@
 # Stage 1: Builder
-FROM ubuntu:22.04 as builder
+FROM ubuntu:24.04 AS builder
 
 # ---- Install build packages ----
 COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh
-
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 # ---- Build Intel SGX SDK & PSW ----
 RUN git clone -b sgx_2.25 --depth 1 https://github.com/intel/linux-sgx && \
     cd linux-sgx && make -j$(nproc) preparation
 
 WORKDIR /linux-sgx
-COPY . .
-
 RUN make sdk_install_pkg_no_mitigation
 
 WORKDIR /opt/intel
@@ -24,14 +19,11 @@ WORKDIR /linux-sgx
 RUN make -j$(nproc) psw_install_pkg
 
 # Stage 2: Final
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # ---- Install build packages ----
 COPY scripts/install_packages.sh /install_packages.sh
 RUN chmod +x /install_packages.sh && /install_packages.sh && rm -rf /var/lib/apt/lists/*
-
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb && rm -f libssl1.1_*.deb
 
 # ---- Install Intel SGX SDK & PSW ----
 WORKDIR /opt/intel
@@ -50,9 +42,9 @@ RUN apt update && \
     apt install -yq apt-utils && \
     apt install -yq --no-install-recommends ca-certificates perl \
         alien uuid-dev libxml2-dev ccache \
-        yasm libprocps-dev \
+        yasm libproc2-dev \
         libgnutls28-dev libgcrypt20-dev \
-        curl secure-delete python3-pip && \
+        curl secure-delete python3-venv && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \
     ln -s /usr/bin/ccache /usr/local/bin/gcc && \
@@ -61,7 +53,12 @@ RUN apt update && \
     ln -s /usr/bin/ccache /usr/local/bin/c++ && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir requests torpy
+ENV CC="/usr/bin/gcc-11" \
+    CXX="/usr/bin/g++-11"
+ENV PATH="/opt/sgxwallet-venv/bin:${PATH}"
+RUN python3 -m venv /opt/sgxwallet-venv && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir requests torpy
 
 # ---- Build dependencies, project, and clean up ----
 RUN bash ./scripts/docker_build_main.sh --build-type=intel-submission
