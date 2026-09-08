@@ -28,7 +28,7 @@ RUN apt update && \
     apt install -yq apt-utils && \
     apt install -yq --no-install-recommends vim telnet ca-certificates perl \
         alien uuid-dev libxml2-dev ccache \
-        yasm libproc2-dev texinfo libsnappy-dev \
+        yasm texinfo libsnappy-dev \
         graphviz doxygen libgnutls28-dev libgcrypt20-dev && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
     ln -s /usr/bin/ccache /usr/local/bin/clang++ && \

@@ -33,9 +33,9 @@ source /opt/intel/oneapi/setvars.sh
 
 #### C. Set debug symbol flag for SGX
 
-Edit `secure_enclave/Makefile.am` and add `-g` flag to `AMM_CPPFLAGS` like so:
+Edit `secure_enclave/Makefile.am` and add `-g` flag to `AM_CPPFLAGS` like so:
 ```make
-AM_CPPFLAGS += -g -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -I./third_party/SCIPR -I../third_party/SCIPR -I../sgx-sdk-build/sgxsdk/include/libcxx 
+AM_CPPFLAGS += -g -Wall -Wno-implicit-function-declaration $(TGMP_CPPFLAGS) -DMCL -I../libBLS/deps/mcl/include -I../sgx-sdk-build/sgxsdk/include/libcxx 
 ```
 
 Compile the project.

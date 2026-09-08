@@ -42,7 +42,7 @@ RUN apt update && \
     apt install -yq apt-utils && \
     apt install -yq --no-install-recommends ca-certificates perl \
         alien uuid-dev libxml2-dev ccache \
-        yasm libproc2-dev \
+        yasm \
         libgnutls28-dev libgcrypt20-dev \
         curl secure-delete python3-venv && \
     ln -s /usr/bin/ccache /usr/local/bin/clang && \
