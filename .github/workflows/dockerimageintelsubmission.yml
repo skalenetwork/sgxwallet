@@ -4,16 +4,14 @@ on:
   push:
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-24.04
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - name: Fail, if older Github Actions machine. Click "Re-run jobs"
-        run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: submodule update
         run: git submodule update --init --recursive
       - name: build and deploy test image
@@ -44,7 +42,6 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         if: |    
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
           github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
@@ -52,7 +49,5 @@ jobs:
         run : |
           echo "Branch $BRANCH"
           echo "Using cached version $VERSION"
-          export RELEASE=true
-          echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
           bash ./scripts/publish_image.sh sgxwallet_intelsubmission
