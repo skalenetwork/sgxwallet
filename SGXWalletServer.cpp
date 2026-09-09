@@ -37,6 +37,7 @@
 #include "sgxwallet_common.h"
 
 #include "BLSCrypto.h"
+#include "CryptoTools.h"
 #include "DKGCrypto.h"
 #include "ECDSACrypto.h"
 #include "LevelDB.h"
@@ -259,19 +260,8 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare,
                          string(__FUNCTION__) + ":Invalid BLS key name");
     }
 
-    string hashTmp = _keyShare;
-    if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
-      hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
-    }
-
-    if (!checkHex(hashTmp)) {
-      throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE,
-                         string(__FUNCTION__) +
-                             ":Invalid BLS key share, please use hex");
-    }
-
     encryptedKeyShareHex = encryptBLSKeyShare2Hex(
-        &errStatus, (char *)errMsg.data(), hashTmp.c_str());
+        &errStatus, (char *)errMsg.data(), _keyShare.c_str());
 
     if (errStatus != 0) {
       throw SGXException(errStatus, string(__FUNCTION__) + ":" + errMsg.data());
@@ -340,10 +330,7 @@ Json::Value SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName,
                          string(__FUNCTION__) + ":Invalid t/n parameters");
     }
 
-    string hashTmp = _messageHash;
-    if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
-      hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
-    }
+    string hashTmp = normalizeHexInput(_messageHash);
 
     if (!checkHex(hashTmp)) {
       throw SGXException(INVALID_BLS_HEX,
@@ -377,18 +364,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
                              ":Invalid ECDSA import key name");
     }
 
-    string hashTmp = _keyShare;
-    if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
-      hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
-    }
-
-    if (!checkHex(hashTmp)) {
-      throw SGXException(INVALID_ECDSA_IMPORT_HEX,
-                         string(__FUNCTION__) +
-                             ":Invalid ECDSA key share, please use hex");
-    }
-
-    string encryptedKey = encryptECDSAKey(hashTmp);
+    string encryptedKey = encryptECDSAKey(_keyShare);
 
     writeDataToDB(_keyShareName, encryptedKey);
 
@@ -446,11 +422,8 @@ SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName,
   checkForDuplicate(ecdsaRequests, ecdsaRequestsLock, _keyName, _messageHash);
 
   try {
-    string hashTmp = _messageHash;
-    if (hashTmp[0] == '0' && (hashTmp[1] == 'x' || hashTmp[1] == 'X')) {
-      hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
-    }
-    while (hashTmp[0] == '0') {
+    string hashTmp = normalizeHexInput(_messageHash);
+    while (!hashTmp.empty() && hashTmp[0] == '0') {
       hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 1);
     }
 

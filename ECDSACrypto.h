@@ -36,6 +36,8 @@ string getECDSAPubKey(const std::string &_encryptedKeyHex);
 vector<string> ecdsaSignHash(const std::string &encryptedKeyHex,
                              const char *hashHex, int base);
 
+// Validates the key share — throws SGXException unless it is a scalar in
+// (0, secp256k1 order); accepts an optional 0x prefix — then encrypts it.
 string encryptECDSAKey(const string &key);
 
 #endif // SGXD_ECDSACRYPTO_H

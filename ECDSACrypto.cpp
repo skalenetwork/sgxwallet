@@ -228,9 +228,13 @@ vector<string> ecdsaSignHash(const std::string &encryptedKeyHex,
 }
 
 string encryptECDSAKey(const string &_key) {
+  const std::string normalizedKey = normalizeAndValidateScalarHex(
+      _key, SECP256K1_ORDER_HEX, 16, INVALID_ECDSA_IMPORT_HEX,
+      "ECDSA key share");
+
   vector<char> key(BUF_LEN, 0);
-  for (size_t i = 0; i < _key.size(); ++i) {
-    key[i] = _key[i];
+  for (size_t i = 0; i < normalizedKey.size(); ++i) {
+    key[i] = normalizedKey[i];
   }
 
   vector<uint8_t> encryptedKey(BUF_LEN, 0);

@@ -44,4 +44,26 @@ EXTERNC bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin,
 
 std::vector<std::string> splitString(const char *coeffs, const char symbol);
 
+// alt_bn128 scalar field order r, decimal (upper bound for BLS key shares).
+constexpr const char *ALT_BN128_ORDER_DEC =
+    "21888242871839275222246405745257275088548364400416034343698204186575808495"
+    "617";
+
+// secp256k1 group order n, hex (upper bound for ECDSA key shares).
+constexpr const char *SECP256K1_ORDER_HEX =
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
+
+// Strips an optional leading "0x"/"0X" prefix from a hex string.
+std::string normalizeHexInput(const std::string &value);
+
+// Normalizes rawKey (strips 0x), then verifies it is exactly 64 hex characters
+// and a scalar in the open range (0, order); returns the normalized key.
+// Throws SGXException(errCode, ...) otherwise. orderStr/orderBase give the
+// exclusive upper bound; keyKind is used in the error message (e.g. "BLS key
+// share").
+std::string normalizeAndValidateScalarHex(const std::string &rawKey,
+                                          const char *orderStr, int orderBase,
+                                          int errCode,
+                                          const std::string &keyKind);
+
 #endif // SGXWALLET_CRYPTOTOOLS_H
