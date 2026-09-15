@@ -427,6 +427,30 @@ public:
           result.toStyledString());
   }
 
+  Json::Value getServerOptions() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getServerOptions", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
+
+  Json::Value getIssuedCertificatesInfo() {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("getIssuedCertificatesInfo", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
+
   ////CSRManagerServer
 
   Json::Value getUnsignedCSRs() {

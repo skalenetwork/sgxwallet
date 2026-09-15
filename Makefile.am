@@ -145,6 +145,7 @@ COMMON_SRC = \
     Log.cpp \
     TECrypto.cpp \
     SGXWalletServer.cpp \
+    IssuedCertificates.cpp \
     SGXRegistrationServer.cpp \
     CSRManagerServer.cpp \
     BLSCrypto.cpp \
@@ -302,8 +303,12 @@ $(sgxwallet_OBJECTS): $(ENCLAVE_UNTRUSTED_SRC)
 sgxwallet_tests_SOURCES = \
     tests/test_main.cpp \
     tests/unit/DBDecryptorTests.cpp \
+    tests/unit/ZMQMessageTests.cpp \
+    tests/unit/ServerOptionsTests.cpp \
+    tests/unit/IssuedCertificatesTests.cpp \
     tests/integration/IntegrationTestSupport.cpp \
     tests/integration/server/ServerHealthIntegrationTests.cpp \
+    tests/integration/server/ZMQAuthIntegrationTests.cpp \
     tests/integration/keys/ECDSAIntegrationTests.cpp \
     tests/integration/keys/BLSIntegrationTests.cpp \
     tests/integration/keys/KeyManagementIntegrationTests.cpp \

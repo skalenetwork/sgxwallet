@@ -42,6 +42,8 @@ using namespace std;
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+struct initConfig;
+
 class SGXWalletServer : public AbstractStubServer {
   // used to control number of max allowed parallel tasks
   // Else, default policy can limit to number of CPU cores
@@ -163,6 +165,10 @@ public:
 
   virtual Json::Value getServerVersion();
 
+  virtual Json::Value getServerOptions();
+
+  virtual Json::Value getIssuedCertificatesInfo();
+
   virtual Json::Value deleteBlsKey(const std::string &name);
 
   virtual Json::Value getSecretShareV2(const string &_polyName,
@@ -257,6 +263,14 @@ public:
   static Json::Value getServerStatusImpl();
 
   static Json::Value getServerVersionImpl();
+
+  static Json::Value getServerOptionsImpl(bool _authenticatedCaller);
+
+  [[nodiscard]] static Json::Value
+  serverOptionsToJson(const initConfig &_config, size_t _sgxThreadPoolSize,
+                      bool _includeBuild);
+
+  static Json::Value getIssuedCertificatesInfoImpl();
 
   static Json::Value deleteBlsKeyImpl(const std::string &name);
 

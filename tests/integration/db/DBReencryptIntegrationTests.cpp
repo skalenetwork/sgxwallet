@@ -73,6 +73,10 @@ bool isSEKEncryptedPayloadKey(std::string_view key) {
     return true;
   }
 
+  if (WalletDBKeys::isOwnerKey(key)) {
+    return false;
+  }
+
   for (std::size_t i = 0;
        i < WalletDBKeys::SEK_ENCRYPTED_PAYLOAD_KEY_PREFIX_COUNT; ++i) {
     if (startsWith(key, WalletDBKeys::SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[i])) {
@@ -342,6 +346,13 @@ public:
                                        enclave.encryptWithSEK("poly payload"));
     LevelDB::getLevelDb()->writeString("DKG_DH_KEY_test",
                                        enclave.encryptWithSEK("dh payload"));
+
+    for (const char *ownerRow :
+         {"NEK:test:OWNER", "BLS_KEY:test:OWNER", "POLY:test:OWNER"}) {
+      LevelDB::getLevelDb()->writeString(
+          ownerRow,
+          "-----BEGIN CERTIFICATE-----\nowner\n-----END CERTIFICATE-----\n");
+    }
   }
 };
 

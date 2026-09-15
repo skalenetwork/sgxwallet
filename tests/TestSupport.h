@@ -20,6 +20,7 @@
 #pragma once
 
 #include <condition_variable>
+#include <functional>
 #include <libBLS/backends/algebra.hpp>
 #include <mutex>
 #include <random>
@@ -30,6 +31,9 @@
 namespace TestSupport {
 
 extern std::default_random_engine randGen;
+
+// Runs _call with a line waiting on stdin; false if _call consumed it.
+bool leavesStdinUnread(const std::function<void()> &_call);
 
 std::string
 stringFromFr(libBLS::algebra::FrScalar &el,
