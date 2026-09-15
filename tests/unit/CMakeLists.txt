@@ -1,6 +1,7 @@
 # Each unit test file is listed here. Add new test files to this list.
 add_executable(unit_tests
     DBDecryptorTests.cpp
+    IssuedCertificatesTests.cpp
 )
 
 # Share the Catch2 main() defined in tests/test_main.cpp so that each
@@ -9,6 +10,7 @@ target_link_libraries(unit_tests PRIVATE test_suite)
 
 target_sources(unit_tests PRIVATE
     ${REPO_ROOT}/DBReencrypt.cpp
+    ${REPO_ROOT}/IssuedCertificates.cpp
     ${REPO_ROOT}/ServerDataChecker.cpp
     ${REPO_ROOT}/SGXException.cpp
 )
@@ -24,8 +26,12 @@ target_link_options(unit_tests PRIVATE -Wl,--gc-sections)
 
 target_link_libraries(unit_tests PRIVATE
     ${REPO_ROOT}/libBLS/deps/deps_inst/x86_or_x64/lib/libjsoncpp.a
+    ${REPO_ROOT}/libBLS/deps/deps_inst/x86_or_x64/lib/libssl.a
+    ${REPO_ROOT}/libBLS/deps/deps_inst/x86_or_x64/lib/libcrypto.a
     ${REPO_ROOT}/libBLS/deps/deps_inst/x86_or_x64/lib/libgmp.a
     stdc++fs
+    dl
+    pthread
 )
 
 # Register each TEST_CASE individually with CTest for per-test output.
