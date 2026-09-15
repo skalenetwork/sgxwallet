@@ -39,9 +39,11 @@
 #include "BLSCrypto.h"
 #include "DKGCrypto.h"
 #include "ECDSACrypto.h"
+#include "IssuedCertificates.h"
 #include "LevelDB.h"
 #include "SGXException.h"
 #include "TECrypto.h"
+#include "WalletConstants.h"
 #include "WalletDBKeys.h"
 
 #include "SGXWalletServer.h"
@@ -937,6 +939,105 @@ Json::Value SGXWalletServer::getServerVersionImpl() {
   RETURN_SUCCESS(result)
 }
 
+Json::Value SGXWalletServer::serverOptionsToJson(const initConfig &_config,
+                                                 size_t _sgxThreadPoolSize,
+                                                 bool _includeBuild) {
+  Json::Value flags(Json::objectValue);
+  flags["logLevel"] = _config.logLevel;
+  flags["enclaveLogLevel"] = _config.enclaveLogLevel;
+  flags["useHTTPS"] = _config.useHTTPS;
+  flags["autoconfirm"] = _config.autoconfirm;
+  flags["enterBackupKey"] = _config.enterBackupKey;
+  flags["reencryptDatabaseWithNewSEK"] = _config.reencryptDatabaseWithNewSEK;
+  flags["checkCert"] = _config.checkCert;
+  flags["checkZMQSig"] = _config.checkZMQSig;
+  flags["autoSign"] = _config.autoSign;
+  flags["generateTestKeys"] = _config.generateTestKeys;
+  flags["checkKeyOwnership"] = _config.checkKeyOwnership;
+  flags["threadPoolSize"] = Json::UInt64(_config.threadPoolSize);
+
+  Json::Value effective(Json::objectValue);
+  effective["rpcPort"] = _config.useHTTPS ? WalletConstants::HTTPS_RPC_PORT
+                                          : WalletConstants::HTTP_RPC_PORT;
+  effective["rpcClientCertificateRequired"] =
+      _config.useHTTPS && _config.checkCert;
+  effective["zmqKeyOwnershipEnforced"] =
+      _config.checkZMQSig && _config.checkKeyOwnership;
+  effective["jsonRpcKeyOwnershipEnforced"] = false;
+  effective["sgxThreadPoolSize"] = Json::UInt64(_sgxThreadPoolSize);
+
+  Json::Value options(Json::objectValue);
+  options["flags"] = flags;
+  options["effective"] = effective;
+  if (_includeBuild) {
+    Json::Value build(Json::objectValue);
+#ifdef SGX_HW_SIM
+    build["sgxSimulation"] = true;
+#else
+    build["sgxSimulation"] = false;
+#endif
+    build["sgxDebugLaunch"] = SGX_DEBUG_FLAG != 0;
+    options["build"] = build;
+  }
+  return options;
+}
+
+Json::Value SGXWalletServer::getServerOptionsImpl(bool _authenticatedCaller) {
+  COUNT_STATISTICS
+  INIT_RESULT(result)
+
+  try {
+    const auto config = getRunningConfig();
+    if (!config) {
+      throw SGXException(SERVER_NOT_INITIALIZED,
+                         "sgxwallet is starting or stopping");
+    }
+    const auto options = serverOptionsToJson(
+        *config, threadPool.isInitialized() ? threadPool.size : 0,
+        _authenticatedCaller);
+    for (const auto &name : options.getMemberNames()) {
+      result[name] = options[name];
+    }
+  }
+  HANDLE_SGX_EXCEPTION(result)
+
+  RETURN_SUCCESS(result)
+}
+
+static string isoUtc(int64_t _unixTime) {
+  const time_t seconds = _unixTime;
+  tm utc{};
+  char text[sizeof("YYYY-MM-DDTHH:MM:SSZ")];
+  CHECK_STATE(gmtime_r(&seconds, &utc) &&
+              strftime(text, sizeof(text), "%Y-%m-%dT%H:%M:%SZ", &utc) > 0);
+  return text;
+}
+
+Json::Value SGXWalletServer::getIssuedCertificatesInfoImpl() {
+  COUNT_STATISTICS
+  INIT_RESULT(result)
+
+  try {
+    const auto summary = IssuedCertificates::read();
+    Json::Value newest;
+    if (summary.newest) {
+      newest["serial"] = summary.newest->serial;
+      newest["sha256"] = summary.newest->sha256Hex;
+      newest["notBefore"] = isoUtc(summary.newest->notBefore);
+      newest["notBeforeUnix"] = Json::Int64(summary.newest->notBefore);
+      newest["notAfter"] = isoUtc(summary.newest->notAfter);
+      newest["status"] = string(1, summary.newest->status);
+    }
+    result["certificatesNumber"] = Json::UInt64(summary.clientCertificates);
+    result["serverCertificatesNumber"] =
+        Json::UInt64(summary.serverCertificates);
+    result["newestCertificate"] = newest;
+  }
+  HANDLE_SGX_EXCEPTION(result)
+
+  RETURN_SUCCESS(result)
+}
+
 Json::Value SGXWalletServer::deleteBlsKeyImpl(const string &name) {
   COUNT_STATISTICS
   spdlog::info("Entering {}", __FUNCTION__);
@@ -1558,6 +1659,15 @@ Json::Value SGXWalletServer::getServerStatus() { return getServerStatusImpl(); }
 
 Json::Value SGXWalletServer::getServerVersion() {
   return getServerVersionImpl();
+}
+
+Json::Value SGXWalletServer::getServerOptions() {
+  const auto config = getRunningConfig();
+  return getServerOptionsImpl(config && config->useHTTPS && config->checkCert);
+}
+
+Json::Value SGXWalletServer::getIssuedCertificatesInfo() {
+  return getIssuedCertificatesInfoImpl();
 }
 
 Json::Value SGXWalletServer::deleteBlsKey(const string &name) {

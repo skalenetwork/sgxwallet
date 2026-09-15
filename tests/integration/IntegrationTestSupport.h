@@ -29,6 +29,8 @@ std::string httpsRequest(const std::string &url, const std::string &jsonData,
                          bool expectedError, const std::string &keyPath = "",
                          const std::string &certPath = "");
 
+Json::Value parseJson(const std::string &_text);
+
 bool endsWith(const std::string &str, const std::string &suffix);
 
 initConfig makeTestInitConfig(bool useHTTPS, bool checkCert, bool checkZMQSig,

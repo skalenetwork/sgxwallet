@@ -35,7 +35,7 @@ class TestFixtureNoResetFromBackup {
 public:
   TestFixtureNoResetFromBackup() {
     initConfig config =
-        makeTestInitConfig(false, false, false, true, true, true);
+        makeTestInitConfig(false, false, true, true, true, true);
 
     initAll(config);
   }
@@ -49,7 +49,7 @@ public:
 class TestFixtureNoReset {
 public:
   TestFixtureNoReset() {
-    initConfig config = makeTestInitConfig(false, false, false, true, true);
+    initConfig config = makeTestInitConfig(false, false, true, true, true);
 
     initAll(config);
   }

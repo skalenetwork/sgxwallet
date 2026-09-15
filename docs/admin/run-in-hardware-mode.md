@@ -51,12 +51,12 @@ sgxwallet operates on the following network ports:
 
 -   1026 (https)
 -   1027 (http for initial SSL certification signing)
--   1028 (localhost for admin )
--   1029 (http only operation)
--   1030 (localhost for informational requests)
+-   1028 (localhost for admin)
+-   1029 (http only operation, with `-n` or `-0`)
+-   1030 (http for informational requests, all interfaces, no authentication)
 -   1031 (zmq)
 
-If operating with a firewall, please make sure these ports are open so clients are able to connect to the server.
+Open 1026 and 1031 only to the nodes that use this wallet. 1027 must be reachable only by the nodes that register with this wallet. 1028 listens on localhost only. 1030 listens on all interfaces without authentication and lists key names, so firewall it.
 
 ### Command Flags
 
@@ -74,6 +74,18 @@ If operating with a firewall, please make sure these ports are open so clients a
 | `-e`     | Check whether one who is trying to access the key is the same user who created it (Ownership is checked via SSL certificate for now. Deleting old SSL     certificates and trying to access the keys created before will cause the error!) |
 | `-T`     | Generate test keys. |
 | `-t<N>`  | Set the thread pool size (`<N>`) for intra-request parallelization in SGX operations that support it (e.g., `getDecryptionShares`). `N` must be an integer within the range \([1, 32]\) <br>**Example:** `-t8` for 8 threads, `-t16` for 16 threads. |
+
+### Verify the running configuration
+
+From sgxwallet 1.11.0, `getServerOptions` reports the options the wallet runs with, including whether ZMQ key ownership (`-e`) is enforced (`effective.zmqKeyOwnershipEnforced`):
+
+```bash
+curl --cert sgx.crt --key sgx.key -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getServerOptions","params":{}}' -H 'content-type:application/json;' https://<SGX_SERVER_IP>:1026 -k
+```
+
+`docker/start.sh` passes at most six arguments to sgxwallet and treats a leading `-t` as a request to run the test suite, so do not put `-t` first in `command:`.
+
+Run the wallet with stdin detached, as the compose files do, and with `-y`, so that no prompt can block it.
 
 ### Healthcheck
 

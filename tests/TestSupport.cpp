@@ -21,10 +21,34 @@
 
 #include <ctime>
 #include <gmp.h>
+#include <stdexcept>
+#include <unistd.h>
 
 using namespace std;
 
 default_random_engine TestSupport::randGen((unsigned int)time(0));
+
+bool TestSupport::leavesStdinUnread(const function<void()> &_call) {
+  int fds[2];
+  if (pipe(fds) != 0 || write(fds[1], "x\n", 2) != 2) {
+    throw runtime_error("Could not prepare stdin for the test");
+  }
+  close(fds[1]);
+  struct Restore {
+    int savedStdin;
+    int pipeRead;
+    ~Restore() {
+      dup2(savedStdin, STDIN_FILENO);
+      close(savedStdin);
+      close(pipeRead);
+    }
+  } restore{dup(STDIN_FILENO), fds[0]};
+  dup2(fds[0], STDIN_FILENO);
+
+  _call();
+  char pending[2];
+  return read(STDIN_FILENO, pending, sizeof(pending)) == 2;
+}
 
 string TestSupport::stringFromFr(libBLS::algebra::FrScalar &el,
                                  libBLS::algebra::Base base) {

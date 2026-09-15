@@ -103,3 +103,5 @@ Show server configuration reported by info server:
 - In production, this usually means running it in the `sgxwallet` container.
 - It executes one action per call and exits immediately after printing output.
 - If `sgxwallet` is not running (or ports are unavailable), the command fails with a JSON-RPC/connection error.
+- Before 1.11.0, `sgx_util -c` printed autoSign and checkCerts swapped.
+- Key listings and counts (`-a`, `-n`) include the `<keyName>:OWNER` rows that ZMQ key ownership (`-e`) writes.

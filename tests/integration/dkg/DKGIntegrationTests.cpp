@@ -68,7 +68,7 @@ public:
     std::call_once(initOnce, [] {
       resetTestDB();
 
-      initConfig config = makeTestInitConfig(false, false, false, true, true);
+      initConfig config = makeTestInitConfig(false, false, true, true, true);
 
       initAll(config);
     });
