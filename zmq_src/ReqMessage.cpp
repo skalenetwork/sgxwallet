@@ -133,6 +133,27 @@ Json::Value generateDKGPolyReqMessage::process() {
   return result;
 }
 
+Json::Value generateDKGPolyV3ReqMessage::process() {
+  auto polyName = getStringRapid("polyName");
+  auto t = getInt64Rapid("t");
+  auto previousBLSPrivateKeyName = getStringRapid("previousBLSPrivateKeyName");
+  if (checkKeyOwnership &&
+      !isKeyByOwner(previousBLSPrivateKeyName, getStringRapid("cert"))) {
+    spdlog::error("Cert {} try to access key {} which does not belong to it",
+                  getStringRapid("cert"), previousBLSPrivateKeyName);
+    throw std::invalid_argument("Only owner of the key can access it");
+  }
+  auto result = SGXWalletServer::generateDKGPolyV3Impl(
+      polyName, previousBLSPrivateKeyName, t);
+  if (checkKeyOwnership && result["status"] == 0) {
+    auto cert = getStringRapid("cert");
+    spdlog::info("Cert {} creates key {}", cert, polyName);
+    addKeyByOwner(polyName, cert);
+  }
+  result["type"] = ZMQMessage::GENERATE_DKG_POLY_V3_RSP;
+  return result;
+}
+
 Json::Value getVerificationVectorReqMessage::process() {
   auto polyName = getStringRapid("polyName");
   if (checkKeyOwnership && !isKeyByOwner(polyName, getStringRapid("cert"))) {
@@ -200,6 +221,37 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
     addKeyByOwner(blsKeyName, cert);
   }
   result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
+  return result;
+}
+
+Json::Value createBLSPrivateKeyV3ReqMessage::process() {
+  auto blsKeyName = getStringRapid("blsKeyName");
+  auto ethKeyName = getStringRapid("ethKeyName");
+  auto polyName = getStringRapid("polyName", true);
+  auto secretContributions = getJsonValueRapid("secretContributions");
+  auto t = getInt64Rapid("t");
+  auto n = getInt64Rapid("n");
+  if (checkKeyOwnership) {
+    auto cert = getStringRapid("cert");
+    if (!isKeyByOwner(ethKeyName, cert)) {
+      spdlog::error("Cert {} try to access key {} which does not belong to it",
+                    cert, ethKeyName);
+      throw std::invalid_argument("Only owner of the key can access it");
+    }
+    if (!polyName.empty() && !isKeyByOwner(polyName, cert)) {
+      spdlog::error("Cert {} try to access key {} which does not belong to it",
+                    cert, polyName);
+      throw std::invalid_argument("Only owner of the key can access it");
+    }
+  }
+  auto result = SGXWalletServer::createBLSPrivateKeyV3Impl(
+      blsKeyName, ethKeyName, polyName, secretContributions, t, n);
+  if (checkKeyOwnership && result["status"] == 0) {
+    auto cert = getStringRapid("cert");
+    spdlog::info("Cert {} creates key {}", cert, blsKeyName);
+    addKeyByOwner(blsKeyName, cert);
+  }
+  result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_V3_RSP;
   return result;
 }
 

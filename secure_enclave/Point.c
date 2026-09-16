@@ -85,6 +85,40 @@ int point_set_hex(point p, const char *x, const char *y)
 	return point_set_str(p,x,y,16);
 }
 
+bool point_is_on_curve(point P, domain_parameters curve)
+{
+	if (!P || !curve || P->infinity) {
+		return false;
+	}
+
+	if (mpz_sgn(P->x) < 0 || mpz_sgn(P->y) < 0 ||
+		mpz_cmp(P->x, curve->p) >= 0 || mpz_cmp(P->y, curve->p) >= 0) {
+		return false;
+	}
+
+	mpz_t left;
+	mpz_init(left);
+	mpz_t right;
+	mpz_init(right);
+	mpz_t tmp;
+	mpz_init(tmp);
+
+	number_theory_exp_modp_ui(left, P->y, 2, curve->p);
+	number_theory_exp_modp_ui(right, P->x, 3, curve->p);
+	mpz_mul(tmp, curve->a, P->x);
+	mpz_add(right, right, tmp);
+	mpz_add(right, right, curve->b);
+	mpz_mod(right, right, curve->p);
+
+	bool result = mpz_cmp(left, right) == 0;
+
+	mpz_clear(tmp);
+	mpz_clear(right);
+	mpz_clear(left);
+
+	return result;
+}
+
 /*Set point from decimal unsigned long ints*/
 void point_set_ui(point p, unsigned long int x, unsigned long int y)
 {

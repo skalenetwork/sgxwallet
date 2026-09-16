@@ -14,7 +14,9 @@
 /secure_enclave_u.c
 /secure_enclave.edl
 /am--include-marker
-/*.o
+*.o
+*.Po
+*.Plo
 /*.m4
 /missing
 /compile
@@ -23,7 +25,8 @@
 /secure_enclave.signed.so
 /sgxgmpmath
 /sgxgmppi
-/.deps
+.deps/
+.dirstamp
 /CMakeCache.txt
 /cmake_install.cmake
 /sgxd.cbp

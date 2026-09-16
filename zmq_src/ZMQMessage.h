@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -83,6 +85,10 @@ public:
   static constexpr const char *GET_PUBLIC_ECDSA_RSP = "getPublicECDSARsp";
   static constexpr const char *GENERATE_DKG_POLY_REQ = "generateDKGPolyReq";
   static constexpr const char *GENERATE_DKG_POLY_RSP = "generateDKGPolyRsp";
+  static constexpr const char *GENERATE_DKG_POLY_V3_REQ =
+      "generateDKGPolyV3Req";
+  static constexpr const char *GENERATE_DKG_POLY_V3_RSP =
+      "generateDKGPolyV3Rsp";
   static constexpr const char *GET_VV_REQ = "getVerificationVectorReq";
   static constexpr const char *GET_VV_RSP = "getVerificationVectorRsp";
   static constexpr const char *GET_SECRET_SHARE_REQ = "getSecretShareReq";
@@ -91,6 +97,10 @@ public:
   static constexpr const char *DKG_VERIFY_RSP = "dkgVerificationRsp";
   static constexpr const char *CREATE_BLS_PRIVATE_REQ = "createBLSPrivateReq";
   static constexpr const char *CREATE_BLS_PRIVATE_RSP = "createBLSPrivateRsp";
+  static constexpr const char *CREATE_BLS_PRIVATE_V3_REQ =
+      "createBLSPrivateV3Req";
+  static constexpr const char *CREATE_BLS_PRIVATE_V3_RSP =
+      "createBLSPrivateV3Rsp";
   static constexpr const char *GET_BLS_PUBLIC_REQ = "getBLSPublicReq";
   static constexpr const char *GET_BLS_PUBLIC_RSP = "getBLSPublicRsp";
   static constexpr const char *GET_ALL_BLS_PUBLIC_REQ = "getAllBLSPublicReq";
@@ -129,10 +139,12 @@ public:
     ENUM_GENERATE_ECDSA_REQ,
     ENUM_GET_PUBLIC_ECDSA_REQ,
     ENUM_GENERATE_DKG_POLY_REQ,
+    ENUM_GENERATE_DKG_POLY_V3_REQ,
     ENUM_GET_VV_REQ,
     ENUM_GET_SECRET_SHARE_REQ,
     ENUM_DKG_VERIFY_REQ,
     ENUM_CREATE_BLS_PRIVATE_REQ,
+    ENUM_CREATE_BLS_PRIVATE_V3_REQ,
     ENUM_GET_BLS_PUBLIC_REQ,
     ENUM_GET_ALL_BLS_PUBLIC_REQ,
     ENUM_COMPLAINT_RESPONSE_REQ,
@@ -153,10 +165,12 @@ public:
     ENUM_GENERATE_ECDSA_RSP,
     ENUM_GET_PUBLIC_ECDSA_RSP,
     ENUM_GENERATE_DKG_POLY_RSP,
+    ENUM_GENERATE_DKG_POLY_V3_RSP,
     ENUM_GET_VV_RSP,
     ENUM_GET_SECRET_SHARE_RSP,
     ENUM_DKG_VERIFY_RSP,
     ENUM_CREATE_BLS_PRIVATE_RSP,
+    ENUM_CREATE_BLS_PRIVATE_V3_RSP,
     ENUM_GET_BLS_PUBLIC_RSP,
     ENUM_GET_ALL_BLS_PUBLIC_RSP,
     ENUM_COMPLAINT_RESPONSE_RSP,
@@ -173,6 +187,8 @@ public:
   explicit ZMQMessage(shared_ptr<rapidjson::Document> &_d) : d(_d){};
 
   string getStringRapid(const char *_name);
+
+  string getStringRapid(const char *_name, bool optional);
 
   uint64_t getInt64Rapid(const char *_name);
 

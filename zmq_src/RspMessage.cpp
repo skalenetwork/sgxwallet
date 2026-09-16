@@ -49,6 +49,8 @@ Json::Value getPublicECDSARspMessage::process() { assert(false); }
 
 Json::Value generateDKGPolyRspMessage::process() { assert(false); }
 
+Json::Value generateDKGPolyV3RspMessage::process() { assert(false); }
+
 Json::Value getVerificationVectorRspMessage::process() { assert(false); }
 
 Json::Value getSecretShareRspMessage::process() { assert(false); }
@@ -56,6 +58,8 @@ Json::Value getSecretShareRspMessage::process() { assert(false); }
 Json::Value dkgVerificationRspMessage::process() { assert(false); }
 
 Json::Value createBLSPrivateKeyRspMessage::process() { assert(false); }
+
+Json::Value createBLSPrivateKeyV3RspMessage::process() { assert(false); }
 
 Json::Value getBLSPublicRspMessage::process() { assert(false); }
 

@@ -5,6 +5,8 @@
 
 apt update
 apt install -y --no-install-recommends build-essential \
+    gcc-11 \
+    g++-11 \
     ca-certificates \
     ocaml \
     ocamlbuild \

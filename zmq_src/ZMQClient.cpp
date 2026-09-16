@@ -367,6 +367,20 @@ bool ZMQClient::generateDKGPoly(const string &polyName, int t) {
   return result->getStatus() == 0;
 }
 
+bool ZMQClient::generateDKGPolyV3(const string &polyName,
+                                  const string &previousBLSPrivateKeyName,
+                                  int t) {
+  Json::Value p;
+  p["type"] = ZMQMessage::GENERATE_DKG_POLY_V3_REQ;
+  p["polyName"] = polyName;
+  p["previousBLSPrivateKeyName"] = previousBLSPrivateKeyName;
+  p["t"] = t;
+  auto result =
+      dynamic_pointer_cast<generateDKGPolyV3RspMessage>(doRequestReply(p));
+  CHECK_STATE(result);
+  return result->getStatus() == 0;
+}
+
 Json::Value ZMQClient::getVerificationVector(const string &polyName, int t) {
   Json::Value p;
   p["type"] = ZMQMessage::GET_VV_REQ;
@@ -427,6 +441,27 @@ bool ZMQClient::createBLSPrivateKey(const string &blsKeyName,
   p["n"] = n;
   auto result =
       dynamic_pointer_cast<createBLSPrivateKeyRspMessage>(doRequestReply(p));
+  CHECK_STATE(result);
+  return result->getStatus() == 0;
+}
+
+bool ZMQClient::createBLSPrivateKeyV3(const string &blsKeyName,
+                                      const string &ethKeyName,
+                                      const string &polyName,
+                                      const Json::Value &secretContributions,
+                                      int t, int n) {
+  Json::Value p;
+  p["type"] = ZMQMessage::CREATE_BLS_PRIVATE_V3_REQ;
+  p["ethKeyName"] = ethKeyName;
+  if (!polyName.empty()) {
+    p["polyName"] = polyName;
+  }
+  p["blsKeyName"] = blsKeyName;
+  p["secretContributions"] = secretContributions;
+  p["t"] = t;
+  p["n"] = n;
+  auto result =
+      dynamic_pointer_cast<createBLSPrivateKeyV3RspMessage>(doRequestReply(p));
   CHECK_STATE(result);
   return result->getStatus() == 0;
 }

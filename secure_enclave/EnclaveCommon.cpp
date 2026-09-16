@@ -104,14 +104,6 @@ Fr *keyFromString(const char *_keyStringHex) {
       return nullptr;
     }
 
-    // Log the actual key value in decimal for debugging
-    char keyBuf[1024];
-    size_t len = val.getStr(keyBuf, sizeof(keyBuf), 10);
-    if (len > 0) {
-      LOG_DEBUG("keyFromString: final key value (dec) = ");
-      LOG_DEBUG(keyBuf);
-    }
-
     ret = new Fr(val);
   } catch (...) {
     LOG_ERROR("Unknown throwable");
@@ -165,13 +157,6 @@ bool enclave_sign(const char *_keyString, const char *_hashXString,
     LOG_ERROR("Null argument");
     return false;
   }
-
-  LOG_DEBUG("enclave_sign: key_hex = ");
-  LOG_DEBUG(_keyString);
-  LOG_DEBUG("enclave_sign: hashX = ");
-  LOG_DEBUG(_hashXString);
-  LOG_DEBUG("enclave_sign: hashY = ");
-  LOG_DEBUG(_hashYString);
 
   try {
     key = keyFromString(_keyString);

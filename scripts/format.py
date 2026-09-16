@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 
-import os
 import subprocess
+from pathlib import Path
 
-os.chdir("..")
-topDir = os.getcwd()
+topDir = Path(__file__).resolve().parent.parent
 print(topDir)
 
 cpp_extensions = (".cpp", ".cxx", ".cc", ".h", ".hpp", ".hxx", ".ipp")
-src_dirs = (topDir, 
-            topDir + "/zmq_src", 
-            topDir + "/secure_enclave", 
-            topDir + "/tests/backward_compatibility",
-            topDir + "/tests/unit",
-            topDir + "/tests/integration/db")
+src_dirs = (
+    (topDir, False),
+    (topDir / "zmq_src", False),
+    (topDir / "secure_enclave", False),
+    (topDir / "tests", True),
+)
 
-for directory in src_dirs:
+for directory, recursive in src_dirs:
     print(directory)
-    for file in os.listdir(directory):
-            if os.path.isfile(os.path.join(directory,file)) and file.endswith(cpp_extensions):
-                print(file)
-                os.system("clang-format-14 -i -style=file " + directory + "/" + file)
+    files = directory.rglob("*") if recursive else directory.iterdir()
+    for file in files:
+        if file.is_file() and file.suffix in cpp_extensions:
+            print(file)
+            subprocess.run(
+                ["clang-format-14", "-i", "-style=file", str(file)], check=True
+            )

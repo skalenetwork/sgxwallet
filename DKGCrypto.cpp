@@ -22,6 +22,7 @@
 */
 
 #include <iostream>
+#include <limits>
 #include <memory>
 
 #include "SGXException.h"
@@ -128,7 +129,7 @@ libBLS::algebra::G2Point convertStringToG2(const std::string &str) {
   return libBLS::algebra::G2Point::fromString(str, libBLS::algebra::Base::HEXA);
 }
 
-string gen_dkg_poly(int _t) {
+string genDkgPolyCommon(int _t, const string &_encryptedFreeTerm) {
   vector<char> errMsg(BUF_LEN, 0);
   int errStatus = 0;
   uint64_t enc_len = 0;
@@ -137,19 +138,39 @@ string gen_dkg_poly(int _t) {
 
   sgx_status_t status = SGX_SUCCESS;
 
-  status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(),
-                               encrypted_dkg_secret.data(), &enc_len, _t);
+  if (_encryptedFreeTerm.empty()) {
+    status = trustedGenDkgSecret(eid, &errStatus, errMsg.data(),
+                                 encrypted_dkg_secret.data(), &enc_len, _t);
+  } else {
+    uint64_t encryptedFreeTermLen = 0;
+    SAFE_UINT8_BUF(encryptedFreeTerm, BUF_LEN);
+    if (!hex2carray(_encryptedFreeTerm.c_str(), &encryptedFreeTermLen,
+                    encryptedFreeTerm, BUF_LEN)) {
+      throw SGXException(GENERATE_DKGV3_POLY_INVALID_PARAMS,
+                         string(__FUNCTION__) +
+                             ":Invalid previous BLS key hex");
+    }
+
+    status = trustedGenDkgSecretV3(eid, &errStatus, errMsg.data(),
+                                   encryptedFreeTerm, encryptedFreeTermLen,
+                                   encrypted_dkg_secret.data(), &enc_len, _t);
+  }
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 
   uint64_t length = enc_len;
-  ;
 
   CHECK_STATE(encrypted_dkg_secret.size() >= length);
   vector<char> hexEncrPoly = carray2Hex(encrypted_dkg_secret.data(), length);
   string result(hexEncrPoly.data());
 
   return result;
+}
+
+string genDkgPoly(int _t) { return genDkgPolyCommon(_t); }
+
+string genDkgPolyV3(int _t, const string &_previousBLSEncryptedKey) {
+  return genDkgPolyCommon(_t, _previousBLSEncryptedKey);
 }
 
 vector<vector<string>> get_verif_vect(const string &encryptedPolyHex, int t) {
@@ -517,6 +538,65 @@ bool createBLSShareV2(const string &blsKeyName, const char *s_shares,
   status =
       trustedCreateBlsKeyV2(eid, &errStatus, errMsg.data(), s_shares, encr_key,
                             decKeyLen, encr_bls_key, &enc_bls_len);
+
+  HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
+
+  vector<char> hexBLSKey = carray2Hex(encr_bls_key, enc_bls_len);
+
+  SGXWalletServer::writeDataToDB(blsKeyName, hexBLSKey.data());
+
+  return true;
+}
+
+bool createBLSShareV3(
+    const string &blsKeyName,
+    const std::vector<SecretContribution> &secretContributions,
+    const char *encryptedKeyHex) {
+  CHECK_STATE(secretContributions.size() > 0);
+  CHECK_STATE(encryptedKeyHex);
+
+  constexpr size_t SECRET_CONTRIBUTION_HEX_LEN = 192;
+
+  // Flatten both indices and shares into contiguous buffers for enclave call
+  string encryptedSecretContributionsFlat;
+  encryptedSecretContributionsFlat.reserve(secretContributions.size() *
+                                           SECRET_CONTRIBUTION_HEX_LEN);
+
+  vector<uint8_t> contributorIndices;
+  contributorIndices.reserve(secretContributions.size());
+
+  for (const auto &secretContribution : secretContributions) {
+    CHECK_STATE(secretContribution.index <=
+                std::numeric_limits<uint8_t>::max());
+    CHECK_STATE(secretContribution.secretShare.size() ==
+                SECRET_CONTRIBUTION_HEX_LEN);
+
+    encryptedSecretContributionsFlat += secretContribution.secretShare;
+    contributorIndices.push_back(
+        static_cast<uint8_t>(secretContribution.index));
+  }
+
+  vector<char> errMsg(BUF_LEN, 0);
+  int errStatus = 0;
+
+  uint64_t decKeyLen;
+  SAFE_UINT8_BUF(encr_bls_key, BUF_LEN)
+  SAFE_UINT8_BUF(encr_key, BUF_LEN)
+
+  if (!hex2carray(encryptedKeyHex, &decKeyLen, encr_key, BUF_LEN)) {
+    throw SGXException(CREATE_BLS_SHARE_INVALID_KEY_HEX,
+                       string(__FUNCTION__) + ":Invalid encryptedKeyHex");
+  }
+
+  uint64_t enc_bls_len = 0;
+  const uint64_t contribution_count = contributorIndices.size();
+
+  sgx_status_t status = SGX_SUCCESS;
+
+  status = trustedCreateBlsKeyV3(
+      eid, &errStatus, errMsg.data(), encryptedSecretContributionsFlat.c_str(),
+      contributorIndices.data(), contribution_count, encr_key, decKeyLen,
+      encr_bls_key, &enc_bls_len);
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

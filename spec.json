@@ -92,10 +92,22 @@
   },
 
   {
+    "name": "generateDKGPolyV3",
+    "params": {
+      "polyName": "POLY:SCHAIN_ID :NODE_ID :DKG_ID",
+      "previousBLSPrivateKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID",
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345"
+    }
+  },
+
+  {
     "name": "getVerificationVector",
     "params": {
       "polyName": "p1",
-      "n": 3,
       "t": 3
     },
     "returns": {
@@ -205,6 +217,28 @@
   },
 
   {
+    "name": "createBLSPrivateKeyV3",
+    "params": {
+      "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID:",
+      "ethKeyName": "NEK:hex",
+      "polyName": "optional POLY:SCHAIN_ID :NODE_ID :DKG_ID: used only for local cleanup",
+      "secretContributions": [
+        {
+          "contributorIndex": 0,
+          "secretShare": "192_hex_chars"
+        }
+      ],
+      "n": 3,
+      "t": 3
+    },
+    "returns": {
+      "status": 0,
+      "errorMessage": "12345",
+      "blsKeyName": "key"
+    }
+  },
+
+  {
     "name": "getBLSPublicKeyShare",
     "params": {
       "blsKeyName": "BLS_KEY:SCHAIN_ID :NODE_ID :DKG_ID"
@@ -259,7 +293,7 @@
   {
     "name": "calculateAllBLSPublicKeys",
     "params": {
-      "publicShares": "123",
+      "publicShares": [],
       "n": 3,
       "t": 2
     },
@@ -268,5 +302,5 @@
       "errorMessage": "12345",
       "publicKeys": []
     }
-  },
+  }
 ]

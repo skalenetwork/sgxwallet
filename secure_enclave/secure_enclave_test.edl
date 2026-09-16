@@ -2,6 +2,7 @@
 
 enclave {
 
+    // Import all calls from common
     from "secure_enclave_common.edl" import *;
 
     trusted {
@@ -21,6 +22,15 @@ enclave {
                                 uint64_t encrypted_payload_len,
                                 [in, string] const char *expected_plaintext,
                                 [out] int *matches);
+
+        // Decrypts an encrypted DKG secret and returns plaintext to caller.
+        // This is test-only and must not be exposed in production builds.
+        public void trustedDecryptDkgSecret(
+                    [out] int *errStatus,
+                    [out, count = SMALL_BUF_SIZE] char *err_string,
+                    [in, count = 3050] uint8_t *encrypted_dkg_secret,
+                    uint64_t enc_len,
+                    [out, count = 3072] uint8_t *decrypted_dkg_secret);
     };
 
 };

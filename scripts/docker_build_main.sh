@@ -48,6 +48,8 @@ case "${BUILD_TYPE}" in
 		touch /var/hwmode
 		./configure --with-sgx-build=release
 		cd secure_enclave
+		# Explicit target builds do not force Automake BUILT_SOURCES first.
+		make secure_enclave_t.c secure_enclave_t.h
 		make secure_enclave.so -j"${JOBS}"
 		cd /usr/src/sdk/scripts
 		./sign_enclave.bash
@@ -58,15 +60,8 @@ case "${BUILD_TYPE}" in
 		;;
 	simulation)
 		cp -f secure_enclave/secure_enclave.config.xml.sim secure_enclave/secure_enclave.config.xml
-		./configure --enable-sgx-simulation --enable-sgx-test-ecalls
+		./configure --enable-tests --enable-sgx-simulation
 		make -j"${JOBS}"
-		# integration tests - require sgxwallet binary
-		make db_reencrypt_integration_tests -j"${JOBS}"
-		# new unit tests suite with cmake
-		cmake -S tests -B build-tests
-		cmake --build build-tests -j"${JOBS}"
-		# backward compatibility tests
-		make -C tests/backward_compatibility api_validator
 		;;
 	*)
 		echo "Unsupported build type: ${BUILD_TYPE}" >&2
