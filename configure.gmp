@@ -5816,7 +5816,7 @@ echo "include_mpn(\`vax/elf.m4')" >> $gmp_tmpconfigm4i
 	path="x86/pentium/mmx x86/pentium x86/mmx x86"
 	;;
       athlon64 | k8 | x86_64)
-	gcc_cflags_cpu="-mtune=k8 -mcpu=athlon -mcpu=pentiumpro -mcpu=i486 -m486"
+	gcc_cflags_cpu="-mtune=k8"
 	gcc_cflags_arch="-march=k8 -march=k8~-mno-sse2 -march=athlon -march=pentiumpro -march=pentium"
 	path="x86/k8 x86/k7/mmx x86/k7 x86/mmx x86"
 	path_64="x86_64/k8 x86_64"

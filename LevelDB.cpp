@@ -235,6 +235,10 @@ pair<string, uint64_t> LevelDB::getLatestCreatedKey() {
   int64_t latest_timestamp = 0;
   string latest_created_key_name = "";
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    if (WalletDBKeys::isOwnerKey(
+            std::string_view(it->key().data(), it->key().size()))) {
+      continue;
+    }
     if (it->value().ToString()[0] == '{') {
       // new style keys
       Json::Value key_data;

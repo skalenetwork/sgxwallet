@@ -26,6 +26,7 @@
 
 #include <mutex>
 
+#include "ServerInit.h"
 #include "abstractinfoserver.h"
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
@@ -35,10 +36,7 @@ using namespace std;
 class SGXInfoServer : public AbstractInfoServer {
   recursive_mutex m;
 
-  uint32_t logLevel_;
-  bool autoSign_;
-  bool checkCerts_;
-  bool generateTestKeys_;
+  const initConfig config;
 
   static shared_ptr<HttpServer> httpServer;
 
@@ -48,8 +46,7 @@ public:
   static shared_ptr<SGXInfoServer> getServer();
 
   SGXInfoServer(AbstractServerConnector &connector, serverVersion_t type,
-                uint32_t _logLevel, bool _autoSign, bool _checkCerts,
-                bool _generateTestKeys);
+                const initConfig &_config);
 
   virtual Json::Value getAllKeysInfo();
 
@@ -59,8 +56,7 @@ public:
 
   virtual Json::Value isKeyExist(const string &key);
 
-  static void initInfoServer(uint32_t _logLevel, bool _autoSign,
-                             bool _checkCerts, bool _generateTestKeys);
+  static void initInfoServer(const initConfig &_config);
 
   static int exitServer();
 };

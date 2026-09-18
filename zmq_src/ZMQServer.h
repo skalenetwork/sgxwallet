@@ -54,7 +54,7 @@ class ZMQServer : public Agent {
       pair<shared_ptr<ZMQMessage>, shared_ptr<zmq::message_t>>>>
       incomingQueue;
 
-  bool checkKeyOwnership = true;
+  const bool checkKeyOwnership;
 
   shared_ptr<zmq::context_t> ctx;
   shared_ptr<zmq::socket_t> socket;
@@ -64,7 +64,7 @@ class ZMQServer : public Agent {
   void doOneServerLoop();
 
 public:
-  bool checkSignature = false;
+  const bool checkSignature;
 
   static shared_ptr<ZMQServer> zmqServer;
 
