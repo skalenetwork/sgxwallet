@@ -6,17 +6,15 @@ on:
       - stable
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-24.04
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       SECRET_KEY: ${{ secrets.V2 }}
     steps:
-      - name: Fail, if older Github Actions machine. Click "Re-run jobs"
-        run: cat /proc/cpuinfo | grep avx512
       - name: Login to docker
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Submodule update
         run: git submodule update --init --recursive
       - name: Create dir for signing enclave
@@ -44,12 +42,9 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run : |
           echo "Branch $BRANCH"
           echo "Using cached version $VERSION"
-          export RELEASE=true
-          echo "::set-env name=RELEASE::$RELEASE"
           bash ./scripts/build_image.sh DockerfileRelease sgxwallet_release
           bash ./scripts/publish_image.sh sgxwallet_release
       - name: Delete secrets
