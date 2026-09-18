@@ -33,6 +33,20 @@
 #include "ZMQClient.h"
 #include "ZMQMessage.h"
 
+namespace {
+bool verifyClientCert(X509 *_cert) {
+  const unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store(
+      X509_STORE_new(), X509_STORE_free);
+  const unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> ctx(
+      X509_STORE_CTX_new(), X509_STORE_CTX_free);
+  CHECK_STATE(store && ctx);
+  const string rootCA = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+  CHECK_STATE(X509_STORE_load_locations(store.get(), rootCA.c_str(), nullptr));
+  CHECK_STATE(X509_STORE_CTX_init(ctx.get(), store.get(), _cert, nullptr));
+  return X509_verify_cert(ctx.get()) == 1;
+}
+} // namespace
+
 uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
   CHECK_STATE(_name);
   CHECK_STATE(d->HasMember(_name));
@@ -83,20 +97,6 @@ string ZMQMessage::getStringRapid(const char *_name) {
   CHECK_STATE((*d)[_name].IsString());
   return (*d)[_name].GetString();
 };
-
-namespace {
-bool verifyClientCert(X509 *_cert) {
-  const unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store(
-      X509_STORE_new(), X509_STORE_free);
-  const unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> ctx(
-      X509_STORE_CTX_new(), X509_STORE_CTX_free);
-  CHECK_STATE(store && ctx);
-  const string rootCA = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
-  CHECK_STATE(X509_STORE_load_locations(store.get(), rootCA.c_str(), nullptr));
-  CHECK_STATE(X509_STORE_CTX_init(ctx.get(), store.get(), _cert, nullptr));
-  return X509_verify_cert(ctx.get()) == 1;
-}
-} // namespace
 
 shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
                                          bool _isRequest, bool _verifySig,
