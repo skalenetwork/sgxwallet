@@ -113,6 +113,15 @@ void initUserSpace() {
 #endif
 }
 
+BuildInfo getBuildInfo() {
+#ifdef SGX_HW_SIM
+  constexpr bool simulation = true;
+#else
+  constexpr bool simulation = false;
+#endif
+  return {simulation, SGX_DEBUG_FLAG != 0};
+}
+
 uint64_t initEnclave() {
 
 #ifndef SGX_HW_SIM

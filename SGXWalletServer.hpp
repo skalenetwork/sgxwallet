@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <optional>
 #include <string_view>
 #include <tbb/global_control.h>
 #include <tbb/task_arena.h>
@@ -43,6 +44,7 @@ using namespace std;
 #define TOSTRING(x) STRINGIFY(x)
 
 struct initConfig;
+struct BuildInfo;
 
 class SGXWalletServer : public AbstractStubServer {
   // used to control number of max allowed parallel tasks
@@ -250,7 +252,7 @@ public:
 
   [[nodiscard]] static Json::Value
   serverOptionsToJson(const initConfig &_config, size_t _sgxThreadPoolSize,
-                      bool _includeBuild);
+                      const std::optional<BuildInfo> &_build);
 
   static Json::Value getIssuedCertificatesInfoImpl();
 

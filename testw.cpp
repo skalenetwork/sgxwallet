@@ -2156,15 +2156,15 @@ namespace {
 
 Json::Value serverOptions(const initConfig &_config,
                           size_t _sgxThreadPoolSize = 0,
-                          bool _includeBuild = false) {
+                          const optional<BuildInfo> &_build = nullopt) {
   return SGXWalletServer::serverOptionsToJson(_config, _sgxThreadPoolSize,
-                                              _includeBuild);
+                                              _build);
 }
 
 } // namespace
 
 TEST_CASE("Server options for the default configuration", "[server-options]") {
-  const auto withBuild = serverOptions(initConfig{}, 0, true);
+  const auto withBuild = serverOptions(initConfig{}, 0, BuildInfo{});
   REQUIRE(withBuild.getMemberNames() ==
           vector<string>{"build", "effective", "flags"});
   REQUIRE_FALSE(serverOptions(initConfig{}).isMember("build"));
@@ -2209,6 +2209,21 @@ TEST_CASE("Server options for -e, -n and partial ZMQ checks",
   const auto poolOptions = serverOptions(smallPool, 32);
   REQUIRE(poolOptions["flags"]["threadPoolSize"].asInt() == 3);
   REQUIRE(poolOptions["effective"]["sgxThreadPoolSize"].asInt() == 32);
+}
+
+TEST_CASE("Server options report the build facts they are given",
+          "[server-options]") {
+  const auto simulation =
+      serverOptions(initConfig{}, 0, BuildInfo{true, false});
+  REQUIRE(simulation["build"]["sgxSimulation"].asBool());
+  REQUIRE_FALSE(simulation["build"]["sgxDebugLaunch"].asBool());
+
+  const auto debugLaunch =
+      serverOptions(initConfig{}, 0, BuildInfo{false, true});
+  REQUIRE_FALSE(debugLaunch["build"]["sgxSimulation"].asBool());
+  REQUIRE(debugLaunch["build"]["sgxDebugLaunch"].asBool());
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxSimulation"));
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxDebugLaunch"));
 }
 
 TEST_CASE("Certificate reader never asks for a passphrase",
@@ -2736,6 +2751,10 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "Server options over HTTPS",
 #ifdef SGX_HW_SIM
   REQUIRE(options["build"]["sgxSimulation"].asBool());
 #endif
+  REQUIRE(options["build"]["sgxSimulation"].asBool() ==
+          getBuildInfo().sgxSimulation);
+  REQUIRE(options["build"]["sgxDebugLaunch"].asBool() ==
+          getBuildInfo().sgxDebugLaunch);
 
   const auto withoutCert =
       httpsRequest(RPC_ENDPOINT_HTTPS, httpsBody("getServerOptions"), true);

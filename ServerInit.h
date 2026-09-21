@@ -70,6 +70,13 @@ void exitAll();
 // every server, cleared by exitAll(). A repeated initAll() does not change it.
 std::optional<initConfig> getRunningConfig();
 
+struct BuildInfo {
+  bool sgxSimulation = false;
+  bool sgxDebugLaunch = false;
+};
+
+BuildInfo getBuildInfo();
+
 EXTERNC void initUserSpace();
 
 EXTERNC uint64_t initEnclave();
