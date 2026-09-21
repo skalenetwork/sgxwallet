@@ -206,6 +206,11 @@ bool DBReencryptor::isKeyHoldingEncryptedValue(std::string_view key) const {
     return true;
   }
 
+  // Ownership rows share the key prefixes but hold a plaintext certificate.
+  if (WalletDBKeys::isOwnerKey(key)) {
+    return false;
+  }
+
   for (size_t i = 0; i < WalletDBKeys::SEK_ENCRYPTED_PAYLOAD_KEY_PREFIX_COUNT;
        ++i) {
     if (startsWith(key, WalletDBKeys::SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[i])) {

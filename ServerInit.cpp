@@ -61,6 +61,21 @@
 
 uint32_t enclaveLogLevel = 0;
 
+namespace {
+mutex runningConfigMutex;
+optional<initConfig> runningConfig;
+
+void setRunningConfig(const optional<initConfig> &_config) {
+  const lock_guard<mutex> lock(runningConfigMutex);
+  runningConfig = _config;
+}
+} // namespace
+
+optional<initConfig> getRunningConfig() {
+  const lock_guard<mutex> lock(runningConfigMutex);
+  return runningConfig;
+}
+
 using namespace std;
 
 void systemHealthCheck() {
@@ -96,6 +111,15 @@ void initUserSpace() {
 #ifndef SGX_HW_SIM
   systemHealthCheck();
 #endif
+}
+
+BuildInfo getBuildInfo() {
+#ifdef SGX_HW_SIM
+  constexpr bool simulation = true;
+#else
+  constexpr bool simulation = false;
+#endif
+  return {simulation, SGX_DEBUG_FLAG != 0};
 }
 
 uint64_t initEnclave() {
@@ -238,9 +262,9 @@ void initAll(initConfig &_config) {
 
     SGXRegistrationServer::initRegistrationServer(_config.autoSign);
     CSRManagerServer::initCSRManagerServer();
-    SGXInfoServer::initInfoServer(_config.logLevel, _config.checkCert,
-                                  _config.autoSign, _config.generateTestKeys);
+    SGXInfoServer::initInfoServer(_config);
     ZMQServer::initZMQServer(_config.checkZMQSig, _config.checkKeyOwnership);
+    setRunningConfig(_config);
 
     sgxServerInited = true;
   } catch (SGXException &_e) {
@@ -258,6 +282,7 @@ void initAll(initConfig &_config) {
 };
 
 void exitAll() {
+  setRunningConfig(nullopt);
   SGXWalletServer::exitServer();
   SGXRegistrationServer::exitServer();
   CSRManagerServer::exitServer();

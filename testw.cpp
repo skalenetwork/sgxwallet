@@ -58,13 +58,21 @@
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.h"
 #include "TestUtils.h"
+#include "WalletDBKeys.h"
 #include "secure_enclave/TEUtils.h"
 #include "sgxwallet.h"
+#include "tests/TestSupport.h"
 #include "testw.h"
 #include "zmq_src/ZMQClient.h"
 #include "zmq_src/ZMQServer.h"
+#include <atomic>
 #include <condition_variable>
+#include <ctime>
+#include <fstream>
+#include <future>
+#include <json/json.h>
 #include <mutex>
+#include <sstream>
 
 #define PRINT_SRC_LINE cerr << "Executing line " << to_string(__LINE__) << endl;
 
@@ -187,6 +195,19 @@ public:
   }
 
   ~TestFixtureZMQSign() { TestUtils::destroyEnclave(); }
+};
+
+// Signature checks and key ownership both on, as sgxwallet -e runs them.
+class TestFixtureZMQAuth {
+public:
+  TestFixtureZMQAuth() {
+    TestUtils::resetDB();
+    initConfig config = makeTestInitConfig(false, false, true, true, true);
+
+    initAll(config);
+  }
+
+  ~TestFixtureZMQAuth() { TestUtils::destroyEnclave(); }
 };
 
 class TestFixtureNoResetFromBackup {
@@ -2130,3 +2151,682 @@ TEST_CASE_METHOD(TestFixtureZMQSign, "ZMQ-ecdsa", "[zmq-ecdsa]") {
 
 TEST_CASE_METHOD(TestFixtureNoResetFromBackup, "Backup restore",
                  "[backup-restore]") {}
+
+namespace {
+
+Json::Value serverOptions(const initConfig &_config,
+                          size_t _sgxThreadPoolSize = 0,
+                          const optional<BuildInfo> &_build = nullopt) {
+  return SGXWalletServer::serverOptionsToJson(_config, _sgxThreadPoolSize,
+                                              _build);
+}
+
+} // namespace
+
+TEST_CASE("Server options for the default configuration", "[server-options]") {
+  const auto withBuild = serverOptions(initConfig{}, 0, BuildInfo{});
+  REQUIRE(withBuild.getMemberNames() ==
+          vector<string>{"build", "effective", "flags"});
+  REQUIRE_FALSE(serverOptions(initConfig{}).isMember("build"));
+
+  for (const char *flag :
+       {"logLevel", "enclaveLogLevel", "useHTTPS", "autoconfirm",
+        "enterBackupKey", "reencryptDatabaseWithNewSEK", "checkCert",
+        "checkZMQSig", "autoSign", "generateTestKeys", "checkKeyOwnership",
+        "threadPoolSize"}) {
+    INFO(flag);
+    REQUIRE(withBuild["flags"].isMember(flag));
+  }
+  REQUIRE(withBuild["flags"]["logLevel"].asInt() == L_INFO);
+  REQUIRE(withBuild["effective"]["rpcPort"].asInt() == BASE_PORT);
+  REQUIRE(withBuild["effective"]["rpcClientCertificateRequired"].asBool());
+  REQUIRE_FALSE(withBuild["effective"]["zmqKeyOwnershipEnforced"].asBool());
+}
+
+TEST_CASE("Server options for -e, -n and partial ZMQ checks",
+          "[server-options]") {
+  initConfig withE;
+  withE.checkZMQSig = true;
+  withE.checkKeyOwnership = true;
+  REQUIRE(
+      serverOptions(withE)["effective"]["zmqKeyOwnershipEnforced"].asBool());
+
+  initConfig withN;
+  withN.useHTTPS = false;
+  const auto nOptions = serverOptions(withN);
+  REQUIRE(nOptions["flags"]["checkCert"].asBool());
+  REQUIRE_FALSE(nOptions["effective"]["rpcClientCertificateRequired"].asBool());
+  REQUIRE(nOptions["effective"]["rpcPort"].asInt() == BASE_PORT + 3);
+
+  initConfig ownershipOnly;
+  ownershipOnly.checkKeyOwnership = true;
+  REQUIRE_FALSE(
+      serverOptions(ownershipOnly)["effective"]["zmqKeyOwnershipEnforced"]
+          .asBool());
+
+  initConfig smallPool;
+  smallPool.threadPoolSize = 3;
+  const auto poolOptions = serverOptions(smallPool, 32);
+  REQUIRE(poolOptions["flags"]["threadPoolSize"].asInt() == 3);
+  REQUIRE(poolOptions["effective"]["sgxThreadPoolSize"].asInt() == 32);
+}
+
+TEST_CASE("Server options report the build facts they are given",
+          "[server-options]") {
+  const auto simulation =
+      serverOptions(initConfig{}, 0, BuildInfo{true, false});
+  REQUIRE(simulation["build"]["sgxSimulation"].asBool());
+  REQUIRE_FALSE(simulation["build"]["sgxDebugLaunch"].asBool());
+
+  const auto debugLaunch =
+      serverOptions(initConfig{}, 0, BuildInfo{false, true});
+  REQUIRE_FALSE(debugLaunch["build"]["sgxSimulation"].asBool());
+  REQUIRE(debugLaunch["build"]["sgxDebugLaunch"].asBool());
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxSimulation"));
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxDebugLaunch"));
+}
+
+TEST_CASE("Certificate reader never asks for a passphrase",
+          "[pem-no-passphrase]") {
+  const string encryptedBlock =
+      "-----BEGIN CERTIFICATE-----\n"
+      "Proc-Type: 4,ENCRYPTED\n"
+      "DEK-Info: AES-128-CBC,00112233445566778899AABBCCDDEEFF\n"
+      "\n"
+      "AAAA\n"
+      "-----END CERTIFICATE-----\n";
+
+  ERR_clear_error();
+  const bool stdinUnread = TestSupport::leavesStdinUnread([&] {
+    REQUIRE_THROWS(ZMQClient::readPublicKeyFromCertStr(encryptedBlock));
+  });
+  REQUIRE(stdinUnread);
+  REQUIRE(ERR_GET_REASON(ERR_peek_last_error()) == PEM_R_BAD_PASSWORD_READ);
+}
+
+TEST_CASE("Every mapped ZMQ message type has a builder",
+          "[zmq-message-builders]") {
+  for (const auto &entry : ZMQMessage::requests) {
+    string type = entry.first;
+    INFO(type);
+    REQUIRE(ZMQMessage::buildRequest(type, make_shared<rapidjson::Document>(),
+                                     false));
+  }
+  for (const auto &entry : ZMQMessage::responses) {
+    string type = entry.first;
+    INFO(type);
+    REQUIRE(ZMQMessage::buildResponse(type, make_shared<rapidjson::Document>(),
+                                      false));
+  }
+}
+
+namespace {
+
+const string rootCACert = "./sgx_data/cert_data/rootCA.pem";
+const string rootCAKey = "./sgx_data/cert_data/rootCA.key";
+const string otherKey = "insecure-samples/yourdomain.key";
+const string keyHex =
+    "0xe632f7fde2c90a073ec43eaa90dca7b82476bf28815450a11191484934b9c3f";
+
+string readFile(const string &_path) {
+  ifstream in(_path);
+  REQUIRE(in.good());
+  stringstream contents;
+  contents << in.rdbuf();
+  return contents.str();
+}
+
+Json::Value parseJson(const string &_text) {
+  Json::Value json;
+  string errors;
+  istringstream in(_text);
+  CHECK_STATE(
+      Json::parseFromStream(Json::CharReaderBuilder(), in, &json, &errors));
+  return json;
+}
+
+shared_ptr<EVP_PKEY> readKey(const string &_path) {
+  const unique_ptr<BIO, decltype(&BIO_free)> bio(
+      BIO_new_file(_path.c_str(), "r"), BIO_free);
+  REQUIRE(bio);
+  auto key = make_shared_evp_pkey(
+      PEM_read_bio_PrivateKey(bio.get(), nullptr, nullptr, nullptr));
+  REQUIRE(key);
+  return key;
+}
+
+shared_ptr<ZMQClient> authClient(const string &_cert, const string &_key) {
+  return make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, true, _cert, _key);
+}
+
+shared_ptr<ZMQClient> rootAuthClient() {
+  return authClient(rootCACert, rootCAKey);
+}
+
+// Returns the path of the certificate the registration server issued for _csr.
+string signCsr(const string &_csr) {
+  const auto result = SGXRegistrationServer::getServer()->SignCertificate(_csr);
+  REQUIRE(result["status"] == 0);
+  return string(CERT_DIR) + "/" + result["hash"].asString() + ".crt";
+}
+
+// Returns the path of a second client certificate issued by this wallet's CA.
+string signOtherCert() {
+  return signCsr(readFile("insecure-samples/yourdomain.csr"));
+}
+
+shared_ptr<ZMQClient> foreignClient() {
+  const string cert = "sgx_data/foreign.crt";
+  const string key = "sgx_data/foreign.key";
+  REQUIRE(system(("openssl req -x509 -newkey rsa:2048 -nodes -days 1 "
+                  "-subj /CN=Foreign -keyout " +
+                  key + " -out " + cert + " 2>/dev/null")
+                     .c_str()) == 0);
+  return authClient(cert, key);
+}
+
+// A getServerStatus request signed with the root CA key, as ZMQClient does.
+string signedStatusRequest(bool _tamperSignature) {
+  Json::Value request;
+  request["type"] = ZMQMessage::GET_SERVER_STATUS_REQ;
+  request["cert"] = readFile(rootCACert);
+  Json::StreamWriterBuilder compact;
+  compact["indentation"] = "";
+  auto signature = ZMQClient::signString(readKey(rootCAKey).get(),
+                                         Json::writeString(compact, request));
+  if (_tamperSignature) {
+    signature[0] = signature[0] == '0' ? '1' : '0';
+  }
+  request["msgSig"] = signature;
+  return Json::writeString(compact, request);
+}
+
+// A signed request whose "n" and "t" members sort after "msgSig", so dropping
+// msgSig by moving the last member into the gap would reorder the signed part.
+string signedRequestWithLaterMembers() {
+  Json::Value request;
+  request["type"] = ZMQMessage::GET_SERVER_STATUS_REQ;
+  request["cert"] = readFile(rootCACert);
+  request["n"] = 1;
+  request["t"] = 1;
+  Json::StreamWriterBuilder compact;
+  compact["indentation"] = "";
+  request["msgSig"] = ZMQClient::signString(
+      readKey(rootCAKey).get(), Json::writeString(compact, request));
+  return Json::writeString(compact, request);
+}
+
+Json::Value rawRequest(const string &_request) {
+  zmq::context_t ctx(1);
+  zmq::socket_t socket(ctx, ZMQ_DEALER);
+  socket.set(zmq::sockopt::linger, 0);
+  socket.connect("tcp://" + string(ZMQ_IP) + ":" + to_string(ZMQ_PORT));
+  s_send(socket, _request);
+
+  zmq::pollitem_t items[] = {{static_cast<void *>(socket), 0, ZMQ_POLLIN, 0}};
+  zmq::poll(&items[0], 1, REQUEST_TIMEOUT);
+  REQUIRE((items[0].revents & ZMQ_POLLIN));
+
+  return parseJson(s_recv(socket));
+}
+
+// Exposes the lock under which ZMQ creates and claims keys.
+struct OwnershipLock : ZMQMessage {
+  using ZMQMessage::ownershipMutex;
+};
+
+// Writes to _path a certificate for _key named _subject, issued by the wallet
+// CA and valid for _seconds.
+void signWithCAKey(const string &_path, EVP_PKEY *_key, X509_NAME *_subject,
+                   long _seconds) {
+  const auto ca =
+      ZMQClient::readPublicKeyFromCertStr(readFile(rootCACert)).second;
+  const auto cert = make_shared_x509(X509_new());
+  REQUIRE(cert);
+  ASN1_INTEGER_set(X509_get_serialNumber(cert.get()), 1);
+  X509_set_subject_name(cert.get(), _subject);
+  X509_set_issuer_name(cert.get(), X509_get_subject_name(ca.get()));
+  X509_gmtime_adj(X509_getm_notBefore(cert.get()), -60);
+  X509_gmtime_adj(X509_getm_notAfter(cert.get()), _seconds);
+  X509_set_pubkey(cert.get(), _key);
+  REQUIRE(X509_sign(cert.get(), readKey(rootCAKey).get(), EVP_sha256()) > 0);
+
+  const unique_ptr<BIO, decltype(&BIO_free)> out(
+      BIO_new_file(_path.c_str(), "w"), BIO_free);
+  REQUIRE(out);
+  REQUIRE(PEM_write_bio_X509(out.get(), cert.get()) == 1);
+}
+
+// Returns the path of a certificate for otherKey, valid for _seconds.
+string otherKeyCert(long _seconds) {
+  const unique_ptr<X509_NAME, decltype(&X509_NAME_free)> name(X509_NAME_new(),
+                                                              X509_NAME_free);
+  REQUIRE(name);
+  X509_NAME_add_entry_by_txt(name.get(), "CN", MBSTRING_ASC,
+                             reinterpret_cast<const unsigned char *>("Other"),
+                             -1, -1, 0);
+  const string path = "sgx_data/other-" + to_string(_seconds) + ".crt";
+  signWithCAKey(path, readKey(otherKey).get(), name.get(), _seconds);
+  return path;
+}
+
+} // namespace
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ accepts only requests signed with this CA",
+                 "[zmq-auth-signature]") {
+  REQUIRE_NOTHROW(rootAuthClient()->getServerStatus());
+
+  const auto unsignedClient =
+      make_shared<ZMQClient>(ZMQ_IP, ZMQ_PORT, false, "", "");
+  REQUIRE_THROWS(unsignedClient->getServerStatus());
+  REQUIRE_THROWS(foreignClient()->getServerStatus());
+
+  REQUIRE(rawRequest(signedStatusRequest(false))["status"] == 0);
+  REQUIRE(rawRequest(signedStatusRequest(true))["status"] != 0);
+
+  // The signature covers the remaining members in their original order.
+  REQUIRE(rawRequest(signedRequestWithLaterMembers())["status"] == 0);
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ verifies signed requests of every type",
+                 "[zmq-auth-canonical]") {
+  // BLS signing and the DKG flow cover nine request types.
+  TestUtils::sendRPCRequestZMQ();
+
+  const auto client = rootAuthClient();
+  REQUIRE_NOTHROW(client->getServerStatus());
+  REQUIRE(client->getServerVersion() == SGXWalletServer::getVersion());
+  REQUIRE_NOTHROW(client->multG2("1"));
+
+  const string ecdsaName = "NEK:abcdef";
+  const auto publicKey = client->importECDSAKey(keyHex, ecdsaName);
+  REQUIRE(client->getECDSAPublicKey(ecdsaName) == publicKey);
+  REQUIRE_NOTHROW(client->ecdsaSignMessageHash(16, ecdsaName, SAMPLE_HASH));
+
+  const string importedName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:0";
+  REQUIRE(client->importBLSKeyShare(keyHex, importedName));
+  REQUIRE_NOTHROW(client->popProve(importedName));
+  Json::Value noCiphertexts;
+  noCiphertexts["publicDecryptionValues"] = Json::Value(Json::arrayValue);
+  REQUIRE_NOTHROW(client->getDecryptionShares(importedName, noCiphertexts));
+  REQUIRE(client->deleteBLSKey(importedName));
+
+  const string generatedName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:1";
+  REQUIRE(client->generateBLSPrivateKey(generatedName));
+  const auto ethKey = client->generateECDSAKey();
+  const string polyName = "POLY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:2";
+  REQUIRE(client->generateDKGPoly(polyName, 1));
+  REQUIRE(client->isPolyExists(polyName));
+  REQUIRE_NOTHROW(client->getVerificationVector(polyName, 1));
+  Json::Value ethPublicKeys;
+  ethPublicKeys.append(ethKey.first);
+  // complaintResponse reads the DH keys that getSecretShare stores.
+  REQUIRE_FALSE(client->getSecretShare(polyName, ethPublicKeys, 1, 1).empty());
+  REQUIRE_NOTHROW(client->complaintResponse(polyName, 1, 1, 0));
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth, "ZMQ keys are usable only by their owner",
+                 "[zmq-auth-ownership]") {
+  const auto owner = rootAuthClient();
+  const string otherCert = signOtherCert();
+  const auto other = authClient(otherCert, otherKey);
+
+  const auto ecdsaKey = owner->generateECDSAKey();
+  const string blsName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:0";
+  REQUIRE(owner->importBLSKeyShare(keyHex, blsName));
+  Json::Value noCiphertexts;
+  noCiphertexts["publicDecryptionValues"] = Json::Value(Json::arrayValue);
+
+  REQUIRE_THROWS(other->ecdsaSignMessageHash(16, ecdsaKey.second, SAMPLE_HASH));
+  REQUIRE_THROWS(other->getECDSAPublicKey(ecdsaKey.second));
+  REQUIRE_THROWS(other->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+  REQUIRE_THROWS(other->getBLSPublicKey(blsName));
+  REQUIRE_THROWS(other->getDecryptionShares(blsName, noCiphertexts));
+  REQUIRE_THROWS(other->popProve(blsName));
+  REQUIRE_THROWS(other->deleteBLSKey(blsName));
+  REQUIRE(owner->getECDSAPublicKey(ecdsaKey.second) == ecdsaKey.first);
+  REQUIRE_NOTHROW(owner->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+
+  // The owner is recorded in the wallet DB, so a new connection is refused too.
+  const auto ownerRow = LevelDB::getLevelDb()->readString(
+      ecdsaKey.second + string(WalletDBKeys::ownerSuffix));
+  REQUIRE(ownerRow != nullptr);
+  REQUIRE(*ownerRow != readFile(otherCert));
+  REQUIRE_THROWS(authClient(otherCert, otherKey)
+                     ->ecdsaSignMessageHash(16, ecdsaKey.second, SAMPLE_HASH));
+  REQUIRE_NOTHROW(
+      rootAuthClient()->ecdsaSignMessageHash(16, ecdsaKey.second, SAMPLE_HASH));
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth, "ZMQ sign claims a key created over HTTP",
+                 "[zmq-auth-first-use]") {
+  HttpClient httpClient(RPC_ENDPOINT);
+  StubClient c(httpClient, JSONRPC_CLIENT_V2);
+  const string keyName = genECDSAKeyAPI(c);
+  const auto owner = rootAuthClient();
+  const auto other = authClient(signOtherCert(), otherKey);
+
+  REQUIRE_THROWS(other->getECDSAPublicKey(keyName));
+  sleep(1); // the ownership row must be newer than the key for the last check
+  REQUIRE_NOTHROW(owner->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH));
+  REQUIRE_NOTHROW(owner->getECDSAPublicKey(keyName));
+  REQUIRE_THROWS(other->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH));
+  REQUIRE_THROWS(other->getECDSAPublicKey(keyName));
+
+  HttpClient infoClient("http://localhost:" + to_string(BASE_PORT + 4));
+  StubClient info(infoClient, JSONRPC_CLIENT_V2);
+  REQUIRE(info.getLatestCreatedKey()["keyName"].asString() == keyName);
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth, "ZMQ key names cannot be squatted",
+                 "[zmq-auth-no-squatting]") {
+  const auto owner = rootAuthClient();
+  const auto other = authClient(signOtherCert(), otherKey);
+  const auto ownerRow = [](const string &_name) {
+    return LevelDB::getLevelDb()->readString(_name +
+                                             string(WalletDBKeys::ownerSuffix));
+  };
+
+  // A sign request claims neither a missing key...
+  const string blsName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:3";
+  REQUIRE_THROWS(other->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+  REQUIRE(ownerRow(blsName) == nullptr);
+  REQUIRE(owner->importBLSKeyShare(keyHex, blsName));
+  REQUIRE_NOTHROW(owner->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+
+  // ...nor a key it cannot sign with.
+  HttpClient httpClient(RPC_ENDPOINT);
+  StubClient c(httpClient, JSONRPC_CLIENT_V2);
+  const string polyName = "POLY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:6";
+  REQUIRE(c.generateDKGPoly(polyName, 1)["status"] == 0);
+  REQUIRE_THROWS(other->ecdsaSignMessageHash(16, polyName, SAMPLE_HASH));
+  REQUIRE(ownerRow(polyName) == nullptr);
+
+  // The ownership row of a deleted key still reserves its name.
+  const string deletedName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:5";
+  REQUIRE(other->importBLSKeyShare(keyHex, deletedName));
+  REQUIRE(other->deleteBLSKey(deletedName));
+  REQUIRE_THROWS(owner->importBLSKeyShare(keyHex, deletedName));
+  REQUIRE(LevelDB::getLevelDb()->readString(deletedName) == nullptr);
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ sign racing a key import cannot use it",
+                 "[zmq-auth-concurrent-import]") {
+  const auto owner = rootAuthClient();
+  const auto other = authClient(signOtherCert(), otherKey);
+  const string blsName = "BLS_KEY:SCHAIN_ID:777:NODE_ID:0:DKG_ID:4";
+  atomic<bool> importDone{false};
+  atomic<int> otherSignatures{0};
+
+  // The server pauses 100 ms on a repeated identical sign request, between
+  // its ownership check and the signing, so the import lands inside a request.
+  thread racer([&] {
+    while (!importDone) {
+      try {
+        other->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1);
+        otherSignatures++;
+      } catch (...) {
+      }
+      usleep(1000);
+    }
+  });
+  usleep(20 * 1000);
+  bool imported = false;
+  try {
+    imported = owner->importBLSKeyShare(keyHex, blsName);
+  } catch (...) {
+  }
+  importDone = true;
+  racer.join();
+
+  REQUIRE(imported);
+  REQUIRE(otherSignatures == 0);
+  REQUIRE_THROWS(other->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+  REQUIRE_NOTHROW(owner->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ ECDSA key generation holds the ownership lock",
+                 "[zmq-auth-generate-ecdsa]") {
+  const auto owner = rootAuthClient();
+  const auto other = authClient(signOtherCert(), otherKey);
+  future<pair<string, string>> generated;
+  {
+    // Signs claim keys under this lock, so none can find the new key unowned.
+    const lock_guard<mutex> lock(OwnershipLock::ownershipMutex);
+    generated = async(launch::async, [&] { return owner->generateECDSAKey(); });
+    REQUIRE(generated.wait_for(chrono::milliseconds(500)) ==
+            future_status::timeout);
+  }
+  const string keyName = generated.get().second;
+  REQUIRE_THROWS(other->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH));
+  REQUIRE_NOTHROW(owner->ecdsaSignMessageHash(16, keyName, SAMPLE_HASH));
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "JSON-RPC ignores ZMQ key ownership",
+                 "[zmq-auth-https-bypass]") {
+  const string keyName = rootAuthClient()->generateECDSAKey().second;
+  const string request =
+      "{\"jsonrpc\":\"2.0\",\"method\":\"ecdsaSignMessageHash\",\"params\":{"
+      "\"base\":16,\"keyName\":\"" +
+      keyName + "\",\"messageHash\":\"" + SAMPLE_HASH + "\"},\"id\":1}";
+  const auto reply = parseJson(httpsRequest(RPC_ENDPOINT_HTTPS, request, false,
+                                            otherKey, signOtherCert()));
+  REQUIRE(reply["result"]["status"] == 0);
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth, "ZMQ certificate checks never prompt",
+                 "[zmq-auth-no-prompt]") {
+  auto cert = readFile(rootCACert);
+  cert.insert(cert.find('\n') + 1,
+              "Proc-Type: 4,ENCRYPTED\n"
+              "DEK-Info: AES-128-CBC,00112233445566778899AABBCCDDEEFF\n\n");
+  Json::Value request;
+  request["type"] = ZMQMessage::GET_SERVER_STATUS_REQ;
+  request["cert"] = cert;
+  request["msgSig"] = "00";
+  Json::StreamWriterBuilder compact;
+  compact["indentation"] = "";
+
+  Json::Value reply;
+  REQUIRE(TestSupport::leavesStdinUnread(
+      [&] { reply = rawRequest(Json::writeString(compact, request)); }));
+  REQUIRE(reply["status"] != 0);
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ rejects a cached certificate once it expires",
+                 "[zmq-auth-cert-expiry]") {
+  const auto client = authClient(otherKeyCert(3), otherKey);
+  REQUIRE_NOTHROW(client->getServerStatus());
+  sleep(4);
+  REQUIRE_THROWS(client->getServerStatus());
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth,
+                 "ZMQ rejects a cached certificate once its CA expires",
+                 "[zmq-auth-ca-expiry]") {
+  const auto client = authClient(otherKeyCert(24 * 60 * 60), otherKey);
+
+  // Reissue the wallet CA certificate to expire in three seconds.
+  struct RestoreCACert {
+    const string pem = readFile(rootCACert);
+    ~RestoreCACert() { ofstream(rootCACert) << pem; }
+  } restore;
+  const auto ca = ZMQClient::readPublicKeyFromCertStr(restore.pem).second;
+  signWithCAKey(rootCACert, readKey(rootCAKey).get(),
+                X509_get_subject_name(ca.get()), 3);
+
+  REQUIRE_NOTHROW(client->getServerStatus());
+  sleep(4);
+  REQUIRE_THROWS(client->getServerStatus());
+}
+
+namespace {
+
+string httpsBody(const string &_method) {
+  return "{\"jsonrpc\":\"2.0\",\"method\":\"" + _method +
+         "\",\"params\":{},\"id\":1}";
+}
+
+// Calls _method over HTTPS with a client certificate issued by this wallet.
+Json::Value httpsCall(const string &_method, const string &_certFile) {
+  const auto response = parseJson(httpsRequest(
+      RPC_ENDPOINT_HTTPS, httpsBody(_method), false, otherKey, _certFile));
+  return response["result"];
+}
+
+string makeCsr(const string &_commonName) {
+  const string prefix = "sgx_data/" + _commonName;
+  REQUIRE(system(("openssl req -new -newkey ec -pkeyopt "
+                  "ec_paramgen_curve:prime256v1 -nodes -subj /CN=" +
+                  _commonName + " -keyout " + prefix + ".key -out " + prefix +
+                  ".csr 2>/dev/null")
+                     .c_str()) == 0);
+  return exec(("cat " + prefix + ".csr").c_str());
+}
+
+string derSha256(const string &_certFile) {
+  return exec(("openssl x509 -in " + _certFile + " -outform DER | sha256sum")
+                  .c_str())
+      .substr(0, 64);
+}
+
+} // namespace
+
+TEST_CASE_METHOD(TestFixture, "Info server configuration",
+                 "[info-server-configuration]") {
+  HttpClient client("http://localhost:" + to_string(BASE_PORT + 4));
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  const auto configuration = c.getServerConfiguration();
+  REQUIRE(configuration["autoSign"].asBool());
+  REQUIRE_FALSE(configuration["checkCerts"].asBool());
+  REQUIRE_FALSE(configuration["useHTTPS"].asBool());
+  REQUIRE(configuration["autoConfirm"].asBool());
+}
+
+TEST_CASE_METHOD(TestFixtureZMQAuth, "Server options over HTTP",
+                 "[server-options-http]") {
+  const int poolSize = SGXWalletServer::DEFAULT_NUM_THREADS_SGX;
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  const auto options = c.getServerOptions();
+  REQUIRE(options["status"] == 0);
+
+  const auto flags = options["flags"];
+  REQUIRE_FALSE(flags["useHTTPS"].asBool());
+  REQUIRE_FALSE(flags["checkCert"].asBool());
+  REQUIRE(flags["checkZMQSig"].asBool());
+  REQUIRE(flags["autoSign"].asBool());
+  REQUIRE(flags["checkKeyOwnership"].asBool());
+  REQUIRE(flags["autoconfirm"].asBool());
+  REQUIRE(flags["logLevel"].asInt() == L_INFO);
+  REQUIRE(flags["enclaveLogLevel"].asInt() == L_INFO);
+  REQUIRE(flags["threadPoolSize"].asInt() == poolSize);
+
+  const auto effective = options["effective"];
+  REQUIRE(effective["rpcPort"].asInt() == BASE_PORT + 3);
+  REQUIRE_FALSE(effective["rpcClientCertificateRequired"].asBool());
+  REQUIRE(effective["zmqKeyOwnershipEnforced"].asBool());
+  REQUIRE(effective["sgxThreadPoolSize"].asInt() == poolSize);
+  REQUIRE_FALSE(options.isMember("build"));
+
+  const auto withArrayParams =
+      c.CallMethod("getServerOptions", Json::Value(Json::arrayValue));
+  REQUIRE(withArrayParams["status"] == 0);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "Server options over HTTPS",
+                 "[server-options-https]") {
+  const auto options = httpsCall("getServerOptions", signOtherCert());
+  REQUIRE(options["status"] == 0);
+  REQUIRE(options["effective"]["rpcPort"].asInt() == BASE_PORT);
+  REQUIRE(options["effective"]["rpcClientCertificateRequired"].asBool());
+  REQUIRE(options["effective"]["zmqKeyOwnershipEnforced"].asBool());
+  REQUIRE(options["flags"]["autoSign"].asBool());
+  REQUIRE(options.isMember("build"));
+#ifdef SGX_HW_SIM
+  REQUIRE(options["build"]["sgxSimulation"].asBool());
+#endif
+  REQUIRE(options["build"]["sgxSimulation"].asBool() ==
+          getBuildInfo().sgxSimulation);
+  REQUIRE(options["build"]["sgxDebugLaunch"].asBool() ==
+          getBuildInfo().sgxDebugLaunch);
+
+  const auto withoutCert =
+      httpsRequest(RPC_ENDPOINT_HTTPS, httpsBody("getServerOptions"), true);
+  REQUIRE(withoutCert.find("curl: (") != string::npos);
+}
+
+TEST_CASE_METHOD(TestFixture, "Server options follow the server lifecycle",
+                 "[server-options-lifecycle]") {
+  const auto before = SGXWalletServer::getServerOptionsImpl(false);
+  REQUIRE(before["status"] == 0);
+
+  // A repeated initAll returns early and leaves the reported options unchanged.
+  initConfig other = makeTestInitConfig(true, true, true, false, true);
+  initAll(other);
+  REQUIRE(SGXWalletServer::getServerOptionsImpl(false) == before);
+
+  // exitAll clears the snapshot, so the call reports the server as stopped.
+  exitAll();
+  const auto stopped = SGXWalletServer::getServerOptionsImpl(false);
+  REQUIRE(stopped["status"] == SERVER_NOT_INITIALIZED);
+  REQUIRE_FALSE(stopped.isMember("flags"));
+}
+
+TEST_CASE_METHOD(TestFixture, "Issued certificates info over HTTP",
+                 "[issued-certs-http]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  auto info = c.getIssuedCertificatesInfo();
+  REQUIRE(info["status"] == 0);
+  REQUIRE(info["certificatesNumber"] == 0);
+  REQUIRE(info["serverCertificatesNumber"] == 1);
+  REQUIRE(info["newestCertificate"].isNull());
+
+  const auto before = time(nullptr);
+  signCsr(makeCsr("IssuedA"));
+  const auto newestCert = signCsr(makeCsr("IssuedB"));
+  const auto after = time(nullptr);
+
+  info = c.getIssuedCertificatesInfo();
+  REQUIRE(info["certificatesNumber"] == 2);
+  REQUIRE(info["serverCertificatesNumber"] == 1);
+  const auto newest = info["newestCertificate"];
+  REQUIRE(newest["serial"] == "3");
+  REQUIRE(newest["status"] == "V");
+  REQUIRE(newest["notBeforeUnix"].asInt64() >= before);
+  REQUIRE(newest["notBeforeUnix"].asInt64() <= after);
+  REQUIRE(newest["sha256"] == derSha256(newestCert));
+
+  const auto withArrayParams =
+      c.CallMethod("getIssuedCertificatesInfo", Json::Value(Json::arrayValue));
+  REQUIRE(withArrayParams["status"] == 0);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "Issued certificates info over HTTPS",
+                 "[issued-certs-https]") {
+  const auto certFile = signOtherCert();
+  const auto info = httpsCall("getIssuedCertificatesInfo", certFile);
+  REQUIRE(info["status"] == 0);
+  REQUIRE(info["newestCertificate"]["sha256"] == derSha256(certFile));
+}
+
+TEST_CASE_METHOD(TestFixture, "Issued certificates info without CA files",
+                 "[issued-certs-missing]") {
+  HttpClient client(RPC_ENDPOINT);
+  StubClient c(client, JSONRPC_CLIENT_V2);
+  signCsr(makeCsr("IssuedA"));
+
+  REQUIRE(remove("sgx_data/cert_data/new_certs/02.pem") == 0);
+  REQUIRE(c.getIssuedCertificatesInfo()["status"] == FILE_NOT_FOUND);
+
+  REQUIRE(remove("sgx_data/cert_data/index.txt") == 0);
+  const auto info = c.getIssuedCertificatesInfo();
+  REQUIRE(info["status"] == FILE_NOT_FOUND);
+  REQUIRE_FALSE(info.isMember("certificatesNumber"));
+}
