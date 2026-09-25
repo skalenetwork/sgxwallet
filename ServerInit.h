@@ -27,6 +27,7 @@
 #include "sgxwallet.h"
 #include "stdint.h"
 #include <cstddef>
+#include <optional>
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -64,6 +65,17 @@ struct initConfig {
 EXTERNC void initAll(initConfig &config);
 
 void exitAll();
+
+// Config the running servers were started with: set once initAll() has started
+// every server, cleared by exitAll(). A repeated initAll() does not change it.
+std::optional<initConfig> getRunningConfig();
+
+struct BuildInfo {
+  bool sgxSimulation = false;
+  bool sgxDebugLaunch = false;
+};
+
+BuildInfo getBuildInfo();
 
 EXTERNC void initUserSpace();
 

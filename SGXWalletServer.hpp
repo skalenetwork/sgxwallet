@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <jsonrpccpp/server/connectors/httpserver.h>
+#include <optional>
 #include <string_view>
 #include <tbb/global_control.h>
 #include <tbb/task_arena.h>
@@ -41,6 +42,9 @@ using namespace std;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
+
+struct initConfig;
+struct BuildInfo;
 
 class SGXWalletServer : public AbstractStubServer {
   // used to control number of max allowed parallel tasks
@@ -163,6 +167,10 @@ public:
 
   virtual Json::Value getServerVersion();
 
+  virtual Json::Value getServerOptions();
+
+  virtual Json::Value getIssuedCertificatesInfo();
+
   virtual Json::Value deleteBlsKey(const std::string &name);
 
   virtual Json::Value getSecretShareV2(const string &_polyName,
@@ -257,6 +265,14 @@ public:
   static Json::Value getServerStatusImpl();
 
   static Json::Value getServerVersionImpl();
+
+  static Json::Value getServerOptionsImpl(bool _authenticatedCaller);
+
+  [[nodiscard]] static Json::Value
+  serverOptionsToJson(const initConfig &_config, size_t _sgxThreadPoolSize,
+                      const std::optional<BuildInfo> &_build);
+
+  static Json::Value getIssuedCertificatesInfoImpl();
 
   static Json::Value deleteBlsKeyImpl(const std::string &name);
 

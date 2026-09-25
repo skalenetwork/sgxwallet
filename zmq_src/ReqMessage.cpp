@@ -22,6 +22,7 @@
 */
 
 #include "SGXWalletServer.hpp"
+#include "ServerDataChecker.h"
 
 #include "ReqMessage.h"
 
@@ -31,17 +32,8 @@ Json::Value ECDSASignReqMessage::process() {
   auto base = getInt64Rapid("base");
   auto keyName = getStringRapid("keyName");
   auto hash = getStringRapid("messageHash");
-  if (checkKeyOwnership) {
-    if (!isKeyRegistered(keyName)) {
-      addKeyByOwner(keyName, getStringRapid("cert"));
-    } else {
-      if (!isKeyByOwner(keyName, getStringRapid("cert"))) {
-        spdlog::error(
-            "Cert {} try to access key {} which does not belong to it",
-            getStringRapid("cert"), keyName);
-        throw std::invalid_argument("Only owner of the key can access it");
-      }
-    }
+  if (checkKeyOwnership && checkECDSAKeyName(keyName)) {
+    claimOrCheckKeyOwner(keyName);
   }
   auto result = SGXWalletServer::ecdsaSignMessageHashImpl(base, keyName, hash);
   result["type"] = ZMQMessage::ECDSA_SIGN_RSP;
@@ -53,17 +45,8 @@ Json::Value BLSSignReqMessage::process() {
   auto hash = getStringRapid("messageHash");
   auto t = getInt64Rapid("t");
   auto n = getInt64Rapid("n");
-  if (checkKeyOwnership) {
-    if (!isKeyRegistered(keyName)) {
-      addKeyByOwner(keyName, getStringRapid("cert"));
-    } else {
-      if (!isKeyByOwner(keyName, getStringRapid("cert"))) {
-        spdlog::error(
-            "Cert {} try to access key {} which does not belong to it",
-            getStringRapid("cert"), keyName);
-        throw std::invalid_argument("Only owner of the key can access it");
-      }
-    }
+  if (checkKeyOwnership && checkName(keyName, "BLS_KEY")) {
+    claimOrCheckKeyOwner(keyName);
   }
   auto result = SGXWalletServer::blsSignMessageHashImpl(keyName, hash, t, n);
   result["type"] = ZMQMessage::BLS_SIGN_RSP;
@@ -73,12 +56,9 @@ Json::Value BLSSignReqMessage::process() {
 Json::Value importBLSReqMessage::process() {
   auto keyName = getStringRapid("keyShareName");
   auto keyShare = getStringRapid("keyShare");
-  auto result = SGXWalletServer::importBLSKeyShareImpl(keyShare, keyName);
-  if (checkKeyOwnership && result["status"] == 0) {
-    spdlog::info("Cert {} creates key {}", getStringRapid("cert"), keyName);
-    auto cert = getStringRapid("cert");
-    addKeyByOwner(keyName, cert);
-  }
+  auto result = createOwnedKey(keyName, [&] {
+    return SGXWalletServer::importBLSKeyShareImpl(keyShare, keyName);
+  });
   result["type"] = ZMQMessage::IMPORT_BLS_RSP;
   return result;
 }
@@ -86,24 +66,16 @@ Json::Value importBLSReqMessage::process() {
 Json::Value importECDSAReqMessage::process() {
   auto keyName = getStringRapid("keyName");
   auto key = getStringRapid("key");
-  auto result = SGXWalletServer::importECDSAKeyImpl(key, keyName);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, keyName);
-    addKeyByOwner(keyName, cert);
-  }
+  auto result = createOwnedKey(keyName, [&] {
+    return SGXWalletServer::importECDSAKeyImpl(key, keyName);
+  });
   result["type"] = ZMQMessage::IMPORT_ECDSA_RSP;
   return result;
 }
 
 Json::Value generateECDSAReqMessage::process() {
-  auto result = SGXWalletServer::generateECDSAKeyImpl();
-  string keyName = result["keyName"].asString();
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, keyName);
-    addKeyByOwner(keyName, cert);
-  }
+  auto result = createOwnedKey(
+      std::nullopt, [] { return SGXWalletServer::generateECDSAKeyImpl(); });
   result["type"] = ZMQMessage::GENERATE_ECDSA_RSP;
   return result;
 }
@@ -123,12 +95,9 @@ Json::Value getPublicECDSAReqMessage::process() {
 Json::Value generateDKGPolyReqMessage::process() {
   auto polyName = getStringRapid("polyName");
   auto t = getInt64Rapid("t");
-  auto result = SGXWalletServer::generateDKGPolyImpl(polyName, t);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, polyName);
-    addKeyByOwner(polyName, cert);
-  }
+  auto result = createOwnedKey(polyName, [&] {
+    return SGXWalletServer::generateDKGPolyImpl(polyName, t);
+  });
   result["type"] = ZMQMessage::GENERATE_DKG_POLY_RSP;
   return result;
 }
@@ -143,13 +112,10 @@ Json::Value generateDKGPolyV3ReqMessage::process() {
                   getStringRapid("cert"), previousBLSPrivateKeyName);
     throw std::invalid_argument("Only owner of the key can access it");
   }
-  auto result = SGXWalletServer::generateDKGPolyV3Impl(
-      polyName, previousBLSPrivateKeyName, t);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, polyName);
-    addKeyByOwner(polyName, cert);
-  }
+  auto result = createOwnedKey(polyName, [&] {
+    return SGXWalletServer::generateDKGPolyV3Impl(polyName,
+                                                  previousBLSPrivateKeyName, t);
+  });
   result["type"] = ZMQMessage::GENERATE_DKG_POLY_V3_RSP;
   return result;
 }
@@ -213,13 +179,10 @@ Json::Value createBLSPrivateKeyReqMessage::process() {
                   getStringRapid("cert"), ethKeyName, polyName);
     throw std::invalid_argument("Only owner of the key can access it");
   }
-  auto result = SGXWalletServer::createBLSPrivateKeyV2Impl(
-      blsKeyName, ethKeyName, polyName, secretShare, t, n);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, blsKeyName);
-    addKeyByOwner(blsKeyName, cert);
-  }
+  auto result = createOwnedKey(blsKeyName, [&] {
+    return SGXWalletServer::createBLSPrivateKeyV2Impl(
+        blsKeyName, ethKeyName, polyName, secretShare, t, n);
+  });
   result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_RSP;
   return result;
 }
@@ -244,13 +207,10 @@ Json::Value createBLSPrivateKeyV3ReqMessage::process() {
       throw std::invalid_argument("Only owner of the key can access it");
     }
   }
-  auto result = SGXWalletServer::createBLSPrivateKeyV3Impl(
-      blsKeyName, ethKeyName, polyName, secretContributions, t, n);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, blsKeyName);
-    addKeyByOwner(blsKeyName, cert);
-  }
+  auto result = createOwnedKey(blsKeyName, [&] {
+    return SGXWalletServer::createBLSPrivateKeyV3Impl(
+        blsKeyName, ethKeyName, polyName, secretContributions, t, n);
+  });
   result["type"] = ZMQMessage::CREATE_BLS_PRIVATE_V3_RSP;
   return result;
 }
@@ -343,12 +303,9 @@ Json::Value GetDecryptionShareReqMessage::process() {
 
 Json::Value generateBLSPrivateKeyReqMessage::process() {
   auto blsKeyName = getStringRapid("blsKeyName");
-  auto result = SGXWalletServer::generateBLSPrivateKeyImpl(blsKeyName);
-  if (checkKeyOwnership && result["status"] == 0) {
-    auto cert = getStringRapid("cert");
-    spdlog::info("Cert {} creates key {}", cert, blsKeyName);
-    addKeyByOwner(blsKeyName, cert);
-  }
+  auto result = createOwnedKey(blsKeyName, [&] {
+    return SGXWalletServer::generateBLSPrivateKeyImpl(blsKeyName);
+  });
   result["type"] = ZMQMessage::GENERATE_BLS_PRIVATE_KEY_RSP;
   return result;
 }

@@ -66,6 +66,15 @@ std::string httpsRequest(const std::string &url, const std::string &jsonData,
   return response;
 }
 
+Json::Value parseJson(const std::string &_text) {
+  Json::Value json;
+  std::string errors;
+  std::istringstream in(_text);
+  CHECK_STATE(
+      Json::parseFromStream(Json::CharReaderBuilder(), in, &json, &errors));
+  return json;
+}
+
 bool endsWith(const std::string &str, const std::string &suffix) {
   if (suffix.size() > str.size())
     return false;
@@ -119,7 +128,7 @@ std::shared_ptr<std::string> encryptTestKey() {
 
 TestFixture::TestFixture() {
   resetTestDB();
-  initConfig config = makeTestInitConfig(false, false, false, true, true);
+  initConfig config = makeTestInitConfig(false, false, true, true, true);
 
   initAll(config);
 }

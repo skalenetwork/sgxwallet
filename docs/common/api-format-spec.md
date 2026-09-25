@@ -22,6 +22,8 @@
 > ##### 5) Server calls
 >   1. [getServerStatus](#getserverstatus)
 >   2. [getServerVersion](#getserverversion)
+>   3. [getServerOptions](#getserveroptions)
+>   4. [getIssuedCertificatesInfo](#getissuedcertificatesinfo)
 > ##### [6) Common Parameter Descriptions](#common-parameters-descriptions)
 > ---
 
@@ -774,6 +776,129 @@ curl -X POST --data '{
     }
 }
 ```
+
+---
+
+
+## `getServerOptions`
+
+#### Description
+Returns the options sgxwallet was started with (`flags`), what they enforce (`effective`) and, for authenticated callers, two build facts (`build`). The values are reported by the server itself. Available from sgxwallet 1.11.0.
+
+#### Request Parameters
+None. `null`, `[]` and `{}` are accepted.
+
+#### Example Request
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getServerOptions","params":{}}' -H 'content-type:application/json;' --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+```
+
+Under `-0` or `-n` the server uses HTTP on port 1029:
+
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getServerOptions","params":{}}' -H 'content-type:application/json;' http://127.0.0.1:1029
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`flags`        | `Object` | Startup options: `logLevel` and `enclaveLogLevel` (0 trace to 4 error), `useHTTPS`, `autoconfirm`, `enterBackupKey`, `reencryptDatabaseWithNewSEK`, `checkCert`, `checkZMQSig`, `autoSign`, `generateTestKeys`, `checkKeyOwnership`, `threadPoolSize`. |
+|`effective.rpcPort` | `Int` | JSON-RPC port bound inside the process: 1026 with HTTPS, otherwise 1029. Behind a port mapping the reachable port may differ. |
+|`effective.rpcClientCertificateRequired` | `Bool` | `true` when JSON-RPC callers must present a certificate issued by this wallet (`useHTTPS` and `checkCert`). |
+|`effective.zmqKeyOwnershipEnforced` | `Bool` | `true` when ZMQ requests are signature-checked and each key is bound to its owner certificate (`checkZMQSig` and `checkKeyOwnership`). |
+|`effective.jsonRpcKeyOwnershipEnforced` | `Bool` | Always `false`: JSON-RPC does not check key ownership. |
+|`effective.sgxThreadPoolSize` | `Int` | Size of the running SGX thread pool, `0` if it is not initialised. |
+|`build`        | `Object` | `sgxSimulation` and `sgxDebugLaunch`. Returned only to authenticated callers. |
+
+> `-e` in effect means `effective.zmqKeyOwnershipEnforced`. It applies to ZMQ only. A ZMQ sign on an existing key with no owner assigns it to the signer; other key operations reject keys with no owner, and creating a key whose name another certificate owns is rejected. `-e -n` disables `-e`; `-0` does not. The `build` group is returned only to authenticated callers (HTTPS with the client certificate check).
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "build": {"sgxDebugLaunch": false, "sgxSimulation": false},
+        "effective": {"jsonRpcKeyOwnershipEnforced": false, "rpcClientCertificateRequired": true, "rpcPort": 1026, "sgxThreadPoolSize": 8, "zmqKeyOwnershipEnforced": true},
+        "errorMessage": "",
+        "flags": {"autoSign": false, "autoconfirm": true, "checkCert": true, "checkKeyOwnership": true, "checkZMQSig": true, "enclaveLogLevel": 1, "enterBackupKey": false, "generateTestKeys": false, "logLevel": 1, "reencryptDatabaseWithNewSEK": false, "threadPoolSize": 8, "useHTTPS": true},
+        "status": 0
+    }
+}
+```
+
+#### Errors
+| **Status** | **Meaning** |
+|------------|-------------|
+|`-128`      | sgxwallet is starting or stopping. Retry later. |
+|`-(10000 + line number)` | Unknown server error. |
+|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.11.0. |
+
+This is not a health check; use `getServerStatus` for that. On port 1029 any peer can read `flags` and `effective`, as port 1030 already exposes most of these flags without authentication.
+
+---
+
+
+## `getIssuedCertificatesInfo`
+
+#### Description
+Returns how many client certificates this wallet's CA has issued and the serial, dates and fingerprint of the newest one. The server reads only its own CA files, `sgx_data/cert_data/index.txt` and `new_certs/`; callers compare the result with their own certificate. Available from sgxwallet 1.11.0.
+
+A successful HTTPS call with the client-certificate check on already proves the caller's certificate is valid for this wallet; this method adds only the count and the newest certificate.
+
+#### Request Parameters
+None.
+
+#### Example Request
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getIssuedCertificatesInfo","params":{}}' -H 'content-type:application/json;' --key ./sgx.key --cert ./sgx.crt https://127.0.0.1:1026 -k
+```
+
+#### Return Values
+| **Parameter** | **Type**   | **Description**                          |
+|---------------|------------|------------------------------------------|
+|`certificatesNumber` | `Int` | CA database rows of any status that are not server certificates. |
+|`serverCertificatesNumber` | `Int` | Rows of the current server certificate and of those it replaced on renewal, normally `1`. |
+|`newestCertificate` | `Object` or `null` | The client certificate with the highest serial; `null` when none was issued. |
+|`newestCertificate.serial` | `String` | Uppercase hex without leading zeros. |
+|`newestCertificate.sha256` | `String` | SHA-256 of the DER certificate in lowercase hex, as printed by `openssl x509 -in sgx.crt -outform DER \| sha256sum`. |
+|`newestCertificate.notBefore`, `newestCertificate.notAfter` | `String` | ISO 8601, UTC. |
+|`newestCertificate.notBeforeUnix` | `Int` | `notBefore` as Unix time. |
+|`newestCertificate.status` | `String` | Status of the row in the CA database: `V` valid, `R` revoked, `E` expired. |
+
+- The count includes revoked and expired certificates; the CA does not enforce revocation.
+- Only certificates issued by the registration server (`openssl ca -config cert/ca.config`) are counted. Without `-s` the wallet issues no client certificates, so the count stays `0`.
+- Counts restart when `sgx_data/cert_data` is recreated.
+- "Newest" means the highest serial.
+
+#### Example Response
+
+```json
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result":
+    {
+        "certificatesNumber": 2,
+        "errorMessage": "",
+        "newestCertificate": {"notAfter": "2036-09-08T10:22:31Z", "notBefore": "2026-09-11T10:22:31Z", "notBeforeUnix": 1789122151, "serial": "3", "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "status": "V"},
+        "serverCertificatesNumber": 1,
+        "status": 0
+    }
+}
+```
+
+#### Errors
+| **Status** | **Meaning** |
+|------------|-------------|
+|`-44`       | `index.txt` or the archive of the newest certificate is missing. |
+|`-112`      | The CA database or the archive is malformed. |
+|`-(10000 + line number)` | Unknown server error. |
+|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.11.0. |
+
+On port 1029 any peer can read the count and the fingerprint of the newest certificate.
 
 ---
 
