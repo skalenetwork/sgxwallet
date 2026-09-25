@@ -939,9 +939,10 @@ Json::Value SGXWalletServer::getServerVersionImpl() {
   RETURN_SUCCESS(result)
 }
 
-Json::Value SGXWalletServer::serverOptionsToJson(const initConfig &_config,
-                                                 size_t _sgxThreadPoolSize,
-                                                 bool _includeBuild) {
+Json::Value
+SGXWalletServer::serverOptionsToJson(const initConfig &_config,
+                                     size_t _sgxThreadPoolSize,
+                                     const std::optional<BuildInfo> &_build) {
   Json::Value flags(Json::objectValue);
   flags["logLevel"] = _config.logLevel;
   flags["enclaveLogLevel"] = _config.enclaveLogLevel;
@@ -969,14 +970,10 @@ Json::Value SGXWalletServer::serverOptionsToJson(const initConfig &_config,
   Json::Value options(Json::objectValue);
   options["flags"] = flags;
   options["effective"] = effective;
-  if (_includeBuild) {
+  if (_build) {
     Json::Value build(Json::objectValue);
-#ifdef SGX_HW_SIM
-    build["sgxSimulation"] = true;
-#else
-    build["sgxSimulation"] = false;
-#endif
-    build["sgxDebugLaunch"] = SGX_DEBUG_FLAG != 0;
+    build["sgxSimulation"] = _build->sgxSimulation;
+    build["sgxDebugLaunch"] = _build->sgxDebugLaunch;
     options["build"] = build;
   }
   return options;
@@ -992,9 +989,12 @@ Json::Value SGXWalletServer::getServerOptionsImpl(bool _authenticatedCaller) {
       throw SGXException(SERVER_NOT_INITIALIZED,
                          "sgxwallet is starting or stopping");
     }
+    std::optional<BuildInfo> build;
+    if (_authenticatedCaller) {
+      build = getBuildInfo();
+    }
     const auto options = serverOptionsToJson(
-        *config, threadPool.isInitialized() ? threadPool.size : 0,
-        _authenticatedCaller);
+        *config, threadPool.isInitialized() ? threadPool.size : 0, build);
     for (const auto &name : options.getMemberNames()) {
       result[name] = options[name];
     }

@@ -21,20 +21,21 @@
 #include "ServerInit.h"
 #include "third_party/catch.hpp"
 
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace {
 Json::Value options(const initConfig &_config, size_t _sgxThreadPoolSize = 0,
-                    bool _includeBuild = false) {
+                    const std::optional<BuildInfo> &_build = std::nullopt) {
   return SGXWalletServer::serverOptionsToJson(_config, _sgxThreadPoolSize,
-                                              _includeBuild);
+                                              _build);
 }
 } // namespace
 
 TEST_CASE("Server options for the default configuration",
           "[unit][server-options]") {
-  const auto withBuild = options(initConfig{}, 0, true);
+  const auto withBuild = options(initConfig{}, 0, BuildInfo{});
   REQUIRE(withBuild.getMemberNames() ==
           std::vector<std::string>{"build", "effective", "flags"});
   REQUIRE_FALSE(options(initConfig{}).isMember("build"));
@@ -77,4 +78,17 @@ TEST_CASE("Server options for -e, -n and partial ZMQ checks",
   const auto poolOptions = options(smallPool, 32);
   REQUIRE(poolOptions["flags"]["threadPoolSize"].asInt() == 3);
   REQUIRE(poolOptions["effective"]["sgxThreadPoolSize"].asInt() == 32);
+}
+
+TEST_CASE("Server options report the build facts they are given",
+          "[unit][server-options]") {
+  const auto simulation = options(initConfig{}, 0, BuildInfo{true, false});
+  REQUIRE(simulation["build"]["sgxSimulation"].asBool());
+  REQUIRE_FALSE(simulation["build"]["sgxDebugLaunch"].asBool());
+
+  const auto debugLaunch = options(initConfig{}, 0, BuildInfo{false, true});
+  REQUIRE_FALSE(debugLaunch["build"]["sgxSimulation"].asBool());
+  REQUIRE(debugLaunch["build"]["sgxDebugLaunch"].asBool());
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxSimulation"));
+  REQUIRE_FALSE(debugLaunch["flags"].isMember("sgxDebugLaunch"));
 }

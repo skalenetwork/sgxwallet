@@ -322,6 +322,10 @@ TEST_CASE_METHOD(
 #ifdef SGX_HW_SIM
   REQUIRE(options["build"]["sgxSimulation"].asBool());
 #endif
+  REQUIRE(options["build"]["sgxSimulation"].asBool() ==
+          getBuildInfo().sgxSimulation);
+  REQUIRE(options["build"]["sgxDebugLaunch"].asBool() ==
+          getBuildInfo().sgxDebugLaunch);
 
   const auto withoutCert =
       httpsRequest(RPC_ENDPOINT_HTTPS, httpsBody("getServerOptions"), true);
