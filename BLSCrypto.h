@@ -47,6 +47,8 @@ EXTERNC bool generateBLSPrivateKeyAggegated(const char *blsKeyName);
 
 std::shared_ptr<std::string> FqToString(const libBLS::algebra::FqElement &fq);
 
+// Validates the key share — throws SGXException unless it is a scalar in
+// (0, alt_bn128 order); accepts an optional 0x prefix — then encrypts it.
 std::string encryptBLSKeyShare2Hex(int *errStatus, char *err_string,
                                    const char *_key);
 

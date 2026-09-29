@@ -231,12 +231,17 @@ string encryptBLSKeyShare2Hex(int *errStatus, char *err_string,
   CHECK_STATE(errStatus);
   CHECK_STATE(err_string);
   CHECK_STATE(_key);
+
+  const std::string normalizedKey = normalizeAndValidateScalarHex(
+      _key, ALT_BN128_ORDER_DEC, 10, BLS_IMPORT_INVALID_KEY_SHARE,
+      "BLS key share");
+
   auto keyArray = make_shared<vector<char>>(BUF_LEN, 0);
   auto encryptedKey = make_shared<vector<uint8_t>>(BUF_LEN, 0);
 
   vector<char> errMsg(BUF_LEN, 0);
 
-  strncpy(keyArray->data(), _key, BUF_LEN);
+  strncpy(keyArray->data(), normalizedKey.c_str(), BUF_LEN);
   *errStatus = 0;
 
   uint64_t encryptedLen = 0;

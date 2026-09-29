@@ -87,6 +87,49 @@ bool hex2carray(const char *_hex, uint64_t *_bin_len, uint8_t *_bin,
   return true;
 }
 
+static bool has0xPrefix(const std::string &value) {
+  return value.size() >= 2 && value[0] == '0' &&
+         (value[1] == 'x' || value[1] == 'X');
+}
+
+std::string normalizeHexInput(const std::string &value) {
+  if (has0xPrefix(value)) {
+    return value.substr(2);
+  }
+  return value;
+}
+
+std::string normalizeAndValidateScalarHex(const std::string &rawKey,
+                                          const char *orderStr, int orderBase,
+                                          int errCode,
+                                          const std::string &keyKind) {
+  const std::string normalizedKey = normalizeHexInput(rawKey);
+  if (normalizedKey.size() != 64) {
+    throw SGXException(errCode,
+                       "Invalid " + keyKind + ": expected 64 hex characters");
+  }
+
+  mpz_t keyScalar;
+  mpz_t order;
+  mpz_init(keyScalar);
+  mpz_init(order);
+
+  int parseStatus = mpz_set_str(keyScalar, normalizedKey.c_str(), 16);
+  mpz_set_str(order, orderStr, orderBase);
+
+  bool invalid = parseStatus == -1 || mpz_cmp_ui(keyScalar, 0) <= 0 ||
+                 mpz_cmp(keyScalar, order) >= 0;
+
+  mpz_clear(order);
+  mpz_clear(keyScalar);
+
+  if (invalid) {
+    throw SGXException(errCode, "Invalid " + keyKind + ": scalar out of range");
+  }
+
+  return normalizedKey;
+}
+
 vector<std::string> splitString(const char *coeffs, const char symbol) {
   CHECK_STATE(coeffs);
   std::string str(coeffs);
