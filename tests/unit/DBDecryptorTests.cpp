@@ -261,6 +261,16 @@ TEST_CASE("isKeyHoldingEncryptedValue - unknown key is not encrypted",
   REQUIRE_FALSE(t.isKeyHoldingEncryptedValue(""));
 }
 
+TEST_CASE("isKeyHoldingEncryptedValue - ownership rows are not encrypted",
+          "[unit][DBReencryptor][isKeyHoldingEncryptedValue][zmq-auth]") {
+  DBReencryptorTests t;
+  REQUIRE_FALSE(t.isKeyHoldingEncryptedValue("NEK:x:OWNER"));
+  REQUIRE_FALSE(t.isKeyHoldingEncryptedValue("BLS_KEY:x:OWNER"));
+  REQUIRE_FALSE(t.isKeyHoldingEncryptedValue("POLY:x:OWNER"));
+  REQUIRE(t.isKeyHoldingEncryptedValue("NEK:x"));
+  REQUIRE(t.isKeyHoldingEncryptedValue(WalletDBKeys::TEST_KEY));
+}
+
 // ---------------------------------------------------------------------------
 // migrationSuffix
 // ---------------------------------------------------------------------------

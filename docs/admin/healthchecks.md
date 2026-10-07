@@ -19,6 +19,16 @@ curl --cert <PATH_TO_CERTS>/file.crt --key <PATH_TO_CERTS>/file.key -X POST --da
 
 If server does not respond or response contains error message than you should restart your SGXWallet.
 
+From sgxwallet 1.10.4 two informational calls report the options the server runs with and a summary of the client certificates it has issued:
+
+```bash
+curl --cert <PATH_TO_CERTS>/file.crt --key <PATH_TO_CERTS>/file.key -X POST --data '{"jsonrpc":"2.0","id":7,"method":"getServerOptions","params":{}}' -H 'content-type:application/json;' <YOUR_SGX_SERVER_URL> -k
+```
+
+```bash
+curl --cert <PATH_TO_CERTS>/file.crt --key <PATH_TO_CERTS>/file.key -X POST --data '{"jsonrpc":"2.0","id":8,"method":"getIssuedCertificatesInfo","params":{}}' -H 'content-type:application/json;' <YOUR_SGX_SERVER_URL> -k
+```
+
 ## Check Secure Enclave part
 
 To verify Secure Enclave part of SGXWallet is configured and initialized in a proper way run following commands:

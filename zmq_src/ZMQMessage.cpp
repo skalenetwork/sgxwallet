@@ -23,16 +23,29 @@
 
 #include "common.h"
 #include "sgxwallet_common.h"
-#include <fstream>
 #include <iostream>
-#include <third_party/cryptlite/sha256.h>
 
 #include "LevelDB.h"
 #include "ReqMessage.h"
 #include "RspMessage.h"
 #include "SGXWalletServer.hpp"
+#include "WalletDBKeys.h"
 #include "ZMQClient.h"
 #include "ZMQMessage.h"
+
+namespace {
+bool verifyClientCert(X509 *_cert) {
+  const unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store(
+      X509_STORE_new(), X509_STORE_free);
+  const unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> ctx(
+      X509_STORE_CTX_new(), X509_STORE_CTX_free);
+  CHECK_STATE(store && ctx);
+  const string rootCA = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
+  CHECK_STATE(X509_STORE_load_locations(store.get(), rootCA.c_str(), nullptr));
+  CHECK_STATE(X509_STORE_CTX_init(ctx.get(), store.get(), _cert, nullptr));
+  return X509_verify_cert(ctx.get()) == 1;
+}
+} // namespace
 
 uint64_t ZMQMessage::getInt64Rapid(const char *_name) {
   CHECK_STATE(_name);
@@ -113,15 +126,6 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
     CHECK_STATE2((*d)["msgSig"].IsString(), ZMQ_NO_SIG_IN_MESSAGE);
 
     auto cert = make_shared<string>((*d)["cert"].GetString());
-    string hash = cryptlite::sha256::hash_hex(*cert);
-
-    auto filepath = "/tmp/sgx_wallet_cert_hash_" + hash;
-
-    std::ofstream outFile(filepath);
-
-    outFile << *cert;
-
-    outFile.close();
 
     static recursive_mutex m;
 
@@ -129,12 +133,14 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
       lock_guard<recursive_mutex> lock(m);
 
       if (!verifiedCerts.exists(*cert)) {
-        CHECK_STATE(SGXWalletServer::verifyCert(filepath));
-        auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
+        const auto handles = ZMQClient::readPublicKeyFromCertStr(*cert);
         CHECK_STATE(handles.first);
         CHECK_STATE(handles.second);
+        CHECK_STATE(verifyClientCert(handles.second.get()));
         verifiedCerts.put(*cert, handles);
-        remove(cert->c_str());
+      } else {
+        // Verified again, as the certificate or its CA can expire.
+        CHECK_STATE(verifyClientCert(verifiedCerts.get(*cert).second.get()));
       }
 
       shared_ptr<EVP_PKEY> publicKey = verifiedCerts.get(*cert).first;
@@ -143,7 +149,8 @@ shared_ptr<ZMQMessage> ZMQMessage::parse(const char *_msg, size_t _size,
 
       auto msgSig = make_shared<string>((*d)["msgSig"].GetString());
 
-      d->RemoveMember("msgSig");
+      // The signature covers the remaining members in their original order.
+      d->EraseMember("msgSig");
 
       rapidjson::StringBuffer buffer;
 
@@ -246,9 +253,10 @@ ZMQMessage::buildRequest(string &_type, shared_ptr<rapidjson::Document> _d,
     ret = make_shared<popProveReqMessage>(_d);
     break;
   default:
-    break;
+    CHECK_STATE2(false, ZMQ_COULD_NOT_PARSE);
   }
 
+  CHECK_STATE(ret);
   ret->setCheckKeyOwnership(_checkKeyOwnership);
 
   return ret;
@@ -337,28 +345,74 @@ ZMQMessage::buildResponse(string &_type, shared_ptr<rapidjson::Document> _d,
     ret = make_shared<popProveRspMessage>(_d);
     break;
   default:
-    break;
+    CHECK_STATE2(false, ZMQ_COULD_NOT_PARSE);
   }
 
+  CHECK_STATE(ret);
   ret->setCheckKeyOwnership(_checkKeyOwnership);
 
   return ret;
 }
 
-std::map<string, string> ZMQMessage::keysByOwners;
+namespace {
+string ownerKey(const string &_keyName) {
+  return _keyName + string(WalletDBKeys::ownerSuffix);
+}
+} // namespace
 
 bool ZMQMessage::isKeyByOwner(const string &keyName, const string &cert) {
-  auto value = LevelDB::getLevelDb()->readString(keyName + ":OWNER");
+  const auto value = LevelDB::getLevelDb()->readString(ownerKey(keyName));
   return value && *value == cert;
 }
 
 void ZMQMessage::addKeyByOwner(const string &keyName, const string &cert) {
-  SGXWalletServer::writeDataToDB(keyName + ":OWNER", cert);
+  SGXWalletServer::writeDataToDB(ownerKey(keyName), cert);
 }
 
 bool ZMQMessage::isKeyRegistered(const string &keyName) {
-  return LevelDB::getLevelDb()->readString(keyName + ":OWNER") != nullptr;
+  return LevelDB::getLevelDb()->readString(ownerKey(keyName)) != nullptr;
 }
+
+void ZMQMessage::claimOrCheckKeyOwner(const string &_keyName) {
+  const auto cert = getStringRapid("cert");
+  if (!isKeyRegistered(_keyName)) {
+    const std::lock_guard<std::mutex> lock(ownershipMutex);
+    if (!isKeyRegistered(_keyName)) {
+      if (SGXWalletServer::checkDataFromDb(_keyName) == nullptr) {
+        throw std::invalid_argument("Key does not exist");
+      }
+      addKeyByOwner(_keyName, cert);
+    }
+  }
+  if (!isKeyByOwner(_keyName, cert)) {
+    spdlog::error("Cert {} try to access key {} which does not belong to it",
+                  cert, _keyName);
+    throw std::invalid_argument("Only owner of the key can access it");
+  }
+}
+
+Json::Value
+ZMQMessage::createOwnedKey(const std::optional<string> &_keyName,
+                           const std::function<Json::Value()> &_create) {
+  if (!checkKeyOwnership) {
+    return _create();
+  }
+  const auto cert = getStringRapid("cert");
+  const std::lock_guard<std::mutex> lock(ownershipMutex);
+  const bool registered = _keyName && isKeyRegistered(*_keyName);
+  if (registered && !isKeyByOwner(*_keyName, cert)) {
+    throw std::invalid_argument("Only owner of the key can access it");
+  }
+  auto result = _create();
+  if (!registered && result["status"] == 0) {
+    const auto keyName = _keyName ? *_keyName : result["keyName"].asString();
+    spdlog::info("Cert {} creates key {}", cert, keyName);
+    addKeyByOwner(keyName, cert);
+  }
+  return result;
+}
+
+std::mutex ZMQMessage::ownershipMutex;
 
 cache::lru_cache<string, pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>>
     ZMQMessage::verifiedCerts(256);

@@ -6,7 +6,7 @@ on:
 jobs:
   check-linked-issues:
     name: Check if pull request has linked issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Get issues
         id: get-issues

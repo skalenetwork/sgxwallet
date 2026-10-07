@@ -138,6 +138,14 @@ public:
                                               jsonrpc::PARAMS_BY_NAME,
                                               jsonrpc::JSON_OBJECT, NULL),
                            &AbstractStubServer::getServerVersionI);
+    this->bindAndAddMethod(jsonrpc::Procedure("getServerOptions",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, NULL),
+                           &AbstractStubServer::getServerOptionsI);
+    this->bindAndAddMethod(jsonrpc::Procedure("getIssuedCertificatesInfo",
+                                              jsonrpc::PARAMS_BY_NAME,
+                                              jsonrpc::JSON_OBJECT, NULL),
+                           &AbstractStubServer::getIssuedCertificatesInfoI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("deleteBlsKey", jsonrpc::PARAMS_BY_NAME,
                            jsonrpc::JSON_OBJECT, "blsKeyName",
@@ -285,6 +293,18 @@ public:
     response = this->getServerVersion();
   }
 
+  inline virtual void getServerOptionsI(const Json::Value &request,
+                                        Json::Value &response) {
+    (void)request;
+    response = this->getServerOptions();
+  }
+
+  inline virtual void getIssuedCertificatesInfoI(const Json::Value &request,
+                                                 Json::Value &response) {
+    (void)request;
+    response = this->getIssuedCertificatesInfo();
+  }
+
   inline virtual void deleteBlsKeyI(const Json::Value &request,
                                     Json::Value &response) {
     response = this->deleteBlsKey(request["blsKeyName"].asString());
@@ -364,6 +384,8 @@ public:
 
   virtual Json::Value getServerStatus() = 0;
   virtual Json::Value getServerVersion() = 0;
+  virtual Json::Value getServerOptions() = 0;
+  virtual Json::Value getIssuedCertificatesInfo() = 0;
   virtual Json::Value deleteBlsKey(const std::string &name) = 0;
 
   virtual Json::Value getSecretShareV2(const std::string &polyName,

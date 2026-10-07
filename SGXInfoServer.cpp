@@ -44,15 +44,8 @@ shared_ptr<SGXInfoServer> SGXInfoServer::server = nullptr;
 shared_ptr<HttpServer> SGXInfoServer::httpServer = nullptr;
 
 SGXInfoServer::SGXInfoServer(AbstractServerConnector &connector,
-                             serverVersion_t type, uint32_t _logLevel,
-                             bool _autoSign, bool _checkCerts,
-                             bool _generateTestKeys)
-    : AbstractInfoServer(connector, type) {
-  logLevel_ = _logLevel;
-  autoSign_ = _autoSign;
-  checkCerts_ = _checkCerts;
-  generateTestKeys_ = _generateTestKeys;
-}
+                             serverVersion_t type, const initConfig &_config)
+    : AbstractInfoServer(connector, type), config(_config) {}
 
 Json::Value SGXInfoServer::getAllKeysInfo() {
   Json::Value result;
@@ -84,13 +77,13 @@ Json::Value SGXInfoServer::getServerConfiguration() {
   Json::Value result;
 
   try {
-    result["autoConfirm"] = autoconfirm;
-    result["logLevel"] = logLevel_;
-    result["enterBackupKey"] = enterBackupKey;
-    result["useHTTPS"] = useHTTPS;
-    result["autoSign"] = autoSign_;
-    result["checkCerts"] = checkCerts_;
-    result["generateTestKeys"] = generateTestKeys_;
+    result["autoConfirm"] = config.autoconfirm;
+    result["logLevel"] = config.logLevel;
+    result["enterBackupKey"] = config.enterBackupKey;
+    result["useHTTPS"] = config.useHTTPS;
+    result["autoSign"] = config.autoSign;
+    result["checkCerts"] = config.checkCert;
+    result["generateTestKeys"] = config.generateTestKeys;
   }
   HANDLE_SGX_EXCEPTION(result)
 
@@ -113,14 +106,12 @@ Json::Value SGXInfoServer::isKeyExist(const string &key) {
   RETURN_SUCCESS(result)
 }
 
-void SGXInfoServer::initInfoServer(uint32_t _logLevel, bool _autoSign,
-                                   bool _checkCerts, bool _generateTestKeys) {
+void SGXInfoServer::initInfoServer(const initConfig &_config) {
   constexpr bool validateClient = false;
   httpServer = make_shared<HttpServer>(
       BASE_PORT + 4, "", "", "", validateClient, DEFAULT_HTTP_SERVER_THREADS);
-  server = make_shared<SGXInfoServer>(
-      *httpServer, JSONRPC_SERVER_V2, _logLevel, _autoSign, _checkCerts,
-      _generateTestKeys); // hybrid server (json-rpc 1.0 & 2.0)
+  // hybrid server (json-rpc 1.0 & 2.0)
+  server = make_shared<SGXInfoServer>(*httpServer, JSONRPC_SERVER_V2, _config);
 
   spdlog::info("Starting info server on port {} ...", BASE_PORT + 4);
 

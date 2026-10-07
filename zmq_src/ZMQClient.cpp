@@ -201,17 +201,18 @@ pair<shared_ptr<EVP_PKEY>, shared_ptr<X509>>
 ZMQClient::readPublicKeyFromCertStr(const string &_certStr) {
   CHECK_STATE(!_certStr.empty())
 
-  BIO *bo = BIO_new(BIO_s_mem());
-  CHECK_STATE(bo);
-  BIO_write(bo, _certStr.c_str(), _certStr.size());
+  const unique_ptr<BIO, decltype(&BIO_free)> bio(
+      BIO_new_mem_buf(_certStr.data(), _certStr.size()), BIO_free);
+  CHECK_STATE(bio);
 
-  X509 *cert = nullptr;
-  PEM_read_bio_X509(bo, &cert, 0, 0);
+  // Encrypted PEM blocks fail instead of prompting for a passphrase.
+  const auto noPassphrase = [](char *, int, int, void *) { return -1; };
+  const auto cert = make_shared_x509(
+      PEM_read_bio_X509(bio.get(), nullptr, noPassphrase, nullptr));
   CHECK_STATE(cert);
-  auto key = X509_get_pubkey(cert);
-  BIO_free(bo);
+  const auto key = make_shared_evp_pkey(X509_get_pubkey(cert.get()));
   CHECK_STATE(key);
-  return {make_shared_evp_pkey(key), make_shared_x509(cert)};
+  return {key, cert};
 };
 
 ZMQClient::ZMQClient(const string &ip, uint16_t port, bool _sign,

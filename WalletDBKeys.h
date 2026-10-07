@@ -35,6 +35,9 @@ static constexpr const std::string_view BLS_KEY_PREFIX = "BLS_KEY:";
 static constexpr const std::string_view POLY_KEY_PREFIX = "POLY:";
 static constexpr const std::string_view DKG_DH_KEY_PREFIX = "DKG_DH_KEY_";
 
+// Suffix of the ZMQ key-ownership rows, which store the owner's client cert.
+static constexpr const std::string_view ownerSuffix = ":OWNER";
+
 static constexpr const std::string_view SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[] = {
     ECDSA_KEY_PREFIX, TEMP_ECDSA_KEY_PREFIX, BLS_KEY_PREFIX, POLY_KEY_PREFIX,
     DKG_DH_KEY_PREFIX};
@@ -42,6 +45,11 @@ static constexpr const std::string_view SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[] = {
 static constexpr std::size_t SEK_ENCRYPTED_PAYLOAD_KEY_PREFIX_COUNT =
     sizeof(SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES) /
     sizeof(SEK_ENCRYPTED_PAYLOAD_KEY_PREFIXES[0]);
+
+constexpr bool isOwnerKey(std::string_view key) {
+  return key.size() >= ownerSuffix.size() &&
+         key.substr(key.size() - ownerSuffix.size()) == ownerSuffix;
+}
 
 } // namespace WalletDBKeys
 

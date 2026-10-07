@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <optional>
+
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -60,13 +65,24 @@ class ZMQMessage {
 protected:
   bool checkKeyOwnership = true;
 
-  static std::map<string, string> keysByOwners;
+  // Held while ownership rows are written, so that a sign request cannot claim
+  // a key between its creation and its ownership row.
+  static std::mutex ownershipMutex;
 
   static bool isKeyByOwner(const string &keyName, const string &cert);
 
   static void addKeyByOwner(const string &keyName, const string &cert);
 
   static bool isKeyRegistered(const std::string &keyName);
+
+  // Sign requests claim an existing key that has no owner yet; any other
+  // caller must already own it. Pass only names the sign request accepts.
+  void claimOrCheckKeyOwner(const string &_keyName);
+
+  // Runs _create and makes the caller owner of _keyName or, if none, of the
+  // result's "keyName"; a name owned by another certificate is rejected first.
+  Json::Value createOwnedKey(const std::optional<string> &_keyName,
+                             const std::function<Json::Value()> &_create);
 
 public:
   static constexpr const char *BLS_SIGN_REQ = "BLSSignReq";
