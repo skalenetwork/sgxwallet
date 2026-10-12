@@ -111,6 +111,21 @@ string signedStatusRequest(bool _tamperSignature) {
   return Json::writeString(compact, request);
 }
 
+// A signed request whose "n" and "t" members sort after "msgSig", so dropping
+// msgSig by moving the last member into the gap would reorder the signed part.
+string signedRequestWithLaterMembers() {
+  Json::Value request;
+  request["type"] = ZMQMessage::GET_SERVER_STATUS_REQ;
+  request["cert"] = readFile(rootCACert);
+  request["n"] = 1;
+  request["t"] = 1;
+  Json::StreamWriterBuilder compact;
+  compact["indentation"] = "";
+  request["msgSig"] = ZMQClient::signString(
+      readKey(rootCAKey).get(), Json::writeString(compact, request));
+  return Json::writeString(compact, request);
+}
+
 Json::Value rawRequest(const string &_request) {
   zmq::context_t ctx(1);
   zmq::socket_t socket(ctx, ZMQ_DEALER);
@@ -178,6 +193,9 @@ TEST_CASE_METHOD(TestFixture, "ZMQ accepts only requests signed with this CA",
 
   REQUIRE(rawRequest(signedStatusRequest(false))["status"] == 0);
   REQUIRE(rawRequest(signedStatusRequest(true))["status"] != 0);
+
+  // The signature covers the remaining members in their original order.
+  REQUIRE(rawRequest(signedRequestWithLaterMembers())["status"] == 0);
 }
 
 TEST_CASE_METHOD(TestFixture, "ZMQ verifies signed requests of every type",
@@ -243,6 +261,11 @@ TEST_CASE_METHOD(TestFixture, "ZMQ keys are usable only by their owner",
   REQUIRE_THROWS(other->deleteBLSKey(blsName));
   REQUIRE(owner->getECDSAPublicKey(ecdsaKey.second) == ecdsaKey.first);
   REQUIRE_NOTHROW(owner->blsSignMessageHash(blsName, SAMPLE_HASH, 1, 1));
+
+  const auto ownerRow = LevelDB::getLevelDb()->readString(
+      ecdsaKey.second + string(WalletDBKeys::ownerSuffix));
+  REQUIRE(ownerRow != nullptr);
+  REQUIRE(*ownerRow != readFile(otherCert));
 
   // Ownership rows survive a restart.
   destroyTestEnclave();
