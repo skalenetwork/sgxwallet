@@ -25,10 +25,14 @@
 #define SGXD_SERVERDATACHECKER_H
 
 #include <string>
+#include <string_view>
 
 bool checkECDSAKeyName(const std::string &keyName);
 
-bool checkHex(const std::string &hash, const uint32_t sizeInBytes = 32);
+/**
+ * Checks if the given string is a valid hexadecimal string.
+ */
+bool isHex(const std::string_view str);
 
 bool checkPolyName(const std::string &polyName);
 

@@ -266,7 +266,7 @@ SGXWalletServer::importBLSKeyShareImpl(const string &_keyShare,
       hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
     }
 
-    if (!checkHex(hashTmp)) {
+    if (hashTmp.size() > 64 || !isHex(hashTmp)) {
       throw SGXException(BLS_IMPORT_INVALID_KEY_SHARE,
                          string(__FUNCTION__) +
                              ":Invalid BLS key share, please use hex");
@@ -347,7 +347,7 @@ Json::Value SGXWalletServer::blsSignMessageHashImpl(const string &_keyShareName,
       hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
     }
 
-    if (!checkHex(hashTmp)) {
+    if (hashTmp.size() > 64 || !isHex(hashTmp)) {
       throw SGXException(INVALID_BLS_HEX,
                          string(__FUNCTION__) + ":Invalid bls hex");
     }
@@ -384,7 +384,7 @@ Json::Value SGXWalletServer::importECDSAKeyImpl(const string &_keyShare,
       hashTmp.erase(hashTmp.begin(), hashTmp.begin() + 2);
     }
 
-    if (!checkHex(hashTmp)) {
+    if (hashTmp.size() > 64 || !isHex(hashTmp)) {
       throw SGXException(INVALID_ECDSA_IMPORT_HEX,
                          string(__FUNCTION__) +
                              ":Invalid ECDSA key share, please use hex");
@@ -460,7 +460,7 @@ SGXWalletServer::ecdsaSignMessageHashImpl(int _base, const string &_keyName,
       throw SGXException(INVALID_ECDSA_SIGN_KEY_NAME,
                          string(__FUNCTION__) + ":Invalid ECDSA sign key name");
     }
-    if (!checkHex(hashTmp)) {
+    if (hashTmp.size() > 64 || !isHex(hashTmp)) {
       throw SGXException(INVALID_ECDSA_SIGN_HASH, ":Invalid ECDSA sign hash");
     }
     if (_base <= 0 || _base > 32) {
@@ -635,11 +635,12 @@ Json::Value SGXWalletServer::getSecretShareImpl(const string &_polyName,
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      const string &pubKey = _pubKeys[i].asString();
+      if (pubKey.size() != 128 || !isHex(pubKey)) {
         throw SGXException(INVALID_DKG_GETSS_KEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
-      pubKeysStrs.push_back(_pubKeys[i].asString());
+      pubKeysStrs.push_back(pubKey);
     }
 
     string secret_share_name = "encryptedSecretShare:" + _polyName;
@@ -677,7 +678,7 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares,
                          string(__FUNCTION__) +
                              ":Invalid DKG parameters: n or t ");
     }
-    if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
+    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(_secretShare)) {
       throw SGXException(INVALID_DKG_VERIFY_SS_HEX,
                          string(__FUNCTION__) + ":Invalid Secret share");
     }
@@ -1093,11 +1094,12 @@ Json::Value SGXWalletServer::getSecretShareV2Impl(const string &_polyName,
 
     vector<string> pubKeysStrs;
     for (int i = 0; i < _n; i++) {
-      if (!checkHex(_pubKeys[i].asString(), 64)) {
+      const string &pubKey = _pubKeys[i].asString();
+      if (pubKey.size() != 128 || !isHex(pubKey)) {
         throw SGXException(INVALID_DKG_GETSS_V2_PUBKEY_HEX,
                            string(__FUNCTION__) + ":Invalid public key");
       }
-      pubKeysStrs.push_back(_pubKeys[i].asString());
+      pubKeysStrs.push_back(pubKey);
     }
 
     string secret_share_name = "encryptedSecretShare:" + _polyName;
@@ -1136,7 +1138,7 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares,
                          string(__FUNCTION__) +
                              ":Invalid DKG parameters: n or t ");
     }
-    if (!checkHex(_secretShare, SECRET_SHARE_NUM_BYTES)) {
+    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(_secretShare)) {
       throw SGXException(INVALID_DKG_VV_V2_SS_HEX,
                          string(__FUNCTION__) + ":Invalid Secret share");
     }
@@ -1330,7 +1332,7 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
       }
 
       string secretShare = entry["secretShare"].asString();
-      if (!checkHex(secretShare, SECRET_SHARE_NUM_BYTES)) {
+      if (secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(secretShare)) {
         throw SGXException(
             INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
             string(__FUNCTION__) + ":Invalid secretContributions[" +

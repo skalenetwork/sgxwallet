@@ -29,6 +29,7 @@
 #include <third_party/cryptlite/sha256.h>
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "sgxwallet_common.h"
 
@@ -42,6 +43,7 @@
 
 #include "LevelDB.h"
 #include "SGXRegistrationServer.h"
+#include "ServerDataChecker.h"
 
 #include "Log.h"
 #include "common.h"
@@ -70,8 +72,8 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
 
     string hash = cryptlite::sha256::hash_hex(csr);
 
-    if (system("ls " CERT_DIR "/" CERT_CREATE_COMMAND) != 0) {
-      spdlog::error("cert/create_client_cert does not exist");
+    if (access(CERT_DIR "/" CERT_CREATE_COMMAND, X_OK) != 0) {
+      spdlog::error("cert/create_client_cert does not exist or is not executable");
       throw SGXException(FAIL_TO_CREATE_CERTIFICATE,
                          "CLIENT CERTIFICATE GENERATION FAILED");
     }
@@ -82,7 +84,7 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     outfile << csr << endl;
     outfile.close();
 
-    if (system(("ls " + csr_name).c_str()) != 0) {
+    if (access(csr_name.c_str(), F_OK) != 0) {
       spdlog::error("could not create csr file");
       throw SGXException(FAIL_TO_CREATE_CERTIFICATE,
                          "CLIENT CERTIFICATE GENERATION FAILED");
@@ -127,27 +129,31 @@ Json::Value SGXRegistrationServer::GetCertificate(const string &hash) {
 
   string cert;
   try {
+    if (hash.size() != 64 || !isHex(hash)) {
+      throw SGXException(INVALID_CERTIFICATE_HASH, "Hash is not valid");
+    }
+
     string db_key = "CSR:HASH:" + hash + "STATUS:";
     shared_ptr<string> status_str_ptr =
         LevelDB::getCsrStatusDb()->readString(db_key);
+
     if (status_str_ptr == nullptr) {
       throw SGXException(CERT_REQUEST_DOES_NOT_EXIST,
                          "Data with this name does not exist in csr db");
     }
+
     int status = atoi(status_str_ptr->c_str());
 
     if (status == 0) {
       string crtPath = "cert/" + hash + ".crt";
 
-      if (system(("ls " + crtPath).c_str()) != 0) {
+      ifstream infile(crtPath);
+      if (!infile) {
         throw SGXException(FILE_NOT_FOUND, "Certificate does not exist");
       }
 
-      ifstream infile(crtPath);
-      infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
       ostringstream ss;
       ss << infile.rdbuf();
-      infile.close();
       cert = ss.str();
     }
 
