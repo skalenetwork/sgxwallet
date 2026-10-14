@@ -19,8 +19,10 @@
 
 #include "tests/integration/IntegrationTestSupport.h"
 
+#include "LevelDB.h"
 #include "SGXRegistrationServer.h"
 #include "SGXWalletServer.hpp"
+#include "sgxwallet_common.h"
 #include "tests/TestConstants.h"
 #include "third_party/catch.hpp"
 #include "zmq_src/ZMQClient.h"
@@ -33,6 +35,7 @@
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <vector>
 
 using namespace jsonrpc;
 using namespace std;
@@ -211,6 +214,34 @@ TEST_CASE_METHOD(TestFixture, "Get ServerVersionZmq",
                                        "./sgx_data/cert_data/rootCA.key");
   REQUIRE(client->getServerVersion() == SGXWalletServer::getVersion());
   sleep(3);
+}
+
+TEST_CASE_METHOD(TestFixtureHTTPS, "GetCertificate hash validation",
+                 "[integration][server][get-certificate-hash-validation]") {
+  const string validHash =
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+  const auto statusDb = LevelDB::getCsrStatusDb();
+  statusDb->writeDataUnique("CSR:HASH:" + validHash + "STATUS:", "0");
+
+  const auto validResult =
+      SGXRegistrationServer::getServer()->GetCertificate(validHash);
+  REQUIRE(validResult["status"] == FILE_NOT_FOUND);
+  REQUIRE(validResult["cert"].asString().empty());
+
+  const auto uppercaseHashResult =
+      SGXRegistrationServer::getServer()->GetCertificate(string(64, 'A'));
+  REQUIRE(uppercaseHashResult["status"] == CERT_REQUEST_DOES_NOT_EXIST);
+
+  const vector<string> invalidHashes = {validHash.substr(1), validHash + "0",
+                                        "g" + validHash.substr(1),
+                                        validHash.substr(0, 16) +
+                                            "; echo INJECTED #"};
+  for (const auto &hash : invalidHashes) {
+    statusDb->writeDataUnique("CSR:HASH:" + hash + "STATUS:", "0");
+    const auto result =
+        SGXRegistrationServer::getServer()->GetCertificate(hash);
+    REQUIRE(result["status"] == INVALID_CERTIFICATE_HASH);
+  }
 }
 
 TEST_CASE_METHOD(TestFixtureHTTPS, "Cert request sign",
