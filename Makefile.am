@@ -373,6 +373,7 @@ sgx_util_SOURCES = \
     sgx_util.cpp \
     stubclient.cpp \
     LevelDB.cpp \
+    ServerDataChecker.cpp \
     SGXRegistrationServer.cpp \
     CSRManagerServer.cpp
 

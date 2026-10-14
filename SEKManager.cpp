@@ -256,7 +256,7 @@ void enter_SEK() {
 
   spdlog::info("Setting backup key ...");
 
-  while (!checkHex(sek, 16)) {
+  if (sek.size() != 32 || !isHex(sek)) {
     spdlog::error("Invalid hex in key");
     throw SGXException(SET_SEK_INVALID_SEK_HEX, "Invalid hex in key");
   }

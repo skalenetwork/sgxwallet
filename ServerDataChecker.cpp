@@ -22,6 +22,8 @@
 */
 
 #include "ServerDataChecker.h"
+#include <algorithm>
+#include <cctype>
 #include <gmp.h>
 #include <vector>
 
@@ -72,23 +74,10 @@ bool checkECDSAKeyName(const string &keyName) {
   return true;
 }
 
-bool checkHex(const string &hex, const uint32_t sizeInBytes) {
-  if (hex.length() > sizeInBytes * 2 || hex.length() == 0) {
-    spdlog::error("key is too long or zero {} ", hex.length());
-    return false;
-  }
-
-  mpz_t num;
-  mpz_init(num);
-
-  if (mpz_set_str(num, hex.c_str(), 16) == -1) {
-    spdlog::error("key is not hex {}", hex);
-    mpz_clear(num);
-    return false;
-  }
-  mpz_clear(num);
-
-  return true;
+bool isHex(const std::string_view str) {
+  return !str.empty() &&
+         std::all_of(str.begin(), str.end(),
+                     [](unsigned char c) { return std::isxdigit(c); });
 }
 
 bool checkName(const string &Name, const string &prefix) {
