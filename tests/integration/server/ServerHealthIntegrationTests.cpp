@@ -232,10 +232,9 @@ TEST_CASE_METHOD(TestFixtureHTTPS, "GetCertificate hash validation",
       SGXRegistrationServer::getServer()->GetCertificate(string(64, 'A'));
   REQUIRE(uppercaseHashResult["status"] == CERT_REQUEST_DOES_NOT_EXIST);
 
-  const vector<string> invalidHashes = {validHash.substr(1), validHash + "0",
-                                        "g" + validHash.substr(1),
-                                        validHash.substr(0, 16) +
-                                            "; echo INJECTED #"};
+  const vector<string> invalidHashes = {
+      validHash.substr(1), validHash + "0", "g" + validHash.substr(1),
+      validHash.substr(0, 16) + "; echo INJECTED #"};
   for (const auto &hash : invalidHashes) {
     statusDb->writeDataUnique("CSR:HASH:" + hash + "STATUS:", "0");
     const auto result =
