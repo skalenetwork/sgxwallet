@@ -75,9 +75,9 @@ bool checkECDSAKeyName(const string &keyName) {
 }
 
 bool isHex(const std::string_view str) {
-  return !str.empty() && std::all_of(str.begin(), str.end(), [](unsigned char c) {
-    return std::isxdigit(c);
-  });
+  return !str.empty() &&
+         std::all_of(str.begin(), str.end(),
+                     [](unsigned char c) { return std::isxdigit(c); });
 }
 
 bool checkName(const string &Name, const string &prefix) {

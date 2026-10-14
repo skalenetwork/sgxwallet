@@ -73,7 +73,8 @@ Json::Value SGXRegistrationServer::SignCertificate(const string &csr) {
     string hash = cryptlite::sha256::hash_hex(csr);
 
     if (access(CERT_DIR "/" CERT_CREATE_COMMAND, X_OK) != 0) {
-      spdlog::error("cert/create_client_cert does not exist or is not executable");
+      spdlog::error(
+          "cert/create_client_cert does not exist or is not executable");
       throw SGXException(FAIL_TO_CREATE_CERTIFICATE,
                          "CLIENT CERTIFICATE GENERATION FAILED");
     }

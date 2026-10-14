@@ -678,7 +678,8 @@ Json::Value SGXWalletServer::dkgVerificationImpl(const string &_publicShares,
                          string(__FUNCTION__) +
                              ":Invalid DKG parameters: n or t ");
     }
-    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(_secretShare)) {
+    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES ||
+        !isHex(_secretShare)) {
       throw SGXException(INVALID_DKG_VERIFY_SS_HEX,
                          string(__FUNCTION__) + ":Invalid Secret share");
     }
@@ -1138,7 +1139,8 @@ Json::Value SGXWalletServer::dkgVerificationV2Impl(const string &_publicShares,
                          string(__FUNCTION__) +
                              ":Invalid DKG parameters: n or t ");
     }
-    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(_secretShare)) {
+    if (_secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES ||
+        !isHex(_secretShare)) {
       throw SGXException(INVALID_DKG_VV_V2_SS_HEX,
                          string(__FUNCTION__) + ":Invalid Secret share");
     }
@@ -1332,7 +1334,8 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
       }
 
       string secretShare = entry["secretShare"].asString();
-      if (secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES || !isHex(secretShare)) {
+      if (secretShare.size() != 2 * SECRET_SHARE_NUM_BYTES ||
+          !isHex(secretShare)) {
         throw SGXException(
             INVALID_CREATE_BLS_KEY_SECRET_SHARES_LENGTH,
             string(__FUNCTION__) + ":Invalid secretContributions[" +
