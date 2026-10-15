@@ -214,11 +214,6 @@ void initAll(initConfig &_config) {
 
   lock_guard<mutex> lock(initMutex);
 
-  // On-disk provisioning is idempotent and independent of the one-time,
-  // in-process server init below. Certs may be absent on a fresh data dir
-  // (or after external cleanup), so always ensure they exist before the guard.
-  SGXWalletServer::createCertsIfNeeded();
-
   if (sgxServerInited)
     return;
 
@@ -243,6 +238,10 @@ void initAll(initConfig &_config) {
     }
 
     initUserSpace();
+
+    // Certificate provisioning requires the data directory created by
+    // initUserSpace().
+    SGXWalletServer::createCertsIfNeeded();
 
     if (_config.reencryptDatabaseWithNewSEK) {
       DBReencryptor dbReencryptor;

@@ -27,9 +27,12 @@
 
 #include "abstractstubserver.h"
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <jsonrpccpp/server/connectors/httpserver.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <tbb/task_group.h>
 #include <unistd.h>
 
@@ -126,6 +129,24 @@ bool SGXWalletServer::verifyCert(string &_certFileName) {
 }
 
 void SGXWalletServer::createCertsIfNeeded() {
+  struct stat info;
+
+  // Check if the SGX data folder exists and is accessible
+  if (stat(SGXDATA_FOLDER, &info) != 0) {
+    const int statError = errno;
+    const string message =
+        "Cannot provision certificates: cannot access data directory '" +
+        string(SGXDATA_FOLDER) + "': " + strerror(statError) +
+        ". Initialize the data directory before certificate provisioning.";
+    spdlog::error(message);
+    throw SGXException(FAIL_TO_CREATE_CERTIFICATE, message);
+  }
+  if (!S_ISDIR(info.st_mode)) {
+    const string message = "Cannot provision certificates: data path '" +
+                           string(SGXDATA_FOLDER) + "' is not a directory.";
+    spdlog::error(message);
+    throw SGXException(FAIL_TO_CREATE_CERTIFICATE, message);
+  }
 
   string rootCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.pem";
   string keyCAPath = string(SGXDATA_FOLDER) + "cert_data/rootCA.key";
@@ -149,7 +170,7 @@ void SGXWalletServer::createCertsIfNeeded() {
   string keyPath = string(SGXDATA_FOLDER) + "cert_data/SGXServerCert.key";
 
   if (access(certPath.c_str(), F_OK) != 0 ||
-      access(certPath.c_str(), F_OK) != 0) {
+      access(keyPath.c_str(), F_OK) != 0) {
     spdlog::info("YOU DO NOT HAVE SERVER CERTIFICATE");
     spdlog::info("SERVER CERTIFICATE IS GOING TO BE CREATED");
 
