@@ -142,9 +142,8 @@ void SGXWalletServer::createCertsIfNeeded() {
     throw SGXException(FAIL_TO_CREATE_CERTIFICATE, message);
   }
   if (!S_ISDIR(info.st_mode)) {
-    const string message =
-        "Cannot provision certificates: data path '" + string(SGXDATA_FOLDER) +
-        "' is not a directory.";
+    const string message = "Cannot provision certificates: data path '" +
+                           string(SGXDATA_FOLDER) + "' is not a directory.";
     spdlog::error(message);
     throw SGXException(FAIL_TO_CREATE_CERTIFICATE, message);
   }

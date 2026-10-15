@@ -321,8 +321,8 @@ void LevelDB::initDataFolderAndDBs() {
   sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
 
   const auto failDataFolder = [&](const string &reason) {
-    const string message =
-        "Could not initialize data directory '" + sgx_data_folder + "': " + reason;
+    const string message = "Could not initialize data directory '" +
+                           sgx_data_folder + "': " + reason;
     spdlog::error(message);
     throw SGXException(ERROR_CREATING_SGX_DATA_FOLDER, message);
   };
@@ -332,8 +332,8 @@ void LevelDB::initDataFolderAndDBs() {
   // only try creating the data folder if it does not exist
   if (stat(sgx_data_folder.c_str(), &info) != 0) {
 
-    // only try creating if the error indicates that the directory does not exist
-    // anything else, such as missing permisisons - throw
+    // only try creating if the error indicates that the directory does not
+    // exist anything else, such as missing permisisons - throw
     const int statError = errno;
     if (statError == ENOENT) {
       spdlog::info("sgx_data folder does not exist. Creating ...");

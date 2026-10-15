@@ -239,7 +239,8 @@ void initAll(initConfig &_config) {
 
     initUserSpace();
 
-    // Certificate provisioning requires the data directory created by initUserSpace().
+    // Certificate provisioning requires the data directory created by
+    // initUserSpace().
     SGXWalletServer::createCertsIfNeeded();
 
     if (_config.reencryptDatabaseWithNewSEK) {
