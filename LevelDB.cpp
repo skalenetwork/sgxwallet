@@ -21,11 +21,14 @@
     @date 2019
 */
 
+#include <cerrno>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <sys/stat.h>
 
 #include "leveldb/db.h"
 #include <jsonrpccpp/client.h>
@@ -304,7 +307,6 @@ bool LevelDB::isInited = false;
 
 void LevelDB::initDataFolderAndDBs() {
   CHECK_STATE(!isInited)
-  isInited = true;
 
   spdlog::info("Initing wallet database ... ");
 
@@ -318,29 +320,57 @@ void LevelDB::initDataFolderAndDBs() {
 
   sgx_data_folder = string(cwd) + "/" + SGXDATA_FOLDER;
 
-  struct stat info;
-  if (stat(sgx_data_folder.c_str(), &info) != 0) {
-    spdlog::info("sgx_data folder does not exist. Creating ...");
+  const auto failDataFolder = [&](const string &reason) {
+    const string message =
+        "Could not initialize data directory '" + sgx_data_folder + "': " + reason;
+    spdlog::error(message);
+    throw SGXException(ERROR_CREATING_SGX_DATA_FOLDER, message);
+  };
 
-    if (system(("mkdir " + sgx_data_folder).c_str()) == 0) {
+  struct stat info;
+
+  // only try creating the data folder if it does not exist
+  if (stat(sgx_data_folder.c_str(), &info) != 0) {
+
+    // only try creating if the error indicates that the directory does not exist
+    // anything else, such as missing permisisons - throw
+    const int statError = errno;
+    if (statError == ENOENT) {
+      spdlog::info("sgx_data folder does not exist. Creating ...");
+
+      if (mkdir(sgx_data_folder.c_str(), 0700) != 0 && errno != EEXIST) {
+        const int mkdirError = errno;
+        failDataFolder(strerror(mkdirError));
+      }
+      if (stat(sgx_data_folder.c_str(), &info) != 0) {
+        const int statError = errno;
+        failDataFolder(strerror(statError));
+      }
       spdlog::info("Successfully created sgx_data folder");
     } else {
-      spdlog::error("Could not create sgx_data folder.");
-      throw SGXException(ERROR_CREATING_SGX_DATA_FOLDER,
-                         "Could not create sgx_data folder.");
+      failDataFolder(strerror(statError));
     }
+  }
+
+  if (!S_ISDIR(info.st_mode)) {
+    failDataFolder("path is not a directory");
   }
 
   spdlog::info("Opening wallet databases");
 
   auto dbName = sgx_data_folder + WALLETDB_NAME;
-  levelDb = make_shared<LevelDB>(dbName);
+  auto walletDb = make_shared<LevelDB>(dbName);
 
   auto csr_dbname = sgx_data_folder + "CSR_DB";
-  csrDb = make_shared<LevelDB>(csr_dbname);
+  auto requestDb = make_shared<LevelDB>(csr_dbname);
 
   auto csr_status_dbname = sgx_data_folder + "CSR_STATUS_DB";
-  csrStatusDb = make_shared<LevelDB>(csr_status_dbname);
+  auto statusDb = make_shared<LevelDB>(csr_status_dbname);
+
+  levelDb = std::move(walletDb);
+  csrDb = std::move(requestDb);
+  csrStatusDb = std::move(statusDb);
+  isInited = true;
 
   spdlog::info("Successfully opened databases");
 }
