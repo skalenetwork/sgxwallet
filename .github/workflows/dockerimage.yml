@@ -2,6 +2,14 @@ name: Build and push SGX container
 on:
   workflow_dispatch:
   push:
+    branches:
+      - develop
+      - beta
+  pull_request:
+    branches:
+      - develop
+      - beta
+      - stable
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -10,17 +18,13 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: Login to docker
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
       - uses: actions/checkout@v4
       - name: submodule update
         run: git submodule update --init --recursive
-      - name: build and deploy test image
-        run: python3 scripts/docker_build.py Dockerfile sgxwallet ${GITHUB_SHA}
       - name: Calculate and cache VERSION
-        if: |
-          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
@@ -31,28 +35,23 @@ jobs:
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
       - name: Update VERSION file
-        if: |
-          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
         run : |
           echo "Updating VERSION file with $VERSION"
           echo "$VERSION" > VERSION
+      - name: build docker image
+        run: bash ./scripts/build_image.sh Dockerfile sgxwallet
       - name: deploy docker image
         env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
-        if: |
-          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
         run : |
           echo "Branch $BRANCH"
           echo "Using cached version $VERSION"
-          bash ./scripts/build_image.sh Dockerfile sgxwallet
           bash ./scripts/publish_image.sh sgxwallet
       - name: Create Release
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
         id: create_release
         uses: actions/create-release@latest
         env:
