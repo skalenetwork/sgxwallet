@@ -2,6 +2,14 @@ name: Build, test and push sim mode container
 on:
   workflow_dispatch:
   push:
+    branches:
+      - develop
+      - beta
+  pull_request:
+    branches:
+      - develop
+      - beta
+      - stable
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -12,24 +20,13 @@ jobs:
     - name: Check that /dev/urandom exists
       run: ls /dev/urandom
     - name: Login to docker
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
       run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
     - uses: actions/checkout@v4
     - name: Clean & Reset submodules
       run: ./clean.sh --full
-    - name: Build and publish container for testing
-      run: python3 scripts/docker_build.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
-    - name: test
-      run: |
-        ulimit -n 65535
-        python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim ${GITHUB_SHA}
-    - name: cleanup
-      if: always()
-      run: sudo rm -rf sgx_data
     - name: Calculate and cache VERSION
-      if: |
-            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
       run : |
             export BRANCH=${GITHUB_REF##*/}
             echo "Branch $BRANCH"
@@ -40,26 +37,28 @@ jobs:
             echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
             echo "BRANCH=$BRANCH" >> $GITHUB_ENV
     - name: Update VERSION file
-      if: |
-            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
       run : |
             echo "Updating VERSION file with $VERSION"
             echo "$VERSION" > VERSION
-    - name: build and deploy docker image
+    - name: Build container
+      run: bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
+    - name: test
+      run: |
+        ulimit -n 65535
+        # Same tag as build_image.sh: the calculated VERSION, or the commit SHA for unpublished builds
+        python3 scripts/docker_test.py DockerfileSimulation sgxwallet_sim ${VERSION-$(git rev-parse HEAD)}
+    - name: cleanup
+      if: always()
+      run: sudo rm -rf sgx_data
+    - name: deploy docker image
       env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
-      if: |
-            github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta'
       run : |
-            sudo rm -rf /home/runner/work/sgxwallet/sgxwallet/sgx_data
             echo "Branch $BRANCH"
             echo "Using cached version $VERSION"
-            bash ./scripts/build_image.sh DockerfileSimulation sgxwallet_sim
             bash ./scripts/publish_image.sh sgxwallet_sim
 
 

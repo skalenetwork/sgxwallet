@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [ edited, synchronize, opened, reopened ]
 
+permissions:
+  issues: read
+  pull-requests: read
+
 jobs:
   check-linked-issues:
     name: Check if pull request has linked issues
@@ -12,7 +16,7 @@ jobs:
         id: get-issues
         uses: mondeja/pr-linked-issues-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: PR has not linked issues
         if: join(steps.get-issues.outputs.issues) == ''
         run: 
