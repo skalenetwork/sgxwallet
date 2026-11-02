@@ -131,7 +131,7 @@ std::string DBReencryptor::readBackupSEK(const std::string_view &path) const {
                   std::istreambuf_iterator<char>());
   boost::trim(sek);
 
-  if (sek.size() != 32 || !checkHex(sek, 16)) {
+  if (sek.size() != 32 || !isHex(sek)) {
     throw SGXException(SET_SEK_INVALID_SEK_HEX,
                        "Backup SEK must be a 32-character hex string");
   }

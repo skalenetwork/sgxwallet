@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <sys/stat.h>
 
 #include "leveldb/db.h"
 #include <jsonrpccpp/client.h>
@@ -322,7 +323,7 @@ void LevelDB::initDataFolderAndDBs() {
   if (stat(sgx_data_folder.c_str(), &info) != 0) {
     spdlog::info("sgx_data folder does not exist. Creating ...");
 
-    if (system(("mkdir " + sgx_data_folder).c_str()) == 0) {
+    if (mkdir(sgx_data_folder.c_str(), 0700) == 0) {
       spdlog::info("Successfully created sgx_data folder");
     } else {
       spdlog::error("Could not create sgx_data folder.");
