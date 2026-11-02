@@ -306,6 +306,7 @@ sgxwallet_tests_SOURCES = \
     tests/unit/ZMQMessageTests.cpp \
     tests/unit/ServerOptionsTests.cpp \
     tests/unit/IssuedCertificatesTests.cpp \
+    tests/unit/DataDirectoryTests.cpp \
     tests/integration/IntegrationTestSupport.cpp \
     tests/integration/server/ServerHealthIntegrationTests.cpp \
     tests/integration/server/ZMQAuthIntegrationTests.cpp \
