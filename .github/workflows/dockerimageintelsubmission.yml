@@ -2,6 +2,15 @@ name: Build, test and push Intel SGX container
 on:
   workflow_dispatch:
   push:
+    branches:
+      - develop
+      - beta
+      - stable
+  pull_request:
+    branches:
+      - develop
+      - beta
+      - stable
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -10,17 +19,17 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: Login to docker
+        if: |
+          github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
+          github.ref == 'refs/heads/stable'
         run: docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
       - uses: actions/checkout@v4
       - name: submodule update
         run: git submodule update --init --recursive
-      - name: build and deploy test image
-        run: python3 scripts/docker_build.py DockerfileIntelSubmission sgxwallet_intelsubmission ${GITHUB_SHA}
       - name: Calculate and cache VERSION
-        if: |    
+        if: |
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+          github.ref == 'refs/heads/stable'
         run : |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
@@ -31,23 +40,22 @@ jobs:
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
       - name: Update VERSION file
-        if: |    
+        if: |
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+          github.ref == 'refs/heads/stable'
         run : |
           echo "Updating VERSION file with $VERSION"
           echo "$VERSION" > VERSION
-      - name: build and deploy docker image
+      - name: build docker image
+        run: bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
+      - name: deploy docker image
         env:
           VERSION: ${{ env.VERSION }}
           BRANCH: ${{ env.BRANCH }}
-        if: |    
+        if: |
           github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/beta' ||
-          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable' ||
-          github.ref == 'refs/heads/SECURE_ENCLAVE_CHANGES'
+          github.ref == 'refs/heads/stable'
         run : |
           echo "Branch $BRANCH"
           echo "Using cached version $VERSION"
-          bash ./scripts/build_image.sh DockerfileIntelSubmission sgxwallet_intelsubmission
           bash ./scripts/publish_image.sh sgxwallet_intelsubmission
