@@ -24,7 +24,6 @@ Ubuntu 24.04 migration; enclave and test suite improvements.
 
 - Move to Ubuntu 24.04, remove the libff dependency and update libBLS ([#541](https://github.com/skalenetwork/sgxwallet/pull/541))
 - Update enclave ECDSA signing and randomness ([#532](https://github.com/skalenetwork/sgxwallet/pull/532), [skalenetwork/internal-support#1481](https://github.com/skalenetwork/internal-support/issues/1481))
-- Set `DisableDebug` to 1 in the default enclave configuration ([#534](https://github.com/skalenetwork/sgxwallet/pull/534), [#533](https://github.com/skalenetwork/sgxwallet/issues/533))
 - Remove unnecessary debug prints ([#538](https://github.com/skalenetwork/sgxwallet/pull/538), [#537](https://github.com/skalenetwork/sgxwallet/issues/537))
 - Clean shutdown: `exitAll()` destroys the enclave and closes the databases, and the ZMQ server
   can be restarted after exit ([#530](https://github.com/skalenetwork/sgxwallet/pull/530))
