@@ -77,7 +77,7 @@ Open 1026 and 1031 only to the nodes that use this wallet. 1027 must be reachabl
 
 ### Verify the running configuration
 
-From sgxwallet 1.11.0, `getServerOptions` reports the options the wallet runs with, including whether ZMQ key ownership (`-e`) is enforced (`effective.zmqKeyOwnershipEnforced`):
+From sgxwallet 1.10.4, `getServerOptions` reports the options the wallet runs with, including whether ZMQ key ownership (`-e`) is enforced (`effective.zmqKeyOwnershipEnforced`):
 
 ```bash
 curl --cert sgx.crt --key sgx.key -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getServerOptions","params":{}}' -H 'content-type:application/json;' https://<SGX_SERVER_IP>:1026 -k

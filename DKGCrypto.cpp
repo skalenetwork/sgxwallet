@@ -151,9 +151,15 @@ string genDkgPolyCommon(int _t, const string &_encryptedFreeTerm) {
                              ":Invalid previous BLS key hex");
     }
 
+#ifdef SGXWALLET_ENABLE_DKG_V3
     status = trustedGenDkgSecretV3(eid, &errStatus, errMsg.data(),
                                    encryptedFreeTerm, encryptedFreeTermLen,
                                    encrypted_dkg_secret.data(), &enc_len, _t);
+#else
+    // DKG V3 ECALLs exist only in the test enclave interface.
+    throw SGXException(DKGV3_NOT_ENABLED,
+                       string(__FUNCTION__) + ":DKG V3 is not enabled");
+#endif
   }
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
@@ -593,10 +599,17 @@ bool createBLSShareV3(
 
   sgx_status_t status = SGX_SUCCESS;
 
+#ifdef SGXWALLET_ENABLE_DKG_V3
   status = trustedCreateBlsKeyV3(
       eid, &errStatus, errMsg.data(), encryptedSecretContributionsFlat.c_str(),
       contributorIndices.data(), contribution_count, encr_key, decKeyLen,
       encr_bls_key, &enc_bls_len);
+#else
+  // DKG V3 ECALLs exist only in the test enclave interface.
+  (void)contribution_count;
+  throw SGXException(DKGV3_NOT_ENABLED,
+                     string(__FUNCTION__) + ":DKG V3 is not enabled");
+#endif
 
   HANDLE_TRUSTED_FUNCTION_ERROR(status, errStatus, errMsg.data());
 

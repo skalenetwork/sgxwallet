@@ -10,7 +10,7 @@ Note: the total printed by `grep_certificates.py` includes the server certificat
 
 ## Automated check
 
-From sgxwallet 1.11.0, `getIssuedCertificatesInfo` returns the number of client certificates the wallet issued and the fingerprint of the newest one. Run the check only when the node's certificate directory holds exactly `sgx.crt`, `sgx.key` and `sgx.csr`: sgx.py registers a new certificate when `sgx.crt` or `sgx.key` is missing.
+From sgxwallet 1.10.4, `getIssuedCertificatesInfo` returns the number of client certificates the wallet issued and the fingerprint of the newest one. Run the check only when the node's certificate directory holds exactly `sgx.crt`, `sgx.key` and `sgx.csr`: sgx.py registers a new certificate when `sgx.crt` or `sgx.key` is missing.
 
 ```bash
 cd .skale/node_data/sgx_certs

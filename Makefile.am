@@ -322,7 +322,8 @@ sgxwallet_tests_SOURCES = \
 
 sgxwallet_tests_CPPFLAGS = \
     $(AM_CPPFLAGS) \
-    -DSGX_ENABLE_TEST_ECALLS
+    -DSGX_ENABLE_TEST_ECALLS \
+    -DSGXWALLET_ENABLE_DKG_V3
 
 nodist_sgxwallet_tests_SOURCES = $(nodist_sgxwallet_SOURCES)
 

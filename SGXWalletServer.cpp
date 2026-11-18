@@ -567,6 +567,11 @@ Json::Value SGXWalletServer::generateDKGPolyV3Impl(
   string encrPolyHex;
 
   try {
+#ifndef SGXWALLET_ENABLE_DKG_V3
+    throw SGXException(DKGV3_NOT_ENABLED,
+                       string(__FUNCTION__) + ":DKG V3 is not enabled");
+#endif
+
     if (!checkName(_polyName, "POLY")) {
       throw SGXException(INVALID_GEN_DKGV3_POLY_NAME,
                          string(__FUNCTION__) +
@@ -1249,6 +1254,10 @@ Json::Value SGXWalletServer::createBLSPrivateKeyV3Impl(
   INIT_RESULT(result)
 
   try {
+#ifndef SGXWALLET_ENABLE_DKG_V3
+    throw SGXException(DKGV3_NOT_ENABLED,
+                       string(__FUNCTION__) + ":DKG V3 is not enabled");
+#endif
 
     if (!checkECDSAKeyName(_ethKeyName)) {
       throw SGXException(INVALID_CREATE_BLS_ECDSA_KEY_NAME,

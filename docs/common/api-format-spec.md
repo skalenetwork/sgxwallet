@@ -783,7 +783,7 @@ curl -X POST --data '{
 ## `getServerOptions`
 
 #### Description
-Returns the options sgxwallet was started with (`flags`), what they enforce (`effective`) and, for authenticated callers, two build facts (`build`). The values are reported by the server itself. Available from sgxwallet 1.11.0.
+Returns the options sgxwallet was started with (`flags`), what they enforce (`effective`) and, for authenticated callers, two build facts (`build`). The values are reported by the server itself. Available from sgxwallet 1.10.4.
 
 #### Request Parameters
 None. `null`, `[]` and `{}` are accepted.
@@ -834,7 +834,7 @@ curl -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getServerOptions","params
 |------------|-------------|
 |`-128`      | sgxwallet is starting or stopping. Retry later. |
 |`-(10000 + line number)` | Unknown server error. |
-|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.11.0. |
+|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.10.4. |
 
 This is not a health check; use `getServerStatus` for that. On port 1029 any peer can read `flags` and `effective`, as port 1030 already exposes most of these flags without authentication.
 
@@ -844,7 +844,7 @@ This is not a health check; use `getServerStatus` for that. On port 1029 any pee
 ## `getIssuedCertificatesInfo`
 
 #### Description
-Returns how many client certificates this wallet's CA has issued and the serial, dates and fingerprint of the newest one. The server reads only its own CA files, `sgx_data/cert_data/index.txt` and `new_certs/`; callers compare the result with their own certificate. Available from sgxwallet 1.11.0.
+Returns how many client certificates this wallet's CA has issued and the serial, dates and fingerprint of the newest one. The server reads only its own CA files, `sgx_data/cert_data/index.txt` and `new_certs/`; callers compare the result with their own certificate. Available from sgxwallet 1.10.4.
 
 A successful HTTPS call with the client-certificate check on already proves the caller's certificate is valid for this wallet; this method adds only the count and the newest certificate.
 
@@ -896,7 +896,7 @@ curl -X POST --data '{"jsonrpc":"2.0","id":1,"method":"getIssuedCertificatesInfo
 |`-44`       | `index.txt` or the archive of the newest certificate is missing. |
 |`-112`      | The CA database or the archive is malformed. |
 |`-(10000 + line number)` | Unknown server error. |
-|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.11.0. |
+|JSON-RPC error `-32601` | Method not found: sgxwallet is older than 1.10.4. |
 
 On port 1029 any peer can read the count and the fingerprint of the newest certificate.
 

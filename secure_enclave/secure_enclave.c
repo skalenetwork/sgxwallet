@@ -471,6 +471,7 @@ clean:
     return status;
 }
 
+#ifdef SGX_ENABLE_TEST_ECALLS
 /**
  * @brief Helper function to calculate Lagrange coefficients for a given set of contributor indices.
  * lambda_i = product( -x_j / (x_i - x_j) ) for all j != i, where x_k is the index of contributor
@@ -575,6 +576,7 @@ static int calculateLagrangeCoefficients(
 clean:
     return status;
 }
+#endif // SGX_ENABLE_TEST_ECALLS
 
 
 
@@ -1233,6 +1235,8 @@ trustedGenDkgSecret(int *errStatus, char *errString, uint8_t *encrypted_dkg_secr
     LOG_INFO("SGX call completed");
 }
 
+#ifdef SGX_ENABLE_TEST_ECALLS
+// DKG V3 is not enabled in production builds yet.
 void trustedGenDkgSecretV3(int *errStatus, char *errString,
                       uint8_t *encrypted_free_term, uint64_t encrypted_free_term_length,
                       uint8_t *encrypted_dkg_secret, uint64_t *enc_len, size_t _t) {
@@ -1290,6 +1294,7 @@ void trustedGenDkgSecretV3(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__);
     LOG_INFO("SGX call completed");
 }
+#endif // SGX_ENABLE_TEST_ECALLS
 
 
 void trustedSetEncryptedDkgPoly(int *errStatus, char *errString, uint8_t *encrypted_poly, uint64_t enc_len) {
@@ -1784,6 +1789,8 @@ void trustedCreateBlsKeyV2(int *errStatus, char *errString, const char *secretSh
     LOG_INFO("SGX call completed");
 }
 
+#ifdef SGX_ENABLE_TEST_ECALLS
+// DKG V3 is not enabled in production builds yet.
 void trustedCreateBlsKeyV3(int *errStatus, char *errString,
                             const char *encryptedSecretContributions,
                             uint8_t *contributorIndices,
@@ -1899,6 +1906,7 @@ void trustedCreateBlsKeyV3(int *errStatus, char *errString,
     LOG_INFO(__FUNCTION__ );
     LOG_INFO("SGX call completed");
 }
+#endif // SGX_ENABLE_TEST_ECALLS
 
 void
 trustedGetBlsPubKey(int *errStatus, char *errString, uint8_t *encryptedPrivateKey, uint64_t key_len,
