@@ -44,6 +44,9 @@ EXTERNC void point_print(point p);
 /*Set point from hexadecimal strings*/
 EXTERNC int point_set_hex(point p, const char *x, const char *y);
 
+/*Validate that point P is on the given curve and inside the base field.*/
+EXTERNC bool point_is_on_curve(point P, domain_parameters curve);
+
 /*Set point from decimal unsigned long ints*/
 EXTERNC void point_set_ui(point p, unsigned long int x, unsigned long int y);
 

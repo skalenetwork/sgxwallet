@@ -17,7 +17,11 @@
     along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <catch2/catch.hpp>
+#include "IssuedCertificates.h"
+#include "SGXException.h"
+#include "common.h"
+#include "tests/TestSupport.h"
+#include "third_party/catch.hpp"
 
 #include <cstdio>
 #include <ctime>
@@ -27,11 +31,6 @@
 #include <string>
 #include <thread>
 #include <unistd.h>
-
-#include "../../IssuedCertificates.h"
-#include "../../SGXException.h"
-#include "../../common.h"
-#include "../TestSupport.h"
 
 using std::optional;
 using std::string;

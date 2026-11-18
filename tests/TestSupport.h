@@ -10,43 +10,63 @@
 
     sgxwallet is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
     GNU Affero General Public License for more details.
 
     You should have received a copy of the GNU Affero General Public License
-    along with sgxwallet.  If not, see <https://www.gnu.org/licenses/>.
+    along with sgxwallet. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
 
+#include <condition_variable>
 #include <functional>
-#include <stdexcept>
-#include <unistd.h>
+#include <libBLS/backends/algebra.hpp>
+#include <mutex>
+#include <random>
+#include <string>
+#include <vector>
 
-// Header-only so that both testw and the CMake unit tests can use it.
+// Generic, workflow-agnostic helpers usable by any test.
 namespace TestSupport {
 
-// Runs _call with a line waiting on stdin; false if _call consumed it.
-inline bool leavesStdinUnread(const std::function<void()> &_call) {
-  int fds[2];
-  if (pipe(fds) != 0 || write(fds[1], "x\n", 2) != 2) {
-    throw std::runtime_error("Could not prepare stdin for the test");
-  }
-  close(fds[1]);
-  struct Restore {
-    int savedStdin;
-    int pipeRead;
-    ~Restore() {
-      dup2(savedStdin, STDIN_FILENO);
-      close(savedStdin);
-      close(pipeRead);
-    }
-  } restore{dup(STDIN_FILENO), fds[0]};
-  dup2(fds[0], STDIN_FILENO);
+extern std::default_random_engine randGen;
 
-  _call();
-  char pending[2];
-  return read(STDIN_FILENO, pending, sizeof(pending)) == 2;
-}
+// Runs _call with a line waiting on stdin; false if _call consumed it.
+bool leavesStdinUnread(const std::function<void()> &_call);
+
+std::string
+stringFromFr(libBLS::algebra::FrScalar &el,
+             libBLS::algebra::Base base = libBLS::algebra::Base::DEC);
+
+// Convert a decimal string into a zero-padded hex string of numBytes bytes.
+std::string convertDecToHex(const std::string &dec, int numBytes = 32);
+
+// Split a delimited string of decimal coefficients into field scalars.
+std::vector<libBLS::algebra::FrScalar> splitStringToFr(const char *coeffs,
+                                                       char symbol);
+
+// Build a G2 point from a vector of four decimal coordinate strings
+// {xC0, xC1, yC0, yC1}.
+libBLS::algebra::G2Point
+vectStringToG2(const std::vector<std::string> &G2_str_vect);
+
+// Simple start barrier - used by multi-threaded load tests.
+struct start_barrier {
+  explicit start_barrier(int count) : count(count) {}
+  void wait() {
+    std::unique_lock<std::mutex> lock(m);
+    if (--count == 0) {
+      cv.notify_all();
+    } else {
+      cv.wait(lock, [&] { return count == 0; });
+    }
+  }
+
+private:
+  int count;
+  std::mutex m;
+  std::condition_variable cv;
+};
 
 } // namespace TestSupport

@@ -1,26 +1,48 @@
 # Functional Tests
 
-Tests require SGXWallet to have been built locally in simulation mode, as described in [this document](building.md).
+Tests require a simulation build configured with test binaries and test-only
+ECALLs:
 
-Tests can be run in two ways. 
+```bash
+./autoconf.bash
+./configure --enable-tests --enable-sgx-simulation
+make -j"$(nproc)"
+```
+
+Omit `--enable-tests` for normal and release builds; `make` will then not build
+any test binaries.
+
+Tests can be run in two ways.
 
 ## Run all tests
 
-To run over all tests, run:
+To run all unit, integration, and backward-compatibility tests, run:
 ```
-python3 testw.py
+make check
 ```
 
-Tests can be added to the script by simply adding the test name to the list of tests in the script.
+The Catch2 portion of the default suite runs tests tagged `[unit]` or
+`[integration]` and excludes tests tagged `[performance]`.
+
+Container test runs use `make run-tests`, which executes the already-built
+test binaries without requiring their build dependencies to remain in the
+image after cleanup.
 
 
 ## Run individual tests
-To run an individual test named `[test_ex]`:
+To run an individual integration test named `[test_ex]`:
 ```bash
-./testw [test_ex]
+./sgxwallet_tests "[integration][test_ex]" --reporter compact
 ```
 
-We follow the convention of naming tests like `[test-name]`.
+To run a full category:
+```bash
+./sgxwallet_tests "[unit]~[performance]" --reporter compact
+./sgxwallet_tests "[integration]~[performance]" --reporter compact
+```
+
+We follow the convention of tagging tests by type, component, and scenario, for
+example `[integration][te][te-decryption-share]`.
 
 ---
 
@@ -28,27 +50,25 @@ We follow the convention of naming tests like `[test-name]`.
 
 ## DB Unit Tests
 
-DB unit tests are built with the standalone CMake test project under `tests/`.
-They do not require an SGX enclave.
+DB unit tests are part of `sgxwallet_tests` and can be filtered by tag.
 
 ```bash
-cmake -S tests -B build-tests
-cmake --build build-tests --target unit_tests -j"$(nproc)"
-ctest --test-dir build-tests -L unit --output-on-failure
+make sgxwallet_tests
+./sgxwallet_tests "[unit][DBReencryptor]~[performance]" --reporter compact
 ```
 
 ## DB Reencryption Integration Tests
 
 DB reencryption integration tests exercise the full SGX enclave plus LevelDB
-reencryption path. These tests require a test enclave interface, so configure
-with `--enable-sgx-test-ecalls`.
+reencryption path. They are part of `sgxwallet_tests`; `--enable-tests`
+automatically selects the required test-only enclave interface.
 
 ```bash
 source /opt/intel/sgxsdk/environment
 ./autoconf.bash
-./configure --enable-sgx-test-ecalls --enable-sgx-simulation
-make db_reencrypt_integration_tests
-./db_reencrypt_integration_tests --reporter compact
+./configure --enable-tests --enable-sgx-simulation
+make sgxwallet_tests
+./sgxwallet_tests "[integration][db]~[performance]" --reporter compact
 ```
 
 If running against hardware SGX instead of simulation mode, omit
@@ -71,4 +91,4 @@ To run the tests, please follow the instructions in the [performance-tests/READM
 
 # Backward Compatibility Tests
 
-To test that new sgxwallet versions with udpated backends are still compatible with old versions, [see this document](../../tests/backward_compatibility/README.md)
+To test that new sgxwallet versions with updated backends are still compatible with old versions, [see this document](../../tests/backward_compatibility/README.md)

@@ -32,17 +32,18 @@
 #include "SEKManager.h"
 #include "SGXWalletServer.h"
 #include "SGXWalletServer.hpp"
+#include "TestKeyGenerator.h"
+#include "WalletConstants.h"
 
 #include <fstream>
+#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <thread>
 
-#include "TestUtils.h"
-
+#include "third_party/spdlog/spdlog.h"
 #include "zmq_src/ZMQServer.h"
 
 #include "sgxwall.h"
 #include "sgxwallet.h"
-#include "testw.h"
 
 namespace {
 int getDefaultThreadPoolSize() {
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
   if (config.generateTestKeys && !keysExist && !ExitHandler::shouldExit()) {
     cerr << "Generating test keys ..." << endl;
 
-    HttpClient client(RPC_ENDPOINT);
+    HttpClient client(WalletConstants::LOCAL_HTTP_RPC_ENDPOINT);
     StubClient c(client, JSONRPC_CLIENT_V2);
 
     vector<string> ecdsaKeyNames;
@@ -226,14 +227,16 @@ int main(int argc, char *argv[]) {
     int schainID = 1;
     int dkgID = 1;
 
-    TestUtils::doDKG(c, 4, 3, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+    TestKeyGenerator::generateDkgKeys(c, 4, 3, ecdsaKeyNames, blsKeyNames,
+                                      schainID, dkgID);
 
     SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames, "sgx_data/4node.json");
 
     schainID = 2;
     dkgID = 2;
 
-    TestUtils::doDKG(c, 16, 11, ecdsaKeyNames, blsKeyNames, schainID, dkgID);
+    TestKeyGenerator::generateDkgKeys(c, 16, 11, ecdsaKeyNames, blsKeyNames,
+                                      schainID, dkgID);
 
     SGXWallet::serializeKeys(ecdsaKeyNames, blsKeyNames,
                              "sgx_data/16node.json");

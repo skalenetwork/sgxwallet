@@ -37,7 +37,17 @@
 #include <sgx_tgmp.h>
 #endif
 
+/**
+ * Generate T random polynomial coefficients.
+ */
 EXTERNC int gen_dkg_poly(char *secret, unsigned _t);
+
+/**
+ * Generate T polynomial coefficients, using free_coef_hex (hex-encoded Fr) as
+ * the constant term (coefficient 0). Used for DKG V3 (key-continuation DKG).
+ */
+EXTERNC int gen_dkg_poly_with_free_coef(char *secret, unsigned _t,
+                                        const char *free_coef_hex);
 
 EXTERNC void calc_secret_shares(const char *decrypted_coeffs,
                                 char *secret_shares, unsigned _t, unsigned _n);

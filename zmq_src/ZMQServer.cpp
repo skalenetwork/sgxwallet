@@ -40,6 +40,7 @@
 using namespace std;
 
 shared_ptr<ZMQServer> ZMQServer::zmqServer = nullptr;
+atomic<bool> ZMQServer::isInited(false);
 
 ZMQServer::ZMQServer(bool _checkSignature, bool _checkKeyOwnership,
                      const string &_caCertFile)
@@ -107,34 +108,65 @@ void ZMQServer::run() {
 
 atomic<bool> ZMQServer::isExitRequested(false);
 
+void ZMQServer::resetLifecycleState() {
+  serverThread = nullptr;
+  zmqServer = nullptr;
+  isExitRequested = false;
+  isInited = false;
+}
+
 void ZMQServer::exitZMQServer() {
-  // if already exited do not exit
   spdlog::info("exitZMQServer called");
+  if (!isInited.exchange(false)) {
+    spdlog::info("ZMQServer is not initialized");
+    resetLifecycleState();
+    return;
+  }
+
   if (isExitRequested.exchange(true)) {
     spdlog::info("Exit is already under way");
     return;
   }
 
+  auto server = zmqServer;
+
   spdlog::info("Exiting ZMQServer");
-  spdlog::info("Joining worker thread pool threads ...");
-  zmqServer->threadPool->joinAll();
-  spdlog::info("Joined worker thread pool threads");
-  spdlog::info("Shutting down ZMQ contect");
-  zmqServer->ctx->shutdown();
-  spdlog::info("Shut down ZMQ contect");
-  spdlog::info("Closing ZMQ server socket ...");
-  zmqServer->socket->close();
-  spdlog::info("Closed ZMQ server socket");
-  spdlog::info("Closing ZMQ context ...");
-  zmqServer->ctx->close();
-  spdlog::info("Closed ZMQ context.");
+  if (server) {
+    if (server->threadPool) {
+      spdlog::info("Joining worker thread pool threads ...");
+      server->threadPool->joinAll();
+      spdlog::info("Joined worker thread pool threads");
+    }
+
+    if (server->ctx) {
+      spdlog::info("Shutting down ZMQ context");
+      server->ctx->shutdown();
+      spdlog::info("Shut down ZMQ context");
+    }
+
+    if (server->socket) {
+      spdlog::info("Closing ZMQ server socket ...");
+      server->socket->close();
+      spdlog::info("Closed ZMQ server socket");
+    }
+
+    if (server->ctx) {
+      spdlog::info("Closing ZMQ context ...");
+      server->ctx->close();
+      spdlog::info("Closed ZMQ context.");
+    }
+  } else {
+    spdlog::warn("ZMQServer singleton is null during exit");
+  }
+
+  resetLifecycleState();
   spdlog::info("Exited zmq server.");
 }
 
 void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
-  static bool initedServer = false;
-  CHECK_STATE(!initedServer)
-  initedServer = true;
+  bool expected = false;
+  CHECK_STATE(isInited.compare_exchange_strong(expected, true))
+  isExitRequested = false;
 
   spdlog::info("Initing zmq server.\n checkSignature is set to {}.\n "
                "checkKeyOwnership is set to {}",
@@ -151,26 +183,40 @@ void ZMQServer::initZMQServer(bool _checkSignature, bool _checkKeyOwnership) {
 
   spdlog::info("Initing zmq server ...");
 
-  zmqServer =
-      make_shared<ZMQServer>(_checkSignature, _checkKeyOwnership, rootCAPath);
+  try {
+    zmqServer =
+        make_shared<ZMQServer>(_checkSignature, _checkKeyOwnership, rootCAPath);
 
-  CHECK_STATE(zmqServer)
-  serverThread =
-      make_shared<thread>(bind(&ZMQServer::run, ZMQServer::zmqServer));
-  serverThread->detach();
+    CHECK_STATE(zmqServer)
+    serverThread =
+        make_shared<thread>(bind(&ZMQServer::run, ZMQServer::zmqServer));
+    serverThread->detach();
 
-  spdlog::info("Releasing SGX worker threads  ...");
+    spdlog::info("Releasing SGX worker threads  ...");
 
-  zmqServer->releaseWorkers();
+    zmqServer->releaseWorkers();
 
-  spdlog::info("Released SGX worker threads.");
+    spdlog::info("Released SGX worker threads.");
 
-  spdlog::info("Inited zmq server.");
+    spdlog::info("Inited zmq server.");
+  } catch (const exception &e) {
+    spdlog::error("Failed to initialize ZMQ server: {}", e.what());
+    resetLifecycleState();
+    throw;
+  } catch (...) {
+    spdlog::error("Failed to initialize ZMQ server with unknown exception");
+    resetLifecycleState();
+    throw;
+  }
 }
 
 shared_ptr<thread> ZMQServer::serverThread = nullptr;
 
-ZMQServer::~ZMQServer() { exitZMQServer(); }
+ZMQServer::~ZMQServer() {
+  if (isInited && zmqServer.get() == this) {
+    exitZMQServer();
+  }
+}
 
 void ZMQServer::checkForExit() {
   if (isExitRequested) {

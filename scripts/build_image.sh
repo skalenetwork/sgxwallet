@@ -6,8 +6,9 @@ set -x
 DOCKERFILE=$1
 CONTAINER_NAME=$2
 
-: "${VERSION?Need to set VERSION}"
-: "${BRANCH?Need to set BRANCH}"
+# Unpublished builds (pull requests, local runs) are tagged with the commit SHA
+VERSION=${VERSION-$(git rev-parse HEAD)}
+BRANCH=${BRANCH-local}
 
 REPO_NAME=skalenetwork/$CONTAINER_NAME
 IMAGE_NAME=$REPO_NAME:$VERSION

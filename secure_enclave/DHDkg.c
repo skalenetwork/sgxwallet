@@ -79,9 +79,14 @@ int gen_session_key(char *skey_str, char *pb_keyB, char *common_key) {
     strncpy(pb_keyB_y, pb_keyB + 64, 64);
     pb_keyB_y[64] = 0;
 
-    mpz_set_str(skey, skey_str, 16);
+    if (mpz_set_str(skey, skey_str, 16) == -1) {
+        goto clean;
+    }
 
-    point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
+    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+        LOG_ERROR("gen_session_key: invalid public key point");
+        goto clean;
+    }
 
     point_multiplication(session_key, skey, pub_keyB, curve);
 
@@ -116,12 +121,6 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
     point pub_keyB = point_init();
     point session_key = point_init();
 
-    pb_keyB_x[64] = 0;
-    strncpy(pb_keyB_x, sshare + 64, 64);
-    strncpy(pb_keyB_y, sshare + 128, 64);
-    pb_keyB_y[64] = 0;
-
-
     if (!common_key) {
         LOG_ERROR("session_key_recover: Null common_key");
         goto clean;
@@ -139,11 +138,21 @@ int session_key_recover(const char *skey_str, const char *sshare, char *common_k
         goto clean;
     }
 
+    strncpy(pb_keyB_x, sshare + 64, 64);
+    pb_keyB_x[64] = 0;
+
+    strncpy(pb_keyB_y, sshare + 128, 64);
+    pb_keyB_y[64] = 0;
+
     if (mpz_set_str(skey, skey_str, 16) == -1) {
         goto clean;
     }
 
-    point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y);
+    if (point_set_hex(pub_keyB, pb_keyB_x, pb_keyB_y) != 0) {
+        LOG_ERROR("session_key_recover: invalid public key point");
+        goto clean;
+    }
+
     point_multiplication(session_key, skey, pub_keyB, curve);
 
     SAFE_CHAR_BUF(arr_x, ENCLAVE_BUF_LEN);

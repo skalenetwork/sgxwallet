@@ -171,14 +171,6 @@ enclave {
                                 [out, count = 3072] uint8_t* encrypted_dkg_secret,
                                 [out] uint64_t * enc_len, size_t _t);
 
-        public void trustedDecryptDkgSecret (
-                                [out] int *errStatus,
-                                [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 3050] uint8_t* encrypted_dkg_secret,
-                                uint64_t enc_len,
-                                [out, count = 3072] uint8_t* decrypted_dkg_secret
-                                );
-
         public void trustedGetEncryptedSecretShare(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char *err_string,
@@ -240,7 +232,7 @@ enclave {
         public void trustedCreateBlsKey(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 6145] const char* s_shares,
+                                [in, string] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,
@@ -249,7 +241,7 @@ enclave {
         public void trustedCreateBlsKeyV2(
                                 [out]int *errStatus,
                                 [out, count = SMALL_BUF_SIZE] char* err_string,
-                                [in, count = 6145] const char* s_shares,
+                                [in, string] const char* s_shares,
                                 [in, count = SMALL_BUF_SIZE] uint8_t* encrypted_key,
                                 uint64_t key_len,
                                 [out, count = SMALL_BUF_SIZE] uint8_t * encr_bls_key,

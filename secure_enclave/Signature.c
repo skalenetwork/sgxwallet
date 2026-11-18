@@ -127,8 +127,6 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     SAFE_CHAR_BUF(rand_char, 32);
 
-    get_global_random((unsigned char *) rand_char, 32);
-
     signature_sign_start:
 
 
@@ -136,7 +134,13 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
 
     mpz_import(seed, 32, 1, sizeof(rand_char[0]), 0, 0, rand_char);
 
-    mpz_mod(k, seed, curve->p);
+    // Do not compute seed mod n: the 256-bit source range is not an exact
+    // multiple of the curve order, so modulo reduction would make some nonce
+    // values slightly more likely than others. Rejection sampling preserves a
+    // uniform distribution over the valid ECDSA nonce range [1, n - 1].
+    if (mpz_sgn(seed) == 0 || mpz_cmp(seed, curve->n) >= 0)
+        goto signature_sign_start;
+    mpz_set(k, seed);
 
     //Calculate x
     point_multiplication(Q, k, curve->G, curve);
@@ -148,17 +152,22 @@ void signature_sign(signature sig, mpz_t message, mpz_t private_key, domain_para
         goto signature_sign_start;
 
 
-    //Calculate s
-    //s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
-    //number_theory_inverse(t1, k, curve->n);//t1 = k¯¹ mod n
-    mpz_invert(t1, k, curve->n);
-    mpz_mul(t2, private_key, r);    //t2 = d*r
-    mpz_add(t3, message, t2);    //t3 = e+t2
-    mpz_mod(t4, t3, curve->n);    //t2 = t3 mod n
-    mpz_mul(t5, t4, t1);        //t3 = t2 * t1
-    mpz_mod(s, t5, curve->n);    //s = t3 mod n
+    // Calculate s
+    // s = k¯¹(e+d*r) mod n = (k¯¹ mod n) * ((e+d*r) mod n) mod n
+    
+    if (mpz_invert(t1, k, curve->n) == 0) // t1 = k¯¹ mod n
+        goto signature_sign_start; // should never happen - only a defensive check
 
-    //Calculate v
+    mpz_mul(t2, private_key, r);    // t2 = d*r
+    mpz_add(t3, message, t2);       // t3 = e+t2
+    mpz_mod(t4, t3, curve->n);      // t4 = t3 mod n
+    mpz_mul(t5, t4, t1);            // t5 = t4 * t1
+    mpz_mod(s, t5, curve->n);       // s = t5 mod n
+
+    if (mpz_sgn(s) == 0) // Start over if s=0
+        goto signature_sign_start;
+
+    // Calculate v
 
     mpz_mod_ui(rem, Q->y, 2);
 
@@ -224,9 +233,9 @@ bool signature_verify(mpz_t message, signature sig, point public_key, domain_par
     bool result = false;
 
 
-    if (mpz_cmp(sig->r, one) < 0 &&
-        mpz_cmp(curve->n, sig->r) <= 0 &&
-        mpz_cmp(sig->s, one) < 0 &&
+    if (mpz_cmp(sig->r, one) < 0 ||
+        mpz_cmp(curve->n, sig->r) <= 0 ||
+        mpz_cmp(sig->s, one) < 0 ||
         mpz_cmp(curve->n, sig->s) <= 0) {
         goto clean;
     }

@@ -36,4 +36,6 @@ find . -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
 if [[ "${BUILD_TYPE}" != "simulation" ]]; then
     rm -f /opt/intel/sgxsdk/lib64/*_sim.so
 fi
-strip --strip-unneeded sgxwallet testw sgx_util tests/backward_compatibility/api_validator 2>/dev/null || true
+strip --strip-unneeded sgxwallet sgxwallet_tests sgx_util \
+    tests/backward_compatibility/api_validator \
+    2>/dev/null || true

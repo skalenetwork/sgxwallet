@@ -59,8 +59,10 @@ class ZMQServer : public Agent {
   shared_ptr<zmq::context_t> ctx;
   shared_ptr<zmq::socket_t> socket;
 
+  static atomic<bool> isInited;
   static atomic<bool> isExitRequested;
 
+  static void resetLifecycleState();
   void doOneServerLoop();
 
 public:

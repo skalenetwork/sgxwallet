@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <jsonrpccpp/client.h>
+#include <optional>
 
 class StubClient : public jsonrpc::Client {
 public:
@@ -102,6 +103,22 @@ public:
     p["polyName"] = polyName;
     p["t"] = t;
     Json::Value result = this->CallMethod("generateDKGPoly", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
+
+  Json::Value generateDKGPolyV3(const std::string &polyName,
+                                const std::string &previousBLSPrivateKeyName,
+                                int t) {
+    Json::Value p;
+    p["polyName"] = polyName;
+    p["previousBLSPrivateKeyName"] = previousBLSPrivateKeyName;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("generateDKGPolyV3", p);
     if (result.isObject())
       return result;
     else
@@ -229,6 +246,29 @@ public:
     p["n"] = n;
     p["t"] = t;
     Json::Value result = this->CallMethod("createBLSPrivateKeyV2", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(
+          jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
+          result.toStyledString());
+  }
+
+  Json::Value createBLSPrivateKeyV3(const std::string &blsKeyName,
+                                    const std::string &ethKeyName,
+                                    const std::string &polyName,
+                                    const Json::Value &secretContributions,
+                                    int t, int n) {
+    Json::Value p;
+    p["blsKeyName"] = blsKeyName;
+    p["ethKeyName"] = ethKeyName;
+    if (!polyName.empty()) {
+      p["polyName"] = polyName;
+    }
+    p["secretContributions"] = secretContributions;
+    p["n"] = n;
+    p["t"] = t;
+    Json::Value result = this->CallMethod("createBLSPrivateKeyV3", p);
     if (result.isObject())
       return result;
     else

@@ -62,6 +62,9 @@
 uint32_t enclaveLogLevel = 0;
 
 namespace {
+atomic<bool> sgxServerInited(false);
+mutex initMutex;
+// Separate from initMutex so that readers never wait for init.
 mutex runningConfigMutex;
 optional<initConfig> runningConfig;
 
@@ -206,9 +209,6 @@ void setFullOptions(const initConfig &_config) {
 } // namespace
 
 void initAll(initConfig &_config) {
-
-  static atomic<bool> sgxServerInited(false);
-  static mutex initMutex;
   setFullOptions(_config);
   enclaveLogLevel = _config.enclaveLogLevel;
 
@@ -239,6 +239,10 @@ void initAll(initConfig &_config) {
 
     initUserSpace();
 
+    // Certificate provisioning requires the data directory created by
+    // initUserSpace().
+    SGXWalletServer::createCertsIfNeeded();
+
     if (_config.reencryptDatabaseWithNewSEK) {
       DBReencryptor dbReencryptor;
       dbReencryptor.reencryptWithNewSEK();
@@ -246,7 +250,6 @@ void initAll(initConfig &_config) {
       initSEK();
     }
 
-    SGXWalletServer::createCertsIfNeeded();
     SGXWalletServer::initThreadPool(_config.threadPoolSize);
 
     if (_config.useHTTPS) {
@@ -289,4 +292,13 @@ void exitAll() {
   SGXInfoServer::exitServer();
   ZMQServer::exitZMQServer();
   trustedEnclaveClear(eid);
+  if (eid != 0) {
+    const sgx_status_t status = sgx_destroy_enclave(eid);
+    if (status != SGX_SUCCESS) {
+      spdlog::warn("Could not destroy enclave in exitAll: {}", status);
+    }
+    eid = 0;
+  }
+  LevelDB::closeDataFolderAndDBs();
+  sgxServerInited = false;
 }
